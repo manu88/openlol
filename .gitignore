@@ -6,3 +6,5 @@ lol
 compile_commands.json
 .DS_Store
 *.CPS
+*.DIP
+*.TIM
