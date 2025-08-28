@@ -8,3 +8,6 @@ compile_commands.json
 *.CPS
 *.DIP
 *.TIM
+*.LBM
+*.CMZ
+*.INF
