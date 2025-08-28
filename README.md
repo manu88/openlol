@@ -10,8 +10,8 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.VCN‘ : ?
 - ‘.LBM‘ : IFF https://moddingwiki.shikadi.net/wiki/LBM_Format, use this parser? https://github.com/svanderburg/libiff
 - ‘.XXX‘ : level-related?
-- ‘.WLL‘ : level-related?
-- ‘.FRE‘ : level-related?
+- ‘.WLL‘ : WaLL data, maybe decoration data?
+- ‘.FRE‘ : FREnch text compressed with a Dizio-Encoding
 - ‘.INF‘ : Script data similar to Eob inf
 - ‘.CMZ‘ : EoB maze definition, but compressed with Format 80
 - ‘.INI‘ : level-related?

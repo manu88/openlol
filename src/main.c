@@ -1,9 +1,33 @@
 
+#include "format_cmz.h"
 #include "pak_file.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static int cmdMap(int argc, char *argv[]) {
+  FILE *f = fopen(argv[0], "rb");
+  if (!f) {
+    perror("open: ");
+    return 1;
+  }
+  fseek(f, 0, SEEK_END);
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  uint8_t *buffer = malloc(fsize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(f);
+    return 1;
+  }
+  fread(buffer, fsize, 1, f);
+  printf("read %zi bytes\n", fsize);
+  TestCMZ(buffer, fsize);
+  fclose(f);
+  free(buffer);
+  return 0;
+}
 
 static void usageCPS(void) { printf("cps subcommands: extract cpsFilepath\n"); }
 
@@ -124,6 +148,8 @@ int main(int argc, char *argv[]) {
     return cmdPak(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
     return cmdCPS(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "map") == 0) {
+    return cmdMap(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

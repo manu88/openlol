@@ -1,0 +1,8 @@
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
+
+ssize_t LCWDecompress(const uint8_t *source, size_t sourceSize, uint8_t *dest,
+                      size_t destSize);

@@ -39,7 +39,6 @@ static int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
     ++src;
   }
 
-  printf("Using version %i\n", version);
   while (src < inBuf + inLen && dst < outEnd && src[0] != 0x80) {
     int out_remain = (int)(outEnd - dst);
     if (src[0] == 0xff) { // 0b11111111
