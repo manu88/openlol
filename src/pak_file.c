@@ -61,6 +61,25 @@ const char *PakFileEntryGetExtension(const PAKEntry *entry) {
   return entry->filename + strlen(entry->filename) - 3;
 }
 
+int PakFileExtract(PAKFile *file, PAKEntry *entry, const char *toFile) {
+  uint8_t *fileData = PakFileGetEntryData(file, entry);
+  if (!fileData) {
+    return 1;
+  }
+  FILE *f = fopen(toFile, "wb");
+  if (!f) {
+    perror("open");
+    return 1;
+  }
+  if (fwrite(fileData, entry->fileSize, 1, f) != 1) {
+    perror("write");
+    fclose(f);
+    return 1;
+  }
+  fclose(f);
+  return 0;
+}
+
 uint8_t *PakFileGetEntryData(const PAKFile *file, PAKEntry *entry) {
   if (entry->data == NULL) {
     printf("Read data for entry '%s'\n", entry->filename);
