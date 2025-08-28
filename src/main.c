@@ -5,6 +5,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void usageCPS(void) { printf("cps subcommands: extract cpsFilepath\n"); }
+
+static int cmdCPSExtract(const char *cpsfilePath) {
+  printf("Extract CPS '%s'\n", cpsfilePath);
+  return 0;
+}
+
+static int cmdCPS(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("cps command, missing arguments\n");
+    usageCPS();
+    return 1;
+  }
+  if (argc < 2) {
+    printf("cps list: missing cps file path\n");
+    return 1;
+  }
+  const char *filepath = argv[1];
+  if (strcmp(argv[0], "extract") == 0) {
+    return cmdCPSExtract(filepath);
+  }
+  return 1;
+}
+
 static void usagePak(void) {
   printf("pak subcommands: list|extract pakFilepath [file]\n");
 }
@@ -98,6 +122,8 @@ int main(int argc, char *argv[]) {
   }
   if (strcmp(argv[1], "pak") == 0) {
     return cmdPak(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "cps") == 0) {
+    return cmdCPS(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
