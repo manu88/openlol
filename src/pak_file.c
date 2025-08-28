@@ -6,9 +6,15 @@
 #include <string.h>
 
 void PAKFileInit(PAKFile *file) { memset(file, 0, sizeof(PAKFile)); }
-void PAKFileRelease(PAKFile *file) { free(file->entries); }
+void PAKFileRelease(PAKFile *file) {
+  fclose(file->fp);
+  for (int i = 0; i < file->count; i++) {
+    free(file->entries->data);
+  }
+  free(file->entries);
+}
 
-static int readPAKFileEntry(FILE *fp, PAKFileEntry *entry) {
+static int readPAKFileEntry(FILE *fp, PAKEntry *entry) {
   fread(&entry->offset, sizeof(uint32_t), 1, fp);
 
   memset(entry->filename, 0, MAX_FILENAME);
@@ -24,16 +30,17 @@ static int readPAKFileEntry(FILE *fp, PAKFileEntry *entry) {
 }
 
 int PAKFileRead(PAKFile *file, const char *filepath) {
-  FILE *fp = fopen(filepath, "r");
-  if (fp == NULL) {
+  file->fp = fopen(filepath, "r");
+  if (file->fp == NULL) {
     return 0;
   }
 
   file->count = 0;
   while (1) {
     file->entries =
-        realloc(file->entries, (file->count + 1) * sizeof(PAKFileEntry));
-    readPAKFileEntry(fp, &file->entries[file->count]);
+        realloc(file->entries, (file->count + 1) * sizeof(PAKEntry));
+    memset(&file->entries[file->count], 0, sizeof(PAKEntry));
+    readPAKFileEntry(file->fp, &file->entries[file->count]);
     if (file->count > 0) {
       file->entries[file->count - 1].fileSize =
           file->entries[file->count].offset -
@@ -46,6 +53,24 @@ int PAKFileRead(PAKFile *file, const char *filepath) {
     file->count++;
   }
   file->count--;
-  fclose(fp);
+
   return 1;
+}
+
+const char *PakFileEntryGetExtension(const PAKEntry *entry) {
+  return entry->filename + strlen(entry->filename) - 3;
+}
+
+uint8_t *PakFileGetEntryData(const PAKFile *file, PAKEntry *entry) {
+  if (entry->data == NULL) {
+    printf("Read data for entry '%s'\n", entry->filename);
+
+    fseek(file->fp, entry->offset, SEEK_SET);
+    entry->data = malloc(entry->fileSize);
+    if (fread(entry->data, entry->fileSize, 1, file->fp) != 1) {
+      perror("PakFileGetEntryData.fread");
+      return NULL;
+    }
+  }
+  return entry->data;
 }
