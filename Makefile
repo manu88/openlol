@@ -24,6 +24,7 @@ $(EXECUTABLE): $(OBJECTS)
 clean:
 	rm -f $(OBJECTS)
 	rm -f $(EXECUTABLE)
+	rm -f src/*.d
 
 .PHONY: clean all
 
