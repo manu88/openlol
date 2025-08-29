@@ -1,5 +1,6 @@
 
 #include "format_cmz.h"
+#include "format_inf.h"
 #include "pak_file.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -23,7 +24,7 @@ static int cmdMap(int argc, char *argv[]) {
   }
   fread(buffer, fsize, 1, f);
   printf("read %zi bytes\n", fsize);
-  TestCMZ(buffer, fsize);
+  TestINF(buffer, fsize);
   fclose(f);
   free(buffer);
   return 0;
