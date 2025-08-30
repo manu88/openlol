@@ -130,8 +130,6 @@ int decodeSpecialScript(int32_t script) {
 
   int gotScriptName = 0;
 
-  printf("Script %i: ", script);
-
   for (uint32_t pos = 0; pos < ARRAYSIZE(scriptDesc) - 1; ++pos) {
     if (scriptDesc[pos].script == script) {
       printf("%s:\n", scriptDesc[pos].description);
@@ -153,6 +151,7 @@ int decodeSpecialScript(int32_t script) {
   if (nextScriptStartsAt < _currentPos) {
     return 1;
   }
+  printf("Script %i: ", script);
   if (!gotScriptName) {
     printf("%s:\n", scriptDesc[ARRAYSIZE(scriptDesc) - 1].description);
   }
