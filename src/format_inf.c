@@ -195,7 +195,7 @@ int decodeSpecialScript(int32_t script) {
     // lets get out what the command means
     for (uint32_t pos = 0; pos < ARRAYSIZE(commandDesc) - 1; ++pos) {
       if (commandDesc[pos].command == _currentCommand) {
-        gotCommand = 0;
+        gotCommand = 1;
         printf("%s", commandDesc[pos].description);
 
         if (commandDesc[pos].usesArgument &&
