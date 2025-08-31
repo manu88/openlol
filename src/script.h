@@ -53,3 +53,4 @@ typedef struct {
 
 void ScriptVMInit(ScriptVM *vm);
 int ScriptExec(ScriptVM *vm, const ScriptInfo *info);
+void ScriptVMDump(const ScriptVM *vm);

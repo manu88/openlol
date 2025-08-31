@@ -10,6 +10,13 @@ void ScriptVMInit(ScriptVM *vm) {
   vm->framePointer = FRAME_POINTER_INIT;
 }
 
+void ScriptVMDump(const ScriptVM *vm) {
+  printf("stack %i\n", vm->stackPointer);
+  for (int i = 0; i < STACK_SIZE; i++) {
+    printf("%i: %X\n", i, vm->stack[i]);
+  }
+}
+
 typedef struct {
   uint16_t scriptStart;
   uint16_t currentAddress;
@@ -125,6 +132,65 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
   case OP_BINARY:
     printf("BINARY %X\n", parameter);
     assert(parameter <= 17);
+    int16_t right = stackPop(vm);
+    int16_t left = stackPop(vm);
+
+    switch (parameter) {
+    case 0:
+      stackPush(vm, (left && right) ? 1 : 0);
+      break; /* left && right */
+    case 1:
+      stackPush(vm, (left || right) ? 1 : 0);
+      break; /* left || right */
+    case 2:
+      stackPush(vm, (left == right) ? 1 : 0);
+      break; /* left == right */
+    case 3:
+      stackPush(vm, (left != right) ? 1 : 0);
+      break; /* left != right */
+    case 4:
+      stackPush(vm, (left < right) ? 1 : 0);
+      break; /* left <  right */
+    case 5:
+      stackPush(vm, (left <= right) ? 1 : 0);
+      break; /* left <= right */
+    case 6:
+      stackPush(vm, (left > right) ? 1 : 0);
+      break; /* left >  right */
+    case 7:
+      stackPush(vm, (left >= right) ? 1 : 0);
+      break; /* left >= right */
+    case 8:
+      stackPush(vm, left + right);
+      break; /* left +  right */
+    case 9:
+      stackPush(vm, left - right);
+      break; /* left -  right */
+    case 10:
+      stackPush(vm, left * right);
+      break; /* left *  right */
+    case 11:
+      stackPush(vm, left / right);
+      break; /* left /  right */
+    case 12:
+      stackPush(vm, left >> right);
+      break; /* left >> right */
+    case 13:
+      stackPush(vm, left << right);
+      break; /* left << right */
+    case 14:
+      stackPush(vm, left & right);
+      break; /* left &  right */
+    case 15:
+      stackPush(vm, left | right);
+      break; /* left |  right */
+    case 16:
+      stackPush(vm, left % right);
+      break; /* left %  right */
+    case 17:
+      stackPush(vm, left ^ right);
+      break; /* left ^  right */
+    }
     break;
   case OP_RETURN:
     printf("RET %X\n", parameter);

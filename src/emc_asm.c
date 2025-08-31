@@ -46,8 +46,7 @@ static uint16_t parseArg(const char *arg) {
 }
 
 static int genByteCode(char *inst, uint16_t bCode[2]) {
-
-  char *mnemonic = toLower(strsep(&inst, " "));
+  const char *mnemonic = toLower(strsep(&inst, " "));
   const char *arg = inst;
   printf("'%s': '%s'\n", mnemonic, arg);
   if (strcmp(mnemonic, "push") == 0) {
@@ -150,6 +149,7 @@ int EMC_Exec(const char *scriptFilepath) {
   inf.scriptData = (uint16_t *)buffer;
   inf.scriptSize = fsize / 2;
   ScriptExec(&vm, &inf);
+  ScriptVMDump(&vm);
   free(buffer);
   return 0;
 }
