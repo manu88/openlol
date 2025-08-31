@@ -52,14 +52,12 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
   printf("'%s': '%s'\n", mnemonic, arg);
   if (strcmp(mnemonic, "push") == 0) {
     assert(arg);
-    // 0X444B  -> PUSH 000B
     uint16_t val = parseArg(arg);
-    bCode[0] = 0x4400 + val;
+    bCode[0] = 0x0044 + (val << 8);
     return 1;
   } else if (strcmp(mnemonic, "add") == 0) {
-    // 0X4851 -> BINARY 8
     assert(arg == NULL);
-    bCode[0] = 0x4851;
+    bCode[0] = 0x0851;
     return 1;
   }
   return 0;
@@ -124,5 +122,34 @@ int EMC_Assemble(const char *srcFilepath, const char *outFilePath) {
 
   printf("oubuffer size=%zi\n", outBufferIndex);
   free(outBuffer);
+  return 0;
+}
+
+int EMC_Exec(const char *scriptFilepath) {
+  FILE *fp = fopen(scriptFilepath, "r");
+  if (fp == NULL) {
+    perror("fopen");
+    return 1;
+  }
+  fseek(fp, 0, SEEK_END);
+  size_t fsize = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  uint8_t *buffer = malloc(fsize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(fp);
+    return 1;
+  }
+  fread(buffer, fsize, 1, fp);
+  fclose(fp);
+  printf("cript binary size = %zu\n", fsize);
+
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = fsize / 2;
+  ScriptExec(&vm, &inf);
+  free(buffer);
   return 0;
 }

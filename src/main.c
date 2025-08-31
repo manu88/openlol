@@ -9,7 +9,7 @@
 
 static int cmdScriptExec(const char *filepath) {
   printf("asm script '%s'\n", filepath);
-  return 0;
+  return EMC_Exec(filepath);
 }
 
 static int cmdScriptASM(const char *filepath) {

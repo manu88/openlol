@@ -157,7 +157,7 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
       /* When this flag is set, the parameter is in the next opcode */
       parameter = swap_uint16(*(info->scriptData + currentPos++));
     }
-    printf("0X04%X ", orig);
+    printf("0X%X ", orig);
     parseInstruction(vm, &ctx, opcode, parameter);
   }
 
