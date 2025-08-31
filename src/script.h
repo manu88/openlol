@@ -36,6 +36,20 @@ typedef enum {
 typedef struct {
   uint16_t *scriptData;
   uint32_t scriptSize;
+
 } ScriptInfo;
 
-int ScriptExec(const ScriptInfo *info);
+#define STACK_SIZE 16
+#define FRAME_POINTER_INIT 17
+#define VAR_SIZE 5
+typedef struct {
+  ScriptInfo *scriptInfo;
+  uint16_t stack[STACK_SIZE];
+  uint8_t stackPointer;
+  uint8_t framePointer;
+  uint16_t variables[VAR_SIZE];
+  uint16_t returnValue;
+} ScriptVM;
+
+void ScriptVMInit(ScriptVM *vm);
+int ScriptExec(ScriptVM *vm, const ScriptInfo *info);

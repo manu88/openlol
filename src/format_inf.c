@@ -38,7 +38,7 @@ static void decodeTextArea(void) {
       break;
     }
     uint32_t startoffset = swap_uint16(((uint16_t *)_chunks[kText]._data)[pos]);
-    printf("Index: %d Offset: %d:\n", pos, startoffset);
+    printf("Index: %X Offset: %X:\n", pos, startoffset);
     /*uint32_t endoffset = TO_BE_16(((uint16_t*)_chunks[kText]._data)[pos+1]);
     printf("\nstartoffset = %d, endoffset = %d\n\n", startoffset, endoffset);
     for (; startoffset < endoffset; ++startoffset) {
@@ -59,7 +59,9 @@ static int decodeScript(void) {
   info.scriptSize = scriptSize;
 
   printf("---- start script ---- \n");
-  ScriptExec(&info);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptExec(&vm, &info);
 
   return 1;
 }

@@ -1,11 +1,52 @@
 
-#include "format_cmz.h"
+#include "emc_asm.h"
 #include "format_inf.h"
 #include "pak_file.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static int cmdScriptExec(const char *filepath) {
+  printf("asm script '%s'\n", filepath);
+  return 0;
+}
+
+static int cmdScriptASM(const char *filepath) {
+  char *outFilePath = malloc(strlen(filepath) + 5);
+  strcpy(outFilePath, filepath);
+  outFilePath = strcat(outFilePath, ".bin");
+  printf("asm script '%s' to file '%s'\n", filepath, outFilePath);
+  int ret = EMC_Assemble(filepath, outFilePath);
+  free(outFilePath);
+  return ret;
+}
+
+static void usageScript(void) {
+  printf("script subcommands: asm|exec filepath\n");
+}
+
+static int cmdScript(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("script command, missing arguments\n");
+    usageScript();
+    return 1;
+  }
+  if (argc < 2) {
+    printf("script: missing file path\n");
+    return 1;
+  }
+  const char *filepath = argv[1];
+
+  if (strcmp(argv[0], "exec") == 0) {
+    return cmdScriptExec(filepath);
+  } else if (strcmp(argv[0], "asm") == 0) {
+    return cmdScriptASM(filepath);
+  }
+  printf("unkown subcommand '%s'\n", argv[0]);
+  usageScript();
+  return 1;
+}
 
 static int cmdMap(int argc, char *argv[]) {
   FILE *f = fopen(argv[0], "rb");
@@ -137,7 +178,7 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak subcommand ...\n", progName);
+  printf("%s: pak|cps|map subcommand ...\n", progName);
 }
 
 int main(int argc, char *argv[]) {
@@ -151,6 +192,8 @@ int main(int argc, char *argv[]) {
     return cmdCPS(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "map") == 0) {
     return cmdMap(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "script") == 0) {
+    return cmdScript(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

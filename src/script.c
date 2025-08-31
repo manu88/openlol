@@ -2,16 +2,53 @@
 #include "bytes.h"
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
+
+void ScriptVMInit(ScriptVM *vm) {
+  memset(vm, 0, sizeof(ScriptVM));
+  vm->stackPointer = STACK_SIZE;
+  vm->framePointer = FRAME_POINTER_INIT;
+}
 
 typedef struct {
   uint16_t scriptStart;
   uint16_t currentAddress;
 } ScriptContext;
 
-static void parseInstruction(ScriptContext *ctx, uint8_t opCode,
+void stackPush(ScriptVM *vm, uint16_t value) {
+  if (vm->stackPointer == 0) {
+    printf("stackPush: Stack Overflow %i\n", vm->stackPointer);
+    assert(0);
+    return;
+  }
+  vm->stack[--vm->stackPointer] = value;
+}
+
+uint16_t stackPop(ScriptVM *vm) {
+  if (vm->stackPointer >= STACK_SIZE) {
+    printf("stackPop: Stack Overflow %i\n", vm->stackPointer);
+    assert(0);
+    return 0;
+  }
+
+  return vm->stack[vm->stackPointer++];
+}
+
+uint16_t stackPeek(ScriptVM *vm, int position) {
+  assert(position > 0);
+  if (vm->stackPointer >= STACK_SIZE - position) {
+    printf("stackPeek: Stack Overflow %i\n", vm->stackPointer);
+    assert(0);
+    return 0;
+  }
+
+  return vm->stack[vm->stackPointer + position - 1];
+}
+
+static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
                              uint16_t parameter) {
 
-  printf("0X%X: ", ctx->currentAddress);
+  printf("0X%X: (%i)", ctx->currentAddress, vm->stackPointer);
   switch ((ScriptCommand)opCode) {
 
   case OP_JUMP:
@@ -27,36 +64,52 @@ static void parseInstruction(ScriptContext *ctx, uint8_t opCode,
   case OP_PUSH:
   case OP_PUSH2:
     printf("PUSH %X\n", parameter);
+    stackPush(vm, parameter);
     break;
   case OP_PUSH_VARIABLE:
     printf("PUSH VAR %X\n", parameter);
+    stackPush(vm, vm->variables[parameter]);
     break;
   case OP_PUSH_LOCAL_VARIABLE:
     printf("PUSH LOC VAR %X\n", parameter);
     break;
   case OP_PUSH_PARAMETER:
     printf("PUSH PARAM %X\n", parameter);
+    stackPush(vm, vm->stack[vm->framePointer + parameter - 1]);
     break;
   case OP_POP_RETURN_OR_LOCATION:
     printf("POP RET OR LOC %X\n", parameter);
+    if (parameter == 0) { // return value
+      vm->returnValue = stackPop(vm);
+    } else if (parameter == 1) { // POP FRAMEPOINTER + LOCATION
+                                 //      stackPeek(vm, 2);
+      //      vm->framePointer = (uint8_t)stackPop(vm);
+      //      printf("OP_POP_RETURN_OR_LOCATION param 2 not implemented ;)\n");
+      //      assert(0);
+    }
     assert(parameter == 1 || parameter == 0);
     break;
   case OP_POP_VARIABLE:
     printf("POP VAR %X\n", parameter);
+    vm->variables[parameter] = stackPop(vm);
     break;
   case OP_POP_LOCAL_VARIABLE:
     printf("POP LOCAL VAR %X\n", parameter);
     break;
   case OP_POP_PARAMETER:
     printf("POP PARAM %X\n", parameter);
+    vm->stack[vm->framePointer + parameter - 1] = stackPop(vm);
     break;
   case OP_STACK_REWIND:
     printf("STA REWIND %X\n", parameter);
+    vm->stackPointer += parameter;
     break;
   case OP_STACK_FORWARD:
     printf("STA FORWARD %X\n", parameter);
+    vm->stackPointer -= parameter;
     break;
   case OP_FUNCTION:
+    parameter &= 0xFF;
     printf("FUNCTION %X\n", parameter);
     break;
   case OP_JUMP_NE:
@@ -78,13 +131,14 @@ static void parseInstruction(ScriptContext *ctx, uint8_t opCode,
   }
 }
 
-int ScriptExec(const ScriptInfo *info) {
+int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
   uint32_t currentPos = 0;
   ScriptContext ctx = {0};
   ctx.scriptStart = currentPos;
   while (currentPos < info->scriptSize) {
     ctx.currentAddress = currentPos;
-    uint16_t current = swap_uint16(*(info->scriptData + currentPos++));
+    uint16_t orig = *(info->scriptData + currentPos++);
+    uint16_t current = swap_uint16(orig);
     uint16_t parameter = 0;
     uint8_t opcode = (current >> 8) & 0x1F;
 
@@ -100,7 +154,8 @@ int ScriptExec(const ScriptInfo *info) {
       /* When this flag is set, the parameter is in the next opcode */
       parameter = swap_uint16(*(info->scriptData + currentPos++));
     }
-    parseInstruction(&ctx, opcode, parameter);
+    printf("0X%X ", orig);
+    parseInstruction(vm, &ctx, opcode, parameter);
   }
 
   return 0;
