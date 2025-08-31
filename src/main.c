@@ -17,13 +17,15 @@ static int cmdScriptASM(const char *filepath) {
   strcpy(outFilePath, filepath);
   outFilePath = strcat(outFilePath, ".bin");
   printf("asm script '%s' to file '%s'\n", filepath, outFilePath);
-  int ret = EMC_Assemble(filepath, outFilePath);
+  int ret = EMC_AssembleFile(filepath, outFilePath);
   free(outFilePath);
   return ret;
 }
 
+static int cmdScriptTests(void) { return EMC_Tests(); }
+
 static void usageScript(void) {
-  printf("script subcommands: asm|exec filepath\n");
+  printf("script subcommands: asm|exec|tests [filepath]\n");
 }
 
 static int cmdScript(int argc, char *argv[]) {
@@ -32,16 +34,23 @@ static int cmdScript(int argc, char *argv[]) {
     usageScript();
     return 1;
   }
-  if (argc < 2) {
-    printf("script: missing file path\n");
-    return 1;
-  }
+
   const char *filepath = argv[1];
 
   if (strcmp(argv[0], "exec") == 0) {
+    if (argc < 2) {
+      printf("script: missing file path\n");
+      return 1;
+    }
     return cmdScriptExec(filepath);
   } else if (strcmp(argv[0], "asm") == 0) {
+    if (argc < 2) {
+      printf("script: missing file path\n");
+      return 1;
+    }
     return cmdScriptASM(filepath);
+  } else if (strcmp(argv[0], "tests") == 0) {
+    return cmdScriptTests();
   }
   printf("unkown subcommand '%s'\n", argv[0]);
   usageScript();

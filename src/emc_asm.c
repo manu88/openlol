@@ -62,26 +62,67 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
   return 0;
 }
 
-int EMC_Assemble(const char *srcFilepath, const char *outFilePath) {
+uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
+  size_t outBufferSize = 128;
+  size_t outBufferIndex = 0;
+  uint16_t *outBuffer = malloc(outBufferSize);
+  memset(outBuffer, 0, outBufferSize);
+  int error = 0;
+  int lineNum = 0;
+  char *line = strtok((char *)script, "\n");
+  while (line != NULL) {
+    printf("line '%s'\n", line);
+    size_t lineSize = strlen(line);
+
+    if (lineSize > 2) {
+      char *trimmedLine = trim(removeComments(line));
+      uint16_t bCode[2] = {0};
+      int count = genByteCode(trimmedLine, bCode);
+      if (!count) {
+        error = 1;
+        printf("Error at line %i: '%s'\n", lineNum, line);
+        break;
+      }
+      outBuffer[outBufferIndex++] = bCode[0];
+      if (outBufferIndex > outBufferSize) {
+        outBufferSize *= 2;
+        outBuffer = realloc(outBuffer, outBufferSize);
+      }
+      if (count > 1) {
+        outBuffer[outBufferIndex++] = bCode[1];
+      }
+    }
+    line = strtok(NULL, "\r\n");
+    lineNum++;
+  }
+
+  if (error != 0) {
+    return NULL;
+  }
+  *retOutBufferSize = outBufferIndex;
+  return outBuffer;
+}
+
+int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
   FILE *fileSourceP = fopen(srcFilepath, "r");
   if (fileSourceP == NULL) {
     perror("fopen");
     return 1;
   }
 
-  char *line = NULL;
-  size_t len = 0;
-  ssize_t read;
-  int error = 0;
-  int lineNum = 0;
-
   size_t outBufferSize = 128;
   size_t outBufferIndex = 0;
   uint16_t *outBuffer = malloc(outBufferSize);
   memset(outBuffer, 0, outBufferSize);
 
-  while ((read = getline(&line, &len, fileSourceP)) != -1) {
-    if (read > 2) {
+  char *line = NULL;
+  size_t len = 0;
+  ssize_t lineSize;
+  int error = 0;
+  int lineNum = 0;
+
+  while ((lineSize = getline(&line, &len, fileSourceP)) != -1) {
+    if (lineSize > 2) {
       char *trimmedLine = trim(removeComments(line));
       uint16_t bCode[2] = {0};
       int count = genByteCode(trimmedLine, bCode);
@@ -101,10 +142,14 @@ int EMC_Assemble(const char *srcFilepath, const char *outFilePath) {
     }
     lineNum++;
   }
-
   fclose(fileSourceP);
   if (line)
     free(line);
+
+  if (error != 0) {
+    free(outBuffer);
+    return error;
+  }
 
   for (int i = 0; i < outBufferIndex; i++) {
     if (i % 8 == 0) {
@@ -150,6 +195,23 @@ int EMC_Exec(const char *scriptFilepath) {
   inf.scriptSize = fsize / 2;
   ScriptExec(&vm, &inf);
   ScriptVMDump(&vm);
+  free(buffer);
+  return 0;
+}
+
+int EMC_Tests(void) {
+  const char s[] = "Push 0X0A ; some comments\nPush 0X02\nAdd\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  printf("%zi\n", bufferSize);
+  assert(bufferSize == 3);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  ScriptExec(&vm, &inf);
+  assert(vm.stack[vm.stackPointer] == 0X0C);
   free(buffer);
   return 0;
 }
