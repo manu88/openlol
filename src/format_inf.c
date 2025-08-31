@@ -1,19 +1,14 @@
 #include "format_inf.h"
-
+#include "bytes.h"
+#include "script.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
 // Adapted from
 // https://github.com/scummvm/scummvm-tools/blob/cd2a721f48460b7c8f69024dbe5f26971491599c/dekyra.cpp
-
-uint16_t swap_uint16(uint16_t val) { return (val << 8) | (val >> 8); }
-
-uint32_t swap_uint32(uint32_t val) {
-  val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
-  return (val << 16) | (val >> 16);
-}
+// https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.c
 
 #define ARRAYSIZE(x) ((int)(sizeof(x) / sizeof(x[0])))
 
@@ -34,7 +29,6 @@ typedef struct {
 
 ScriptChunk _chunks[kCountChunkTypes];
 uint32_t _scriptSize;
-uint32_t _currentPos; // current instruction pos
 
 static void decodeTextArea(void) {
   printf("TEXT chunk:\n");
@@ -56,195 +50,18 @@ static void decodeTextArea(void) {
   }
 }
 
-typedef struct {
-  uint16_t command; // normally uint8_t
-  const char *description;
-  int usesArgument;
-} CommandDesc;
+static int decodeScript(void) {
+  uint16_t *script = (uint16_t *)_chunks[kData]._data;
 
-typedef struct {
-  int32_t script; // normally uint8_t
-  const char *description;
-} ScriptDesc;
+  uint32_t scriptSize = _chunks[kData]._size / 2;
+  ScriptInfo info = {0};
+  info.scriptData = script;
+  info.scriptSize = scriptSize;
 
-typedef struct {
-  uint16_t opcode; // normally uint8_t
-  const char *description;
-  const char *parameters;
-} OpcodeDesc;
-
-// function wich calls opcode procs
-const uint16_t OPCODE_CALLER = 0x0E;
-
-static uint32_t getNextScriptPos(uint32_t current_start) {
-  uint32_t pos = 0xFFFFFFFE;
-
-  for (uint32_t tmp = 0; tmp < _chunks[kEmc2Ordr]._size; ++tmp) {
-    if ((uint32_t)((swap_uint16(_chunks[kEmc2Ordr]._data[tmp]) << 1) + 2) >
-            current_start &&
-        (uint32_t)((swap_uint16(_chunks[kEmc2Ordr]._data[tmp]) << 1) + 2) <
-            pos) {
-      pos = ((swap_uint16(_chunks[kEmc2Ordr]._data[tmp]) << 1) + 2);
-    }
-  }
-
-  if (pos > _scriptSize) {
-    pos = _scriptSize;
-  }
-
-  return pos;
-}
-
-int decodeSpecialScript(int32_t script) {
-  static CommandDesc commandDesc[] = {{0x00, "c1_goToLine", 1},
-                                      {0x01, "c1_setReturn", 1},
-                                      {0x02, "c1_pushRetRec", 1},
-                                      {0x03, "c1_push", 1},
-                                      {0x04, "c1_push", 1},
-                                      {0x05, "c1_pushVar", 1},
-                                      {0x06, "c1_pushFrameNeg", 1},
-                                      {0x07, "c1_pushFramePos", 1},
-                                      {0x08, "c1_popRetRec", 1},
-                                      {0x09, "c1_popVar", 1},
-                                      {0x0A, "c1_popFrameNeg", 1},
-                                      {0x0B, "c1_popFramePos", 1},
-                                      {0x0C, "c1_addToSP", 1},
-                                      {0x0D, "c1_subFromSP", 1},
-                                      {0x0E, "c1_execOpcode", 1},
-                                      {0x0F, "c1_ifNotGoTo", 1},
-                                      {0x10, "c1_negate", 1},
-                                      {0x11, "c1_evaluate", 1},
-                                      // normaly only untils 0xFF
-                                      {0xFFFF, 0, 0}};
-
-  static ScriptDesc scriptDesc[] = {
-      {0, "kSetupScene"},        {1, "kClickEvent"}, {2, "kActorEvent"},
-      {4, "kEnterEvent"},        {5, "kExitEvent"},  {7, "kLoadResources"},
-      {0xFFFF, "unknown script"}};
-
-  static OpcodeDesc opcodeDesc[] = {{0x68, "0x68", "int"}};
-
-  if ((uint32_t)script >= _chunks[kEmc2Ordr]._size || script < 0) {
-    return 0;
-  }
-
-  int gotScriptName = 0;
-
-  for (uint32_t pos = 0; pos < ARRAYSIZE(scriptDesc) - 1; ++pos) {
-    if (scriptDesc[pos].script == script) {
-      printf("%s:\n", scriptDesc[pos].description);
-      gotScriptName = 1;
-      break;
-    }
-  }
-
-  uint8_t _currentCommand = 0;
-  uint8_t _argument = 0;
-  _currentPos =
-      (swap_uint16(((uint16_t *)_chunks[kEmc2Ordr]._data)[script]) << 1) + 2;
-  uint8_t *script_start = _chunks[kData]._data;
-
-  int gotArgument = 1;
-
-  uint32_t nextScriptStartsAt = getNextScriptPos(_currentPos);
-
-  if (nextScriptStartsAt < _currentPos) {
-    return 1;
-  }
-  printf("Script %i: ", script);
-  if (!gotScriptName) {
-    printf("%s:\n", scriptDesc[ARRAYSIZE(scriptDesc) - 1].description);
-  }
-
-  while (1) {
-    if ((uint32_t)_currentPos > _chunks[kData]._size - 1 ||
-        (uint32_t)_currentPos >= nextScriptStartsAt) {
-      break;
-    }
-
-    gotArgument = 1;
-    _currentCommand = *(script_start + _currentPos++);
-
-    // gets out
-    if (_currentCommand & 0x80) {
-      _argument =
-          ((_currentCommand & 0x0F) << 8) | *(script_start + _currentPos++);
-      _currentCommand &= 0xF0;
-    } else if (_currentCommand & 0x40) {
-      _argument = *(script_start + _currentPos++);
-    } else if (_currentCommand & 0x20) {
-      _currentPos++;
-
-      uint16_t tmp = *(uint16_t *)(script_start + _currentPos);
-      tmp &= 0xFF7F;
-
-      _argument = swap_uint16(tmp);
-      _currentPos += 2;
-    } else {
-      gotArgument = 0;
-    }
-
-    _currentCommand &= 0x1f;
-
-    // prints the offset
-    printf("0x%x:\t", _currentPos);
-
-    int gotCommand = 0;
-
-    // lets get out what the command means
-    for (uint32_t pos = 0; pos < ARRAYSIZE(commandDesc) - 1; ++pos) {
-      if (commandDesc[pos].command == _currentCommand) {
-        gotCommand = 1;
-        printf("%s", commandDesc[pos].description);
-
-        if (commandDesc[pos].usesArgument &&
-            commandDesc[pos].command != OPCODE_CALLER) {
-          printf("(0x%x)", _argument);
-        } else if (commandDesc[pos].usesArgument &&
-                   commandDesc[pos].command == OPCODE_CALLER) {
-          int gotOpcode = 0;
-          // lets look for our opcodes
-          for (uint32_t pos2 = 0; pos2 < ARRAYSIZE(opcodeDesc); ++pos2) {
-            if (opcodeDesc[pos2].opcode == _argument) {
-              printf("(%s(%s))", opcodeDesc[pos2].description,
-                     opcodeDesc[pos2].parameters);
-              gotOpcode = 1;
-              break;
-            }
-          }
-
-          if (!gotOpcode) {
-            printf("(0x%x(unknown))", _argument);
-          }
-        }
-
-        break;
-      }
-    }
-
-    // prints our command number + arg
-    if (!gotCommand) {
-      printf("0x%x(0x%x)", _currentCommand, _argument);
-    }
-
-    if (!gotArgument) {
-      printf("\t; couldn't get argument! maybe command is wrong.");
-    }
-
-    printf("\n");
-  }
-
-  printf("\n-------------\n");
+  printf("---- start script ---- \n");
+  ScriptExec(&info);
 
   return 1;
-}
-
-static void decodeScript(void) {
-  int c = 0;
-  for (uint32_t script = 0; decodeSpecialScript(script); ++script) {
-    c++;
-  }
-  printf("Total %i scripts\n", c);
 }
 
 void TestINF(const uint8_t *buffer, size_t bufferSize) {
