@@ -62,8 +62,11 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     assert(parameter == 1 || parameter == 0);
     break;
   case OP_PUSH:
+    printf("PUSH2 %04X\n", parameter);
+    stackPush(vm, parameter);
+    break;
   case OP_PUSH2:
-    printf("PUSH %X\n", parameter);
+    printf("PUSH %04X\n", parameter);
     stackPush(vm, parameter);
     break;
   case OP_PUSH_VARIABLE:
@@ -154,7 +157,7 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
       /* When this flag is set, the parameter is in the next opcode */
       parameter = swap_uint16(*(info->scriptData + currentPos++));
     }
-    printf("0X%X ", orig);
+    printf("0X04%X ", orig);
     parseInstruction(vm, &ctx, opcode, parameter);
   }
 
