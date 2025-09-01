@@ -33,6 +33,27 @@ typedef enum {
   OP_RETURN = 0X12    // Return from a subroutine.
 } ScriptCommand;
 
+typedef enum {
+  BinaryOp_LogicalAND = 0,
+  BinaryOp_LogicalOR = 1,
+  BinaryOp_EQUAL = 2,
+  BinaryOp_NotEQUAL = 3,
+  BinaryOp_Inf = 4,
+  BinaryOp_InfOrEq = 5,
+  BinaryOp_Greater = 6,
+  BinaryOp_GreaterOrEq = 7,
+  BinaryOp_Add = 8,
+  BinaryOp_Minus = 9,
+  BinaryOp_Multiply = 10,
+  BinaryOp_Divide = 11,
+  BinaryOp_RShift = 12,
+  BinaryOp_LShift = 13,
+  BinaryOp_AND = 14,
+  BinaryOp_OR = 15,
+  BinaryOp_MOD = 16,
+  BinaryOp_XOR = 17,
+} BinaryOp;
+
 typedef struct {
   uint16_t *scriptData;
   uint32_t scriptSize;

@@ -136,58 +136,58 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     int16_t left = stackPop(vm);
 
     switch (parameter) {
-    case 0:
+    case BinaryOp_LogicalAND:
       stackPush(vm, (left && right) ? 1 : 0);
       break;
-    case 1:
+    case BinaryOp_LogicalOR:
       stackPush(vm, (left || right) ? 1 : 0);
       break;
-    case 2:
+    case BinaryOp_EQUAL:
       stackPush(vm, (left == right) ? 1 : 0);
       break;
-    case 3:
+    case BinaryOp_NotEQUAL:
       stackPush(vm, (left != right) ? 1 : 0);
       break;
-    case 4:
+    case BinaryOp_Inf:
       stackPush(vm, (left < right) ? 1 : 0);
       break;
-    case 5:
+    case BinaryOp_InfOrEq:
       stackPush(vm, (left <= right) ? 1 : 0);
       break;
-    case 6:
+    case BinaryOp_Greater:
       stackPush(vm, (left > right) ? 1 : 0);
       break;
-    case 7:
+    case BinaryOp_GreaterOrEq:
       stackPush(vm, (left >= right) ? 1 : 0);
       break;
-    case 8:
+    case BinaryOp_Add:
       stackPush(vm, left + right);
       break;
-    case 9:
+    case BinaryOp_Minus:
       stackPush(vm, left - right);
       break;
-    case 10:
+    case BinaryOp_Multiply:
       stackPush(vm, left * right);
       break;
-    case 11:
+    case BinaryOp_Divide:
       stackPush(vm, left / right);
       break;
-    case 12:
+    case BinaryOp_RShift:
       stackPush(vm, left >> right);
       break;
-    case 13:
+    case BinaryOp_LShift:
       stackPush(vm, left << right);
       break;
-    case 14:
+    case BinaryOp_AND:
       stackPush(vm, left & right);
       break;
-    case 15:
+    case BinaryOp_OR:
       stackPush(vm, left | right);
       break;
-    case 16:
+    case BinaryOp_MOD:
       stackPush(vm, left % right);
       break;
-    case 17:
+    case BinaryOp_XOR:
       stackPush(vm, left ^ right);
       break;
     }

@@ -49,7 +49,6 @@ static uint16_t parseArg(const char *arg) {
 static int genByteCode(char *inst, uint16_t bCode[2]) {
   const char *mnemonic = toLower(strsep(&inst, " "));
   const char *arg = inst;
-  printf("'%s': '%s'\n", mnemonic, arg);
   if (strcmp(mnemonic, "push") == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
@@ -67,11 +66,15 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
 
   } else if (strcmp(mnemonic, "add") == 0) {
     assert(arg == NULL);
-    bCode[0] = 0x0851;
+    bCode[0] = 0x0051 + (BinaryOp_Add << 8);
     return 1;
   } else if (strcmp(mnemonic, "multiply") == 0) {
     assert(arg == NULL);
-    bCode[0] = 0x0A51;
+    bCode[0] = 0x0051 + (BinaryOp_Multiply << 8);
+    return 1;
+  } else if (strcmp(mnemonic, "divide") == 0) {
+    assert(arg == NULL);
+    bCode[0] = 0x0051 + (BinaryOp_Divide << 8);
     return 1;
   }
   return 0;
@@ -86,7 +89,6 @@ uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
   int lineNum = 0;
   char *line = strtok((char *)script, "\n");
   while (line != NULL) {
-    printf("line '%s'\n", line);
     size_t lineSize = strlen(line);
 
     if (lineSize > 2) {
@@ -166,20 +168,11 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
     return error;
   }
 
-  for (int i = 0; i < outBufferIndex; i++) {
-    if (i % 8 == 0) {
-      printf("\n");
-    }
-    printf("0X%04X ", outBuffer[i]);
-  }
-  printf("\n");
   FILE *outFileP = fopen(outFilePath, "wb");
   if (outFileP) {
     fwrite(outBuffer, outBufferIndex * 2, 1, outFileP);
     fclose(outFileP);
   }
-
-  printf("oubuffer size=%zi\n", outBufferIndex);
   free(outBuffer);
   return 0;
 }
@@ -201,7 +194,6 @@ int EMC_Exec(const char *scriptFilepath) {
   }
   fread(buffer, fsize, 1, fp);
   fclose(fp);
-  printf("script binary size = %zu\n", fsize);
 
   ScriptVM vm;
   ScriptVMInit(&vm);
@@ -266,6 +258,10 @@ int EMC_Tests(void) {
   {
     const char s[] = "Push 0X02 ; some comments\nPush 0X04\nMultiply\n";
     expect(basicBinaryTest(s), 0X08);
+  }
+  {
+    const char s[] = "Push 0X0F\nPush 0X03\ndivide\n";
+    expect(basicBinaryTest(s), 0X05);
   }
   return 0;
 }
