@@ -25,6 +25,7 @@ void ScriptVMSetDisassembler(ScriptVM *vm) {
   vm->disassemble = 1;
   vm->disasmBufferSize = 256;
   vm->disasmBuffer = malloc(vm->disasmBufferSize);
+  vm->disasmBufferIndex = 0;
 }
 
 void ScriptVMDump(const ScriptVM *vm) {
@@ -73,6 +74,11 @@ static void emitLine(ScriptVM *vm, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   size_t bSize = vm->disasmBufferSize - vm->disasmBufferIndex;
+  if (bSize < 16) {
+    vm->disasmBufferSize *= 2;
+    vm->disasmBuffer = realloc(vm->disasmBuffer, vm->disasmBufferSize);
+    bSize = vm->disasmBufferSize - vm->disasmBufferIndex;
+  }
   size_t writtenSize =
       vsnprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, fmt, args);
   if (writtenSize > bSize) {
@@ -80,7 +86,6 @@ static void emitLine(ScriptVM *vm, const char *fmt, ...) {
            writtenSize, bSize);
     assert(0);
   }
-  printf("Wrote %zu bytes\n", writtenSize);
   vm->disasmBufferIndex += writtenSize;
   va_end(args);
 }
@@ -100,8 +105,12 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     printf("SETRETURNVALUE %X\n", parameter);
     break;
   case OP_PUSH_RETURN_OR_LOCATION:
-    printf("PUSH_RETURN_OR_LOCATION %X\n", parameter);
     assert(parameter == 1 || parameter == 0);
+    if (vm->disassemble) {
+      emitLine(vm, "PushRC 0X%X\n", parameter);
+    } else {
+      printf("PUSH_RETURN_OR_LOCATION %X\n", parameter);
+    }
     break;
   case OP_PUSH:
   case OP_PUSH2:
@@ -112,53 +121,88 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     }
     break;
   case OP_PUSH_VARIABLE:
-    printf("PUSH VAR %X\n", parameter);
-    stackPush(vm, vm->variables[parameter]);
+    if (vm->disassemble) {
+      emitLine(vm, "PushVar 0X%X\n", parameter);
+    } else {
+      stackPush(vm, vm->variables[parameter]);
+    }
     break;
   case OP_PUSH_LOCAL_VARIABLE:
-    printf("PUSH LOC VAR %X\n", parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "PushLocVar 0X%X\n", parameter);
+    } else {
+      printf("PUSH LOC VAR %X\n", parameter);
+    }
     break;
   case OP_PUSH_PARAMETER:
-    printf("PUSH PARAM %X\n", parameter);
-    stackPush(vm, vm->stack[vm->framePointer + parameter - 1]);
+    if (vm->disassemble) {
+      emitLine(vm, "PushArg 0X%X\n", parameter);
+    } else {
+      stackPush(vm, vm->stack[vm->framePointer + parameter - 1]);
+    }
     break;
   case OP_POP_RETURN_OR_LOCATION:
-    printf("POP RET OR LOC %X\n", parameter);
-    if (parameter == 0) { // return value
-      vm->returnValue = stackPop(vm);
-    } else if (parameter == 1) { // POP FRAMEPOINTER + LOCATION
-                                 //      stackPeek(vm, 2);
-      //      vm->framePointer = (uint8_t)stackPop(vm);
-      //      printf("OP_POP_RETURN_OR_LOCATION param 2 not implemented ;)\n");
-      //      assert(0);
-    }
     assert(parameter == 1 || parameter == 0);
+    if (vm->disassemble) {
+      emitLine(vm, "PopRC 0X%X\n", parameter);
+    } else {
+      if (parameter == 0) { // return value
+        vm->returnValue = stackPop(vm);
+      } else if (parameter == 1) { // POP FRAMEPOINTER + LOCATION
+                                   //      stackPeek(vm, 2);
+        //      vm->framePointer = (uint8_t)stackPop(vm);
+        //      printf("OP_POP_RETURN_OR_LOCATION param 2 not implemented
+        //      ;)\n"); assert(0);
+      }
+    }
     break;
   case OP_POP_VARIABLE:
-    printf("POP VAR %X\n", parameter);
-    vm->variables[parameter] = stackPop(vm);
+    if (vm->disassemble) {
+      emitLine(vm, "Pop 0X%X\n", parameter);
+    } else {
+      vm->variables[parameter] = stackPop(vm);
+    }
     break;
   case OP_POP_LOCAL_VARIABLE:
-    printf("POP LOCAL VAR %X\n", parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "PopLocVar 0X%X\n", parameter);
+    } else {
+      printf("POP LOCAL VAR %X\n", parameter);
+    }
     break;
   case OP_POP_PARAMETER:
     printf("POP PARAM %X\n", parameter);
     vm->stack[vm->framePointer + parameter - 1] = stackPop(vm);
     break;
   case OP_STACK_REWIND:
-    printf("STA REWIND %X\n", parameter);
-    vm->stackPointer += parameter;
+    if (vm->disassemble) {
+      emitLine(vm, "StackRewind 0X%X\n", parameter);
+    } else {
+
+      vm->stackPointer += parameter;
+    }
     break;
   case OP_STACK_FORWARD:
-    printf("STA FORWARD %X\n", parameter);
-    vm->stackPointer -= parameter;
+    if (vm->disassemble) {
+      emitLine(vm, "StackForward 0X%X\n", parameter);
+    } else {
+      vm->stackPointer -= parameter;
+    }
     break;
   case OP_FUNCTION:
     parameter &= 0xFF;
-    printf("FUNCTION %X\n", parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "call 0X%X\n", parameter);
+    } else {
+      printf("FUNCTION %X\n", parameter);
+    }
     break;
   case OP_JUMP_NE:
-    printf("JUMP_NE %X\n", parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "IfNotGo 0X%X\n", parameter);
+    } else {
+      printf("JUMP_NE %X\n", parameter);
+    }
     break;
   case OP_UNARY:
     printf("UNARY %X\n", parameter);
@@ -175,67 +219,139 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
 
     switch (parameter) {
     case BinaryOp_LogicalAND:
-      stackPush(vm, (left && right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "L_AND\n");
+      } else {
+        stackPush(vm, (left && right) ? 1 : 0);
+      }
       break;
     case BinaryOp_LogicalOR:
-      stackPush(vm, (left || right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "L_OR\n");
+      } else {
+        stackPush(vm, (left || right) ? 1 : 0);
+      }
       break;
     case BinaryOp_EQUAL:
-      stackPush(vm, (left == right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "EQ n");
+      } else {
+        stackPush(vm, (left == right) ? 1 : 0);
+      }
       break;
     case BinaryOp_NotEQUAL:
-      stackPush(vm, (left != right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "NEQ \n");
+      } else {
+        stackPush(vm, (left != right) ? 1 : 0);
+      }
       break;
     case BinaryOp_Inf:
-      stackPush(vm, (left < right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "INF\n");
+      } else {
+        stackPush(vm, (left < right) ? 1 : 0);
+      }
       break;
     case BinaryOp_InfOrEq:
-      stackPush(vm, (left <= right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "IF_EQ \n");
+      } else {
+        stackPush(vm, (left <= right) ? 1 : 0);
+      }
       break;
     case BinaryOp_Greater:
-      stackPush(vm, (left > right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "SUP\n");
+      } else {
+        stackPush(vm, (left > right) ? 1 : 0);
+      }
       break;
     case BinaryOp_GreaterOrEq:
-      stackPush(vm, (left >= right) ? 1 : 0);
+      if (vm->disassemble) {
+        emitLine(vm, "SUP_EQ\n");
+      } else {
+        stackPush(vm, (left >= right) ? 1 : 0);
+      }
       break;
     case BinaryOp_Add:
       if (vm->disassemble) {
-        emitLine(vm, "MULTIPLY 0X%X\n", parameter);
+        emitLine(vm, "Add\n");
       } else {
         stackPush(vm, left + right);
       }
       break;
     case BinaryOp_Minus:
-      stackPush(vm, left - right);
+      if (vm->disassemble) {
+        emitLine(vm, "Minus\n");
+      } else {
+        stackPush(vm, left - right);
+      }
       break;
     case BinaryOp_Multiply:
-      stackPush(vm, left * right);
+      if (vm->disassemble) {
+        emitLine(vm, "MULTIPLY\n");
+      } else {
+        stackPush(vm, left * right);
+      }
       break;
     case BinaryOp_Divide:
-      stackPush(vm, left / right);
+      if (vm->disassemble) {
+        emitLine(vm, "DIV\n");
+      } else {
+        stackPush(vm, left / right);
+      }
       break;
     case BinaryOp_RShift:
-      stackPush(vm, left >> right);
+      if (vm->disassemble) {
+        emitLine(vm, "RSHIFT\n");
+      } else {
+        stackPush(vm, left >> right);
+      }
       break;
     case BinaryOp_LShift:
-      stackPush(vm, left << right);
+      if (vm->disassemble) {
+        emitLine(vm, "LSHIFT\n");
+      } else {
+        stackPush(vm, left << right);
+      }
       break;
     case BinaryOp_AND:
-      stackPush(vm, left & right);
+      if (vm->disassemble) {
+        emitLine(vm, "AND\n");
+      } else {
+        stackPush(vm, left & right);
+      }
       break;
     case BinaryOp_OR:
-      stackPush(vm, left | right);
+      if (vm->disassemble) {
+        emitLine(vm, "OR\n");
+      } else {
+        stackPush(vm, left | right);
+      }
       break;
     case BinaryOp_MOD:
-      stackPush(vm, left % right);
+      if (vm->disassemble) {
+        emitLine(vm, "MOD\n");
+      } else {
+        stackPush(vm, left % right);
+      }
       break;
     case BinaryOp_XOR:
-      stackPush(vm, left ^ right);
+      if (vm->disassemble) {
+        emitLine(vm, "XOR\n");
+      } else {
+        stackPush(vm, left ^ right);
+      }
       break;
     }
     break;
   case OP_RETURN:
-    printf("RET %X\n", parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "RET\n");
+    } else {
+      printf("RET %X\n", parameter);
+    }
     break;
   default:
     printf("0X04%X (%x) (%x)\n", ctx->currentAddress, opCode, parameter);

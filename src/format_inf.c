@@ -61,7 +61,10 @@ static int decodeScript(void) {
   printf("---- start script ---- \n");
   ScriptVM vm;
   ScriptVMInit(&vm);
+  ScriptVMSetDisassembler(&vm);
   ScriptExec(&vm, &info);
+  printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
+  printf("'%s'\n", vm.disasmBuffer);
   ScriptVMRelease(&vm);
   return 1;
 }

@@ -200,6 +200,7 @@ int EMC_DisassembleFile(const char *binFilepath, const char *outFilePath) {
   ScriptInfo inf;
   inf.scriptData = (uint16_t *)binBuffer;
   inf.scriptSize = fsize / 2;
+  assert(vm.disasmBuffer);
   ScriptExec(&vm, &inf);
 
   printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
