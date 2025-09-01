@@ -54,7 +54,6 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     uint16_t val = parseArg(arg);
     if (val < 0X80) {
       // emit OP_PUSH
-      // 0X4144 -> push 1
       bCode[0] = 0x0044 + (val << 8);
       return 1;
     } else {
@@ -63,7 +62,6 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
       bCode[1] = swap_uint16(val);
       return 2;
     }
-
   } else if (strcmp(mnemonic, "add") == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Add << 8);
@@ -209,7 +207,8 @@ int EMC_Exec(const char *scriptFilepath) {
 static uint16_t basicBinaryTest(const char *s) {
   size_t bufferSize = 0;
   uint16_t *buffer = EMC_Assemble(s, &bufferSize);
-  assert(bufferSize == 3);
+  assert(buffer);
+  assert(bufferSize > 0);
   ScriptVM vm;
   ScriptVMInit(&vm);
   ScriptInfo inf;
@@ -262,6 +261,11 @@ int EMC_Tests(void) {
   {
     const char s[] = "Push 0X0F\nPush 0X03\ndivide\n";
     expect(basicBinaryTest(s), 0X05);
+  }
+  {
+    const char s[] =
+        "Push 0X3C\nPush 0X05\nmultiply\npush 0XA\npush 5\nAdd\ndivide\n";
+    expect(basicBinaryTest(s), 0X14);
   }
   return 0;
 }
