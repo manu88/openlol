@@ -2,6 +2,7 @@
 #include <_string.h>
 #include <stdint.h>
 #define _GNU_SOURCE
+#include "bytes.h"
 #include "script.h"
 #include <assert.h>
 #include <ctype.h>
@@ -52,11 +53,25 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
   if (strcmp(mnemonic, "push") == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
-    bCode[0] = 0x0044 + (val << 8);
-    return 1;
+    if (val < 0X80) {
+      // emit OP_PUSH
+      // 0X4144 -> push 1
+      bCode[0] = 0x0044 + (val << 8);
+      return 1;
+    } else {
+      // emit OP_PUSH2
+      bCode[0] = 0X0423;
+      bCode[1] = swap_uint16(val);
+      return 2;
+    }
+
   } else if (strcmp(mnemonic, "add") == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0851;
+    return 1;
+  } else if (strcmp(mnemonic, "multiply") == 0) {
+    assert(arg == NULL);
+    bCode[0] = 0x0A51;
     return 1;
   }
   return 0;
@@ -186,7 +201,7 @@ int EMC_Exec(const char *scriptFilepath) {
   }
   fread(buffer, fsize, 1, fp);
   fclose(fp);
-  printf("cript binary size = %zu\n", fsize);
+  printf("script binary size = %zu\n", fsize);
 
   ScriptVM vm;
   ScriptVMInit(&vm);
@@ -199,11 +214,9 @@ int EMC_Exec(const char *scriptFilepath) {
   return 0;
 }
 
-int EMC_Tests(void) {
-  const char s[] = "Push 0X0A ; some comments\nPush 0X02\nAdd\n";
+static uint16_t basicBinaryTest(const char *s) {
   size_t bufferSize = 0;
   uint16_t *buffer = EMC_Assemble(s, &bufferSize);
-  printf("%zi\n", bufferSize);
   assert(bufferSize == 3);
   ScriptVM vm;
   ScriptVMInit(&vm);
@@ -211,7 +224,48 @@ int EMC_Tests(void) {
   inf.scriptData = (uint16_t *)buffer;
   inf.scriptSize = bufferSize;
   ScriptExec(&vm, &inf);
-  assert(vm.stack[vm.stackPointer] == 0X0C);
   free(buffer);
+  return vm.stack[vm.stackPointer];
+}
+
+static uint16_t basicPush(uint16_t pushedVal) {
+  size_t bufferSize = 0;
+  char s[32] = "0";
+  snprintf(s, 32, "push 0X%X", pushedVal);
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  assert(bufferSize < 3);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  ScriptExec(&vm, &inf);
+  free(buffer);
+  return vm.stack[vm.stackPointer];
+}
+
+static void expect(uint16_t val, uint16_t expected) {
+  if (val != expected) {
+    printf("Expected 0X%0X got OX%0X\n", expected, val);
+    assert(0);
+  }
+}
+
+int EMC_Tests(void) {
+  for (uint16_t i = 0; i < UINT16_MAX; i++) {
+    uint16_t v = basicPush(i);
+    if (v != i) {
+      printf("basicPush(0X%X), expected 0X%X got 0X%X\n", i, i, v);
+      assert(0);
+    }
+  }
+  {
+    const char s[] = "Push 0X1B ; some comments\nPush 0X02\nAdd\n";
+    expect(basicBinaryTest(s), 0X1D);
+  }
+  {
+    const char s[] = "Push 0X02 ; some comments\nPush 0X04\nMultiply\n";
+    expect(basicBinaryTest(s), 0X08);
+  }
   return 0;
 }

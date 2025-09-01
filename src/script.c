@@ -138,58 +138,58 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     switch (parameter) {
     case 0:
       stackPush(vm, (left && right) ? 1 : 0);
-      break; /* left && right */
+      break;
     case 1:
       stackPush(vm, (left || right) ? 1 : 0);
-      break; /* left || right */
+      break;
     case 2:
       stackPush(vm, (left == right) ? 1 : 0);
-      break; /* left == right */
+      break;
     case 3:
       stackPush(vm, (left != right) ? 1 : 0);
-      break; /* left != right */
+      break;
     case 4:
       stackPush(vm, (left < right) ? 1 : 0);
-      break; /* left <  right */
+      break;
     case 5:
       stackPush(vm, (left <= right) ? 1 : 0);
-      break; /* left <= right */
+      break;
     case 6:
       stackPush(vm, (left > right) ? 1 : 0);
-      break; /* left >  right */
+      break;
     case 7:
       stackPush(vm, (left >= right) ? 1 : 0);
-      break; /* left >= right */
+      break;
     case 8:
       stackPush(vm, left + right);
-      break; /* left +  right */
+      break;
     case 9:
       stackPush(vm, left - right);
-      break; /* left -  right */
+      break;
     case 10:
       stackPush(vm, left * right);
-      break; /* left *  right */
+      break;
     case 11:
       stackPush(vm, left / right);
-      break; /* left /  right */
+      break;
     case 12:
       stackPush(vm, left >> right);
-      break; /* left >> right */
+      break;
     case 13:
       stackPush(vm, left << right);
-      break; /* left << right */
+      break;
     case 14:
       stackPush(vm, left & right);
-      break; /* left &  right */
+      break;
     case 15:
       stackPush(vm, left | right);
-      break; /* left |  right */
+      break;
     case 16:
       stackPush(vm, left % right);
-      break; /* left %  right */
+      break;
     case 17:
       stackPush(vm, left ^ right);
-      break; /* left ^  right */
+      break;
     }
     break;
   case OP_RETURN:
