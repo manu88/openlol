@@ -62,7 +62,7 @@ static int decodeScript(void) {
   ScriptVM vm;
   ScriptVMInit(&vm);
   ScriptExec(&vm, &info);
-
+  ScriptVMRelease(&vm);
   return 1;
 }
 

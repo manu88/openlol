@@ -175,6 +175,40 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
   return 0;
 }
 
+int EMC_DisassembleFile(const char *binFilepath, const char *outFilePath) {
+  FILE *fileBinP = fopen(binFilepath, "rb");
+  if (fileBinP == NULL) {
+    perror("fopen");
+    return 1;
+  }
+  fseek(fileBinP, 0, SEEK_END);
+  long fsize = ftell(fileBinP);
+  fseek(fileBinP, 0, SEEK_SET);
+  uint8_t *binBuffer = malloc(fsize);
+  if (!binBuffer) {
+    perror("malloc error");
+    fclose(fileBinP);
+    return 1;
+  }
+  fread(binBuffer, fsize, 1, fileBinP);
+  fclose(fileBinP);
+  printf("read %zi bytes\n", fsize);
+
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptVMSetDisassembler(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)binBuffer;
+  inf.scriptSize = fsize / 2;
+  ScriptExec(&vm, &inf);
+
+  printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
+  printf("'%s'\n", vm.disasmBuffer);
+  ScriptVMRelease(&vm);
+  free(binBuffer);
+  return 0;
+}
+
 int EMC_Exec(const char *scriptFilepath) {
   FILE *fp = fopen(scriptFilepath, "r");
   if (fp == NULL) {
@@ -200,6 +234,7 @@ int EMC_Exec(const char *scriptFilepath) {
   inf.scriptSize = fsize / 2;
   ScriptExec(&vm, &inf);
   ScriptVMDump(&vm);
+  ScriptVMRelease(&vm);
   free(buffer);
   return 0;
 }
@@ -215,6 +250,7 @@ static uint16_t basicBinaryTest(const char *s) {
   inf.scriptData = (uint16_t *)buffer;
   inf.scriptSize = bufferSize;
   ScriptExec(&vm, &inf);
+  ScriptVMRelease(&vm);
   free(buffer);
   return vm.stack[vm.stackPointer];
 }
@@ -231,6 +267,7 @@ static uint16_t basicPush(uint16_t pushedVal) {
   inf.scriptData = (uint16_t *)buffer;
   inf.scriptSize = bufferSize;
   ScriptExec(&vm, &inf);
+  ScriptVMRelease(&vm);
   free(buffer);
   return vm.stack[vm.stackPointer];
 }

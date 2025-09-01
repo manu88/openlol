@@ -1,13 +1,30 @@
 #include "script.h"
 #include "bytes.h"
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void ScriptVMInit(ScriptVM *vm) {
   memset(vm, 0, sizeof(ScriptVM));
   vm->stackPointer = STACK_SIZE;
   vm->framePointer = FRAME_POINTER_INIT;
+}
+
+void ScriptVMRelease(ScriptVM *vm) {
+  if (vm->disassemble) {
+    free(vm->disasmBuffer);
+  }
+}
+
+void ScriptVMSetDisassembler(ScriptVM *vm) {
+  if (vm->disassemble) {
+    return;
+  }
+  vm->disassemble = 1;
+  vm->disasmBufferSize = 256;
+  vm->disasmBuffer = malloc(vm->disasmBufferSize);
 }
 
 void ScriptVMDump(const ScriptVM *vm) {
@@ -52,14 +69,32 @@ uint16_t stackPeek(ScriptVM *vm, int position) {
   return vm->stack[vm->stackPointer + position - 1];
 }
 
+static void emitLine(ScriptVM *vm, const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  size_t bSize = vm->disasmBufferSize - vm->disasmBufferIndex;
+  size_t writtenSize =
+      vsnprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, fmt, args);
+  if (writtenSize > bSize) {
+    printf("no more size to write line, writtenSize=%zu, got bSize=%zu",
+           writtenSize, bSize);
+    assert(0);
+  }
+  printf("Wrote %zu bytes\n", writtenSize);
+  vm->disasmBufferIndex += writtenSize;
+  va_end(args);
+}
+
 static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
                              uint16_t parameter) {
-
-  printf("0X%X: (%i)", ctx->currentAddress, vm->stackPointer);
   switch ((ScriptCommand)opCode) {
 
   case OP_JUMP:
-    printf("JUMP %X (%X)\n", parameter, ctx->scriptStart + parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "JUMP 0X%X\n", parameter);
+    } else {
+      printf("JUMP %X (%X)\n", parameter, ctx->scriptStart + parameter);
+    }
     break;
   case OP_SETRETURNVALUE:
     printf("SETRETURNVALUE %X\n", parameter);
@@ -69,12 +104,12 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     assert(parameter == 1 || parameter == 0);
     break;
   case OP_PUSH:
-    printf("PUSH2 %04X\n", parameter);
-    stackPush(vm, parameter);
-    break;
   case OP_PUSH2:
-    printf("PUSH %04X\n", parameter);
-    stackPush(vm, parameter);
+    if (vm->disassemble) {
+      emitLine(vm, "PUSH 0X%X\n", parameter);
+    } else {
+      stackPush(vm, parameter);
+    }
     break;
   case OP_PUSH_VARIABLE:
     printf("PUSH VAR %X\n", parameter);
@@ -130,10 +165,13 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     assert(parameter == 1 || parameter == 0 || parameter == 2);
     break;
   case OP_BINARY:
-    printf("BINARY %X\n", parameter);
     assert(parameter <= 17);
-    int16_t right = stackPop(vm);
-    int16_t left = stackPop(vm);
+    int16_t right = 0;
+    int16_t left = 0;
+    if (!vm->disassemble) {
+      right = stackPop(vm);
+      left = stackPop(vm);
+    }
 
     switch (parameter) {
     case BinaryOp_LogicalAND:
@@ -161,7 +199,11 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       stackPush(vm, (left >= right) ? 1 : 0);
       break;
     case BinaryOp_Add:
-      stackPush(vm, left + right);
+      if (vm->disassemble) {
+        emitLine(vm, "MULTIPLY 0X%X\n", parameter);
+      } else {
+        stackPush(vm, left + right);
+      }
       break;
     case BinaryOp_Minus:
       stackPush(vm, left - right);
@@ -223,7 +265,6 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
       /* When this flag is set, the parameter is in the next opcode */
       parameter = swap_uint16(*(info->scriptData + currentPos++));
     }
-    printf("0X%X ", orig);
     parseInstruction(vm, &ctx, opcode, parameter);
   }
 

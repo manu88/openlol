@@ -12,8 +12,24 @@ static int cmdScriptExec(const char *filepath) {
   return EMC_Exec(filepath);
 }
 
+static int cmdScriptDisassemble(const char *filepath) {
+  char *outFilePath = malloc(strlen(filepath) + 5);
+  if (outFilePath == NULL) {
+    return 1;
+  }
+  strcpy(outFilePath, filepath);
+  outFilePath = strcat(outFilePath, ".asm");
+  printf("disasm script '%s' to file '%s'\n", filepath, outFilePath);
+  int ret = EMC_DisassembleFile(filepath, outFilePath);
+  free(outFilePath);
+  return ret;
+}
+
 static int cmdScriptASM(const char *filepath) {
   char *outFilePath = malloc(strlen(filepath) + 5);
+  if (outFilePath == NULL) {
+    return 1;
+  }
   strcpy(outFilePath, filepath);
   outFilePath = strcat(outFilePath, ".bin");
   printf("asm script '%s' to file '%s'\n", filepath, outFilePath);
@@ -25,7 +41,7 @@ static int cmdScriptASM(const char *filepath) {
 static int cmdScriptTests(void) { return EMC_Tests(); }
 
 static void usageScript(void) {
-  printf("script subcommands: asm|exec|tests [filepath]\n");
+  printf("script subcommands: asm|exec|tests|disasm [filepath]\n");
 }
 
 static int cmdScript(int argc, char *argv[]) {
@@ -49,6 +65,8 @@ static int cmdScript(int argc, char *argv[]) {
       return 1;
     }
     return cmdScriptASM(filepath);
+  } else if (strcmp(argv[0], "disasm") == 0) {
+    return cmdScriptDisassemble(filepath);
   } else if (strcmp(argv[0], "tests") == 0) {
     return cmdScriptTests();
   }

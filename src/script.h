@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <stdint.h>
 
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.h
@@ -70,8 +71,16 @@ typedef struct {
   uint8_t framePointer;
   uint16_t variables[VAR_SIZE];
   uint16_t returnValue;
+
+  // disassembler part
+  uint8_t disassemble;
+  char *disasmBuffer;
+  size_t disasmBufferIndex;
+  size_t disasmBufferSize;
 } ScriptVM;
 
 void ScriptVMInit(ScriptVM *vm);
+void ScriptVMSetDisassembler(ScriptVM *vm);
+void ScriptVMRelease(ScriptVM *vm);
 int ScriptExec(ScriptVM *vm, const ScriptInfo *info);
 void ScriptVMDump(const ScriptVM *vm);
