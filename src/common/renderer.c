@@ -1,5 +1,8 @@
 #include "renderer.h"
+#include "SDL_surface.h"
+#include "SDL_video.h"
 #include <SDL2/SDL.h>
+#include <SDL_image.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGH 400
@@ -47,14 +50,12 @@ static void renderImage(SDL_Renderer *renderer, const uint8_t *imgData,
   }
 }
 
-void RenderCPSImage(const CPSImage *image) {
-  SDL_Event event;
-  SDL_Renderer *renderer;
-  SDL_Window *window;
-
+void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_Init(SDL_INIT_VIDEO);
-  SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGH, 0, &window,
-                              &renderer);
+  SDL_Surface *surface =
+      SDL_CreateRGBSurface(0, WINDOW_WIDTH, WINDOW_HEIGH, 32, 0, 0, 0, 0);
+  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
@@ -63,11 +64,7 @@ void RenderCPSImage(const CPSImage *image) {
     renderPalette(renderer, image->palette, 640, 0);
   }
   SDL_RenderPresent(renderer);
-  while (1) {
-    if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
-      break;
-  }
+  IMG_SavePNG(surface, savePngPath);
+
   SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
 }

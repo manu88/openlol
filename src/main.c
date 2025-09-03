@@ -6,6 +6,8 @@
 #include "pak_file.h"
 #include "renderer.h"
 #include "tests.h"
+#include <_string.h>
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -104,9 +106,15 @@ static int cmdMap(int argc, char *argv[]) {
   return 0;
 }
 
+static void usageCPS(void) { printf("cps cpsfile \n"); }
+
 static int cmdCPS(int argc, char *argv[]) {
-  printf("open '%s'\n", argv[0]);
-  FILE *inFile = fopen(argv[0], "rb");
+  if (argc < 1) {
+    usageCPS();
+    return 1;
+  }
+  const char *cpsFile = argv[0];
+  FILE *inFile = fopen(cpsFile, "rb");
   if (!inFile) {
     perror("open: ");
     return 1;
@@ -121,11 +129,18 @@ static int cmdCPS(int argc, char *argv[]) {
     return 1;
   }
   fread(buffer, inFileSize, 1, inFile);
+  fclose(inFile);
   CPSImage image;
   int ok = CPSImageFromFile(&image, buffer, inFileSize);
   free(buffer);
   if (ok) {
-    RenderCPSImage(&image);
+    char *destFile = strdup(cpsFile);
+    assert(destFile);
+    destFile[strlen(destFile) - 3] = 'p';
+    destFile[strlen(destFile) - 2] = 'n';
+    destFile[strlen(destFile) - 1] = 'g';
+    CPSImageToPng(&image, destFile);
+    free(destFile);
     CPSImageRelease(&image);
   }
 

@@ -1,6 +1,6 @@
-CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags sdl2_ttf` -Wpedantic -Wall -MD -fsanitize=address -Isrc/common
+CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags sdl2_image` -Wpedantic -Wall -MD -fsanitize=address -Isrc/common
 
-LDFLAGS=  `pkg-config --libs sdl2_ttf`
+LDFLAGS=  `pkg-config --libs sdl2_image`
 
 SOURCES=$(wildcard src/*.c) $(wildcard src/common/*.c)
 
