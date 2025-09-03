@@ -4,6 +4,7 @@
 #include "format_cps.h"
 #include "format_inf.h"
 #include "pak_file.h"
+#include "tests.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -286,6 +287,8 @@ int main(int argc, char *argv[]) {
     return cmdMap(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "script") == 0) {
     return cmdScript(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "tests") == 0) {
+    return UnitTests();
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
