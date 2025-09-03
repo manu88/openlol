@@ -4,6 +4,7 @@
 #include "format_cps.h"
 #include "format_inf.h"
 #include "pak_file.h"
+#include "renderer.h"
 #include "tests.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -121,10 +122,14 @@ static int cmdCPS(int argc, char *argv[]) {
   }
   fread(buffer, inFileSize, 1, inFile);
   CPSImage image;
-  CPSImageFromFile(&image, buffer, inFileSize);
+  int ok = CPSImageFromFile(&image, buffer, inFileSize);
   free(buffer);
-  CPSImageRelease(&image);
-  return 0;
+  if (ok) {
+    RenderCPSImage(&image);
+    CPSImageRelease(&image);
+  }
+
+  return !ok;
 }
 
 static void usageCMZ(void) { printf("cmz subcommands: unzip cpsFilepath\n"); }
