@@ -11,87 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// https://moddingwiki.shikadi.net/wiki/Westwood_CPS_Format
-// SHP https://moddingwiki.shikadi.net/wiki/Westwood_SHP_Format_(Lands_of_Lore)
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
-int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
-                   uint32_t outLen) {
-  int version = 1;
-  int count, i, color, pos, relpos;
-
-  uint8_t *src = inBuf;
-  uint8_t *dst = outBuf; // one byte beyond the last written byte
-  uint8_t *outEnd = dst + outLen;
-
-  if (src[0] == 0) {
-    version = 2;
-    ++src;
-  }
-
-  while (src < inBuf + inLen && dst < outEnd && src[0] != 0x80) {
-    int out_remain = (int)(outEnd - dst);
-    if (src[0] == 0xff) { // 0b11111111
-      count = src[1] | (src[2] << 8);
-      pos = src[3] | (src[4] << 8);
-      src += 5;
-      count = MIN(count, out_remain);
-
-      if (version == 1) {
-        for (i = 0; i < count; ++i)
-          dst[i] = outBuf[i + pos];
-      } else {
-        for (i = 0; i < count; ++i)
-          dst[i] = *(dst + i - pos);
-      }
-    } else if (src[0] == 0xfe) { // 0b11111110
-      count = src[1] | (src[2] << 8);
-      color = src[3];
-      src += 4;
-      count = MIN(count, out_remain);
-
-      memset(dst, color, count);
-    } else if (src[0] >= 0xc0) { // 0b11??????
-      count = (src[0] & 0x3f) + 3;
-      pos = src[1] | (src[2] << 8);
-      src += 3;
-      count = MIN(count, out_remain);
-
-      if (version == 1) {
-        for (i = 0; i < count; ++i)
-          dst[i] = outBuf[i + pos];
-      } else {
-        for (i = 0; i < count; ++i)
-          dst[i] = *(dst + i - pos);
-      }
-    } else if (src[0] >= 0x80) { // 0b10??????
-      count = src[0] & 0x3f;
-      ++src;
-      count = MIN(count, out_remain);
-
-      memcpy(dst, src, count);
-      src += count;
-    } else { // 0b0???????
-      count = ((src[0] & 0x70) >> 4) + 3;
-      relpos = ((src[0] & 0x0f) << 8) | src[1];
-      src += 2;
-      count = MIN(count, out_remain);
-
-      for (i = 0; i < count; ++i) {
-        if (dst + i - relpos < dst) {
-          continue;
-        }
-        dst[i] = *(dst + i - relpos);
-      }
-    }
-
-    dst += count;
-  }
-
-  return dst - outBuf;
-}
-
 static void writeImage(const uint8_t *imgData, size_t imgDataSize,
                        uint8_t *paletteBuffer);
 
@@ -137,8 +56,8 @@ uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
   // LCWDecompress(const uint8_t *source, size_t sourceSize, uint8_t *dest,
   // size_t destSize)
   assert(dataBuffer[dataSize - 1] == 0X80);
-  int bytes =
-      ParseCPSBuffer(dataBuffer, dataSize, dest, file->uncompressedSize);
+
+  int bytes = LCWDecompress(dataBuffer, dataSize, dest, file->uncompressedSize);
   printf("Wrote %i bytes\n", bytes);
   writeImage(dest, bytes, paletteBuffer);
   return dest;
@@ -147,8 +66,7 @@ uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGH 400
 
-static uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
-static uint8_t VGA8To8(uint8_t v) { return (v); }
+static inline uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
 
 static void renderPalette(SDL_Renderer *renderer, const uint8_t *paletteBuffer,
                           int offsetX, int offsetY) {
