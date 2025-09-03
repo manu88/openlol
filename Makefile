@@ -1,8 +1,8 @@
-CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags sdl2_ttf` -Wpedantic -Wall -MD -fsanitize=address
+CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags sdl2_ttf` -Wpedantic -Wall -MD -fsanitize=address -Isrc/common
 
 LDFLAGS=  `pkg-config --libs sdl2_ttf`
 
-SOURCES=$(wildcard src/*.c)
+SOURCES=$(wildcard src/*.c) $(wildcard src/common/*.c)
 
 OBJECTS=$(filter %.o,$(SOURCES:.c=.o))
 
@@ -25,6 +25,7 @@ clean:
 	rm -f $(OBJECTS)
 	rm -f $(EXECUTABLE)
 	rm -f src/*.d
+	rm -f src/common/*.d
 
 .PHONY: clean all
 
