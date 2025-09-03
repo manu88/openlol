@@ -1,4 +1,5 @@
 #include "format_cps.h"
+#include "SDL_render.h"
 #include "bytes.h"
 #include "format_lcw.h"
 #include <SDL2/SDL.h>
@@ -15,7 +16,7 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
-                          uint32_t outLen) {
+                   uint32_t outLen) {
   int version = 1;
   int count, i, color, pos, relpos;
 
@@ -120,9 +121,11 @@ uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
          file->paletteSize == PALETTE_SIZE_256_6_RGB_VGA);
 
   size_t dataSize = bufferSize - 10;
-  // swapBuffer((uint8_t *)buffer, dataSize);
+
   uint8_t *dataBuffer = (uint8_t *)buffer + 10;
+
   uint8_t *paletteBuffer = dataBuffer; // malloc(PALETTE_SIZE_256_6_RGB_VGA);
+  swapBuffer((uint8_t *)paletteBuffer, PALETTE_SIZE_256_6_RGB_VGA);
   if (file->paletteSize == PALETTE_SIZE_256_6_RGB_VGA) {
     dataBuffer += file->paletteSize;
     dataSize -= file->paletteSize;
@@ -144,6 +147,38 @@ uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
 #define WINDOW_HEIGH 200
 
 static uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
+static uint8_t VGA8To8(uint8_t v) { return (v); }
+
+static void renderPalette(SDL_Renderer *renderer,
+                          const uint8_t *paletteBuffer) {
+  for (int i = 0; i < 256; i++) {
+    int x = i % 16;
+    int y = i / 16;
+
+    uint8_t r = VGA6To8(paletteBuffer[(i * 3) + 0]);
+    uint8_t g = VGA6To8(paletteBuffer[(i * 3) + 1]);
+    uint8_t b = VGA6To8(paletteBuffer[(i * 3) + 2]);
+    SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+    SDL_Rect rect = {.x = x * 10, .y = y * 10, .w = 10, .h = 10};
+    SDL_RenderFillRect(renderer, &rect);
+  }
+}
+
+static void renderImage(SDL_Renderer *renderer, const uint8_t *imgData,
+                        const uint8_t *paletteBuffer) {
+  for (int x = 0; x < WINDOW_WIDTH; x++) {
+    for (int y = 0; y < WINDOW_HEIGH; y++) {
+      uint8_t paletteIdx = *(imgData + (WINDOW_WIDTH * y) + x);
+
+      uint8_t r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
+      uint8_t g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
+      uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
+
+      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+      SDL_RenderDrawPoint(renderer, x, y);
+    }
+  }
+}
 
 static void writeImage(const uint8_t *imgData, size_t imgDataSize,
                        uint8_t *paletteBuffer) {
@@ -158,22 +193,8 @@ static void writeImage(const uint8_t *imgData, size_t imgDataSize,
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
 
-  uint8_t maxPaletteIdx = 0;
-  for (int x = 0; x < WINDOW_WIDTH; x++) {
-    for (int y = 0; y < WINDOW_HEIGH; y++) {
-      uint8_t paletteIdx = *(imgData + (WINDOW_WIDTH * y) + x);
-      if (paletteIdx > maxPaletteIdx) {
-        maxPaletteIdx = paletteIdx;
-      }
-      uint8_t r = VGA6To8(paletteBuffer[paletteIdx]);
-      uint8_t g = VGA6To8(paletteBuffer[paletteIdx + 1]);
-      uint8_t b = VGA6To8(paletteBuffer[paletteIdx + 2]);
-      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-      SDL_RenderDrawPoint(renderer, x, y);
-    }
-  }
-  printf("maxPaletteIdx=%i\n", maxPaletteIdx);
-
+  renderImage(renderer, imgData, paletteBuffer);
+  // renderPalette(renderer, paletteBuffer);
   SDL_RenderPresent(renderer);
   while (1) {
     if (SDL_PollEvent(&event) && event.type == SDL_QUIT)

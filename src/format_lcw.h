@@ -6,3 +6,5 @@
 
 ssize_t LCWDecompress(const uint8_t *source, size_t sourceSize, uint8_t *dest,
                       size_t destSize);
+
+ssize_t LCWCompress(void const *input, void *output, unsigned long size);
