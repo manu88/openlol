@@ -9,7 +9,7 @@
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/codec/format80.c
 static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
                              uint32_t outLen) {
-  uint8_t *start = outBuf;
+  const uint8_t *start = outBuf;
   uint8_t *end = outBuf + outLen;
 
   while (outBuf != end) {
@@ -34,6 +34,12 @@ static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
       /* This decoder assumes memcpy. As some platforms implement memcpy as
        * memmove, this is much safer */
       for (; size > 0; size--) {
+        if (outBuf - offset < start) {
+          // printf("%X < %X\n", outBuf - offset, start);
+          continue;
+          // assert(outBuf - offset >= start);
+        }
+
         *outBuf = *(outBuf - offset);
         outBuf++;
       }

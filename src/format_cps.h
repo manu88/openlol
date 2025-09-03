@@ -23,4 +23,6 @@ typedef struct {
                         // 256-colour 6-bit RGB VGA palette,
 } CPSFileHeader;
 
-uint8_t * TestCps(const uint8_t *buffer, size_t bufferSize);
+uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize);
+int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
+                   uint32_t outLen);

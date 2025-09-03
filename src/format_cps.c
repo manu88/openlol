@@ -1,37 +1,26 @@
 #include "format_cps.h"
+#include "bytes.h"
+#include "format_lcw.h"
+#include <SDL2/SDL.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 // https://moddingwiki.shikadi.net/wiki/Westwood_CPS_Format
 // SHP https://moddingwiki.shikadi.net/wiki/Westwood_SHP_Format_(Lands_of_Lore)
 
-uint8_t *paletteBuffer = NULL;
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-static void printBits(size_t const size, void const *const ptr) {
-  unsigned char *b = (unsigned char *)ptr;
-  unsigned char byte;
-  int i, j;
-
-  for (i = size - 1; i >= 0; i--) {
-    for (j = 7; j >= 0; j--) {
-      byte = (b[i] >> j) & 1;
-      printf("%u", byte);
-    }
-  }
-  puts(" ");
-}
-
-static int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
+int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
                           uint32_t outLen) {
   int version = 1;
   int count, i, color, pos, relpos;
 
   uint8_t *src = inBuf;
-  uint8_t *dst = outBuf + 1; // one byte beyond the last written byte
+  uint8_t *dst = outBuf; // one byte beyond the last written byte
   uint8_t *outEnd = dst + outLen;
 
   if (src[0] == 0) {
@@ -88,6 +77,9 @@ static int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
       count = MIN(count, out_remain);
 
       for (i = 0; i < count; ++i) {
+        if (dst + i - relpos < dst) {
+          continue;
+        }
         dst[i] = *(dst + i - relpos);
       }
     }
@@ -98,13 +90,28 @@ static int ParseCPSBuffer(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
   return dst - outBuf;
 }
 
-uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
+static void writeImage(const uint8_t *imgData, size_t imgDataSize,
+                       uint8_t *paletteBuffer);
 
-  const CPSFileHeader *file = (const CPSFileHeader *)buffer;
+static void swapBuffer(uint8_t *buffer, size_t bufferSize) {
+  // assert(bufferSize % 2 == 0);
+  uint16_t *start = (uint16_t *)buffer;
+  size_t size = bufferSize / 2;
+  for (int i = 0; i < size; i++) {
+    uint16_t c = swap_uint16(start[i]);
+    uint8_t c0 = c >> 8;
+    uint8_t c1 = c & 0XFF;
+    buffer[i * 2] = c0;
+    buffer[i * 2 + 1] = c1;
+  }
+}
+uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
+  CPSFileHeader *file = (CPSFileHeader *)buffer;
   assert(file->compressionType <= CPSCompressionType_LZW_LCW);
+  file->fileSize += 2; // CPSCompressionType_LZW_LCW: must add 2 bytes
   printf("test CPS\n");
-  printf("PAK buffer size %zi\n", bufferSize);
-  printf("size %i\n", file->fileSize);
+  printf("Compressed buffer size %zi\n", bufferSize);
+  printf("file size %i\n", file->fileSize);
   printf("compressionType %i\n", file->compressionType);
   printf("uncompressedSize %i\n", file->uncompressedSize);
   printf("paletteSize %i\n", file->paletteSize);
@@ -112,16 +119,67 @@ uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
   assert(file->paletteSize == 0 ||
          file->paletteSize == PALETTE_SIZE_256_6_RGB_VGA);
 
-  uint8_t *dataBuffer = (uint8_t *)buffer + sizeof(CPSFileHeader);
-  size_t dataSize = bufferSize - sizeof(CPSFileHeader);
+  size_t dataSize = bufferSize - 10;
+  // swapBuffer((uint8_t *)buffer, dataSize);
+  uint8_t *dataBuffer = (uint8_t *)buffer + 10;
+  uint8_t *paletteBuffer = dataBuffer; // malloc(PALETTE_SIZE_256_6_RGB_VGA);
   if (file->paletteSize == PALETTE_SIZE_256_6_RGB_VGA) {
-    paletteBuffer = (uint8_t *)buffer + sizeof(CPSFileHeader);
     dataBuffer += file->paletteSize;
     dataSize -= file->paletteSize;
   }
+
   uint8_t *dest = malloc(file->uncompressedSize);
   assert(dest);
-  int bytes = ParseCPSBuffer(dataBuffer, dataSize, dest, 64000);
+  // LCWDecompress(const uint8_t *source, size_t sourceSize, uint8_t *dest,
+  // size_t destSize)
+  assert(dataBuffer[dataSize - 1] == 0X80);
+  int bytes =
+      ParseCPSBuffer(dataBuffer, dataSize, dest, file->uncompressedSize);
   printf("Wrote %i bytes\n", bytes);
+  writeImage(dest, bytes, paletteBuffer);
   return dest;
+}
+
+#define WINDOW_WIDTH 320
+#define WINDOW_HEIGH 200
+
+static uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
+
+static void writeImage(const uint8_t *imgData, size_t imgDataSize,
+                       uint8_t *paletteBuffer) {
+  printf("test write image\n");
+  SDL_Event event;
+  SDL_Renderer *renderer;
+  SDL_Window *window;
+
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGH, 0, &window,
+                              &renderer);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+  SDL_RenderClear(renderer);
+
+  uint8_t maxPaletteIdx = 0;
+  for (int x = 0; x < WINDOW_WIDTH; x++) {
+    for (int y = 0; y < WINDOW_HEIGH; y++) {
+      uint8_t paletteIdx = *(imgData + (WINDOW_WIDTH * y) + x);
+      if (paletteIdx > maxPaletteIdx) {
+        maxPaletteIdx = paletteIdx;
+      }
+      uint8_t r = VGA6To8(paletteBuffer[paletteIdx]);
+      uint8_t g = VGA6To8(paletteBuffer[paletteIdx + 1]);
+      uint8_t b = VGA6To8(paletteBuffer[paletteIdx + 2]);
+      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+      SDL_RenderDrawPoint(renderer, x, y);
+    }
+  }
+  printf("maxPaletteIdx=%i\n", maxPaletteIdx);
+
+  SDL_RenderPresent(renderer);
+  while (1) {
+    if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
+      break;
+  }
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 }

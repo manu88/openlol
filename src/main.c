@@ -1,7 +1,10 @@
 
 #include "emc_asm.h"
+#include "format_cmz.h"
+#include "format_cps.h"
 #include "format_inf.h"
 #include "pak_file.h"
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,33 +95,93 @@ static int cmdMap(int argc, char *argv[]) {
   }
   fread(buffer, fsize, 1, f);
   printf("read %zi bytes\n", fsize);
-  TestINF(buffer, fsize);
+  TestCMZ(buffer, fsize);
+  // TestINF(buffer, fsize);
   fclose(f);
   free(buffer);
   return 0;
 }
 
-static void usageCPS(void) { printf("cps subcommands: extract cpsFilepath\n"); }
-
-static int cmdCPSExtract(const char *cpsfilePath) {
-  printf("Extract CPS '%s'\n", cpsfilePath);
+static int cmdCPS(int argc, char *argv[]) {
+  printf("open '%s'\n", argv[0]);
+  FILE *inFile = fopen(argv[0], "rb");
+  if (!inFile) {
+    perror("open: ");
+    return 1;
+  }
+  fseek(inFile, 0, SEEK_END);
+  long inFileSize = ftell(inFile);
+  fseek(inFile, 0, SEEK_SET);
+  uint8_t *buffer = malloc(inFileSize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(inFile);
+    return 1;
+  }
+  fread(buffer, inFileSize, 1, inFile);
+  uint8_t *buff = TestCps(buffer, inFileSize);
+  free(buff);
   return 0;
 }
 
-static int cmdCPS(int argc, char *argv[]) {
+static void usageCMZ(void) { printf("cmz subcommands: unzip cpsFilepath\n"); }
+
+static int cmdCMZUnzip(const char *cmzfilePath) {
+  printf("unzip cmz '%s'\n", cmzfilePath);
+  FILE *inFile = fopen(cmzfilePath, "rb");
+  if (!inFile) {
+    perror("open: ");
+    return 1;
+  }
+  fseek(inFile, 0, SEEK_END);
+  long inFileSize = ftell(inFile);
+  fseek(inFile, 0, SEEK_SET);
+  uint8_t *buffer = malloc(inFileSize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(inFile);
+    return 1;
+  }
+  fread(buffer, inFileSize, 1, inFile);
+  size_t unzipedDataSize = 0;
+  printf("CMZ_Uncompress %zi bytes\n", inFileSize);
+  uint8_t *unzipedData = CMZ_Uncompress(buffer, inFileSize, &unzipedDataSize);
+  int err = 0;
+  if (unzipedData == NULL) {
+    printf("error while unzipping file\n");
+    err = 1;
+  } else {
+    char *outFilePath = malloc(strlen(cmzfilePath) + 5);
+    strcpy(outFilePath, cmzfilePath);
+    outFilePath = strcat(outFilePath, ".maz");
+    FILE *outFile = fopen(outFilePath, "wb");
+    if (outFile) {
+      fwrite(unzipedData, unzipedDataSize, 1, outFile);
+      fclose(outFile);
+    }
+    free(outFilePath);
+  }
+  fclose(inFile);
+  free(buffer);
+  return err;
+}
+
+static int cmdCMZ(int argc, char *argv[]) {
   if (argc < 1) {
-    printf("cps command, missing arguments\n");
-    usageCPS();
+    printf("cmz command, missing arguments\n");
+    usageCMZ();
     return 1;
   }
   if (argc < 2) {
-    printf("cps list: missing cps file path\n");
+    printf("cmz unzip: missing cmz file path\n");
     return 1;
   }
   const char *filepath = argv[1];
-  if (strcmp(argv[0], "extract") == 0) {
-    return cmdCPSExtract(filepath);
+  if (strcmp(argv[0], "unzip") == 0) {
+    return cmdCMZUnzip(filepath);
   }
+  printf("unkown subcommand '%s'\n", argv[0]);
+  usageCMZ();
   return 1;
 }
 
@@ -205,7 +268,7 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cps|map subcommand ...\n", progName);
+  printf("%s: pak|cmz|map subcommand ...\n", progName);
 }
 
 int main(int argc, char *argv[]) {
@@ -215,6 +278,8 @@ int main(int argc, char *argv[]) {
   }
   if (strcmp(argv[1], "pak") == 0) {
     return cmdPak(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "cmz") == 0) {
+    return cmdCMZ(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
     return cmdCPS(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "map") == 0) {

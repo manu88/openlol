@@ -15,4 +15,7 @@ typedef struct {
   } wallMappingIndices[1024];
 } MAZEFile;
 
+uint8_t *CMZ_Uncompress(const uint8_t *inBuffer, size_t inBufferSize,
+                        size_t *outBufferSize);
+
 void TestCMZ(const uint8_t *buffer, size_t bufferSize);

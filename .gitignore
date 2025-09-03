@@ -11,3 +11,8 @@ compile_commands.json
 *.LBM
 *.CMZ
 *.INF
+*.bin
+*.asm
+*.INI
+*.maz
+*.pbm

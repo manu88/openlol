@@ -3,6 +3,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// TODO check kyrandia scripts here :
+// https://github.com/MrSapps/scummvm-tools/blob/6af4c033d39952939eb204c8c4f94533339f6112/engines/kyra/dekyra_v1.cpp
+
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.h
 typedef enum {
   OP_JUMP = 0X00, // JUMP instruction given by the parameter.
