@@ -1,4 +1,5 @@
 #include "format_cps.h"
+#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "bytes.h"
 #include "format_lcw.h"
@@ -143,14 +144,14 @@ uint8_t *TestCps(const uint8_t *buffer, size_t bufferSize) {
   return dest;
 }
 
-#define WINDOW_WIDTH 320
-#define WINDOW_HEIGH 200
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGH 400
 
 static uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
 static uint8_t VGA8To8(uint8_t v) { return (v); }
 
-static void renderPalette(SDL_Renderer *renderer,
-                          const uint8_t *paletteBuffer) {
+static void renderPalette(SDL_Renderer *renderer, const uint8_t *paletteBuffer,
+                          int offsetX, int offsetY) {
   for (int i = 0; i < 256; i++) {
     int x = i % 16;
     int y = i / 16;
@@ -159,23 +160,25 @@ static void renderPalette(SDL_Renderer *renderer,
     uint8_t g = VGA6To8(paletteBuffer[(i * 3) + 1]);
     uint8_t b = VGA6To8(paletteBuffer[(i * 3) + 2]);
     SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-    SDL_Rect rect = {.x = x * 10, .y = y * 10, .w = 10, .h = 10};
+    SDL_Rect rect = {
+        .x = offsetX + x * 10, .y = offsetY + y * 10, .w = 10, .h = 10};
     SDL_RenderFillRect(renderer, &rect);
   }
 }
 
 static void renderImage(SDL_Renderer *renderer, const uint8_t *imgData,
                         const uint8_t *paletteBuffer) {
-  for (int x = 0; x < WINDOW_WIDTH; x++) {
-    for (int y = 0; y < WINDOW_HEIGH; y++) {
-      uint8_t paletteIdx = *(imgData + (WINDOW_WIDTH * y) + x);
+  for (int x = 0; x < 320; x++) {
+    for (int y = 0; y < 200; y++) {
+      uint8_t paletteIdx = *(imgData + (320 * y) + x);
 
       uint8_t r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
       uint8_t g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
       uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
 
       SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-      SDL_RenderDrawPoint(renderer, x, y);
+      SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
+      SDL_RenderFillRect(renderer, &rect);
     }
   }
 }
@@ -190,11 +193,11 @@ static void writeImage(const uint8_t *imgData, size_t imgDataSize,
   SDL_Init(SDL_INIT_VIDEO);
   SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGH, 0, &window,
                               &renderer);
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
   renderImage(renderer, imgData, paletteBuffer);
-  // renderPalette(renderer, paletteBuffer);
+  renderPalette(renderer, paletteBuffer, 640, 0);
   SDL_RenderPresent(renderer);
   while (1) {
     if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
