@@ -120,8 +120,10 @@ static int cmdCPS(int argc, char *argv[]) {
     return 1;
   }
   fread(buffer, inFileSize, 1, inFile);
-  uint8_t *buff = TestCps(buffer, inFileSize);
-  free(buff);
+  CPSImage image;
+  CPSImageFromFile(&image, buffer, inFileSize);
+  free(buffer);
+  CPSImageRelease(&image);
   return 0;
 }
 
