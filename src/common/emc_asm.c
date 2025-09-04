@@ -152,7 +152,6 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x0041 + (val << 8);
-    printf("Got MNEMONIC_SETRET %X\n", val);
     return 1;
   } else if (strcmp(mnemonic, MNEMONIC_POP) == 0) {
     assert(arg);
