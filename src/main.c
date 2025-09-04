@@ -99,10 +99,12 @@ static int cmdMap(int argc, char *argv[]) {
   }
   fread(buffer, fsize, 1, f);
   printf("read %zi bytes\n", fsize);
-  TestCMZ(buffer, fsize);
-  // TestINF(buffer, fsize);
+  INFScript script;
+  INFScriptInit(&script);
+  INFScriptFromBuffer(&script, buffer, fsize);
   fclose(f);
-  free(buffer);
+
+  INFScriptRelease(&script);
   return 0;
 }
 
@@ -166,9 +168,10 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
     return 1;
   }
   fread(buffer, inFileSize, 1, inFile);
+  fclose(inFile);
   size_t unzipedDataSize = 0;
   printf("CMZ_Uncompress %zi bytes\n", inFileSize);
-  uint8_t *unzipedData = CMZ_Uncompress(buffer, inFileSize, &unzipedDataSize);
+  uint8_t *unzipedData = CMZDecompress(buffer, inFileSize, &unzipedDataSize);
   int err = 0;
   if (unzipedData == NULL) {
     printf("error while unzipping file\n");
@@ -184,7 +187,7 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
     }
     free(outFilePath);
   }
-  fclose(inFile);
+
   free(buffer);
   return err;
 }
@@ -291,7 +294,7 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map subcommand ...\n", progName);
+  printf("%s: pak|cmz|map|script|tests subcommand ...\n", progName);
 }
 
 int main(int argc, char *argv[]) {

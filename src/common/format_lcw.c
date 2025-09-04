@@ -7,17 +7,18 @@
 #include <string.h>
 
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/codec/format80.c
-static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
-                             uint32_t outLen) {
+ssize_t LCWDecompress(const uint8_t *source, size_t sourceSize, uint8_t *outBuf,
+                      size_t outSize) {
+  assert(source[sourceSize - 1] == 0X80);
   const uint8_t *start = outBuf;
-  uint8_t *end = outBuf + outLen;
+  uint8_t *end = outBuf + outSize;
 
   while (outBuf != end) {
     uint8_t cmd;
     uint16_t size;
     uint16_t offset;
 
-    cmd = *inBuf++;
+    cmd = *source++;
 
     if (cmd == 0x80) {
       /* Exit */
@@ -29,7 +30,7 @@ static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
       if (size > end - outBuf)
         size = (uint16_t)(end - outBuf);
 
-      offset = ((cmd & 0xF) << 8) + (*inBuf++);
+      offset = ((cmd & 0xF) << 8) + (*source++);
 
       /* This decoder assumes memcpy. As some platforms implement memcpy as
        * memmove, this is much safer */
@@ -46,23 +47,23 @@ static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
 
     } else if (cmd == 0xFE) {
       /* Long set */
-      size = *inBuf++;
-      size += (*inBuf++) << 8;
+      size = *source++;
+      size += (*source++) << 8;
       if (size > end - outBuf)
         size = (uint16_t)(end - outBuf);
 
-      memset(outBuf, (*inBuf++), size);
+      memset(outBuf, (*source++), size);
       outBuf += size;
 
     } else if (cmd == 0xFF) {
       /* Long move, absolute */
-      size = *inBuf++;
-      size += (*inBuf++) << 8;
+      size = *source++;
+      size += (*source++) << 8;
       if (size > end - outBuf)
         size = (uint16_t)(end - outBuf);
 
-      offset = *inBuf++;
-      offset += (*inBuf++) << 8;
+      offset = *source++;
+      offset += (*source++) << 8;
 
       /* This decoder assumes memcpy. As some platforms implement memcpy as
        * memmove, this is much safer */
@@ -75,8 +76,8 @@ static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
       if (size > end - outBuf)
         size = (uint16_t)(end - outBuf);
 
-      offset = *inBuf++;
-      offset += (*inBuf++) << 8;
+      offset = *source++;
+      offset += (*source++) << 8;
 
       /* This decoder assumes memcpy. As some platforms implement memcpy as
        * memmove, this is much safer */
@@ -92,19 +93,11 @@ static uint16_t doDecompress(uint8_t *inBuf, uint32_t inLen, uint8_t *outBuf,
       /* This decoder assumes memcpy. As some platforms implement memcpy as
        * memmove, this is much safer */
       for (; size > 0; size--)
-        *outBuf++ = *inBuf++;
+        *outBuf++ = *source++;
     }
   }
 
   return (uint16_t)(outBuf - start);
-}
-
-ssize_t LCWDecompress(const uint8_t *source, size_t sourceSize, uint8_t *dest,
-                      size_t destSize) {
-  int written = doDecompress((uint8_t *)source, sourceSize, dest, destSize);
-  printf("LCWDecompress.doDecompress wrote %i bytes destSize=%zi\n", written,
-         destSize);
-  return destSize;
 }
 
 // from https://moddingwiki.shikadi.net/wiki/Westwood_LCW

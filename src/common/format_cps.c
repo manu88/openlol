@@ -56,7 +56,6 @@ int CPSImageFromFile(CPSImage *image, const uint8_t *buffer,
     assert(image->palette);
     memcpy(image->palette, paletteBuffer, file->paletteSize);
   }
-  assert(dataBuffer[dataSize - 1] == 0X80);
   image->paletteSize = file->paletteSize;
   image->data = malloc(file->uncompressedSize);
   image->imageSize = dataSize;
