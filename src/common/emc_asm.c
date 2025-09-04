@@ -1,7 +1,7 @@
 #include "emc_asm.h"
-#include <_string.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #define _GNU_SOURCE
 #include "bytes.h"
 #include "script.h"
@@ -29,10 +29,10 @@ static char *trim(char *s) { return rtrim(ltrim(s)); }
 
 static char *removeComments(char *s) { return strsep(&s, ";"); }
 
-static char *toLower(char *p) {
+static char *toUpper(char *p) {
   char *r = p;
   for (; *p; ++p)
-    *p = tolower(*p);
+    *p = toupper(*p);
   return r;
 }
 
@@ -51,9 +51,9 @@ static uint16_t parseArg(const char *arg) {
 }
 
 static int genByteCode(char *inst, uint16_t bCode[2]) {
-  const char *mnemonic = toLower(strsep(&inst, " "));
+  const char *mnemonic = toUpper(strsep(&inst, " "));
   const char *arg = inst;
-  if (strcmp(mnemonic, "push") == 0) {
+  if (strcmp(mnemonic, MNEMONIC_PUSH) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     if (val < 0X80) {
@@ -65,101 +65,105 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     bCode[0] = 0X0423;
     bCode[1] = swap_uint16(val);
     return 2;
-  } else if (strcmp(mnemonic, "l_or") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_LOGICAL_OR) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_LogicalOR << 8);
     return 1;
-  } else if (strcmp(mnemonic, "add") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_ADD) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Add << 8);
     return 1;
-  } else if (strcmp(mnemonic, "xor") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_XOR) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_XOR << 8);
     return 1;
-  } else if (strcmp(mnemonic, "or") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_OR) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_OR << 8);
     return 1;
-  } else if (strcmp(mnemonic, "lshift") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_LEFT_SHIFT) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_LShift << 8);
     return 1;
-  } else if (strcmp(mnemonic, "and") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_AND) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_AND << 8);
     return 1;
-  } else if (strcmp(mnemonic, "inf") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_INF) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Inf << 8);
     return 1;
-  } else if (strcmp(mnemonic, "l_and") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_INF_EQ) == 0) {
+    assert(arg == NULL);
+    bCode[0] = 0x0051 + (BinaryOp_InfOrEq << 8);
+    return 1;
+  } else if (strcmp(mnemonic, MNEMONIC_LOGICAL_AND) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_LogicalAND << 8);
     return 1;
-  } else if (strcmp(mnemonic, "and") == 0) {
-    assert(arg == NULL);
-    bCode[0] = 0x0051 + (BinaryOp_AND << 8);
-    return 1;
-  } else if (strcmp(mnemonic, "sup") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_SUP) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Greater << 8);
     return 1;
-  } else if (strcmp(mnemonic, "minus") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_SUP_EQ) == 0) {
+    assert(arg == NULL);
+    bCode[0] = 0x0051 + (BinaryOp_GreaterOrEq << 8);
+    return 1;
+  } else if (strcmp(mnemonic, MNEMONIC_MINUS) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Minus << 8);
     return 1;
-  } else if (strcmp(mnemonic, "eq") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_EQUAL) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_EQUAL << 8);
     return 1;
-  } else if (strcmp(mnemonic, "neq") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_NOT_EQUAL) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_NotEQUAL << 8);
     return 1;
-  } else if (strcmp(mnemonic, "multiply") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_MULTIPLY) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Multiply << 8);
     return 1;
-  } else if (strcmp(mnemonic, "rshift") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_RIGHT_SHIFT) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_RShift << 8);
     return 1;
-  } else if (strcmp(mnemonic, "divide") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_DIVIDE) == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_Divide << 8);
     return 1;
-  } else if (strcmp(mnemonic, "pusharg") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_PUSH_ARG) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x0047 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "call") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_CALL) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x004E + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "stackrewind") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_STACK_REWIND) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x004C + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "pop") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_POP) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x0049 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "pushvar") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_PUSH_VAR) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x0045 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "poprc") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_POP_RC) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x0048 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "pushrc") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_PUSH_RC) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     if (val != 0 && val != 1) {
@@ -168,33 +172,38 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     }
     bCode[0] = 0x0042 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "ifnotgo") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_JUMP_NE) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0X002F;
     bCode[1] = swap_uint16(val);
     return 2;
-  } else if (strcmp(mnemonic, "stackforward") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_STACK_FORWARD) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x004D + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "poplocvar") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_POP_LOC_VAR) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x004A + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "pushlocvar") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_PUSH_LOC_VAR) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0x0046 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "jump") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_JUMP) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     bCode[0] = 0X0080 + (val << 8);
     return 1;
-  } else if (strcmp(mnemonic, "unary") == 0) {
+  } else if (strcmp(mnemonic, MNEMONIC_RET) == 0) {
+    assert(arg == NULL);
+    printf("%s needs to be implemented\n", MNEMONIC_RET);
+    assert(0);
+    return 1;
+  } else if (strcmp(mnemonic, MNEMONIC_UNARY) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
     if (val != 0 && val != 1) {
@@ -214,11 +223,10 @@ uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
   memset(outBuffer, 0, outBufferSize);
   int error = 0;
   int lineNum = 0;
-  char *originalLine = strtok((char *)script, "\n");
+  char *originalLine = strtok((char *)script, "\r\n");
   while (originalLine != NULL) {
     char *line = strdup(originalLine);
     size_t lineSize = strlen(line);
-
     if (lineSize > 2) {
       char *trimmedLine = trim(removeComments(line));
       uint16_t bCode[2] = {0};
@@ -226,7 +234,7 @@ uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
       if (!count) {
         error = 1;
         printf("Error at line %i: '%s'\n", lineNum, originalLine);
-        free(originalLine);
+        free(outBuffer);
         break;
       }
       if (outBufferIndex >= outBufferSize) {
@@ -260,7 +268,9 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
   long inFileSize = ftell(fileSourceP);
   fseek(fileSourceP, 0, SEEK_SET);
 
-  char *script = malloc(inFileSize);
+  char *script =
+      malloc(inFileSize + 1); // add one byte to add an end '\n' if not present
+  script[inFileSize] = 0;
   if (!script) {
     fclose(fileSourceP);
     return 1;
@@ -271,6 +281,10 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
     free(script);
     return 1;
   }
+  if (script[inFileSize] != '\n') {
+    script[inFileSize] = '\n';
+  }
+
   fclose(fileSourceP);
 
   size_t outBufferSize;
@@ -434,10 +448,12 @@ static void TestInstruction(const char *sOrigin, size_t instructionsCount) {
 int EMC_Tests(void) {
   printf("EMC_Tests\n");
 
-  TestInstruction("PushArg 0X1\n", 1);
-  TestInstruction("call 0X59\n", 1);
-  TestInstruction("StackRewind 0X1\n", 1);
+  TestInstruction("PUSHARG 0X1\n", 1);
+  TestInstruction("CALL 0X59\n", 1);
+  TestInstruction("STACKRWD 0X1\n", 1);
   TestInstruction("PUSH 0XFFFF\n", 2);
+  TestInstruction("JUMP 0XFF\n", 1);
+  TestInstruction("PUSHRC 0X1\n", 1);
 
   for (uint16_t i = 0; i < UINT16_MAX; i++) {
     uint16_t v = basicPush(i);
