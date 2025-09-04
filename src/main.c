@@ -98,7 +98,6 @@ static int cmdMap(int argc, char *argv[]) {
     return 1;
   }
   fread(buffer, fsize, 1, f);
-  printf("read %zi bytes\n", fsize);
   INFScript script;
   INFScriptInit(&script);
   INFScriptFromBuffer(&script, buffer, fsize);
@@ -190,6 +189,59 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
 
   free(buffer);
   return err;
+}
+
+static void usageINF(void) { printf("inf subcommands: code infFile\n"); }
+
+static int cmdINFExtractCode(const char *filepath) {
+  FILE *f = fopen(filepath, "rb");
+  if (!f) {
+    perror("open: ");
+    return 1;
+  }
+  fseek(f, 0, SEEK_END);
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  uint8_t *buffer = malloc(fsize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(f);
+    return 1;
+  }
+  fread(buffer, fsize, 1, f);
+  INFScript script;
+  INFScriptInit(&script);
+  INFScriptFromBuffer(&script, buffer, fsize);
+  fclose(f);
+
+  size_t numInstructions = INFScriptGetCodeBinarySize(&script);
+  const uint16_t *instructions = INFScriptGetCodeBinary(&script);
+
+  char outFilePath[64] = "";
+  assert(snprintf(outFilePath, 64, "%s.script.bin", filepath) < 64);
+
+  FILE *outFile = fopen(outFilePath, "wb");
+  if (outFile) {
+    fwrite(instructions, numInstructions * 2, 1, outFile);
+    fclose(outFile);
+  }
+
+  INFScriptRelease(&script);
+  return 0;
+}
+
+static int cmdINF(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("inf command, missing arguments\n");
+    usageINF();
+    return 1;
+  }
+  if (strcmp(argv[0], "extract") == 0 && argc == 2) {
+
+    return cmdINFExtractCode(argv[1]);
+  }
+  usageINF();
+  return 1;
 }
 
 static int cmdCMZ(int argc, char *argv[]) {
@@ -294,7 +346,7 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map|script|tests subcommand ...\n", progName);
+  printf("%s: pak|cmz|map|script|inf|tests subcommand ...\n", progName);
 }
 
 int main(int argc, char *argv[]) {
@@ -306,6 +358,8 @@ int main(int argc, char *argv[]) {
     return cmdPak(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cmz") == 0) {
     return cmdCMZ(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "inf") == 0) {
+    return cmdINF(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
     return cmdCPS(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "map") == 0) {

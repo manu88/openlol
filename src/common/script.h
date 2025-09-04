@@ -76,10 +76,12 @@ typedef struct {
   uint16_t returnValue;
 
   // disassembler part
+  uint16_t addrOffset;
   uint8_t disassemble;
   char *disasmBuffer;
   size_t disasmBufferIndex;
   size_t disasmBufferSize;
+  uint8_t showDisamComment;
 } ScriptVM;
 
 void ScriptVMInit(ScriptVM *vm);

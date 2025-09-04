@@ -38,6 +38,7 @@ void ScriptVMDump(const ScriptVM *vm) {
 typedef struct {
   uint16_t scriptStart;
   uint16_t currentAddress;
+  uint16_t currentWorld;
 } ScriptContext;
 
 void stackPush(ScriptVM *vm, uint16_t value) {
@@ -89,21 +90,28 @@ static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...) {
   }
   vm->disasmBufferIndex += writtenSize;
   va_end(args);
+  if (vm->showDisamComment) {
+    bSize = vm->disasmBufferSize - writtenSize;
+    writtenSize =
+        snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, "; 0X%04X\n",
+                 ctx->currentWorld); // ctx->currentAddress + vm->addrOffset);
 
-  bSize = vm->disasmBufferSize - writtenSize;
-  writtenSize = snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize,
-                         "; 0X%04X\n", ctx->currentAddress);
+    if (writtenSize > bSize) {
+      printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",
+             writtenSize, bSize);
+      assert(0);
+    }
+    vm->disasmBufferIndex += writtenSize;
+  } else {
+    writtenSize =
+        snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, "\n");
 
-  if (writtenSize > bSize) {
-    printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",
-           writtenSize, bSize);
-    assert(0);
+    vm->disasmBufferIndex += writtenSize;
   }
-  vm->disasmBufferIndex += writtenSize;
 }
 
-static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
-                             uint16_t parameter) {
+static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
+                            uint16_t parameter) {
   switch ((ScriptCommand)opCode) {
 
   case OP_JUMP:
@@ -112,14 +120,14 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     } else {
       printf("JUMP %X (%X)\n", parameter, ctx->scriptStart + parameter);
     }
-    break;
+    return 1;
   case OP_SETRETURNVALUE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "SetRET 0X%X", parameter);
     } else {
       printf("SETRETURNVALUE %X\n", parameter);
     }
-    break;
+    return 1;
   case OP_PUSH_RETURN_OR_LOCATION:
     assert(parameter == 1 || parameter == 0);
     if (vm->disassemble) {
@@ -127,7 +135,7 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     } else {
       printf("PUSH_RETURN_OR_LOCATION %X", parameter);
     }
-    break;
+    return 1;
   case OP_PUSH:
   case OP_PUSH2:
     if (vm->disassemble) {
@@ -135,21 +143,21 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     } else {
       stackPush(vm, parameter);
     }
-    break;
+    return 1;
   case OP_PUSH_VARIABLE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "PushVar 0X%X", parameter);
     } else {
       stackPush(vm, vm->variables[parameter]);
     }
-    break;
+    return 1;
   case OP_PUSH_LOCAL_VARIABLE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "PushLocVar 0X%X", parameter);
     } else {
       printf("PUSH LOC VAR %X", parameter);
     }
-    break;
+    return 1;
   case OP_PUSH_PARAMETER:
     if (vm->disassemble) {
       emitLine(vm, ctx, "PushArg 0X%X", parameter);
@@ -157,7 +165,7 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       printf("PushArg 0X%X\n", parameter);
       stackPush(vm, vm->stack[vm->framePointer + parameter - 1]);
     }
-    break;
+    return 1;
   case OP_POP_RETURN_OR_LOCATION:
     assert(parameter == 1 || parameter == 0);
     if (vm->disassemble) {
@@ -172,21 +180,21 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
         //      ;)\n"); assert(0);
       }
     }
-    break;
+    return 1;
   case OP_POP_VARIABLE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "Pop 0X%X", parameter);
     } else {
       vm->variables[parameter] = stackPop(vm);
     }
-    break;
+    return 1;
   case OP_POP_LOCAL_VARIABLE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "PopLocVar 0X%X", parameter);
     } else {
       printf("POP LOCAL VAR %X\n", parameter);
     }
-    break;
+    return 1;
   case OP_POP_PARAMETER:
     if (vm->disassemble) {
       emitLine(vm, ctx, "POPPARAM %X", parameter);
@@ -194,45 +202,46 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       printf("POP PARAM %X\n", parameter);
       vm->stack[vm->framePointer + parameter - 1] = stackPop(vm);
     }
-    break;
+    return 1;
   case OP_STACK_REWIND:
     if (vm->disassemble) {
       emitLine(vm, ctx, "StackRewind 0X%X", parameter);
     } else {
       vm->stackPointer += parameter;
     }
-    break;
+    return 1;
   case OP_STACK_FORWARD:
     if (vm->disassemble) {
       emitLine(vm, ctx, "StackForward 0X%X", parameter);
     } else {
       vm->stackPointer -= parameter;
     }
-    break;
+    return 1;
   case OP_FUNCTION:
-    parameter &= 0xFF;
     if (vm->disassemble) {
       emitLine(vm, ctx, "call 0X%X", parameter);
     } else {
+      parameter &= 0xFF;
       printf("FUNCTION %X\n", parameter);
     }
-    break;
+    return 1;
   case OP_JUMP_NE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "IfNotGo 0X%X", parameter);
     } else {
       printf("JUMP_NE %X\n", parameter);
     }
-    break;
+    return 1;
   case OP_UNARY:
-    assert(parameter == 1 || parameter == 0 || parameter == 2);
+
     if (vm->disassemble) {
       emitLine(vm, ctx, "Unary 0X%X", parameter);
     } else {
-      printf("UNARY %X", parameter);
+      printf("UNARY %X\n", parameter);
+      assert(parameter == 1 || parameter == 0 || parameter == 2);
     }
 
-    break;
+    return 1;
   case OP_BINARY:
     assert(parameter <= 17);
     int16_t right = 0;
@@ -249,126 +258,129 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       } else {
         stackPush(vm, (left && right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_LogicalOR:
       if (vm->disassemble) {
         emitLine(vm, ctx, "L_OR");
       } else {
         stackPush(vm, (left || right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_EQUAL:
       if (vm->disassemble) {
         emitLine(vm, ctx, "EQ");
       } else {
         stackPush(vm, (left == right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_NotEQUAL:
       if (vm->disassemble) {
         emitLine(vm, ctx, "NEQ");
       } else {
         stackPush(vm, (left != right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_Inf:
       if (vm->disassemble) {
         emitLine(vm, ctx, "INF");
       } else {
         stackPush(vm, (left < right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_InfOrEq:
       if (vm->disassemble) {
         emitLine(vm, ctx, "IF_EQ");
       } else {
         stackPush(vm, (left <= right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_Greater:
       if (vm->disassemble) {
         emitLine(vm, ctx, "SUP");
       } else {
         stackPush(vm, (left > right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_GreaterOrEq:
       if (vm->disassemble) {
         emitLine(vm, ctx, "SUP_EQ");
       } else {
         stackPush(vm, (left >= right) ? 1 : 0);
       }
-      break;
+      return 1;
     case BinaryOp_Add:
       if (vm->disassemble) {
         emitLine(vm, ctx, "Add");
       } else {
         stackPush(vm, left + right);
       }
-      break;
+      return 1;
     case BinaryOp_Minus:
       if (vm->disassemble) {
         emitLine(vm, ctx, "Minus");
       } else {
         stackPush(vm, left - right);
       }
-      break;
+      return 1;
     case BinaryOp_Multiply:
       if (vm->disassemble) {
         emitLine(vm, ctx, "MULTIPLY");
       } else {
         stackPush(vm, left * right);
       }
-      break;
+      return 1;
     case BinaryOp_Divide:
       if (vm->disassemble) {
         emitLine(vm, ctx, "DIV");
       } else {
         stackPush(vm, left / right);
       }
-      break;
+      return 1;
     case BinaryOp_RShift:
       if (vm->disassemble) {
         emitLine(vm, ctx, "RSHIFT");
       } else {
         stackPush(vm, left >> right);
       }
-      break;
+      return 1;
     case BinaryOp_LShift:
       if (vm->disassemble) {
         emitLine(vm, ctx, "LSHIFT");
       } else {
         stackPush(vm, left << right);
       }
-      break;
+      return 1;
     case BinaryOp_AND:
       if (vm->disassemble) {
         emitLine(vm, ctx, "AND");
       } else {
         stackPush(vm, left & right);
       }
-      break;
+      return 1;
     case BinaryOp_OR:
       if (vm->disassemble) {
         emitLine(vm, ctx, "OR");
       } else {
         stackPush(vm, left | right);
       }
-      break;
+      return 1;
     case BinaryOp_MOD:
       if (vm->disassemble) {
         emitLine(vm, ctx, "MOD");
       } else {
         stackPush(vm, left % right);
       }
-      break;
+      return 1;
     case BinaryOp_XOR:
       if (vm->disassemble) {
         emitLine(vm, ctx, "XOR");
       } else {
         stackPush(vm, left ^ right);
       }
-      break;
+      return 1;
+    default:
+      printf("unknown binary op %X\n", parameter);
+      return 0;
     }
     break;
   case OP_RETURN:
@@ -377,10 +389,12 @@ static void parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     } else {
       printf("RET %X\n", parameter);
     }
-    break;
+    return 1;
   default:
-    printf("0X04%X (%x) (%x)\n", ctx->currentAddress, opCode, parameter);
+    printf("unknown instruction at 0X04%X opcode=%x (param=%x)\n",
+           ctx->currentAddress, opCode, parameter);
   }
+  return 0;
 }
 
 int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
@@ -390,6 +404,7 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
   while (currentPos < info->scriptSize) {
     ctx.currentAddress = currentPos;
     uint16_t orig = *(info->scriptData + currentPos++);
+    ctx.currentWorld = orig;
     uint16_t current = swap_uint16(orig);
     uint16_t parameter = 0;
     uint8_t opcode = (current >> 8) & 0x1F;
@@ -406,8 +421,10 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
       /* When this flag is set, the parameter is in the next opcode */
       parameter = swap_uint16(*(info->scriptData + currentPos++));
     }
-    parseInstruction(vm, &ctx, opcode, parameter);
+    if (!parseInstruction(vm, &ctx, opcode, parameter)) {
+      return 0;
+    }
   }
 
-  return 0;
+  return 1;
 }
