@@ -90,11 +90,11 @@ static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...) {
   }
   vm->disasmBufferIndex += writtenSize;
   va_end(args);
+
   if (vm->showDisamComment) {
     bSize = vm->disasmBufferSize - writtenSize;
-    writtenSize =
-        snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, "; 0X%04X\n",
-                 ctx->currentWorld); // ctx->currentAddress + vm->addrOffset);
+    writtenSize = snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize,
+                           "; 0X%04X\n", ctx->currentAddress + vm->addrOffset);
 
     if (writtenSize > bSize) {
       printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",

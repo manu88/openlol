@@ -1,5 +1,6 @@
 #include "emc_asm.h"
 #include <_string.h>
+#include <stddef.h>
 #include <stdint.h>
 #define _GNU_SOURCE
 #include "bytes.h"
@@ -59,12 +60,11 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
       // emit OP_PUSH
       bCode[0] = 0x0044 + (val << 8);
       return 1;
-    } else {
-      // emit OP_PUSH2
-      bCode[0] = 0X0423;
-      bCode[1] = swap_uint16(val);
-      return 2;
     }
+    // emit OP_PUSH2
+    bCode[0] = 0X0423;
+    bCode[1] = swap_uint16(val);
+    return 2;
   } else if (strcmp(mnemonic, "l_or") == 0) {
     assert(arg == NULL);
     bCode[0] = 0x0051 + (BinaryOp_LogicalOR << 8);
@@ -192,7 +192,7 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
   } else if (strcmp(mnemonic, "jump") == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
-    bCode[0] = 0X002F + val;
+    bCode[0] = 0X0080 + (val << 8);
     return 1;
   } else if (strcmp(mnemonic, "unary") == 0) {
     assert(arg);
@@ -210,13 +210,13 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
 uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
   size_t outBufferSize = 128;
   size_t outBufferIndex = 0;
-  uint16_t *outBuffer = malloc(outBufferSize);
+  uint16_t *outBuffer = malloc(outBufferSize * 2);
   memset(outBuffer, 0, outBufferSize);
   int error = 0;
   int lineNum = 0;
-  char *orignalLine = strtok((char *)script, "\n");
-  while (orignalLine != NULL) {
-    char *line = strdup(orignalLine);
+  char *originalLine = strtok((char *)script, "\n");
+  while (originalLine != NULL) {
+    char *line = strdup(originalLine);
     size_t lineSize = strlen(line);
 
     if (lineSize > 2) {
@@ -225,20 +225,21 @@ uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
       int count = genByteCode(trimmedLine, bCode);
       if (!count) {
         error = 1;
-        printf("Error at line %i: '%s'\n", lineNum, orignalLine);
-        free(orignalLine);
+        printf("Error at line %i: '%s'\n", lineNum, originalLine);
+        free(originalLine);
         break;
       }
-      outBuffer[outBufferIndex++] = bCode[0];
-      if (outBufferIndex > outBufferSize) {
+      if (outBufferIndex >= outBufferSize) {
+
         outBufferSize *= 2;
-        outBuffer = realloc(outBuffer, outBufferSize);
+        outBuffer = realloc(outBuffer, outBufferSize * 2);
       }
+      outBuffer[outBufferIndex++] = bCode[0];
       if (count > 1) {
         outBuffer[outBufferIndex++] = bCode[1];
       }
     }
-    orignalLine = strtok(NULL, "\r\n");
+    originalLine = strtok(NULL, "\r\n");
     lineNum++;
   }
 
@@ -255,56 +256,29 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
     perror("fopen");
     return 1;
   }
+  fseek(fileSourceP, 0, SEEK_END);
+  long inFileSize = ftell(fileSourceP);
+  fseek(fileSourceP, 0, SEEK_SET);
 
-  size_t outBufferSize = 128;
-  size_t outBufferIndex = 0;
-  uint16_t *outBuffer = malloc(outBufferSize * sizeof(uint16_t));
-  memset(outBuffer, 0, outBufferSize);
-
-  char *line = NULL;
-  size_t len = 0;
-  ssize_t lineSize;
-  int error = 0;
-  int lineNum = 0;
-
-  while ((lineSize = getline(&line, &len, fileSourceP)) != -1) {
-    if (lineSize > 2) {
-      char *trimmedLine = trim(removeComments(line));
-      uint16_t bCode[2] = {0};
-      int count = genByteCode(trimmedLine, bCode);
-      if (!count) {
-        error = 1;
-        printf("Error at line %i: '%s'\n", lineNum, line);
-        break;
-      }
-      if (outBufferIndex + count >= outBufferSize) {
-        outBufferSize *= 2;
-        outBuffer = realloc(outBuffer, outBufferSize * sizeof(uint16_t));
-      }
-      assert(outBufferIndex + count < outBufferSize);
-      outBuffer[outBufferIndex++] = bCode[0];
-      if (outBufferIndex > outBufferSize) {
-        outBufferSize *= 2;
-        outBuffer = realloc(outBuffer, outBufferSize);
-      }
-      if (count > 1) {
-        outBuffer[outBufferIndex++] = bCode[1];
-      }
-    }
-    lineNum++;
+  char *script = malloc(inFileSize);
+  if (!script) {
+    fclose(fileSourceP);
+    return 1;
+  }
+  if (fread(script, inFileSize, 1, fileSourceP) != 1) {
+    perror("fread");
+    fclose(fileSourceP);
+    free(script);
+    return 1;
   }
   fclose(fileSourceP);
-  if (line)
-    free(line);
 
-  if (error != 0) {
-    free(outBuffer);
-    return error;
-  }
+  size_t outBufferSize;
+  uint16_t *outBuffer = EMC_Assemble(script, &outBufferSize);
 
   FILE *outFileP = fopen(outFilePath, "wb");
   if (outFileP) {
-    fwrite(outBuffer, outBufferIndex * 2, 1, outFileP);
+    fwrite(outBuffer, outBufferSize * 2, 1, outFileP);
     fclose(outFileP);
   }
   free(outBuffer);
@@ -333,16 +307,24 @@ int EMC_DisassembleFile(const char *binFilepath, const char *outFilePath) {
   ScriptVM vm;
   ScriptVMInit(&vm);
   ScriptVMSetDisassembler(&vm);
+  vm.showDisamComment = 1;
   ScriptInfo inf;
   inf.scriptData = (uint16_t *)binBuffer;
   inf.scriptSize = fsize / 2;
   assert(vm.disasmBuffer);
   if (!ScriptExec(&vm, &inf)) {
     printf("error while disassembling code\n");
+    return 1;
   }
 
   printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-  printf("'%s'\n", vm.disasmBuffer);
+
+  FILE *outFileP = fopen(outFilePath, "w");
+  if (outFileP) {
+    fwrite(vm.disasmBuffer, strlen(vm.disasmBuffer), 1, outFileP);
+    fclose(outFileP);
+  }
+
   ScriptVMRelease(&vm);
   free(binBuffer);
   return 0;
@@ -418,10 +400,14 @@ static void expect(uint16_t val, uint16_t expected) {
   }
 }
 
-static void TestInstruction(const char *sOrigin) {
+static void TestInstruction(const char *sOrigin, size_t instructionsCount) {
   char *s = strdup(sOrigin);
   size_t bufferSize = 0;
   uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  if (bufferSize != instructionsCount) {
+    printf("'%s': Buffersize=%zu, expected %zu\n", sOrigin, bufferSize,
+           instructionsCount);
+  }
   ScriptVM vm;
   ScriptVMInit(&vm);
   ScriptVMSetDisassembler(&vm);
@@ -448,9 +434,10 @@ static void TestInstruction(const char *sOrigin) {
 int EMC_Tests(void) {
   printf("EMC_Tests\n");
 
-  TestInstruction("PushArg 0X1\n");
-  TestInstruction("call 0X59\n");
-  TestInstruction("StackRewind 0X1\n");
+  TestInstruction("PushArg 0X1\n", 1);
+  TestInstruction("call 0X59\n", 1);
+  TestInstruction("StackRewind 0X1\n", 1);
+  TestInstruction("PUSH 0XFFFF\n", 2);
 
   for (uint16_t i = 0; i < UINT16_MAX; i++) {
     uint16_t v = basicPush(i);
