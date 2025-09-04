@@ -191,7 +191,38 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
   return err;
 }
 
-static void usageINF(void) { printf("inf subcommands: code infFile\n"); }
+static void usageINF(void) {
+  printf("inf subcommands: extract|show infFile\n");
+}
+
+static int cmdINFShowContent(const char *filepath) {
+  FILE *f = fopen(filepath, "rb");
+  if (!f) {
+    perror("open: ");
+    return 1;
+  }
+  fseek(f, 0, SEEK_END);
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  uint8_t *buffer = malloc(fsize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(f);
+    return 1;
+  }
+  fread(buffer, fsize, 1, f);
+  fclose(f);
+  INFScript script;
+  INFScriptInit(&script);
+  INFScriptFromBuffer(&script, buffer, fsize);
+  printf("INF Content from file '%s':\n", filepath);
+  printf("\t%zi instructions\n", INFScriptGetCodeBinarySize(&script));
+  INFScriptListText(&script);
+  printf("Script function segments:\n");
+  INFScriptListScriptFunctions(&script);
+  INFScriptRelease(&script);
+  return 0;
+}
 
 static int cmdINFExtractCode(const char *filepath) {
   FILE *f = fopen(filepath, "rb");
@@ -209,10 +240,10 @@ static int cmdINFExtractCode(const char *filepath) {
     return 1;
   }
   fread(buffer, fsize, 1, f);
+  fclose(f);
   INFScript script;
   INFScriptInit(&script);
   INFScriptFromBuffer(&script, buffer, fsize);
-  fclose(f);
 
   size_t numInstructions = INFScriptGetCodeBinarySize(&script);
   const uint16_t *instructions = INFScriptGetCodeBinary(&script);
@@ -237,8 +268,9 @@ static int cmdINF(int argc, char *argv[]) {
     return 1;
   }
   if (strcmp(argv[0], "extract") == 0 && argc == 2) {
-
     return cmdINFExtractCode(argv[1]);
+  } else if (strcmp(argv[0], "show") == 0 && argc == 2) {
+    return cmdINFShowContent(argv[1]);
   }
   usageINF();
   return 1;

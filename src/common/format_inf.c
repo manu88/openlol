@@ -16,9 +16,8 @@ void INFScriptRelease(INFScript *script) {
   free(script->segments);
 }
 
-static void decodeTextArea(INFScript *script) {
+void INFScriptListText(const INFScript *script) {
   printf("TEXT chunk:\n");
-
   // first is size
   for (uint32_t pos = 1; pos < (script->chunks[kText]._size << 1); ++pos) {
     if (swap_uint16(((uint16_t *)script->chunks[kText]._data)[pos]) >=
@@ -27,7 +26,7 @@ static void decodeTextArea(INFScript *script) {
     }
     uint32_t startoffset =
         swap_uint16(((uint16_t *)script->chunks[kText]._data)[pos]);
-    printf("Index: %X Offset: %X:\n", pos, startoffset);
+    printf("\tIndex: %X Offset: %X:\n", pos, startoffset);
     /*uint32_t endoffset = TO_BE_16(((uint16_t*)_chunks[kText]._data)[pos+1]);
     printf("\nstartoffset = %d, endoffset = %d\n\n", startoffset, endoffset);
     for (; startoffset < endoffset; ++startoffset) {
@@ -110,27 +109,28 @@ static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
   return minOffset;
 }
 
-static void decodeORDRScriptFunctions(INFScript *script) {
-  assert(script->segments == NULL);
-  script->segments = malloc(128 * sizeof(ScriptSegment));
-  int offsetsIndex = 0;
-  const uint16_t *b = (const uint16_t *)script->chunks[kEmc2Ordr]._data;
-  for (int i = 0; i < script->chunks[kEmc2Ordr]._size; i++) {
-    if (b[i] != 0XFFFF) {
-      uint16_t offset = swap_uint16(b[i]);
-      assert(offsetsIndex < 128);
-      script->segments[offsetsIndex++].start = offset;
+void INFScriptListScriptFunctions(INFScript *script) {
+  if (script->segments == NULL) {
+    script->segments = malloc(128 * sizeof(ScriptSegment));
+    int offsetsIndex = 0;
+    const uint16_t *b = (const uint16_t *)script->chunks[kEmc2Ordr]._data;
+    for (int i = 0; i < script->chunks[kEmc2Ordr]._size; i++) {
+      if (b[i] != 0XFFFF) {
+        uint16_t offset = swap_uint16(b[i]);
+        assert(offsetsIndex < 128);
+        script->segments[offsetsIndex++].start = offset;
+      }
     }
+    script->segmentsNum = offsetsIndex;
   }
-  printf("Got %i offsets\n", offsetsIndex);
-  for (int i = 0; i < offsetsIndex; i++) {
+  printf("Got %zu offsets\n", script->segmentsNum);
+  for (int i = 0; i < script->segmentsNum; i++) {
     uint16_t nextOffset =
         getNextOffset(script->segments[i].start, script->chunks);
     script->segments[i].end = nextOffset;
     printf("%i 0X%04X 0X%04X\n", i, script->segments[i].start,
            script->segments[i].end);
   }
-  script->segmentsNum = offsetsIndex;
 }
 
 void INFScriptFromBuffer(INFScript *script, uint8_t *buffer,
