@@ -148,6 +148,12 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     uint16_t val = parseArg(arg);
     bCode[0] = 0x004C + (val << 8);
     return 1;
+  } else if (strcmp(mnemonic, MNEMONIC_SETRET) == 0) {
+    assert(arg);
+    uint16_t val = parseArg(arg);
+    bCode[0] = 0x0041 + (val << 8);
+    printf("Got MNEMONIC_SETRET %X\n", val);
+    return 1;
   } else if (strcmp(mnemonic, MNEMONIC_POP) == 0) {
     assert(arg);
     uint16_t val = parseArg(arg);
@@ -213,6 +219,7 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     bCode[0] = 0X0050 + (val << 8);
     return 1;
   }
+  printf("unknow mnemonic '%s'\n", mnemonic);
   return 0;
 }
 
@@ -237,7 +244,7 @@ uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
         free(outBuffer);
         break;
       }
-      if (outBufferIndex >= outBufferSize) {
+      if (outBufferIndex + count >= outBufferSize) {
 
         outBufferSize *= 2;
         outBuffer = realloc(outBuffer, outBufferSize * 2);
@@ -418,6 +425,7 @@ static void TestInstruction(const char *sOrigin, size_t instructionsCount) {
   char *s = strdup(sOrigin);
   size_t bufferSize = 0;
   uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  assert(buffer);
   if (bufferSize != instructionsCount) {
     printf("'%s': Buffersize=%zu, expected %zu\n", sOrigin, bufferSize,
            instructionsCount);
@@ -454,6 +462,7 @@ int EMC_Tests(void) {
   TestInstruction("PUSH 0XFFFF\n", 2);
   TestInstruction("JUMP 0XFF\n", 1);
   TestInstruction("PUSHRC 0X1\n", 1);
+  TestInstruction("SETRET 0X1\n", 1);
 
   for (uint16_t i = 0; i < UINT16_MAX; i++) {
     uint16_t v = basicPush(i);

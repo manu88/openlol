@@ -388,6 +388,13 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       printf("RET %X\n", parameter);
     }
     return 1;
+  case OP_SETRETURNVALUE:
+    if (vm->disassemble) {
+      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_SETRET, parameter);
+    } else {
+      printf("SetRET %X\n", parameter);
+    }
+    return 1;
   default:
     printf("unknown instruction at 0X04%X opcode=%x (param=%x)\n",
            ctx->currentAddress, opCode, parameter);
