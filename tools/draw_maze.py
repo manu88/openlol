@@ -1,11 +1,13 @@
 import pygame
 import sys
+
 from parse import parse
 BLACK = (0, 0, 0)
 WHITE = (200, 200, 200)
 WINDOW_HEIGHT = 1000
 WINDOW_WIDTH = 1000
 unknown_idx = set()
+max_idx = 0
 
 
 def main():
@@ -29,6 +31,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print(unknown_idx)
+                print(max_idx)
                 pygame.quit()
                 sys.exit()
 
@@ -37,6 +40,9 @@ def main():
 
 def test_type(i):
     global unknown_idx
+    global max_idx
+    if i > max_idx:
+        max_idx = i
     if i in [0, 1, 2]:
         return
     if is_door(i):
@@ -50,7 +56,11 @@ def is_door(i):
 
 def draw_line(p0, p1, index):
     color = (255, 255, 255)
+    if is_door(index):
+        color = (0, 255, 0)
+
     test_type(index)
+
     if index in unknown_idx:
         color = (255, 0, 0)
     pygame.draw.line(SCREEN, color, p0, p1, 5 if is_door(index) else 1)
