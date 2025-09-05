@@ -3,6 +3,7 @@
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_inf.h"
+#include "format_wll.h"
 #include "pak_file.h"
 #include "renderer.h"
 #include "tests.h"
@@ -13,6 +14,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static int cmdWLL(int argc, char *argv[]) {
+  FILE *f = fopen(argv[0], "rb");
+  if (!f) {
+    perror("open: ");
+    return 1;
+  }
+  fseek(f, 0, SEEK_END);
+  long fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  uint8_t *buffer = malloc(fsize);
+  if (!buffer) {
+    perror("malloc error");
+    fclose(f);
+    return 1;
+  }
+  fread(buffer, fsize, 1, f);
+  fclose(f);
+
+  TestWLL(buffer, fsize);
+  free(buffer);
+  return 0;
+}
 
 static int cmdScriptExec(const char *filepath) {
   printf("asm script '%s'\n", filepath);
@@ -309,8 +333,9 @@ static int cmdPakList(const char *pakfilepath) {
 
   for (int i = 0; i <= file.count; i++) {
     PAKEntry *entry = &file.entries[i];
-    printf("%i: Entry offset %u name '%s' ('%s') size %u \n", i, entry->offset,
-           entry->filename, PakFileEntryGetExtension(entry), entry->fileSize);
+    printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", i, i,
+           entry->offset, entry->filename, PakFileEntryGetExtension(entry),
+           entry->fileSize);
   }
 
   PAKFileRelease(&file);
@@ -331,7 +356,7 @@ static int cmdPakExtract(const char *pakfilepath, const char *fileToShow) {
   for (int i = 0; i < file.count; i++) {
     PAKEntry *entry = &file.entries[i];
     if (strcmp(entry->filename, fileToShow) == 0) {
-      printf("%i: Entry offset %u name '%s' ('%s') size %u \n", i,
+      printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", i, i,
              entry->offset, entry->filename, PakFileEntryGetExtension(entry),
              entry->fileSize);
       found = 1;
@@ -376,7 +401,7 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map|script|inf|tests subcommand ...\n", progName);
+  printf("%s: pak|cmz|map|script|inf|tests|wll subcommand ...\n", progName);
 }
 
 int main(int argc, char *argv[]) {
@@ -388,6 +413,8 @@ int main(int argc, char *argv[]) {
     return cmdPak(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cmz") == 0) {
     return cmdCMZ(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "wll") == 0) {
+    return cmdWLL(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "inf") == 0) {
     return cmdINF(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {

@@ -33,8 +33,9 @@ def main():
         drawGrid(indices)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print(unknown_idx)
-                print(max_idx)
+                for i in unknown_idx:
+                    print(hex(i))
+
                 pygame.quit()
                 sys.exit()
 
@@ -66,49 +67,48 @@ def draw_line(p0, p1, index):
 
     if index in unknown_idx:
         color = (255, 0, 0)
-    pygame.draw.line(SCREEN, color, p0, p1, 5 if is_door(index) else 1)
+    pygame.draw.line(SCREEN, color, p0, p1, 1)
 
 # https://moddingwiki.shikadi.net/wiki/Eye_of_the_Beholder_Maze_Format
 
 
 def drawGrid(indices):
     blockSize = 25  # Set the size of the grid block
-    text_color = (0, 255,  0)
+    text_color = (255, 255,  0)
     for y in range(0, 32):
         for x in range(0, 32):
-            try:
-                i = y*32 + x
-                index = indices[y*32 + x]
-                # print(i, x, y)
-                north = index[0]
-                east = index[1]
-                south = index[2]
-                west = index[3]
+            i = y*32 + x
+            index = indices[y*32 + x]
+            # print(i, x, y)
+            north = index[0]
+            east = index[1]
+            south = index[2]
+            west = index[3]
 
-                cellOrigin = (10+x*(blockSize+5), 10+y*(blockSize+5))
-                cellSize = blockSize
-                if north:
-                    draw_line(
-                        cellOrigin, (cellOrigin[0]+cellSize, cellOrigin[1]), north)
-                    font.render_to(
-                        SCREEN, (cellOrigin[0]+8, cellOrigin[1]+1), f"{north}", text_color)
-                if south:
-                    draw_line((cellOrigin[0], cellOrigin[1] + cellSize),
-                              (cellOrigin[0]+cellSize, cellOrigin[1]+cellSize), south)
-                    font.render_to(
-                        SCREEN, (cellOrigin[0]+8, cellOrigin[1] + cellSize-7), f"{south}", text_color)
-                if west:
-                    draw_line(
-                        cellOrigin, (cellOrigin[0], cellOrigin[1]+cellSize), west)
-                    font.render_to(
-                        SCREEN, (cellOrigin[0]+1, cellOrigin[1]+8), f"{west}", text_color)
-                if east:
-                    draw_line((cellOrigin[0]+cellSize, cellOrigin[1]),
-                              (cellOrigin[0]+cellSize, cellOrigin[1]+cellSize), east)
-                    font.render_to(
-                        SCREEN, (cellOrigin[0]+cellSize-2, cellOrigin[1]+8), f"{east}", text_color)
-            except IndexError:
-                pass
+            cellOrigin = (10+x*(blockSize+5), 10+y*(blockSize+5))
+            cellSize = blockSize
+            if not north and not south and not east and not west:
+                continue
+            if north:
+                draw_line(
+                    cellOrigin, (cellOrigin[0]+cellSize, cellOrigin[1]), north)
+                font.render_to(
+                    SCREEN, (cellOrigin[0]+8, cellOrigin[1]+1), hex(north), text_color)
+            if south:
+                draw_line((cellOrigin[0], cellOrigin[1] + cellSize),
+                          (cellOrigin[0]+cellSize, cellOrigin[1]+cellSize), south)
+                font.render_to(
+                    SCREEN, (cellOrigin[0]+8, cellOrigin[1] + cellSize-7), hex(south), text_color)
+            if west:
+                draw_line(
+                    cellOrigin, (cellOrigin[0], cellOrigin[1]+cellSize), west)
+                font.render_to(
+                    SCREEN, (cellOrigin[0]+1, cellOrigin[1]+8), hex(west), text_color)
+            if east:
+                draw_line((cellOrigin[0]+cellSize, cellOrigin[1]),
+                          (cellOrigin[0]+cellSize, cellOrigin[1]+cellSize), east)
+                font.render_to(
+                    SCREEN, (cellOrigin[0]+cellSize-2, cellOrigin[1]+8), hex(east), text_color)
 
     # rect = pygame.Rect(x*blockSize, y*blockSize, blockSize, blockSize)
     # pygame.draw.rect(SCREEN, WHITE, rect, 1)
