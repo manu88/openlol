@@ -1,4 +1,4 @@
-## Extensions
+# Extensions
 https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files for more details
 
 - ‘.DIP‘ : Translations, localized strings?
@@ -15,3 +15,19 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.INF‘ : Script data similar to Eob inf, Data is arranged using Legend of Kyrandia's script format (info about Dune II's EMC: https://web.archive.org/web/20080922215518/http://minniatian.republika.pl/Dune2/EMC.HTM)
 - ‘.CMZ‘ : EoB maze definition, but compressed with Format 80
 - ‘.INI‘ : level-related?
+
+## format 80
+Looks like this 'format 80' refers to 2 different compression format:
+* in case of graphical data, 'format 80' is LCW,
+* else 'format 80' is LZ77.
+
+The reason? My guess is Westwood had to stop using LZ77 for graphical data, because of Unisys' enforcement of their patent on the LZW algorithm, but they still used it for non-graphical data.
+
+More information here:
+https://www.kyzer.me.uk/essays/giflzw/
+
+## CMZ
+Uses LZ77 compression!
+
+## CPS
+Uses LCW compression!
