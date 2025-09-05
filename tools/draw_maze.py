@@ -1,7 +1,9 @@
 import pygame
 import sys
-
+import pygame.freetype  # Import the freetype module.
 from parse import parse
+
+font = None
 BLACK = (0, 0, 0)
 WHITE = (200, 200, 200)
 WINDOW_HEIGHT = 1000
@@ -11,8 +13,9 @@ max_idx = 0
 
 
 def main():
-    global SCREEN, CLOCK, unknown_idx
+    global SCREEN, CLOCK, unknown_idx, font
     pygame.init()
+    font = pygame.freetype.SysFont(pygame.freetype.get_default_font(), 10)
     SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     CLOCK = pygame.time.Clock()
     SCREEN.fill(BLACK)
@@ -69,8 +72,8 @@ def draw_line(p0, p1, index):
 
 
 def drawGrid(indices):
-    blockSize = 20  # Set the size of the grid block
-
+    blockSize = 25  # Set the size of the grid block
+    text_color = (0, 255,  0)
     for y in range(0, 32):
         for x in range(0, 32):
             try:
@@ -87,15 +90,23 @@ def drawGrid(indices):
                 if north:
                     draw_line(
                         cellOrigin, (cellOrigin[0]+cellSize, cellOrigin[1]), north)
+                    font.render_to(
+                        SCREEN, (cellOrigin[0]+8, cellOrigin[1]+1), f"{north}", text_color)
                 if south:
                     draw_line((cellOrigin[0], cellOrigin[1] + cellSize),
                               (cellOrigin[0]+cellSize, cellOrigin[1]+cellSize), south)
+                    font.render_to(
+                        SCREEN, (cellOrigin[0]+8, cellOrigin[1] + cellSize-7), f"{south}", text_color)
                 if west:
                     draw_line(
                         cellOrigin, (cellOrigin[0], cellOrigin[1]+cellSize), west)
+                    font.render_to(
+                        SCREEN, (cellOrigin[0]+1, cellOrigin[1]+8), f"{west}", text_color)
                 if east:
                     draw_line((cellOrigin[0]+cellSize, cellOrigin[1]),
                               (cellOrigin[0]+cellSize, cellOrigin[1]+cellSize), east)
+                    font.render_to(
+                        SCREEN, (cellOrigin[0]+cellSize-2, cellOrigin[1]+8), f"{east}", text_color)
             except IndexError:
                 pass
 
