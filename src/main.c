@@ -98,12 +98,9 @@ static int cmdMap(int argc, char *argv[]) {
     return 1;
   }
   fread(buffer, fsize, 1, f);
-  INFScript script;
-  INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fsize);
   fclose(f);
 
-  INFScriptRelease(&script);
+  TestCMZ(buffer, fsize);
   return 0;
 }
 
@@ -188,6 +185,7 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
   }
 
   free(buffer);
+  free(unzipedData);
   return err;
 }
 

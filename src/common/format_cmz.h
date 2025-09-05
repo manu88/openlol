@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MAZE_NUM_CELL (size_t)1024
 typedef struct {
   int16_t width;
   int16_t height;
@@ -12,7 +13,7 @@ typedef struct {
     uint8_t east;
     uint8_t south;
     uint8_t west;
-  } wallMappingIndices[1024];
+  } wallMappingIndices[MAZE_NUM_CELL];
 } MAZEFile;
 
 uint8_t *CMZDecompress(const uint8_t *inBuffer, size_t inBufferSize,
