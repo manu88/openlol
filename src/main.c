@@ -328,7 +328,7 @@ static int cmdPakExtract(const char *pakfilepath, const char *fileToShow) {
 
   int found = 0;
   int ok = 0;
-  for (int i = 0; i <= file.count; i++) {
+  for (int i = 0; i < file.count; i++) {
     PAKEntry *entry = &file.entries[i];
     if (strcmp(entry->filename, fileToShow) == 0) {
       printf("%i: Entry offset %u name '%s' ('%s') size %u \n", i,
@@ -361,7 +361,6 @@ static int cmdPak(int argc, char *argv[]) {
   }
   const char *filepath = argv[1];
   if (strcmp(argv[0], "list") == 0) {
-
     return cmdPakList(filepath);
   } else if (strcmp(argv[0], "extract") == 0) {
     if (argc < 3) {

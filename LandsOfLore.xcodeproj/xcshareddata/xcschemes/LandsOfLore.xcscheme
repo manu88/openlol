@@ -53,11 +53,19 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "script"
+            argument = "pak"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "tests"
+            argument = "extract"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/data/CHAPTER1.PAK"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "LEVEL1.XXX"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
