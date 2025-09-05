@@ -253,6 +253,7 @@ uint16_t *EMC_Assemble(const char *script, size_t *retOutBufferSize) {
         outBuffer[outBufferIndex++] = bCode[1];
       }
     }
+    free(line);
     originalLine = strtok(NULL, "\r\n");
     lineNum++;
   }
