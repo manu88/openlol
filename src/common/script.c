@@ -98,8 +98,9 @@ static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...) {
 
   if (vm->showDisamComment) {
     bSize = vm->disasmBufferSize - writtenSize;
-    writtenSize = snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize,
-                           "; 0X%04X\n", ctx->currentWord);
+    writtenSize =
+        snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, "; 0X%04X\n",
+                 ctx->currentAddress - ctx->scriptStart);
 
     if (writtenSize > bSize) {
       printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",
