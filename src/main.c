@@ -282,12 +282,13 @@ static int cmdCMZ(int argc, char *argv[]) {
     usageCMZ();
     return 1;
   }
-  if (argc < 2) {
-    printf("cmz unzip: missing cmz file path\n");
-    return 1;
-  }
   const char *filepath = argv[1];
   if (strcmp(argv[0], "unzip") == 0) {
+    if (argc < 2) {
+      printf("cmz unzip: missing cmz file path\n");
+      return 1;
+    }
+
     return cmdCMZUnzip(filepath);
   }
   printf("unkown subcommand '%s'\n", argv[0]);
