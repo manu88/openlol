@@ -4,6 +4,7 @@
 #include "format_cps.h"
 #include "format_inf.h"
 #include "format_wll.h"
+#include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
 #include "tests.h"
@@ -425,6 +426,8 @@ int main(int argc, char *argv[]) {
     return cmdScript(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "tests") == 0) {
     return UnitTests();
+  } else if (strcmp(argv[1], "game") == 0) {
+    return GameRun(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
