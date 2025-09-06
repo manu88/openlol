@@ -70,13 +70,13 @@ static int cmdVMP(int argc, char *argv[]) {
     return 1;
   }
   assert(readSize == fileSize);
-  VMPData data = {0};
-  if (!VMPDataFromLCWBuffer(&data, buffer, fileSize)) {
+  VMPHandle handle = {0};
+  if (!VMPHandleFromLCWBuffer(&handle, buffer, fileSize)) {
     printf("VMPDataFromLCWBuffer error\n");
     return 1;
   }
-  VMPDataTest(&data);
-  VMPDataRelease(&data);
+  VMPHandleTest(&handle);
+  VMPHandleRelease(&handle);
   return 0;
 }
 

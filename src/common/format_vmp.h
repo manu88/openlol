@@ -22,8 +22,9 @@ typedef struct {
 
   // freed by VMPDataRelease
   uint16_t *originalBuffer;
-} VMPData;
+} VMPHandle;
 
-void VMPDataRelease(VMPData *data);
-int VMPDataFromLCWBuffer(VMPData *data, const uint8_t *buffer, size_t size);
-void VMPDataTest(const VMPData *data);
+void VMPHandleRelease(VMPHandle *handle);
+int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
+                           size_t size);
+void VMPHandleTest(const VMPHandle *handle);

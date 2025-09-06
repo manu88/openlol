@@ -12,9 +12,10 @@ typedef struct {
   uint32_t uncompressedSize;
 } VMPCompressionHeader;
 
-void VMPDataRelease(VMPData *vpmData) { free(vpmData->originalBuffer); }
+void VMPHandleRelease(VMPHandle *handle) { free(handle->originalBuffer); }
 
-int VMPDataFromLCWBuffer(VMPData *data, const uint8_t *buffer, size_t size) {
+int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
+                           size_t size) {
   printf("size VMP file=%zi\n", size);
   const VMPCompressionHeader *header = (const VMPCompressionHeader *)buffer;
   printf("fileSize=%i comp=%i outSize=%i\n", header->fileSize,
@@ -27,21 +28,21 @@ int VMPDataFromLCWBuffer(VMPData *data, const uint8_t *buffer, size_t size) {
   assert(LCWDecompress(buffer + VCNHEADER_SIZE, size - VCNHEADER_SIZE,
                        uncompressedData,
                        header->uncompressedSize) == header->uncompressedSize);
-  data->originalBuffer = (uint16_t *)uncompressedData;
+  handle->originalBuffer = (uint16_t *)uncompressedData;
 
-  data->nbrOfBlocks = *data->originalBuffer;
-  data->tiles = (const VMPTile *)data->originalBuffer + 1;
+  handle->nbrOfBlocks = *handle->originalBuffer;
+  handle->tiles = (const VMPTile *)handle->originalBuffer + 1;
   return 1;
 }
 
-void VMPDataTest(const VMPData *data) {
+void VMPHandleTest(const VMPHandle *handle) {
 
-  printf("got %hu VMP blocks\n", data->nbrOfBlocks);
+  printf("got %hu VMP blocks\n", handle->nbrOfBlocks);
   assert(sizeof(VMPTile) == 2);
-  for (int i = 0; i < data->nbrOfBlocks; i++) {
+  for (int i = 0; i < handle->nbrOfBlocks; i++) {
 
-    const VMPTile *tile = (const VMPTile *)data->tiles + i;
-    printf("%i/%i: %i %i %X\n", i, data->nbrOfBlocks, tile->limit,
+    const VMPTile *tile = (const VMPTile *)handle->tiles + i;
+    printf("%i/%i: %i %i %X\n", i, handle->nbrOfBlocks, tile->limit,
            tile->flipped, tile->blockIndex);
   }
 }
