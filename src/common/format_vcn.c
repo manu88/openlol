@@ -15,12 +15,12 @@ typedef struct {
   uint32_t uncompressedSize;
 } VCNCompressionHeader;
 
-static void printVCN(const VCNData *data, int blockId) {
-  printf("VCN: %i/%i blocks\n", blockId, data->nbBlocks);
+static void printVCN(const VCNHandle *handle, int blockId) {
+  printf("VCN: %i/%i blocks\n", blockId, handle->nbBlocks);
 
-  const Block *blk = data->blocks + blockId;
+  const Block *blk = handle->blocks + blockId;
   uint8_t numPalette =
-      (data->blocksPalettePosTable + blockId)->numPalettes[0] / 16;
+      (handle->blocksPalettePosTable + blockId)->numPalettes[0] / 16;
   printf("Num pal = %x\n", numPalette);
   assert(numPalette < VCN_PALETTE_TABLE_SIZE);
   uint8_t out[8][8][3] = {0};
@@ -32,25 +32,26 @@ static void printVCN(const VCNData *data, int blockId) {
       uint8_t p1 = rawData & 0X0F;
 
       uint8_t idx0 =
-          data->posPaletteTables[numPalette].backdropWallPalettes[p0];
+          handle->posPaletteTables[numPalette].backdropWallPalettes[p0];
       assert(idx0 < 128);
-      uint8_t *colorPix0 = data->palette + idx0;
+      uint8_t *colorPix0 = handle->palette + idx0;
 
       uint8_t idx1 =
-          data->posPaletteTables[numPalette].backdropWallPalettes[p1];
+          handle->posPaletteTables[numPalette].backdropWallPalettes[p1];
       assert(idx1 < 128);
 
-      uint8_t *colorPix1 = data->palette + idx1;
+      uint8_t *colorPix1 = handle->palette + idx1;
       out[x * 2][y][0] = *colorPix0;
       out[1 + x * 2][y][0] = *colorPix1;
     }
   }
 }
 
-void VCNDataRelease(VCNData *vcnData) { free(vcnData->originalBuffer); }
+void VCNHandleRelease(VCNHandle *handle) { free(handle->originalBuffer); }
 
-int VCNDataFromLCWBuffer(VCNData *vcnData, const uint8_t *buffer, size_t size) {
-  assert(vcnData);
+int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
+                           size_t size) {
+  assert(handle);
   assert(buffer);
   printf("size VCN file=%zi\n", size);
   const VCNCompressionHeader *header = (const VCNCompressionHeader *)buffer;
@@ -64,7 +65,7 @@ int VCNDataFromLCWBuffer(VCNData *vcnData, const uint8_t *buffer, size_t size) {
   assert(LCWDecompress(buffer + VCNHEADER_SIZE, size - VCNHEADER_SIZE, dest,
                        header->uncompressedSize) == header->uncompressedSize);
 
-  vcnData->originalBuffer = dest;
+  handle->originalBuffer = dest;
   const uint16_t nbBlocks = *(const uint16_t *)dest;
   dest += 2;
 
@@ -80,11 +81,10 @@ int VCNDataFromLCWBuffer(VCNData *vcnData, const uint8_t *buffer, size_t size) {
   Block *blocks = (Block *)dest;
   dest += nbBlocks * sizeof(Block);
 
-  vcnData->nbBlocks = nbBlocks;
-  vcnData->blocksPalettePosTable = blockPalettePosTable;
-  vcnData->posPaletteTables = posPaletteTables;
-  vcnData->palette = palette;
-  vcnData->blocks = blocks;
-
+  handle->nbBlocks = nbBlocks;
+  handle->blocksPalettePosTable = blockPalettePosTable;
+  handle->posPaletteTables = posPaletteTables;
+  handle->palette = palette;
+  handle->blocks = blocks;
   return 1;
 }

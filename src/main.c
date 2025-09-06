@@ -48,13 +48,13 @@ static int cmdVCN(int argc, char *argv[]) {
     return 1;
   }
   assert(readSize == fileSize);
-  VCNData data = {0};
-  if (!VCNDataFromLCWBuffer(&data, buffer, fileSize)) {
+  VCNHandle handle = {0};
+  if (!VCNHandleFromLCWBuffer(&handle, buffer, fileSize)) {
     printf("VCNDataFromLCWBuffer error\n");
     return 1;
   }
-  VCNImageToPng(&data, "out.png");
-  VCNDataRelease(&data);
+  VCNImageToPng(&handle, "out.png");
+  VCNHandleRelease(&handle);
   return 0;
 }
 

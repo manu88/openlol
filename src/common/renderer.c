@@ -71,8 +71,8 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
-static void renderVCN(SDL_Renderer *renderer, const VCNData *data, int blockId,
-                      int xOff, int yOff) {
+static void renderVCN(SDL_Renderer *renderer, const VCNHandle *data,
+                      int blockId, int xOff, int yOff) {
   const Block *blk = data->blocks + blockId;
   uint8_t numPalette =
       (data->blocksPalettePosTable + blockId)->numPalettes[0] / 16;
@@ -113,7 +113,7 @@ static void renderVCN(SDL_Renderer *renderer, const VCNData *data, int blockId,
     }
   }
 }
-void VCNImageToPng(const VCNData *image, const char *savePngPath) {
+void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   SDL_Init(SDL_INIT_VIDEO);
   SDL_Surface *surface =
       SDL_CreateRGBSurface(0, WINDOW_WIDTH, WINDOW_HEIGH, 32, 0, 0, 0, 0);
@@ -122,11 +122,11 @@ void VCNImageToPng(const VCNData *image, const char *savePngPath) {
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
-  for (int i = 0; i < image->nbBlocks; i++) {
+  for (int i = 0; i < handle->nbBlocks; i++) {
 
     int xOff = (i % 32) * 20;
     int yOff = (i / 32) * 20;
-    renderVCN(renderer, image, i, xOff, yOff);
+    renderVCN(renderer, handle, i, xOff, yOff);
   }
 
   SDL_RenderPresent(renderer);

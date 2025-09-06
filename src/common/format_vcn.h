@@ -30,7 +30,8 @@ typedef struct {
 
   // freed by VCNDataRelease
   uint8_t *originalBuffer;
-} VCNData;
+} VCNHandle;
 
-void VCNDataRelease(VCNData *vcnData);
-int VCNDataFromLCWBuffer(VCNData *vcnData, const uint8_t *buffer, size_t size);
+void VCNHandleRelease(VCNHandle *handle);
+int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
+                           size_t size);

@@ -5,4 +5,4 @@
 
 void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
-void VCNImageToPng(const VCNData *image, const char *savePngPath);
+void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
