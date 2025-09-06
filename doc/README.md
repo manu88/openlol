@@ -35,3 +35,7 @@ Uses LCW compression!
 ## VCN
 Uses LCW compression
 see https://web.archive.org/web/20180313235313/http://eob.wikispaces.com/eob.vcn#LoL
+
+## VMP
+Uses LCW compression
+see https://web.archive.org/web/20180313235716/http://eob.wikispaces.com/eob.vmp

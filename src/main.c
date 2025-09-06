@@ -5,6 +5,7 @@
 #include "format_cps.h"
 #include "format_inf.h"
 #include "format_vcn.h"
+#include "format_vmp.h"
 #include "format_wll.h"
 #include "pak_file.h"
 #include "renderer.h"
@@ -54,6 +55,28 @@ static int cmdVCN(int argc, char *argv[]) {
   }
   VCNImageToPng(&data, "out.png");
   VCNDataRelease(&data);
+  return 0;
+}
+
+static int cmdVMP(int argc, char *argv[]) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
+  if (!buffer) {
+    return 1;
+  }
+  if (readSize == 0) {
+    free(buffer);
+    return 1;
+  }
+  assert(readSize == fileSize);
+  VMPData data = {0};
+  if (!VMPDataFromLCWBuffer(&data, buffer, fileSize)) {
+    printf("VMPDataFromLCWBuffer error\n");
+    return 1;
+  }
+  VMPDataTest(&data);
+  VMPDataRelease(&data);
   return 0;
 }
 
@@ -437,6 +460,8 @@ int main(int argc, char *argv[]) {
     return cmdWLL(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "vcn") == 0) {
     return cmdVCN(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "vmp") == 0) {
+    return cmdVMP(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "inf") == 0) {
     return cmdINF(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
