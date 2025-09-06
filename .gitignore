@@ -1,6 +1,7 @@
 *.o
 *.d
 lol
+data
 .cache/
 .vscode/
 compile_commands.json
@@ -17,4 +18,8 @@ compile_commands.json
 *.maz
 *.pbm
 *.png
-data
+*.WLL
+*.DAT
+*.VCN
+*.VMP
+*.XXX
