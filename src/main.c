@@ -1,8 +1,10 @@
 
+#include "bytes.h"
 #include "emc_asm.h"
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_inf.h"
+#include "format_vcn.h"
 #include "format_wll.h"
 #include "pak_file.h"
 #include "renderer.h"
@@ -16,25 +18,42 @@
 #include <string.h>
 
 static int cmdWLL(int argc, char *argv[]) {
-  FILE *f = fopen(argv[0], "rb");
-  if (!f) {
-    perror("open: ");
-    return 1;
-  }
-  fseek(f, 0, SEEK_END);
-  long fsize = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
   if (!buffer) {
-    perror("malloc error");
-    fclose(f);
     return 1;
   }
-  fread(buffer, fsize, 1, f);
-  fclose(f);
+  if (readSize == 0) {
+    free(buffer);
+    return 1;
+  }
+  assert(readSize == fileSize);
 
-  TestWLL(buffer, fsize);
+  TestWLL(buffer, fileSize);
   free(buffer);
+  return 0;
+}
+
+static int cmdVCN(int argc, char *argv[]) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
+  if (!buffer) {
+    return 1;
+  }
+  if (readSize == 0) {
+    free(buffer);
+    return 1;
+  }
+  assert(readSize == fileSize);
+  VCNData data = {0};
+  if (!VCNDataFromLCWBuffer(&data, buffer, fileSize)) {
+    printf("VCNDataFromLCWBuffer error\n");
+    return 1;
+  }
+  VCNImageToPng(&data, "out.png");
+  VCNDataRelease(&data);
   return 0;
 }
 
@@ -107,6 +126,7 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static int cmdMap(int argc, char *argv[]) {
+  // TODO: use readBinaryFile
   FILE *f = fopen(argv[0], "rb");
   if (!f) {
     perror("open: ");
@@ -415,6 +435,8 @@ int main(int argc, char *argv[]) {
     return cmdCMZ(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "wll") == 0) {
     return cmdWLL(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "vcn") == 0) {
+    return cmdVCN(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "inf") == 0) {
     return cmdINF(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
