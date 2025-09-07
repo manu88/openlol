@@ -6,8 +6,8 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.CPS‘ : images https://moddingwiki.shikadi.net/wiki/Westwood_CPS_Format
 - ‘.WSA‘ : images
 - ‘.TIM‘ : Timing and other animation WSA information?
-- ‘.VMP‘ : ?
-- ‘.VCN‘ : ?
+- ‘.VMP‘ : The vmp files contains information about how to put together the 8x8 blocks defined in the corresponding vcn files, into proper walls (including the background).
+- ‘.VCN‘ : .vcn files contains graphics for the walls including the background.
 - ‘.LBM‘ : IFF https://moddingwiki.shikadi.net/wiki/LBM_Format, use this parser? https://github.com/svanderburg/libiff
 - ‘.XXX‘ : level-related?
 - ‘.WLL‘ : WaLL data, maybe decoration data?
@@ -39,3 +39,7 @@ see https://web.archive.org/web/20180313235313/http://eob.wikispaces.com/eob.vcn
 ## VMP
 Uses LCW compression
 see https://web.archive.org/web/20180313235716/http://eob.wikispaces.com/eob.vmp
+
+# INF
+See https://github.com/scummvm/scummvm/blob/master/engines/kyra/script/script_lol.cpp#L2683
+
