@@ -29,3 +29,15 @@ uint8_t *readBinaryFile(const char *path, size_t *fileSize, size_t *readSize) {
   fclose(inFile);
   return buffer;
 }
+
+int writeBinaryFile(const char *path, void *data, size_t dataSize) {
+  FILE *outFile = fopen(path, "wb");
+  if (!outFile) {
+    perror("writeBinaryFile.open");
+    return 1;
+  }
+
+  int ret = fwrite(data, dataSize, 1, outFile);
+  fclose(outFile);
+  return !ret;
+}
