@@ -1,9 +1,11 @@
 #include "renderer.h"
 #include "SDL_surface.h"
 #include "SDL_video.h"
+#include "format_vcn.h"
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <assert.h>
+#include <stdint.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGH 400
@@ -71,62 +73,73 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
-static void renderVCN(SDL_Renderer *renderer, const VCNHandle *data,
-                      int blockId, int xOff, int yOff) {
-  const Block *blk = data->blocks + blockId;
-  uint8_t numPalette =
-      (data->blocksPalettePosTable + blockId)->numPalettes[0] / 16;
+void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
+               int imgWidth, int x, int y, int flip) {
+  const VCNBlock *block = handle->blocks + blockId;
+
+  const int s = flip ? -1 : 1;
+  const int p = flip ? 7 : 0;
+
+  const uint8_t numPalette = handle->blocksPalettePosTable[blockId] / 16;
   assert(numPalette < VCN_PALETTE_TABLE_SIZE);
 
-  for (int y = 0; y < 8; y++) {
-    for (int x = 0; x < 4; x++) {
-      uint8_t rawData = blk->rawData[x][y];
-      uint8_t p0 = rawData >> 4;
-      uint8_t p1 = rawData & 0X0F;
+  for (int w = 0; w < 8; w++) {
+    for (int v = 0; v < 4; v++) {
+      uint8_t word = block->rawData[v + w * 4];
+      uint8_t p0 = (word & 0xf0) >> 4;
+      uint8_t p1 = word & 0x0f;
 
       uint8_t idx0 =
-          data->posPaletteTables[numPalette].backdropWallPalettes[p0];
+          handle->posPaletteTables[numPalette].backdropWallPalettes[p0];
       assert(idx0 < 128);
-
       uint8_t idx1 =
-          data->posPaletteTables[numPalette].backdropWallPalettes[p1];
+          handle->posPaletteTables[numPalette].backdropWallPalettes[p1];
       assert(idx1 < 128);
+      // int coords = x + p + s * 2 * v + (y + w) * img_width;
 
-      {
-        uint8_t r = VGA6To8(data->palette[0 + idx0 * 3]);
-        uint8_t g = VGA6To8(data->palette[1 + idx0 * 3]);
-        uint8_t b = VGA6To8(data->palette[2 + idx0 * 3]);
-        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-        SDL_Rect rect = {
-            .x = xOff + ((x * 2) * 2), .y = yOff + (y * 2), .w = 2, .h = 2};
-        SDL_RenderFillRect(renderer, &rect);
-      }
-      {
-        uint8_t r = VGA6To8(data->palette[0 + idx1 * 3]);
-        uint8_t g = VGA6To8(data->palette[1 + idx1 * 3]);
-        uint8_t b = VGA6To8(data->palette[2 + idx1 * 3]);
-        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-        SDL_Rect rect = {
-            .x = xOff + ((1 + x * 2) * 2), .y = yOff + (y * 2), .w = 2, .h = 2};
-        SDL_RenderFillRect(renderer, &rect);
-      }
+      uint8_t r = VGA6To8(handle->palette[0 + idx0 * 3]);
+      uint8_t g = VGA6To8(handle->palette[1 + idx0 * 3]);
+      uint8_t b = VGA6To8(handle->palette[2 + idx0 * 3]);
+
+      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+      SDL_Rect rect;
+      rect.w = 1;
+      rect.h = 1;
+      rect.x = x + p + s * 2 * v;
+      rect.y = y + w;
+      SDL_RenderFillRect(renderer, &rect);
+
+      r = VGA6To8(handle->palette[0 + idx1 * 3]);
+      g = VGA6To8(handle->palette[1 + idx1 * 3]);
+      b = VGA6To8(handle->palette[2 + idx1 * 3]);
+
+      rect.x = x + p + s + s * 2 * v;
+      rect.y = y + w;
+      SDL_RenderFillRect(renderer, &rect);
     }
   }
 }
+
+#define BLOCK_SIZE (int)8
+
 void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
+  const int widthBlocks = 32;
+  const int heightBlocks = (int)handle->nbBlocks / 32;
+  const int imageWidth = widthBlocks * BLOCK_SIZE;
   SDL_Init(SDL_INIT_VIDEO);
-  SDL_Surface *surface =
-      SDL_CreateRGBSurface(0, WINDOW_WIDTH, WINDOW_HEIGH, 32, 0, 0, 0, 0);
+  SDL_Surface *surface = SDL_CreateRGBSurface(
+      0, imageWidth, heightBlocks * BLOCK_SIZE, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
   for (int i = 0; i < handle->nbBlocks; i++) {
+    int blockX = i % widthBlocks;
+    int blockY = i / widthBlocks;
 
-    int xOff = (i % 32) * 20;
-    int yOff = (i / 32) * 20;
-    renderVCN(renderer, handle, i, xOff, yOff);
+    blitBlock(renderer, handle, i, imageWidth, blockX * BLOCK_SIZE,
+              blockY * BLOCK_SIZE, 0);
   }
 
   SDL_RenderPresent(renderer);

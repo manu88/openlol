@@ -15,38 +15,6 @@ typedef struct {
   uint32_t uncompressedSize;
 } VCNCompressionHeader;
 
-static void printVCN(const VCNHandle *handle, int blockId) {
-  printf("VCN: %i/%i blocks\n", blockId, handle->nbBlocks);
-
-  const Block *blk = handle->blocks + blockId;
-  uint8_t numPalette =
-      (handle->blocksPalettePosTable + blockId)->numPalettes[0] / 16;
-  printf("Num pal = %x\n", numPalette);
-  assert(numPalette < VCN_PALETTE_TABLE_SIZE);
-  uint8_t out[8][8][3] = {0};
-
-  for (int y = 0; y < 8; y++) {
-    for (int x = 0; x < 4; x++) {
-      uint8_t rawData = blk->rawData[x][y];
-      uint8_t p0 = rawData >> 4;
-      uint8_t p1 = rawData & 0X0F;
-
-      uint8_t idx0 =
-          handle->posPaletteTables[numPalette].backdropWallPalettes[p0];
-      assert(idx0 < 128);
-      uint8_t *colorPix0 = handle->palette + idx0;
-
-      uint8_t idx1 =
-          handle->posPaletteTables[numPalette].backdropWallPalettes[p1];
-      assert(idx1 < 128);
-
-      uint8_t *colorPix1 = handle->palette + idx1;
-      out[x * 2][y][0] = *colorPix0;
-      out[1 + x * 2][y][0] = *colorPix1;
-    }
-  }
-}
-
 void VCNHandleRelease(VCNHandle *handle) { free(handle->originalBuffer); }
 
 int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
@@ -66,24 +34,21 @@ int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
                        header->uncompressedSize) == header->uncompressedSize);
 
   handle->originalBuffer = dest;
-  const uint16_t nbBlocks = *(const uint16_t *)dest;
+  handle->nbBlocks = *(const uint16_t *)dest;
   dest += 2;
 
-  BlockPalettePosTable *blockPalettePosTable = (BlockPalettePosTable *)dest;
-  dest += nbBlocks * sizeof(BlockPalettePosTable);
+  handle->blocksPalettePosTable = dest;
+  dest += handle->nbBlocks;
 
-  PosPaletteTables *posPaletteTables = (PosPaletteTables *)dest;
+  handle->posPaletteTables = (PosPaletteTables *)dest;
   dest += 8 * sizeof(PosPaletteTables);
 
   uint8_t *palette = dest;
   dest += 3 * 128;
 
-  Block *blocks = (Block *)dest;
-  dest += nbBlocks * sizeof(Block);
+  VCNBlock *blocks = (VCNBlock *)dest;
+  dest += handle->nbBlocks * sizeof(VCNBlock);
 
-  handle->nbBlocks = nbBlocks;
-  handle->blocksPalettePosTable = blockPalettePosTable;
-  handle->posPaletteTables = posPaletteTables;
   handle->palette = palette;
   handle->blocks = blocks;
   return 1;

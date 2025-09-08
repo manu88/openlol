@@ -53,7 +53,9 @@ static int cmdVCN(int argc, char *argv[]) {
     printf("VCNDataFromLCWBuffer error\n");
     return 1;
   }
-  VCNImageToPng(&handle, "out.png");
+  const char *outFile = "out.png";
+  printf("Write VCN image '%s'\n", outFile);
+  VCNImageToPng(&handle, outFile);
   VCNHandleRelease(&handle);
   return 0;
 }
