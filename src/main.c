@@ -36,10 +36,21 @@ static int cmdWLL(int argc, char *argv[]) {
   return 0;
 }
 
+static char *strAppend(const char *str, char *toAdd) {
+  char *outStr = malloc(strlen(str) + strlen(toAdd) + 1);
+  if (outStr == NULL) {
+    return NULL;
+  }
+  strcpy(outStr, str);
+  outStr = strcat(outStr, toAdd);
+  return outStr;
+}
+
 static int cmdVCN(int argc, char *argv[]) {
   size_t fileSize = 0;
   size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
+  const char *inputFile = argv[0];
+  uint8_t *buffer = readBinaryFile(inputFile, &fileSize, &readSize);
   if (!buffer) {
     return 1;
   }
@@ -53,10 +64,15 @@ static int cmdVCN(int argc, char *argv[]) {
     printf("VCNDataFromLCWBuffer error\n");
     return 1;
   }
-  const char *outFile = "out.png";
-  printf("Write VCN image '%s'\n", outFile);
-  VCNImageToPng(&handle, outFile);
+  char *outFilePath = strAppend(inputFile, ".png");
+  if (!outFilePath) {
+    VCNHandleRelease(&handle);
+    return 1;
+  }
+  printf("Write VCN image '%s'\n", outFilePath);
+  VCNImageToPng(&handle, outFilePath);
   VCNHandleRelease(&handle);
+  free(outFilePath);
   return 0;
 }
 
@@ -88,12 +104,10 @@ static int cmdScriptExec(const char *filepath) {
 }
 
 static int cmdScriptDisassemble(const char *filepath) {
-  char *outFilePath = malloc(strlen(filepath) + 5);
-  if (outFilePath == NULL) {
+  char *outFilePath = strAppend(filepath, ".asm");
+  if (!outFilePath) {
     return 1;
   }
-  strcpy(outFilePath, filepath);
-  outFilePath = strcat(outFilePath, ".asm");
   printf("disasm script '%s' to file '%s'\n", filepath, outFilePath);
   int ret = EMC_DisassembleFile(filepath, outFilePath);
   free(outFilePath);
@@ -101,12 +115,10 @@ static int cmdScriptDisassemble(const char *filepath) {
 }
 
 static int cmdScriptASM(const char *filepath) {
-  char *outFilePath = malloc(strlen(filepath) + 5);
-  if (outFilePath == NULL) {
+  char *outFilePath = strAppend(filepath, ".bin");
+  if (!outFilePath) {
     return 1;
   }
-  strcpy(outFilePath, filepath);
-  outFilePath = strcat(outFilePath, ".bin");
   printf("asm script '%s' to file '%s'\n", filepath, outFilePath);
   int ret = EMC_AssembleFile(filepath, outFilePath);
   free(outFilePath);
