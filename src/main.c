@@ -93,7 +93,7 @@ static int cmdVMP(int argc, char *argv[]) {
     printf("VMPDataFromLCWBuffer error\n");
     return 1;
   }
-  VMPHandleTest(&handle);
+  VMPHandlePrint(&handle);
   VMPHandleRelease(&handle);
   return 0;
 }
@@ -123,6 +123,59 @@ static int cmdScriptASM(const char *filepath) {
   int ret = EMC_AssembleFile(filepath, outFilePath);
   free(outFilePath);
   return ret;
+}
+
+static int cmdRender(int argc, char *argv[]) {
+  if (argc < 2) {
+    printf("render vcn-file vmp-file\n");
+    return 0;
+  }
+  const char *vcnFile = argv[0];
+  const char *vmpFile = argv[1];
+  printf("vcn='%s' vmp='%s'\n", vcnFile, vmpFile);
+  VCNHandle vcnHandle = {0};
+  VMPHandle vmpHandle = {0};
+  {
+    size_t fileSize = 0;
+    size_t readSize = 0;
+    uint8_t *buffer = readBinaryFile(vcnFile, &fileSize, &readSize);
+    if (!buffer) {
+      return 1;
+    }
+    if (readSize == 0) {
+      free(buffer);
+      return 1;
+    }
+    assert(readSize == fileSize);
+
+    if (!VCNHandleFromLCWBuffer(&vcnHandle, buffer, fileSize)) {
+      printf("VCNDataFromLCWBuffer error\n");
+      return 1;
+    }
+  }
+  {
+    size_t fileSize = 0;
+    size_t readSize = 0;
+    uint8_t *buffer = readBinaryFile(vmpFile, &fileSize, &readSize);
+    if (!buffer) {
+      return 1;
+    }
+    if (readSize == 0) {
+      free(buffer);
+      return 1;
+    }
+    assert(readSize == fileSize);
+
+    if (!VMPHandleFromLCWBuffer(&vmpHandle, buffer, fileSize)) {
+      printf("VMPDataFromLCWBuffer error\n");
+      return 1;
+    }
+  }
+  printf("Got both files\n");
+  testRenderScene(&vcnHandle, &vmpHandle);
+  VMPHandleRelease(&vmpHandle);
+  VCNHandleRelease(&vcnHandle);
+  return 0;
 }
 
 static int cmdScriptTests(void) { return EMC_Tests(); }
@@ -164,24 +217,14 @@ static int cmdScript(int argc, char *argv[]) {
 
 static int cmdMap(int argc, char *argv[]) {
   // TODO: use readBinaryFile
-  FILE *f = fopen(argv[0], "rb");
-  if (!f) {
-    perror("open: ");
-    return 1;
-  }
-  fseek(f, 0, SEEK_END);
-  long fsize = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
   if (!buffer) {
-    perror("malloc error");
-    fclose(f);
+    perror("readBinaryFile");
     return 1;
   }
-  fread(buffer, fsize, 1, f);
-  fclose(f);
-
-  TestCMZ(buffer, fsize);
+  TestCMZ(buffer, readSize);
   return 0;
 }
 
@@ -486,6 +529,8 @@ int main(int argc, char *argv[]) {
     return cmdScript(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "tests") == 0) {
     return UnitTests();
+  } else if (strcmp(argv[1], "render") == 0) {
+    return cmdRender(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

@@ -6,19 +6,17 @@
 
 typedef struct {
   // used for drawing the blocks where the walls meet the ceilings/floors.
-  uint8_t limit : 1;
+  // uint8_t limit;
 
   // 1 if the block graphics should be x-flipped, otherwise 0.
-  uint8_t flipped : 1;
+  uint8_t flipped;
 
   // A 14-bit block index selecting a block in the vcn file.
-  uint16_t blockIndex : 14;
+  uint16_t blockIndex;
 } VMPTile;
 
 typedef struct {
-
   uint16_t nbrOfBlocks;
-  const VMPTile *tiles; // array size is nbrOfBlocks
 
   // freed by VMPDataRelease
   uint16_t *originalBuffer;
@@ -27,4 +25,5 @@ typedef struct {
 void VMPHandleRelease(VMPHandle *handle);
 int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
                            size_t size);
-void VMPHandleTest(const VMPHandle *handle);
+void VMPHandlePrint(const VMPHandle *handle);
+int VMPHandleGetTile(const VMPHandle *handle, uint32_t index, VMPTile *tile);

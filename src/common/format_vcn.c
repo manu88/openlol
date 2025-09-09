@@ -41,6 +41,7 @@ int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
   dest += handle->nbBlocks;
 
   handle->posPaletteTables = (PosPaletteTables *)dest;
+  assert(sizeof(PosPaletteTables) == 16);
   dest += 8 * sizeof(PosPaletteTables);
 
   uint8_t *palette = dest;

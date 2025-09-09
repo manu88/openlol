@@ -1,7 +1,9 @@
 #include "renderer.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
 #include "SDL_surface.h"
-#include "SDL_video.h"
 #include "format_vcn.h"
+#include "format_vmp.h"
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <assert.h>
@@ -74,13 +76,17 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
 }
 
 void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
-               int imgWidth, int x, int y, int flip) {
+               int x, int y, int flip) {
   const VCNBlock *block = handle->blocks + blockId;
 
   const int s = flip ? -1 : 1;
   const int p = flip ? 7 : 0;
 
-  const uint8_t numPalette = handle->blocksPalettePosTable[blockId] / 16;
+  uint8_t numPalette = handle->blocksPalettePosTable[blockId] / 16;
+  if (numPalette >= VCN_PALETTE_TABLE_SIZE) {
+    printf("numPalette %i > VCN_PALETTE_TABLE_SIZE %i\n", numPalette,
+           VCN_PALETTE_TABLE_SIZE);
+  }
   assert(numPalette < VCN_PALETTE_TABLE_SIZE);
 
   for (int w = 0; w < 8; w++) {
@@ -138,12 +144,105 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
     int blockX = i % widthBlocks;
     int blockY = i / widthBlocks;
 
-    blitBlock(renderer, handle, i, imageWidth, blockX * BLOCK_SIZE,
-              blockY * BLOCK_SIZE, 0);
+    blitBlock(renderer, handle, i, blockX * BLOCK_SIZE, blockY * BLOCK_SIZE, 0);
   }
 
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, savePngPath);
 
   SDL_DestroyRenderer(renderer);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct WallRenderData {
+  int baseOffset;
+  int offsetInViewPort;
+  int visibleWidthInBlocks;
+  int visibleHeightInBlocks;
+  int skipValue;
+  int flipFlag;
+} wallRenderData[25] = /* 25 different wall positions exists */
+    {
+        /* Side-Walls left back */
+        {3, 66, 5, 1, 2, 0},  /* A-east */
+        {1, 68, 5, 3, 0, 0},  /* B-east */
+        {-4, 74, 5, 1, 0, 0}, /* C-east */
+
+        /* Side-Walls right back */
+        {-4, 79, 5, 1, 0, 1}, /* E-west */
+        {1, 83, 5, 3, 0, 1},  /* F-west */
+        {3, 87, 5, 1, 2, 1},  /* G-west */
+
+        /* Frontwalls back */
+        {32, 66, 5, 2, 4, 0}, /* B-south */
+        {28, 68, 5, 6, 0, 0}, /* C-south */
+        {28, 74, 5, 6, 0, 0}, /* D-south */
+        {28, 80, 5, 6, 0, 0}, /* E-south */
+        {28, 86, 5, 2, 4, 0}, /* F-south */
+
+        /* Side walls middle back left */
+        {16, 66, 6, 2, 0, 0},  /* H-east */
+        {-20, 50, 8, 2, 0, 0}, /* I-east */
+
+        /* Side walls middle back right */
+        {-20, 58, 8, 2, 0, 1}, /* K-west */
+        {16, 86, 6, 2, 0, 1},  /* L-west */
+
+        /* Frontwalls middle back */
+        {62, 44, 8, 6, 4, 0},  /* I-south */
+        {58, 50, 8, 10, 0, 0}, /* J-south */
+        {58, 60, 8, 6, 4, 0},  /* K-south */
+
+        /* Side walls middle front left */
+        {-56, 25, 12, 3, 0, 0}, /* M-east */
+
+        /* Side walls middle front right */
+        {-56, 38, 12, 3, 0, 1}, /* O-west */
+
+        /* Frontwalls middle front */
+        {151, 22, 12, 3, 13, 0}, /* M-south */
+        {138, 41, 12, 3, 13, 0}, /* O-south */
+        {138, 25, 12, 16, 0, 0}, /* N-south */
+
+        /* Side wall front left */
+        {-101, 0, 15, 3, 0, 0}, /* P-east */
+
+        /* Side wall front right */
+        {-101, 19, 15, 3, 0, 1}, /* Q-west */
+};
+
+static void drawBackground(const VCNHandle *vcn, const VMPHandle *vmp) {
+  const int width = 22 * 8;
+  const int height = 15 * 8;
+
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+
+  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
+  SDL_RenderClear(renderer);
+
+  for (int y = 0; y < 15; y++) {
+    for (int x = 0; x < 22; x++) {
+      int index = y * 22 + x;
+
+      VMPTile tile = {0};
+      VMPHandleGetTile(vmp, index, &tile);
+
+      assert(tile.blockIndex < vcn->nbBlocks);
+
+      blitBlock(renderer, vcn, tile.blockIndex, x * 8, y * 8, tile.flipped);
+    }
+  }
+
+  SDL_RenderPresent(renderer);
+  IMG_SavePNG(surface, "render.png");
+
+  SDL_DestroyRenderer(renderer);
+}
+
+void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp) {
+  drawBackground(vcn, vmp);
 }

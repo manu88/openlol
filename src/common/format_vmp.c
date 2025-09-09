@@ -1,4 +1,5 @@
 #include "format_vmp.h"
+#include "bytes.h"
 #include "format_lcw.h"
 #include <assert.h>
 #include <stdint.h>
@@ -31,18 +32,28 @@ int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
   handle->originalBuffer = (uint16_t *)uncompressedData;
 
   handle->nbrOfBlocks = *handle->originalBuffer;
-  handle->tiles = (const VMPTile *)handle->originalBuffer + 1;
   return 1;
 }
 
-void VMPHandleTest(const VMPHandle *handle) {
+int VMPHandleGetTile(const VMPHandle *handle, uint32_t index, VMPTile *tile) {
+  assert(tile);
+  assert(index < handle->nbrOfBlocks);
+
+  uint16_t v = handle->originalBuffer[index + 1];
+  tile->blockIndex = v & 0x3fff;
+  tile->flipped = (v & 0x04000) == 0x04000;
+  return 1;
+}
+
+void VMPHandlePrint(const VMPHandle *handle) {
 
   printf("got %hu VMP blocks\n", handle->nbrOfBlocks);
-  assert(sizeof(VMPTile) == 2);
   for (int i = 0; i < handle->nbrOfBlocks; i++) {
 
-    const VMPTile *tile = (const VMPTile *)handle->tiles + i;
-    printf("%i/%i: %i %i %X\n", i, handle->nbrOfBlocks, tile->limit,
-           tile->flipped, tile->blockIndex);
+    VMPTile tile = {0};
+    VMPHandleGetTile(handle, i, &tile);
+
+    printf("%i/%i: %i %X\n", i, handle->nbrOfBlocks, tile.flipped,
+           tile.blockIndex);
   }
 }
