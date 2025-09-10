@@ -335,16 +335,6 @@ static int GameRun(LevelContext *ctx) {
 
 static void GameRenderFrame(SDL_Renderer *renderer, LevelContext *ctx) {
   GameRenderMap(renderer, ctx, 500, 10);
-  printf("--------------\n");
-  for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
-    if (ctx->viewConeEntries[i].valid == 0) {
-      continue;
-    }
-    printf("%i %i %i\n", i, ctx->viewConeEntries[i].coords.x,
-           ctx->viewConeEntries[i].coords.y);
-  }
-  printf("--------------\n");
-
   GameRenderView(renderer, ctx, 500, 100);
 }
 
@@ -352,6 +342,23 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
   drawBackground(renderer, &ctx->vcnHandle, &ctx->vmpHandle);
 
   const ViewConeEntry *aEntry = ctx->viewConeEntries + CELL_A;
+  const ViewConeEntry *bEntry = ctx->viewConeEntries + CELL_B;
+  const ViewConeEntry *cEntry = ctx->viewConeEntries + CELL_C;
+  const ViewConeEntry *dEntry = ctx->viewConeEntries + CELL_D;
+  const ViewConeEntry *eEntry = ctx->viewConeEntries + CELL_E;
+  const ViewConeEntry *fEntry = ctx->viewConeEntries + CELL_F;
+  const ViewConeEntry *gEntry = ctx->viewConeEntries + CELL_G;
+  const ViewConeEntry *hEntry = ctx->viewConeEntries + CELL_H;
+  const ViewConeEntry *iEntry = ctx->viewConeEntries + CELL_I;
+  const ViewConeEntry *jEntry = ctx->viewConeEntries + CELL_J;
+  const ViewConeEntry *kEntry = ctx->viewConeEntries + CELL_K;
+  const ViewConeEntry *lEntry = ctx->viewConeEntries + CELL_L;
+  const ViewConeEntry *mEntry = ctx->viewConeEntries + CELL_M;
+  const ViewConeEntry *nEntry = ctx->viewConeEntries + CELL_N;
+  const ViewConeEntry *oEntry = ctx->viewConeEntries + CELL_O;
+  const ViewConeEntry *pEntry = ctx->viewConeEntries + CELL_P;
+  const ViewConeEntry *qEntry = ctx->viewConeEntries + CELL_Q;
+
   if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -360,31 +367,56 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
     }
   }
 
-  const ViewConeEntry *bEntry = ctx->viewConeEntries + CELL_B;
   if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 1);
     }
-    if (block->south) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 6);
-    }
   }
-
-  const ViewConeEntry *cEntry = ctx->viewConeEntries + CELL_C;
   if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 2);
     }
+  }
+  if (eEntry->valid) {
+    int index = eEntry->coords.y * 32 + eEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->west) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 3);
+    }
+  }
+  if (fEntry->valid) {
+    int index = fEntry->coords.y * 32 + fEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->west) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 4);
+    }
+  }
+  if (gEntry->valid) {
+    int index = gEntry->coords.y * 32 + gEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->west) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 5);
+    }
+  }
+  if (bEntry->valid) {
+    int index = bEntry->coords.y * 32 + bEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->south) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 6);
+    }
+  }
+  if (cEntry->valid) {
+    int index = cEntry->coords.y * 32 + cEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 7);
     }
   }
 
-  const ViewConeEntry *dEntry = ctx->viewConeEntries + CELL_D;
   if (dEntry->valid) {
     int index = dEntry->coords.y * 32 + dEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -393,40 +425,20 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
     }
   }
 
-  const ViewConeEntry *eEntry = ctx->viewConeEntries + CELL_E;
   if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 9);
     }
-    if (block->west) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 3);
-    }
   }
-
-  const ViewConeEntry *fEntry = ctx->viewConeEntries + CELL_F;
   if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 10);
     }
-    if (block->west) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 4);
-    }
   }
-
-  const ViewConeEntry *gEntry = ctx->viewConeEntries + CELL_G;
-  if (gEntry->valid) {
-    int index = gEntry->coords.y * 32 + gEntry->coords.x;
-    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 5);
-    }
-  }
-
-  const ViewConeEntry *hEntry = ctx->viewConeEntries + CELL_H;
   if (hEntry->valid) {
     int index = hEntry->coords.y * 32 + hEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -434,32 +446,20 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 11);
     }
   }
-
-  const ViewConeEntry *iEntry = ctx->viewConeEntries + CELL_I;
   if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 12);
     }
-    if (block->south) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 15);
-    }
   }
-
-  const ViewConeEntry *kEntry = ctx->viewConeEntries + CELL_K;
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 13);
     }
-    if (block->south) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 17);
-    }
   }
-
-  const ViewConeEntry *lEntry = ctx->viewConeEntries + CELL_L;
   if (lEntry->valid) {
     int index = lEntry->coords.y * 32 + lEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -467,8 +467,13 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 14);
     }
   }
-
-  const ViewConeEntry *jEntry = ctx->viewConeEntries + CELL_J;
+  if (iEntry->valid) {
+    int index = iEntry->coords.y * 32 + iEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->south) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 15);
+    }
+  }
   if (jEntry->valid) {
     int index = jEntry->coords.y * 32 + jEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -476,32 +481,43 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 16);
     }
   }
-
-  const ViewConeEntry *mEntry = ctx->viewConeEntries + CELL_M;
+  if (kEntry->valid) {
+    int index = kEntry->coords.y * 32 + kEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->south) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 17);
+    }
+  }
+  if (mEntry->valid) {
+    int index = mEntry->coords.y * 32 + mEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->east) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 18);
+    }
+  }
+  if (oEntry->valid) {
+    int index = oEntry->coords.y * 32 + oEntry->coords.x;
+    const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
+    if (block->west) {
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 19);
+    }
+  }
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 20);
     }
-    if (block->east) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 18);
-    }
   }
 
-  const ViewConeEntry *oEntry = ctx->viewConeEntries + CELL_O;
   if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 21);
     }
-    if (block->west) {
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, 1, 19);
-    }
   }
 
-  const ViewConeEntry *nEntry = ctx->viewConeEntries + CELL_N;
   if (nEntry->valid) {
     int index = nEntry->coords.y * 32 + nEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -510,7 +526,6 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
     }
   }
 
-  const ViewConeEntry *pEntry = ctx->viewConeEntries + CELL_P;
   if (pEntry->valid) {
     int index = pEntry->coords.y * 32 + pEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -519,7 +534,6 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx, int wallType) {
     }
   }
 
-  const ViewConeEntry *qEntry = ctx->viewConeEntries + CELL_Q;
   if (qEntry->valid) {
     int index = qEntry->coords.y * 32 + qEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
