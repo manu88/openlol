@@ -1,5 +1,4 @@
 #include "format_vmp.h"
-#include "bytes.h"
 #include "format_lcw.h"
 #include <assert.h>
 #include <stdint.h>
@@ -32,15 +31,17 @@ int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
   handle->originalBuffer = (uint16_t *)uncompressedData;
 
   handle->nbrOfBlocks = *handle->originalBuffer;
+  assert(handle->nbrOfBlocks <= UINT16_MAX);
   return 1;
 }
 
 int VMPHandleGetTile(const VMPHandle *handle, uint32_t index, VMPTile *tile) {
   assert(tile);
-  if (index >= handle->nbrOfBlocks) {
-    printf("VMPHandleGetTile index %i>=%i\n", index, handle->nbrOfBlocks);
+  if (index >= handle->nbrOfBlocks || index < 0) {
+    printf("VMPHandleGetTile index %u>=%i\n", index, handle->nbrOfBlocks);
   }
   assert(index < handle->nbrOfBlocks);
+  assert(index >= 0);
 
   uint16_t v = handle->originalBuffer[index + 1];
   tile->blockIndex = v & 0x3fff;

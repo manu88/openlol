@@ -217,7 +217,7 @@ WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
 };
 
 void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
-                     const VMPHandle *vmp, int wallType, int wallPosition) {
+              const VMPHandle *vmp, int wallType, int wallPosition) {
   const WallRenderData *wallCfg = &wallRenderData[wallPosition];
   int flipX = wallCfg->flipFlag;
   int offset = wallCfg->baseOffset;
@@ -253,7 +253,7 @@ void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
 }
 
 void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
-                           const VMPHandle *vmp) {
+                    const VMPHandle *vmp) {
   for (int y = 0; y < 15; y++) {
     for (int x = 0; x < 22; x++) {
       int index = y * 22 + x;
