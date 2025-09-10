@@ -1,4 +1,5 @@
 #include "game.h"
+#include "SDL_events.h"
 #include "SDL_render.h"
 #include "bytes.h"
 #include "format_cmz.h"
@@ -9,10 +10,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef enum {
+  North = 0,
+  East = 1,
+  South = 2,
+  West = 3,
+} PartyOrientation;
+
 typedef struct {
   VCNHandle vcnHandle;
   VMPHandle vmpHandle;
   MazeHandle mazHandle;
+  int partyX;
+  int partyY;
+  PartyOrientation orientation;
 } LevelContext;
 
 #define SCREEN_WIDTH 800
@@ -98,6 +109,9 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
                           int yOff);
 
 static int GameRun(LevelContext *ctx) {
+  ctx->partyX = 13;
+  ctx->partyY = 18;
+  ctx->orientation = North;
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
@@ -132,6 +146,93 @@ static int GameRun(LevelContext *ctx) {
     SDL_WaitEvent(&e);
     if (e.type == SDL_QUIT) {
       quit = 1;
+    } else if (e.type == SDL_KEYDOWN) {
+      switch (e.key.keysym.sym) {
+      case SDLK_z:
+        // go front
+        switch (ctx->orientation) {
+        case North:
+          ctx->partyY -= 1;
+          break;
+        case East:
+          ctx->partyX += 1;
+          break;
+        case South:
+          ctx->partyY += 1;
+          break;
+        case West:
+          ctx->partyX -= 1;
+          break;
+        }
+        break;
+      case SDLK_s:
+        // go back
+        switch (ctx->orientation) {
+        case North:
+          ctx->partyY += 1;
+          break;
+        case East:
+          ctx->partyX -= 1;
+          break;
+        case South:
+          ctx->partyY -= 1;
+          break;
+        case West:
+          ctx->partyX += 1;
+          break;
+        }
+        break;
+      case SDLK_q:
+        // go left
+        switch (ctx->orientation) {
+        case North:
+          ctx->partyX -= 1;
+          break;
+        case East:
+          ctx->partyY -= 1;
+          break;
+        case South:
+          ctx->partyX += 1;
+          break;
+        case West:
+          ctx->partyY += 1;
+          break;
+        }
+        break;
+      case SDLK_d:
+        // go right
+        switch (ctx->orientation) {
+        case North:
+          ctx->partyX += 1;
+          break;
+        case East:
+          ctx->partyY += 1;
+          break;
+        case South:
+          ctx->partyX -= 1;
+          break;
+        case West:
+          ctx->partyY -= 1;
+          break;
+        }
+        break;
+      case SDLK_a:
+        // turn anti-clockwise
+        ctx->orientation -= 1;
+        if ((int)ctx->orientation < 0) {
+          ctx->orientation = West;
+        }
+        break;
+      case SDLK_e:
+        // turn clockwise
+        ctx->orientation += 1;
+        if (ctx->orientation > West) {
+          ctx->orientation = North;
+        }
+        break;
+      default:
+        break;
+      }
     }
     GameRenderFrame(renderer, ctx);
     SDL_RenderPresent(renderer);
@@ -155,8 +256,8 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
   mapRect.h = 32 * cellSize;
   mapRect.x = xOff;
   mapRect.y = yOff;
-  SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
   SDL_RenderDrawRect(renderer, &mapRect);
+
   for (int x = 0; x < 32; x++) {
     for (int y = 0; y < 32; y++) {
       MazeBlock block = ctx->mazHandle.maze->wallMappingIndices[y * 32 + x];
@@ -166,7 +267,6 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
       cellR.x = xOff + x * cellSize;
       cellR.y = yOff + y * cellSize;
       SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-
       if (block.north) {
         SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x + cellR.w,
                            cellR.y);
@@ -183,7 +283,34 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
         SDL_RenderDrawLine(renderer, cellR.x + cellR.w, cellR.y,
                            cellR.x + cellR.w, cellR.y + cellR.h);
       }
-      // SDL_RenderDrawRect(renderer, &cellR);
+      if (x == ctx->partyX && y == ctx->partyY) {
+        SDL_Rect posR;
+        posR.w = cellSize - 12;
+        posR.h = cellSize - 12;
+        posR.x = 6 + xOff + x * cellSize;
+        posR.y = 6 + yOff + y * cellSize;
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_RenderFillRect(renderer, &posR);
+        int centerX = posR.x + posR.w / 2;
+        int centerY = posR.y + posR.h / 2;
+        switch (ctx->orientation) {
+        case North:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX, centerY - 10);
+          break;
+        case East:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX + 10, centerY);
+          break;
+        case South:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX, centerY + 10);
+          break;
+        case West:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX - 10, centerY);
+          break;
+        default:
+          assert(0);
+          break;
+        }
+      }
     }
   }
 }
