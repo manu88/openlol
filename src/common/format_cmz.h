@@ -3,17 +3,20 @@
 #include <stdint.h>
 
 #define MAZE_NUM_CELL (size_t)1024
+
+typedef struct {
+  uint8_t north;
+  uint8_t east;
+  uint8_t south;
+  uint8_t west;
+} MazeBlock;
+
 typedef struct {
   int16_t width;
   int16_t height;
   int16_t tileSize;
 
-  struct MazeBlock {
-    uint8_t north;
-    uint8_t east;
-    uint8_t south;
-    uint8_t west;
-  } wallMappingIndices[MAZE_NUM_CELL];
+  MazeBlock wallMappingIndices[MAZE_NUM_CELL];
 } Maze;
 
 typedef struct {

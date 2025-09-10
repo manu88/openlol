@@ -7,6 +7,7 @@
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
+#include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
 #include "tests.h"
@@ -548,6 +549,8 @@ int main(int argc, char *argv[]) {
     return UnitTests();
   } else if (strcmp(argv[1], "render") == 0) {
     return cmdRender(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "game") == 0) {
+    return cmdGame(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
