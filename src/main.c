@@ -32,8 +32,10 @@ static int cmdWLL(int argc, char *argv[]) {
   }
   assert(readSize == fileSize);
 
-  TestWLL(buffer, fileSize);
-  free(buffer);
+  WllHandle handle = {0};
+  WllHandleFromBuffer(&handle, buffer, readSize);
+  WLLHandlePrint(&handle);
+  WllHandleRelease(&handle);
   return 0;
 }
 
