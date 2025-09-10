@@ -4,7 +4,6 @@
 #include "SDL_surface.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
-#include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <assert.h>
 #include <stdint.h>
@@ -217,7 +216,7 @@ WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
         {-101, 19, 15, 3, 0, 1}, /* Q-west */
 };
 
-static void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
+void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
                      const VMPHandle *vmp, int wallType, int wallPosition) {
   const WallRenderData *wallCfg = &wallRenderData[wallPosition];
   int flipX = wallCfg->flipFlag;
@@ -253,7 +252,7 @@ static void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
   }
 }
 
-static void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
+void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
                            const VMPHandle *vmp) {
   for (int y = 0; y < 15; y++) {
     for (int x = 0; x < 22; x++) {
@@ -264,6 +263,15 @@ static void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
       assert(tile.blockIndex < vcn->nbBlocks);
       blitBlock(renderer, vcn, tile.blockIndex, x * 8, y * 8, tile.flipped);
     }
+  }
+}
+
+void RenderScene(SDL_Renderer *renderer, const VCNHandle *vcn,
+                 const VMPHandle *vmp, int wallType) {
+  drawBackground(renderer, vcn, vmp);
+
+  for (int i = 0; i < 25; i++) {
+    drawWall(renderer, vcn, vmp, wallType, i);
   }
 }
 
@@ -278,11 +286,7 @@ void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos) {
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
 
-  drawBackground(renderer, vcn, vmp);
-
-  for (int i = 0; i < 25; i++) {
-    drawWall(renderer, vcn, vmp, 1, i);
-  }
+  RenderScene(renderer, vcn, vmp, 1);
 
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, "render.png");

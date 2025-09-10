@@ -37,6 +37,9 @@ int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
 
 int VMPHandleGetTile(const VMPHandle *handle, uint32_t index, VMPTile *tile) {
   assert(tile);
+  if (index >= handle->nbrOfBlocks) {
+    printf("VMPHandleGetTile index %i>=%i\n", index, handle->nbrOfBlocks);
+  }
   assert(index < handle->nbrOfBlocks);
 
   uint16_t v = handle->originalBuffer[index + 1];
