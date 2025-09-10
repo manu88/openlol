@@ -8,4 +8,4 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
 
-void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp);
+void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos);

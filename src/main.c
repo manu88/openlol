@@ -126,12 +126,13 @@ static int cmdScriptASM(const char *filepath) {
 }
 
 static int cmdRender(int argc, char *argv[]) {
-  if (argc < 2) {
-    printf("render vcn-file vmp-file\n");
+  if (argc < 3) {
+    printf("render vcn-file vmp-file wallpos\n");
     return 0;
   }
   const char *vcnFile = argv[0];
   const char *vmpFile = argv[1];
+  int wallpos = atoi(argv[2]);
   printf("vcn='%s' vmp='%s'\n", vcnFile, vmpFile);
   VCNHandle vcnHandle = {0};
   VMPHandle vmpHandle = {0};
@@ -172,7 +173,7 @@ static int cmdRender(int argc, char *argv[]) {
     }
   }
   printf("Got both files\n");
-  testRenderScene(&vcnHandle, &vmpHandle);
+  testRenderScene(&vcnHandle, &vmpHandle, wallpos);
   VMPHandleRelease(&vmpHandle);
   VCNHandleRelease(&vcnHandle);
   return 0;

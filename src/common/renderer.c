@@ -8,9 +8,7 @@
 #include <SDL_image.h>
 #include <assert.h>
 #include <stdint.h>
-
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGH 400
+#include <string.h>
 
 static inline uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
 #define VGA8To8(x) x
@@ -58,8 +56,7 @@ static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
 
 void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_Init(SDL_INIT_VIDEO);
-  SDL_Surface *surface =
-      SDL_CreateRGBSurface(0, WINDOW_WIDTH, WINDOW_HEIGH, 32, 0, 0, 0, 0);
+  SDL_Surface *surface = SDL_CreateRGBSurface(0, 800, 400, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
@@ -75,6 +72,18 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
+static void drawPix(SDL_Renderer *renderer, int x, int y, uint8_t r, uint8_t g,
+                    uint8_t b) {
+  SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+  SDL_Rect rect;
+  rect.w = 1;
+  rect.h = 1;
+  rect.x = x;
+  rect.y = y;
+  if (r && g && b) {
+    SDL_RenderFillRect(renderer, &rect);
+  }
+}
 void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
                int x, int y, int flip) {
   const VCNBlock *block = handle->blocks + blockId;
@@ -101,27 +110,22 @@ void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
       uint8_t idx1 =
           handle->posPaletteTables[numPalette].backdropWallPalettes[p1];
       assert(idx1 < 128);
-      // int coords = x + p + s * 2 * v + (y + w) * img_width;
 
       uint8_t r = VGA6To8(handle->palette[0 + idx0 * 3]);
       uint8_t g = VGA6To8(handle->palette[1 + idx0 * 3]);
       uint8_t b = VGA6To8(handle->palette[2 + idx0 * 3]);
 
-      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-      SDL_Rect rect;
-      rect.w = 1;
-      rect.h = 1;
-      rect.x = x + p + s * 2 * v;
-      rect.y = y + w;
-      SDL_RenderFillRect(renderer, &rect);
+      uint8_t destX = x + p + s * 2 * v;
+      uint8_t destY = y + w;
+
+      drawPix(renderer, destX, destY, r, g, b);
 
       r = VGA6To8(handle->palette[0 + idx1 * 3]);
       g = VGA6To8(handle->palette[1 + idx1 * 3]);
       b = VGA6To8(handle->palette[2 + idx1 * 3]);
 
-      rect.x = x + p + s + s * 2 * v;
-      rect.y = y + w;
-      SDL_RenderFillRect(renderer, &rect);
+      destX = x + p + s + s * 2 * v;
+      drawPix(renderer, destX, destY, r, g, b);
     }
   }
 }
@@ -143,7 +147,6 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   for (int i = 0; i < handle->nbBlocks; i++) {
     int blockX = i % widthBlocks;
     int blockY = i / widthBlocks;
-
     blitBlock(renderer, handle, i, blockX * BLOCK_SIZE, blockY * BLOCK_SIZE, 0);
   }
 
@@ -156,14 +159,15 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct WallRenderData {
+typedef struct {
   int baseOffset;
   int offsetInViewPort;
-  int visibleWidthInBlocks;
   int visibleHeightInBlocks;
+  int visibleWidthInBlocks;
   int skipValue;
   int flipFlag;
-} wallRenderData[25] = /* 25 different wall positions exists */
+} WallRenderData;
+WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
     {
         /* Side-Walls left back */
         {3, 66, 5, 1, 2, 0},  /* A-east */
@@ -213,36 +217,75 @@ struct WallRenderData {
         {-101, 19, 15, 3, 0, 1}, /* Q-west */
 };
 
-static void drawBackground(const VCNHandle *vcn, const VMPHandle *vmp) {
-  const int width = 22 * 8;
-  const int height = 15 * 8;
+static void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
+                     const VMPHandle *vmp, int wallType, int wallPosition) {
+  const WallRenderData *wallCfg = &wallRenderData[wallPosition];
+  int flipX = wallCfg->flipFlag;
+  int offset = wallCfg->baseOffset;
 
-  SDL_Init(SDL_INIT_VIDEO);
-  SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+  for (int y = 0; y < wallCfg->visibleHeightInBlocks; y++) {
+    for (int x = 0; x < wallCfg->visibleWidthInBlocks; x++) {
+      int blockIndex;
+      if (flipX == 0) {
+        blockIndex = x + y * 22 + wallCfg->offsetInViewPort;
+      } else {
+        blockIndex = wallCfg->offsetInViewPort + wallCfg->visibleWidthInBlocks -
+                     1 - x + y * 22;
+      }
 
-  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
-  SDL_RenderClear(renderer);
+      int xpos = blockIndex % 22;
+      int ypos = blockIndex / 22;
+      VMPTile tile = {0};
+      VMPHandleGetTile(vmp, offset + (431 * wallType), &tile);
+      // int tile = vmp-> .wallTiles[wallType][offset];
 
+      /* xor with wall flip-x to make block flip and wall flip cancel each other
+       * out. */
+      int blockFlip = (tile.flipped) ^ flipX;
+      int destPostX = xpos * 8;
+      int destPostY = ypos * 8;
+      blitBlock(renderer, vcn, tile.blockIndex, destPostX, destPostY,
+                blockFlip);
+
+      offset++;
+    }
+    offset += wallCfg->skipValue;
+  }
+}
+
+static void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
+                           const VMPHandle *vmp) {
   for (int y = 0; y < 15; y++) {
     for (int x = 0; x < 22; x++) {
       int index = y * 22 + x;
 
       VMPTile tile = {0};
       VMPHandleGetTile(vmp, index, &tile);
-
       assert(tile.blockIndex < vcn->nbBlocks);
-
       blitBlock(renderer, vcn, tile.blockIndex, x * 8, y * 8, tile.flipped);
     }
+  }
+}
+
+void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos) {
+  const int width = 22 * 8;  // 176
+  const int height = 15 * 8; // 120
+
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
+  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+  SDL_RenderClear(renderer);
+
+  drawBackground(renderer, vcn, vmp);
+
+  for (int i = 0; i < 25; i++) {
+    drawWall(renderer, vcn, vmp, 1, i);
   }
 
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, "render.png");
 
   SDL_DestroyRenderer(renderer);
-}
-
-void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp) {
-  drawBackground(vcn, vmp);
 }
