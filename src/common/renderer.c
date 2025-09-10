@@ -75,10 +75,10 @@ static void drawPix(SDL_Renderer *renderer, int x, int y, uint8_t r, uint8_t g,
                     uint8_t b) {
   SDL_SetRenderDrawColor(renderer, r, g, b, 255);
   SDL_Rect rect;
-  rect.w = 1;
-  rect.h = 1;
-  rect.x = x;
-  rect.y = y;
+  rect.w = 2;
+  rect.h = 2;
+  rect.x = x * 2;
+  rect.y = y * 2;
   if (r && g && b) {
     SDL_RenderFillRect(renderer, &rect);
   }
