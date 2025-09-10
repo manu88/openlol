@@ -14,9 +14,15 @@ typedef struct {
     uint8_t south;
     uint8_t west;
   } wallMappingIndices[MAZE_NUM_CELL];
-} MAZEFile;
+} Maze;
+
+typedef struct {
+  Maze *maze;
+} MazeHandle;
 
 uint8_t *CMZDecompress(const uint8_t *inBuffer, size_t inBufferSize,
                        size_t *outBufferSize);
 
-void TestCMZ(const uint8_t *buffer, size_t bufferSize);
+void MazeHandleRelease(MazeHandle *mazeHandle);
+int MazeHandleFromBuffer(MazeHandle *mazeHandle, const uint8_t *inBuffer,
+                         size_t inBufferSize);

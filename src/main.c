@@ -225,7 +225,23 @@ static int cmdMap(int argc, char *argv[]) {
     perror("readBinaryFile");
     return 1;
   }
-  TestCMZ(buffer, readSize);
+  MazeHandle handle = {0};
+  if (!MazeHandleFromBuffer(&handle, buffer, readSize)) {
+    return 1;
+  }
+  const Maze *maze = handle.maze;
+  printf("Maze w=%0X h=%0X Nof=%0X\n", maze->width, maze->height,
+         maze->tileSize);
+  FILE *fout = fopen("test.txt", "w");
+
+  for (int i = 0; i < MAZE_NUM_CELL; i++) {
+    fprintf(fout, "%i %i %i %i\n", maze->wallMappingIndices[i].north,
+            maze->wallMappingIndices[i].east, maze->wallMappingIndices[i].south,
+            maze->wallMappingIndices[i].west);
+  }
+  fprintf(fout, "\n");
+  fclose(fout);
+  MazeHandleRelease(&handle);
   return 0;
 }
 

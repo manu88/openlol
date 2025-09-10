@@ -154,18 +154,23 @@ uint8_t *CMZDecompress(const uint8_t *inBuffer, size_t inBufferSize,
   return dest;
 }
 
-void TestCMZ(const uint8_t *buffer, size_t bufferSize) {
+void MazeHandleRelease(MazeHandle *mazeHandle) { free(mazeHandle->maze); }
 
-  MAZEFile *maze = (MAZEFile *)(buffer);
-  printf("Maze w=%0X h=%0X Nof=%0X\n", maze->width, maze->height,
-         maze->tileSize);
-  FILE *fout = fopen("test.txt", "w");
+int MazeHandleFromBuffer(MazeHandle *mazeHandle, const uint8_t *inBuffer,
+                         size_t inBufferSize) {
+  assert(inBuffer);
 
-  for (int i = 0; i < MAZE_NUM_CELL; i++) {
-    fprintf(fout, "%i %i %i %i\n", maze->wallMappingIndices[i].north,
-            maze->wallMappingIndices[i].east, maze->wallMappingIndices[i].south,
-            maze->wallMappingIndices[i].west);
+  const CMZHeader *header = (const CMZHeader *)inBuffer;
+
+  // only support this right now, handling other types is not
+  // complicated and already implemented in the original uncps file.
+  assert(header->compressionType == 4);
+
+  uint8_t *dest = malloc(header->uncompressedSize);
+  if (!dest) {
+    return 0;
   }
-  fprintf(fout, "\n");
-  fclose(fout);
+  assert(cps_lz77(inBuffer + CMZHEADER_SIZE, dest) == header->uncompressedSize);
+  mazeHandle->maze = (Maze *)dest;
+  return 1;
 }
