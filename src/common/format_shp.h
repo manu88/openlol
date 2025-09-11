@@ -32,8 +32,8 @@ typedef struct {
   SHPFrameHeader header;
   uint8_t headerSize;
 
-  uint8_t *undecodedImageData;// ref to originalBuffer
-  uint8_t *imageBuffer; // the actual image data, needs to be freed!
+  uint8_t *undecodedImageData; // ref to originalBuffer
+  uint8_t *imageBuffer;        // the actual image data, needs to be freed!
 } SHPFrame;
 
 typedef struct {
@@ -50,4 +50,9 @@ int SHPHandleFromBuffer(SHPHandle *handle, uint8_t *buffer, size_t size);
 
 uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
                            size_t index);
+
 void SHPHandlePrint(const SHPHandle *handle);
+
+void SHPFramePrint(const SHPFrame *frame);
+void SHPFrameRelease(SHPFrame *frame);
+int SHPFrameGetImageData(SHPFrame *frame);

@@ -67,6 +67,7 @@ static int cmdVCN(int argc, char *argv[]) {
   VCNHandle handle = {0};
   if (!VCNHandleFromLCWBuffer(&handle, buffer, fileSize)) {
     printf("VCNDataFromLCWBuffer error\n");
+    free(buffer);
     return 1;
   }
   char *outFilePath = strAppend(inputFile, ".png");
@@ -221,8 +222,25 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
+static void usageSHP(void) {
+  printf("shp subcommands: list|render filepath [index] [palette]\n");
+}
+
 static int cmdShp(int argc, char *argv[]) {
-  const char *shpFile = argv[0];
+  if (argc < 2) {
+    usageSHP();
+    return 1;
+  }
+
+  if (strcmp(argv[0], "list") != 0 && strcmp(argv[0], "extract") != 0) {
+    usageSHP();
+    return 1;
+  }
+  if (strcmp(argv[0], "extract") == 0 && argc < 3) {
+    usageSHP();
+    return 1;
+  }
+  const char *shpFile = argv[1];
   printf("open SHP file '%s'\n", shpFile);
   size_t fileSize = 0;
   size_t readSize = 0;
@@ -237,7 +255,44 @@ static int cmdShp(int argc, char *argv[]) {
     free(buffer);
     return 1;
   }
-  SHPHandlePrint(&handle);
+  if (strcmp(argv[0], "list") == 0) {
+    SHPHandlePrint(&handle);
+  } else if (strcmp(argv[0], "extract") == 0) {
+    int index = atoi(argv[2]);
+
+    VCNHandle vcnHandle = {0};
+    char *vcnPaletteFile = NULL;
+    if (argc > 3) {
+      vcnPaletteFile = argv[3];
+      printf("using vcn palette file '%s'\n", vcnPaletteFile);
+      uint8_t *buffer = readBinaryFile(vcnPaletteFile, &fileSize, &readSize);
+      if (!buffer) {
+        return 1;
+      }
+      if (readSize == 0) {
+        free(buffer);
+        return 1;
+      }
+      if (!VCNHandleFromLCWBuffer(&vcnHandle, buffer, fileSize)) {
+        printf("VCNDataFromLCWBuffer error\n");
+        free(buffer);
+        return 1;
+      }
+      assert(readSize == fileSize);
+    }
+    printf("extracting index %i\n", index);
+    SHPFrame frame = {0};
+    SHPHandleGetFrame(&handle, &frame, index);
+    SHPFramePrint(&frame);
+    SHPFrameGetImageData(&frame);
+    SHPFrameToPng(&frame, "frame.png",
+                  vcnPaletteFile ? vcnHandle.palette : NULL);
+    SHPFrameRelease(&frame);
+    if (vcnPaletteFile != NULL) {
+      VCNHandleRelease(&vcnHandle);
+    }
+  }
+
   SHPHandleRelease(&handle);
   return 0;
 }

@@ -155,6 +155,49 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
+void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
+                  int yPos, const uint8_t *palette, int scaleFactor) {
+
+  for (int y = 0; y < frame->header.height; y++) {
+    for (int x = 0; x < frame->header.width; x++) {
+      int p = x + (y * frame->header.width);
+      uint8_t v = frame->imageBuffer[p];
+      if (v == 0) {
+        continue;
+      }
+      uint8_t r = v;
+      uint8_t g = v;
+      uint8_t b = v;
+      if (palette) {
+        r = VGA6To8(palette[(v * 3) + 0]);
+        g = VGA6To8(palette[(v * 3) + 1]);
+        b = VGA6To8(palette[(v * 3) + 2]);
+      }
+      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+      SDL_Rect rect;
+      rect.w = scaleFactor;
+      rect.h = scaleFactor;
+      rect.x = (x + xPos) * scaleFactor;
+      rect.y = (y + yPos) * scaleFactor;
+      SDL_RenderFillRect(renderer, &rect);
+    }
+  }
+}
+void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
+                   const uint8_t *palette) {
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Surface *surface = SDL_CreateRGBSurface(
+      0, frame->header.width, frame->header.height, 32, 0, 0, 0, 0);
+  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+
+  drawSHPFrame(renderer, frame, 0, 0, palette, 1);
+
+  SDL_RenderPresent(renderer);
+  IMG_SavePNG(surface, savePngPath);
+
+  SDL_DestroyRenderer(renderer);
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -33,15 +33,7 @@ uint16_t WllHandleGetWallType(const WllHandle *handle,
   const WllWallMapping *entry =
       WllHandleGetWallMapping(handle, wallMappingIndex);
   if (entry == NULL) {
-    printf("warning: WllHandleGetWallID did not find any value for %u, "
-           "returning 1\n",
-           wallMappingIndex);
-    return 1;
-  }
-  if (entry->wallType == 0) {
-    printf("warning: WllHandleGetWallID will return 0 for wmi %u\n",
-           wallMappingIndex);
-    return 1;
+    return 0;
   }
   return entry->wallType;
 }

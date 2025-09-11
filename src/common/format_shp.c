@@ -1,5 +1,6 @@
 #include "format_shp.h"
 #include "format_lcw.h"
+#include "renderer.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -32,9 +33,9 @@ uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
 
   int nexOffset = 10;
   if (frame->header.flags[0] & CustomSizeRemap) {
-    frame->header.remapSize = *(frameStart + 10);
+    frame->header.remapSize = *(frameStart + nexOffset);
     nexOffset = 11;
-  } else {
+  } else if (frame->header.flags[0] & HasRemapTable) {
     frame->header.remapSize = 16;
   }
   if (frame->header.flags[0] & HasRemapTable) {
@@ -45,57 +46,81 @@ uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
   return offset;
 }
 
+void SHPFrameRelease(SHPFrame *frame) {
+  if (frame->imageBuffer) {
+    free(frame->imageBuffer);
+  }
+}
+
+int SHPFrameGetImageData(SHPFrame *frame) {
+  if (frame->imageBuffer) {
+    return 1;
+  }
+  uint8_t hasRemapTable = frame->header.flags[0] & HasRemapTable;
+  uint8_t noLCW = frame->header.flags[0] & NoLCW;
+  uint8_t customSizeRemap = frame->header.flags[0] & CustomSizeRemap;
+  if (customSizeRemap) {
+    assert(hasRemapTable);
+  }
+
+  const size_t compressedSize = frame->header.fileSize - frame->headerSize;
+  uint8_t *imageBuffer = NULL;
+  uint8_t shouldFreeImageBuffer = 0;
+  if (noLCW == 0) {
+    imageBuffer = malloc(frame->header.zeroCompressedSize);
+
+    LCWDecompress(frame->undecodedImageData, compressedSize, imageBuffer,
+                  frame->header.zeroCompressedSize);
+    shouldFreeImageBuffer = 1;
+  } else {
+    imageBuffer = frame->undecodedImageData;
+  }
+  uint8_t *imageBuffer2 =
+      DecompressRLEZeroD2(imageBuffer, frame->header.zeroCompressedSize,
+                          frame->header.width, frame->header.height);
+  if (shouldFreeImageBuffer) {
+    free(imageBuffer);
+  }
+  // remap
+  if (frame->header.remapTable) {
+    printf("Remap\n");
+    for (int i = 0; i < frame->header.width * frame->header.height; i++) {
+      uint8_t p = imageBuffer2[i];
+      assert(p <= frame->header.remapSize);
+      imageBuffer2[i] = frame->header.remapTable[p];
+    }
+  }
+  frame->imageBuffer = imageBuffer2;
+  return 1;
+}
+
+void SHPFramePrint(const SHPFrame *frame) {
+  uint8_t hasRemapTable = frame->header.flags[0] & HasRemapTable;
+  uint8_t noLCW = frame->header.flags[0] & NoLCW;
+  uint8_t customSizeRemap = frame->header.flags[0] & CustomSizeRemap;
+  if (customSizeRemap) {
+    assert(hasRemapTable);
+  }
+
+  printf("flags %02X %02X %i w=%i h=%i fsize=%i "
+         "zeroCompressedSize=%i hasRemapTable=%i noLCW=%i "
+         "customSizeRemap=%i remapSize %i remapTable %p image data %p "
+         "header=%i\n",
+         frame->header.flags[0], frame->header.flags[1], frame->header.slices,
+         frame->header.width, frame->header.height, frame->header.fileSize,
+         frame->header.zeroCompressedSize, hasRemapTable, noLCW,
+         customSizeRemap, frame->header.remapSize,
+         (void *)frame->header.remapTable, (void *)frame->undecodedImageData,
+         frame->headerSize);
+}
+
 void SHPHandlePrint(const SHPHandle *handle) {
   printf("%i frames\n", handle->framesCount);
   for (int i = 0; i < handle->framesCount; i++) {
 
     SHPFrame frame = {0};
     SHPHandleGetFrame(handle, &frame, i);
-
-    uint8_t hasRemapTable = frame.header.flags[0] & HasRemapTable;
-    uint8_t noLCW = frame.header.flags[0] & NoLCW;
-    uint8_t customSizeRemap = frame.header.flags[0] & CustomSizeRemap;
-    if (customSizeRemap) {
-      assert(hasRemapTable);
-    }
-
-    printf("%i flags %02X %02X w=%i h=%i fsize=%i "
-           "zeroCompressedSize=%i hasRemapTable=%i noLCW=%i "
-           "customSizeRemap=%i remapSize %i remapTable %p image data %p "
-           "header=%i\n",
-           i, frame.header.flags[0], frame.header.flags[1], frame.header.width,
-           frame.header.height, frame.header.fileSize,
-           frame.header.zeroCompressedSize, hasRemapTable, noLCW,
-           customSizeRemap, frame.header.remapSize,
-           (void *)frame.header.remapTable, (void *)frame.undecodedImageData,
-           frame.headerSize);
-
-    const size_t compressedSize = frame.header.fileSize - frame.headerSize;
-    uint8_t *imageBuffer = NULL;
-    uint8_t shouldFreeImageBuffer = 0;
-    if (noLCW == 0) {
-      imageBuffer = malloc(frame.header.zeroCompressedSize);
-
-      LCWDecompress(frame.undecodedImageData, compressedSize, imageBuffer,
-                    frame.header.zeroCompressedSize);
-      shouldFreeImageBuffer = 1;
-    } else {
-      imageBuffer = frame.undecodedImageData;
-    }
-    uint8_t *imageBuffer2 =
-        DecompressRLEZeroD2(imageBuffer, frame.header.zeroCompressedSize,
-                            frame.header.width, frame.header.height);
-    if (shouldFreeImageBuffer) {
-      free(imageBuffer);
-    }
-
-    // remap
-    if (frame.header.remapTable) {
-      for (int i = 0; i < frame.header.width * frame.header.height; i++) {
-        uint8_t p = imageBuffer2[i];
-        assert(p <= frame.header.remapSize);
-        imageBuffer2[i] = frame.header.remapTable[p];
-      }
-    }
+    printf("%i: ", i);
+    SHPFramePrint(&frame);
   }
 }

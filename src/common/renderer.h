@@ -4,6 +4,7 @@
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include <SDL2/SDL.h>
+#include <stdint.h>
 
 typedef enum {
   A_east = 0,
@@ -37,6 +38,8 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
 
+void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath, const uint8_t *palette);
+
 void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos);
 
 void RenderScene(SDL_Renderer *renderer, const VCNHandle *vcn,
@@ -46,3 +49,6 @@ void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
                     const VMPHandle *vmp);
 void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
               const VMPHandle *vmp, int wallType, int wallPosition);
+
+void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int x, int y,
+                  const uint8_t *palette, int scaleFactor);

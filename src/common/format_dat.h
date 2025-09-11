@@ -4,11 +4,20 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define DECORATION_NUM_ENTRIES 10
+#define DECORATION_EMPTY_INDEX (uint16_t)0XFFFF
+
+#define DatDecorationFlag_Flip_Bit
+
+typedef enum {
+  DatDecorationFlags_Mirror = 1 << 0,
+} DatDecorationFlags;
+
 typedef struct {
-  uint16_t shapeIndex[10];
-  uint8_t scaleFlag[10];
-  int16_t shapeX[10];
-  int16_t shapeY[10];
+  uint16_t shapeIndex[DECORATION_NUM_ENTRIES];
+  uint8_t scaleFlag[DECORATION_NUM_ENTRIES];
+  int16_t shapeX[DECORATION_NUM_ENTRIES];
+  int16_t shapeY[DECORATION_NUM_ENTRIES];
   int8_t next;
   uint8_t flags;
 } DatDecoration;

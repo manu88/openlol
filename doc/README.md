@@ -9,7 +9,7 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.VMP‘ : The vmp files contains information about how to put together the 8x8 blocks defined in the corresponding vcn files, into proper walls (including the background).
 - ‘.VCN‘ : .vcn files contains graphics for the walls including the background.
 - ‘.LBM‘ : IFF https://moddingwiki.shikadi.net/wiki/LBM_Format, use this parser? https://github.com/svanderburg/libiff
-- ‘.XXX‘ : level-related?
+- ‘.XXX‘ : map legend data, see https://github.com/scummvm/scummvm/blob/2816913460d4bd73795ca1356059b491f7248b05/engines/kyra/engine/lol.cpp#L4257
 - ‘.WLL‘ : WaLL data, maybe decoration data?
 - ‘.FRE‘ : FREnch text compressed with a Dizio-Encoding
 - ‘.INF‘ : Script data similar to Eob inf, Data is arranged using Legend of Kyrandia's script format (info about Dune II's EMC: https://web.archive.org/web/20080922215518/http://minniatian.republika.pl/Dune2/EMC.HTM)
@@ -46,3 +46,4 @@ See https://github.com/scummvm/scummvm/blob/master/engines/kyra/script/script_lo
 
 # DAT
 See https://web.archive.org/web/20180313235324/http://eob.wikispaces.com/eob.dat
+uses the VCN file palette
