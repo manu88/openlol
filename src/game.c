@@ -214,7 +214,7 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
 static int GameRun(LevelContext *ctx) {
   ctx->partyPos.x = 13;
   ctx->partyPos.y = 18;
-  ctx->orientation = South;
+  ctx->orientation = North;
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
@@ -346,6 +346,8 @@ static int GameRun(LevelContext *ctx) {
     if (shouldUpdate) {
       memset(ctx->viewConeEntries, 0,
              sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+      SDL_RenderClear(renderer);
       GameRenderFrame(renderer, ctx);
       SDL_RenderPresent(renderer);
       shouldUpdate = 0;
@@ -361,6 +363,11 @@ static int GameRun(LevelContext *ctx) {
 static void GameRenderFrame(SDL_Renderer *renderer, LevelContext *ctx) {
   GameRenderMap(renderer, ctx, 500, 10);
   GameRenderView(renderer, ctx, 500, 100);
+}
+
+Orientation absOrientation(Orientation partyOrientation,
+                           Orientation orientation) {
+  return (orientation + partyOrientation) % 4;
 }
 
 void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
@@ -387,208 +394,233 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
   if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 0);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, A_east);
     }
   }
 
   if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 1);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, B_east);
     }
   }
   if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 2);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, C_east);
     }
   }
   if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 3);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, E_west);
     }
   }
   if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 4);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, F_west);
     }
   }
   if (gEntry->valid) {
     int index = gEntry->coords.y * 32 + gEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 5);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, G_west);
     }
   }
   if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 6);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, B_south);
     }
   }
   if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 7);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, C_south);
     }
   }
 
   if (dEntry->valid) {
     int index = dEntry->coords.y * 32 + dEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 8);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, D_south);
     }
   }
 
   if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 9);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, E_south);
     }
   }
   if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 10);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, F_south);
     }
   }
   if (hEntry->valid) {
     int index = hEntry->coords.y * 32 + hEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 11);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, H_east);
     }
   }
   if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 12);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, I_east);
     }
   }
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 13);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, K_west);
     }
   }
   if (lEntry->valid) {
     int index = lEntry->coords.y * 32 + lEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 14);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, L_west);
     }
   }
   if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 15);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, I_south);
     }
   }
   if (jEntry->valid) {
     int index = jEntry->coords.y * 32 + jEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 16);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, J_south);
     }
   }
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 17);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, K_south);
     }
   }
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 18);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, M_east);
     }
   }
   if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 19);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, O_west);
     }
   }
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 20);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, M_south);
     }
   }
 
   if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 21);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, O_south);
     }
   }
 
   if (nEntry->valid) {
     int index = nEntry->coords.y * 32 + nEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->south) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 22);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, N_south);
     }
   }
 
   if (pEntry->valid) {
     int index = pEntry->coords.y * 32 + pEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->east) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 23);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, P_east);
     }
   }
 
   if (qEntry->valid) {
     int index = qEntry->coords.y * 32 + qEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
-    if (block->west) {
-      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
-      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 24);
+    uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
+      drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, Q_west);
     }
   }
 }
@@ -669,7 +701,7 @@ static Point go(const Point *pos, Orientation orientation, int frontDist,
   return p;
 }
 
-static int cellInCone(LevelContext *ctx, int x, int y) {
+static void computeViewConeCells(LevelContext *ctx, int x, int y) {
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
     Point p = go(&ctx->partyPos, ctx->orientation, viewConeCell[i].frontDist,
                  viewConeCell[i].leftDist);
@@ -677,12 +709,7 @@ static int cellInCone(LevelContext *ctx, int x, int y) {
       ctx->viewConeEntries[i].coords = p;
       ctx->viewConeEntries[i].valid = 1;
     }
-
-    if (p.x == x && p.y == y) {
-      return 1;
-    }
   }
-  return 0;
 }
 
 static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
@@ -704,19 +731,19 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
       cellR.x = xOff + x * cellSize;
       cellR.y = yOff + y * cellSize;
       SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-      if (block.north) {
+      if (block.face[North]) {
         SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x + cellR.w,
                            cellR.y);
       }
-      if (block.south) {
+      if (block.face[South]) {
         SDL_RenderDrawLine(renderer, cellR.x, cellR.y + cellR.h,
                            cellR.x + cellR.w, cellR.y + cellR.h);
       }
-      if (block.west) {
+      if (block.face[West]) {
         SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x,
                            cellR.y + cellR.h);
       }
-      if (block.east) {
+      if (block.face[East]) {
         SDL_RenderDrawLine(renderer, cellR.x + cellR.w, cellR.y,
                            cellR.x + cellR.w, cellR.y + cellR.h);
       }
@@ -752,10 +779,7 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
           break;
         }
       }
-      if (cellInCone(ctx, x, y)) {
-        // SDL_SetRenderDrawColor(renderer, 0, 0, 255, 127);
-        // SDL_RenderFillRect(renderer, &cellR);
-      }
+      computeViewConeCells(ctx, x, y);
     } // y loop
   } // x loop
 }

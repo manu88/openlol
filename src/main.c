@@ -238,9 +238,10 @@ static int cmdMap(int argc, char *argv[]) {
   FILE *fout = fopen("test.txt", "w");
 
   for (int i = 0; i < MAZE_NUM_CELL; i++) {
-    fprintf(fout, "%i %i %i %i\n", maze->wallMappingIndices[i].north,
-            maze->wallMappingIndices[i].east, maze->wallMappingIndices[i].south,
-            maze->wallMappingIndices[i].west);
+    fprintf(fout, "%i %i %i %i\n", maze->wallMappingIndices[i].face[0],
+            maze->wallMappingIndices[i].face[1],
+            maze->wallMappingIndices[i].face[2],
+            maze->wallMappingIndices[i].face[3]);
   }
   fprintf(fout, "\n");
   fclose(fout);

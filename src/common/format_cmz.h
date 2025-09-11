@@ -5,10 +5,7 @@
 #define MAZE_NUM_CELL (size_t)1024
 
 typedef struct {
-  uint8_t north;
-  uint8_t east;
-  uint8_t south;
-  uint8_t west;
+  uint8_t face[4];
 } MazeBlock;
 
 typedef struct {
