@@ -3,6 +3,7 @@
 #include "emc_asm.h"
 #include "format_cmz.h"
 #include "format_cps.h"
+#include "format_dat.h"
 #include "format_inf.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
@@ -219,8 +220,27 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
+static int cmdDat(int argc, char *argv[]) {
+  const char *datFile = argv[0];
+  printf("open DAT file '%s'\n", datFile);
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(datFile, &fileSize, &readSize);
+  if (!buffer) {
+    perror("readBinaryFile");
+    return 1;
+  }
+  DatHandle handle = {0};
+  if (!DatHandleFromBuffer(&handle, buffer, readSize)) {
+    perror("DatHandleFromBuffer");
+    free(buffer);
+    return 1;
+  }
+  DatHandlePrint(&handle);
+  DatHandleRelease(&handle);
+  return 0;
+}
 static int cmdMap(int argc, char *argv[]) {
-  // TODO: use readBinaryFile
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
@@ -522,7 +542,9 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map|script|inf|tests|wll subcommand ...\n", progName);
+  printf(
+      "%s: pak|cmz|map|script|inf|tests|wll|render|game|dat subcommand ...\n",
+      progName);
 }
 
 int main(int argc, char *argv[]) {
@@ -554,6 +576,8 @@ int main(int argc, char *argv[]) {
     return cmdRender(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "game") == 0) {
     return cmdGame(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "dat") == 0) {
+    return cmdDat(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
