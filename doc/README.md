@@ -2,7 +2,7 @@
 https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files for more details
 
 - ‘.DIP‘ : Translations, localized strings?
-- ‘.SHP‘ : Sprites sheet
+- ‘.SHP‘ : Sprites sheet, see https://moddingwiki.shikadi.net/wiki/Westwood_SHP_Format_(Dune_II)
 - ‘.CPS‘ : images https://moddingwiki.shikadi.net/wiki/Westwood_CPS_Format
 - ‘.WSA‘ : images
 - ‘.TIM‘ : Timing and other animation WSA information?

@@ -251,3 +251,33 @@ ssize_t LCWCompress(void const *input, void *output, unsigned long size) {
   // return the size of the compressed data.
   return putp - putstart;
 }
+
+uint8_t *DecompressRLEZeroD2(const uint8_t *fileData, size_t datalen,
+                             int frameWidth, int frameHeight) {
+  int fullLength = frameWidth * frameHeight;
+  uint8_t *finalImage = malloc(fullLength);
+
+  int outLineOffset = 0;
+  int offset = 0;
+  for (int y = 0; y < frameHeight; y++) {
+    int outOffset = outLineOffset;
+    int nextLineOffset = outLineOffset + frameWidth;
+    int readZero = 0;
+    for (; offset < datalen; offset++) {
+      if (outOffset >= nextLineOffset)
+        break;
+      if (readZero) {
+        readZero = 0;
+        uint8_t zeroes = fileData[offset];
+        for (; zeroes > 0 && outOffset < nextLineOffset; zeroes--)
+          finalImage[outOffset++] = 0;
+      } else if (fileData[offset] == 0) {
+        readZero = 1;
+      } else {
+        finalImage[outOffset++] = fileData[offset];
+      }
+    }
+    outLineOffset = nextLineOffset;
+  }
+  return finalImage;
+}
