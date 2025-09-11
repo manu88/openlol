@@ -4,8 +4,14 @@
 #include <sys/types.h>
 
 typedef struct {
-  uint16_t wallId;
-} SomeData;
+  uint16_t wallMappingIndex;
+  uint16_t wallType;
+  uint16_t decorationId;
+
+  uint16_t unknown1;
+  uint16_t unknown2;
+  uint16_t unknown3;
+} WllWallMapping;
 
 typedef struct {
 
@@ -19,5 +25,10 @@ typedef struct {
 void WllHandleRelease(WllHandle *handle);
 int WllHandleFromBuffer(WllHandle *handle, uint8_t *buffer, size_t size);
 uint16_t *WllHandleGetIndex(const WllHandle *handle, size_t index);
-uint16_t WllHandleGetWallID(const WllHandle *handle, uint16_t wallMappingIndex);
+
+const WllWallMapping* WllHandleGetWallMapping(const WllHandle *handle,
+                              uint16_t wallMappingIndex);
+
+uint16_t WllHandleGetWallType(const WllHandle *handle,
+                              uint16_t wallMappingIndex);
 void WLLHandlePrint(const WllHandle *handle);

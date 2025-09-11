@@ -388,7 +388,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 0);
     }
   }
@@ -397,7 +397,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 1);
     }
   }
@@ -405,7 +405,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 2);
     }
   }
@@ -413,7 +413,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 3);
     }
   }
@@ -421,7 +421,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 4);
     }
   }
@@ -429,7 +429,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = gEntry->coords.y * 32 + gEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 5);
     }
   }
@@ -437,7 +437,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 6);
     }
   }
@@ -445,7 +445,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 7);
     }
   }
@@ -454,7 +454,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = dEntry->coords.y * 32 + dEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 8);
     }
   }
@@ -463,7 +463,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 9);
     }
   }
@@ -471,7 +471,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 10);
     }
   }
@@ -479,7 +479,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = hEntry->coords.y * 32 + hEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 11);
     }
   }
@@ -487,7 +487,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 12);
     }
   }
@@ -495,7 +495,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 13);
     }
   }
@@ -503,7 +503,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = lEntry->coords.y * 32 + lEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 14);
     }
   }
@@ -511,7 +511,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 15);
     }
   }
@@ -519,7 +519,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = jEntry->coords.y * 32 + jEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 16);
     }
   }
@@ -527,7 +527,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 17);
     }
   }
@@ -535,7 +535,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 18);
     }
   }
@@ -543,7 +543,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 19);
     }
   }
@@ -551,7 +551,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 20);
     }
   }
@@ -560,7 +560,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 21);
     }
   }
@@ -569,7 +569,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = nEntry->coords.y * 32 + nEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->south) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->south);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->south);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 22);
     }
   }
@@ -578,7 +578,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = pEntry->coords.y * 32 + pEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->east) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->east);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->east);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 23);
     }
   }
@@ -587,7 +587,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     int index = qEntry->coords.y * 32 + qEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     if (block->west) {
-      uint16_t wallType = WllHandleGetWallID(&ctx->wllHandle, block->west);
+      uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, block->west);
       drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, 24);
     }
   }
