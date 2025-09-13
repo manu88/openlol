@@ -2,9 +2,13 @@
 #include "game.h"
 #include "renderer.h"
 
+static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
+                          int yOff);
+static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx);
+
 void GameRenderFrame(SDL_Renderer *renderer, LevelContext *ctx) {
   GameRenderMap(renderer, ctx, 500, 10);
-  GameRenderView(renderer, ctx, 500, 100);
+  GameRenderScene(renderer, ctx);
 }
 
 typedef struct {
@@ -130,8 +134,8 @@ static void computeViewConeCells(LevelContext *ctx, int x, int y) {
   }
 }
 
-void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                   int yOff) {
+static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
+                          int yOff) {
   const int cellSize = 12;
   SDL_Rect mapRect;
   mapRect.w = 32 * cellSize;
@@ -202,7 +206,7 @@ void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
   } // x loop
 }
 
-void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
+static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
   drawBackground(renderer, &ctx->vcnHandle, &ctx->vmpHandle);
 
   const ViewConeEntry *aEntry = ctx->viewConeEntries + CELL_A;
@@ -510,9 +514,4 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       renderWallDecoration(renderer, ctx, DecorationIndex_Q_WEST, wmi, 0, 0);
     }
   }
-}
-
-void GameRenderView(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                    int yOff) {
-  GameRenderScene(renderer, ctx);
 }
