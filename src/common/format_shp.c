@@ -83,7 +83,6 @@ int SHPFrameGetImageData(SHPFrame *frame) {
   }
   // remap
   if (frame->header.remapTable) {
-    printf("Remap\n");
     for (int i = 0; i < frame->header.width * frame->header.height; i++) {
       uint8_t p = imageBuffer2[i];
       assert(p <= frame->header.remapSize);

@@ -6,6 +6,20 @@
 #include <SDL2/SDL.h>
 #include <stdint.h>
 
+/*
+    Field of vision: the 17 map positions required to read for rendering a
+   screen and the 25 possible wall configurations that these positions might
+   contain.
+
+    A|B|C|D|E|F|G
+      ¯ ¯ ¯ ¯ ¯
+      H|I|J|K|L
+        ¯ ¯ ¯
+        M|N|O
+        ¯ ¯ ¯
+        P|^|Q
+*/
+
 typedef enum {
   A_east = 0,
   B_east,
@@ -38,7 +52,8 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
 
-void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath, const uint8_t *palette);
+void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
+                   const uint8_t *palette);
 
 void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos);
 
@@ -51,4 +66,4 @@ void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
               const VMPHandle *vmp, int wallType, int wallPosition);
 
 void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int x, int y,
-                  const uint8_t *palette, int scaleFactor);
+                  const uint8_t *palette, int scaleFactor, uint8_t xFlip);

@@ -13,6 +13,8 @@
 #include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
+#include "script.h"
+#include "script_disassembler.h"
 #include "tests.h"
 #include <_string.h>
 #include <assert.h>
@@ -105,33 +107,6 @@ static int cmdVMP(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdScriptExec(const char *filepath) {
-  printf("asm script '%s'\n", filepath);
-  return EMC_Exec(filepath);
-}
-
-static int cmdScriptDisassemble(const char *filepath) {
-  char *outFilePath = strAppend(filepath, ".asm");
-  if (!outFilePath) {
-    return 1;
-  }
-  printf("disasm script '%s' to file '%s'\n", filepath, outFilePath);
-  int ret = EMC_DisassembleFile(filepath, outFilePath);
-  free(outFilePath);
-  return ret;
-}
-
-static int cmdScriptASM(const char *filepath) {
-  char *outFilePath = strAppend(filepath, ".bin");
-  if (!outFilePath) {
-    return 1;
-  }
-  printf("asm script '%s' to file '%s'\n", filepath, outFilePath);
-  int ret = EMC_AssembleFile(filepath, outFilePath);
-  free(outFilePath);
-  return ret;
-}
-
 static int cmdRender(int argc, char *argv[]) {
   if (argc < 3) {
     printf("render vcn-file vmp-file wallpos\n");
@@ -186,39 +161,130 @@ static int cmdRender(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdScriptTests(void) { return EMC_Tests(); }
-
 static void usageScript(void) {
-  printf("script subcommands: asm|exec|tests|disasm [filepath]\n");
+  printf("script subcommands: test|offsets|disasm [filepath]\n");
 }
 
-static int cmdScript(int argc, char *argv[]) {
-  if (argc < 1) {
-    printf("script command, missing arguments\n");
-    usageScript();
+static int cmdScriptOffsets(const char *filepath) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+    printf("INFScriptFromBuffer error\n");
+    return 1;
+  }
+  EMCInterpreter interp = {0};
+  EMCData dat = {0};
+  EMCInterpreterLoad(&interp, &script, &dat);
+  for (int i = 0; i < dat.ordrSize; i++) {
+    if (dat.ordr[i] != 0XFFFF) {
+      printf("%X %X\n", i, swap_uint16(dat.ordr[i]));
+    }
+  }
+  return 0;
+}
+
+static int cmdScriptDisasm(const char *filepath, int offset) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+    printf("INFScriptFromBuffer error\n");
     return 1;
   }
 
-  const char *filepath = argv[1];
+  EMCInterpreter interp = {0};
+  EMCDisassembler disassembler = {0};
+  EMCDisassemblerInit(&disassembler);
+  interp.disassembler = &disassembler;
+  EMCData dat = {0};
+  EMCInterpreterLoad(&interp, &script, &dat);
+  EMCState state = {0};
+  EMCStateInit(&state, &dat);
 
-  if (strcmp(argv[0], "exec") == 0) {
-    if (argc < 2) {
-      printf("script: missing file path\n");
-      return 1;
+  EMCStateSetOffset(&state, offset);
+  int n = 0;
+
+  while (EMCInterpreterIsValid(&interp, &state)) {
+    if (EMCInterpreterRun(&interp, &state) == 0) {
+      printf("EMCInterpreterRun returned 0\n");
     }
-    return cmdScriptExec(filepath);
-  } else if (strcmp(argv[0], "asm") == 0) {
-    if (argc < 2) {
-      printf("script: missing file path\n");
-      return 1;
+    n++;
+    if (n > 80) {
+      break;
     }
-    return cmdScriptASM(filepath);
-  } else if (strcmp(argv[0], "disasm") == 0) {
-    return cmdScriptDisassemble(filepath);
-  } else if (strcmp(argv[0], "tests") == 0) {
-    return cmdScriptTests();
   }
-  printf("unkown subcommand '%s'\n", argv[0]);
+  printf("Exec'ed %i instructions\n", n);
+  INFScriptRelease(&script);
+  printf("%s\n", disassembler.disasmBuffer);
+  EMCDisassemblerRelease(&disassembler);
+  return 0;
+}
+
+static int cmdScriptTest(const char *filepath, int functionId) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+    printf("INFScriptFromBuffer error\n");
+    return 1;
+  }
+
+  EMCInterpreter interp = {0};
+  EMCData dat = {0};
+  EMCInterpreterLoad(&interp, &script, &dat);
+  EMCState state = {0};
+  EMCStateInit(&state, &dat);
+
+  if (!EMCStateStart(&state, functionId)) {
+    printf("EMCInterpreterStart: invalid\n");
+  }
+  int n = 0;
+
+  state.regs[0] = -1; // flags
+  state.regs[1] = -1; // charnum
+  state.regs[2] = 0;  // item
+  state.regs[3] = 0;
+  state.regs[4] = 0;
+  state.regs[5] = functionId;
+
+  while (EMCInterpreterIsValid(&interp, &state)) {
+    if (EMCInterpreterRun(&interp, &state) == 0) {
+      printf("EMCInterpreterRun returned 0\n");
+    }
+    n++;
+  }
+  printf("Exec'ed %i instructions\n", n);
+  INFScriptRelease(&script);
+  return 0;
+}
+
+static int cmdScript(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageScript();
+    return 1;
+  }
+  if (strcmp(argv[0], "test") == 0) {
+    if (argc < 3) {
+      printf("missing functionid\n");
+      return 1;
+    }
+    return cmdScriptTest(argv[1], atoi(argv[2]));
+  } else if (strcmp(argv[0], "offsets") == 0) {
+    return cmdScriptOffsets(argv[1]);
+  } else if (strcmp(argv[0], "disasm") == 0) {
+    if (argc < 3) {
+      printf("missing functionid\n");
+      return 1;
+    }
+    return cmdScriptDisasm(argv[1], atoi(argv[2]));
+  }
   usageScript();
   return 1;
 }
@@ -433,29 +499,21 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
 }
 
 static void usageINF(void) {
-  printf("inf subcommands: extract|show infFile\n");
+  printf("inf subcommands: extract|show| infFile [blockAddr]\n");
 }
 
 static int cmdINFShowContent(const char *filepath) {
-  FILE *f = fopen(filepath, "rb");
-  if (!f) {
-    perror("open: ");
-    return 1;
-  }
-  fseek(f, 0, SEEK_END);
-  long fsize = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
   if (!buffer) {
     perror("malloc error");
-    fclose(f);
     return 1;
   }
-  fread(buffer, fsize, 1, f);
-  fclose(f);
+
   INFScript script;
   INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fsize);
+  INFScriptFromBuffer(&script, buffer, fileSize);
   printf("INF Content from file '%s':\n", filepath);
   printf("\t%zi instructions\n", INFScriptGetCodeBinarySize(&script));
   INFScriptListText(&script);

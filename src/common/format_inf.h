@@ -35,7 +35,7 @@ void INFScriptInit(INFScript *script);
 void INFScriptRelease(INFScript *script);
 
 // buffer will be owned and 'free'd by INFScriptRelease
-void INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize);
+int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize);
 
 // this is the number of instructions, i.e. uint16_t
 size_t INFScriptGetCodeBinarySize(const INFScript *script);
@@ -43,4 +43,5 @@ const uint16_t *INFScriptGetCodeBinary(const INFScript *script);
 
 void INFScriptListText(const INFScript *script);
 
-void INFScriptListScriptFunctions(INFScript *script);
+uint16_t *INFScriptGetBlock(const INFScript *script, int block, size_t *numInstructions);
+void INFScriptListScriptFunctions(const INFScript *script);

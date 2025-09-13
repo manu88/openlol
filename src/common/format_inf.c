@@ -1,6 +1,5 @@
 #include "format_inf.h"
 #include "bytes.h"
-#include "script.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -46,54 +45,6 @@ const uint16_t *INFScriptGetCodeBinary(const INFScript *script) {
   return (uint16_t *)script->chunks[kData]._data;
 }
 
-static int decodeScript(INFScript *script) {
-  uint16_t *scriptData = (uint16_t *)script->chunks[kData]._data;
-  uint32_t scriptSize = script->chunks[kData]._size / 2;
-  ScriptInfo info = {0};
-  info.scriptData = scriptData;
-  info.scriptSize = scriptSize;
-
-  printf("---- start script ---- \n");
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptVMSetDisassembler(&vm);
-  ScriptExec(&vm, &info);
-  printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-  printf("'%s'\n", vm.disasmBuffer);
-  ScriptVMRelease(&vm);
-  return 1;
-}
-
-static int decodeScriptSegments(INFScript *script) {
-  for (int i = 0; i < script->segmentsNum; i++) {
-    uint16_t offset = script->segments[i].start;
-
-    uint16_t *scriptData = ((uint16_t *)script->chunks[kData]._data) + offset;
-    uint16_t end = script->segments[i].end;
-    if (end == 0XFFFF) {
-
-      end = script->segments[i].start + 12;
-      printf("end is 0XFFFF set new val to %i\n", end);
-    }
-    uint32_t scriptSize = end - script->segments[i].start;
-    ScriptInfo info = {0};
-    info.scriptData = scriptData;
-    info.scriptSize = scriptSize;
-
-    printf("---- start script %i at 0X%04X  (size %u) ---- \n", i, offset,
-           scriptSize);
-    ScriptVM vm;
-    ScriptVMInit(&vm);
-    ScriptVMSetDisassembler(&vm);
-    vm.addrOffset = offset;
-    ScriptExec(&vm, &info);
-    printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-    printf("'%s'\n", vm.disasmBuffer);
-    ScriptVMRelease(&vm);
-  }
-  return 1;
-}
-
 static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
   const uint16_t *b = (const uint16_t *)chunks[kEmc2Ordr]._data;
   uint16_t minOffset = 0XFFFF;
@@ -109,7 +60,28 @@ static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
   return minOffset;
 }
 
-void INFScriptListScriptFunctions(INFScript *script) {
+uint16_t *INFScriptGetBlock(const INFScript *script, int block,
+                            size_t *numInstructions) {
+  assert(numInstructions);
+  if (block >= script->segmentsNum) {
+    return NULL;
+  }
+  *numInstructions =
+      script->segments[block].end - script->segments[block].start;
+  return (uint16_t *)script->chunks[kData]._data +
+         script->segments[block].start;
+}
+
+void INFScriptListScriptFunctions(const INFScript *script) {
+  printf("Got %zu offsets\n", script->segmentsNum);
+  for (int i = 0; i < script->segmentsNum; i++) {
+    printf("%i 0X%04X 0X%04X len=%i\n", i, script->segments[i].start,
+           script->segments[i].end,
+           script->segments[i].end - script->segments[i].start);
+  }
+}
+
+static int createSegments(INFScript *script) {
   if (script->segments == NULL) {
     script->segments = malloc(128 * sizeof(ScriptSegment));
     int offsetsIndex = 0;
@@ -122,19 +94,17 @@ void INFScriptListScriptFunctions(INFScript *script) {
       }
     }
     script->segmentsNum = offsetsIndex;
+    // FIXME: do this with one loop
+    for (int i = 0; i < script->segmentsNum; i++) {
+      uint16_t nextOffset =
+          getNextOffset(script->segments[i].start, script->chunks);
+      script->segments[i].end = nextOffset;
+    }
   }
-  printf("Got %zu offsets\n", script->segmentsNum);
-  for (int i = 0; i < script->segmentsNum; i++) {
-    uint16_t nextOffset =
-        getNextOffset(script->segments[i].start, script->chunks);
-    script->segments[i].end = nextOffset;
-    printf("%i 0X%04X 0X%04X\n", i, script->segments[i].start,
-           script->segments[i].end);
-  }
+  return 1;
 }
 
-void INFScriptFromBuffer(INFScript *script, uint8_t *buffer,
-                         size_t bufferSize) {
+int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
   assert(buffer);
   script->originalBuffer = buffer;
   script->originalBufferSize = bufferSize;
@@ -203,4 +173,5 @@ void INFScriptFromBuffer(INFScript *script, uint8_t *buffer,
   // decodeTextArea(script);
   // decodeScriptSegments(script);
   // decodeScript(script);
+  return createSegments(script);
 }

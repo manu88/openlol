@@ -1,50 +1,10 @@
 #pragma once
-
-#include <stddef.h>
+#include "format_inf.h"
+#include "script_disassembler.h"
 #include <stdint.h>
 
-// TODO check kyrandia scripts here :
-// https://github.com/MrSapps/scummvm-tools/blob/6af4c033d39952939eb204c8c4f94533339f6112/engines/kyra/dekyra_v1.cpp
-
-#define MNEMONIC_JUMP (const char *)"JUMP"
-#define MNEMONIC_RET (const char *)"RET"
-#define MNEMONIC_PUSH (const char *)"PUSH"
-#define MNEMONIC_PUSH_ARG (const char *)"PUSHARG"
-#define MNEMONIC_PUSH_VAR (const char *)"PUSHVAR"
-#define MNEMONIC_PUSH_LOC_VAR (const char *)"PUSHLOCVAR"
-
-#define MNEMONIC_POP (const char *)"POP"
-#define MNEMONIC_POP_LOC_VAR (const char *)"POPLOCVAR"
-
-#define MNEMONIC_SETRET (const char *)"SETRET"
-#define MNEMONIC_MULTIPLY (const char *)"MULTIPLY"
-#define MNEMONIC_ADD (const char *)"ADD"
-#define MNEMONIC_DIVIDE (const char *)"DIVIDE"
-#define MNEMONIC_PUSH_RC (const char *)"PUSHRC"
-#define MNEMONIC_POP_RC (const char *)"POPRC"
-#define MNEMONIC_CALL (const char *)"CALL"
-#define MNEMONIC_JUMP_NE (const char *)"IFNOTGO"
-#define MNEMONIC_STACK_REWIND (const char *)"STACKRWD"
-#define MNEMONIC_STACK_FORWARD (const char *)"STACKFWD"
-#define MNEMONIC_UNARY (const char *)"UNARY"
-
-#define MNEMONIC_LOGICAL_OR (const char *)"LOR"
-#define MNEMONIC_LOGICAL_AND (const char *)"LAND"
-#define MNEMONIC_LEFT_SHIFT (const char *)"LSHIFT"
-#define MNEMONIC_RIGHT_SHIFT (const char *)"RSHIFT"
-#define MNEMONIC_XOR (const char *)"XOR"
-#define MNEMONIC_MOD (const char *)"MOD"
-#define MNEMONIC_OR (const char *)"OR"
-#define MNEMONIC_AND (const char *)"AND"
-#define MNEMONIC_INF (const char *)"INF"
-#define MNEMONIC_INF_EQ (const char *)"INFEQ"
-#define MNEMONIC_SUP (const char *)"SUP"
-#define MNEMONIC_SUP_EQ (const char *)"SUPEQ"
-#define MNEMONIC_MINUS (const char *)"MINUS"
-#define MNEMONIC_EQUAL (const char *)"EQUAL"
-#define MNEMONIC_NOT_EQUAL (const char *)"NEQUAL"
-
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.h
+
 typedef enum {
   OP_JUMP = 0X00, // JUMP instruction given by the parameter.
   OP_SETRETURNVALUE =
@@ -96,34 +56,79 @@ typedef enum {
   BinaryOp_XOR = 17,
 } BinaryOp;
 
+#define MNEMONIC_JUMP (const char *)"JUMP"
+#define MNEMONIC_RET (const char *)"RET"
+#define MNEMONIC_PUSH (const char *)"PUSH"
+#define MNEMONIC_PUSH_ARG (const char *)"PUSHARG"
+#define MNEMONIC_PUSH_VAR (const char *)"PUSHVAR"
+#define MNEMONIC_PUSH_LOC_VAR (const char *)"PUSHLOCVAR"
+
+#define MNEMONIC_POP (const char *)"POP"
+#define MNEMONIC_POP_LOC_VAR (const char *)"POPLOCVAR"
+
+#define MNEMONIC_SETRET (const char *)"SETRET"
+#define MNEMONIC_MULTIPLY (const char *)"MULTIPLY"
+#define MNEMONIC_ADD (const char *)"ADD"
+#define MNEMONIC_DIVIDE (const char *)"DIVIDE"
+#define MNEMONIC_PUSH_RC (const char *)"PUSHRC"
+#define MNEMONIC_POP_RC (const char *)"POPRC"
+#define MNEMONIC_CALL (const char *)"CALL"
+#define MNEMONIC_JUMP_NE (const char *)"IFNOTGO"
+#define MNEMONIC_STACK_REWIND (const char *)"STACKRWD"
+#define MNEMONIC_STACK_FORWARD (const char *)"STACKFWD"
+#define MNEMONIC_UNARY (const char *)"UNARY"
+
+#define MNEMONIC_LOGICAL_OR (const char *)"LOR"
+#define MNEMONIC_LOGICAL_AND (const char *)"LAND"
+#define MNEMONIC_LEFT_SHIFT (const char *)"LSHIFT"
+#define MNEMONIC_RIGHT_SHIFT (const char *)"RSHIFT"
+#define MNEMONIC_XOR (const char *)"XOR"
+#define MNEMONIC_MOD (const char *)"MOD"
+#define MNEMONIC_OR (const char *)"OR"
+#define MNEMONIC_AND (const char *)"AND"
+#define MNEMONIC_INF (const char *)"INF"
+#define MNEMONIC_INF_EQ (const char *)"INFEQ"
+#define MNEMONIC_SUP (const char *)"SUP"
+#define MNEMONIC_SUP_EQ (const char *)"SUPEQ"
+#define MNEMONIC_MINUS (const char *)"MINUS"
+#define MNEMONIC_EQUAL (const char *)"EQUAL"
+#define MNEMONIC_NOT_EQUAL (const char *)"NEQUAL"
+
 typedef struct {
-  uint16_t *scriptData;
-  uint32_t scriptSize;
+  uint8_t *text;
+  uint16_t *data;
+  uint32_t ordrSize;
+  uint16_t *ordr;
+  uint32_t dataSize;
+} EMCData;
 
-} ScriptInfo;
+typedef struct _EMCState {
+  enum { kStackSize = 100, kStackLastEntry = kStackSize - 1 };
 
-#define STACK_SIZE 16
-#define FRAME_POINTER_INIT 17
-#define VAR_SIZE 5
-typedef struct {
-  ScriptInfo *scriptInfo;
-  uint16_t stack[STACK_SIZE];
-  uint8_t stackPointer;
-  uint8_t framePointer;
-  uint16_t variables[VAR_SIZE];
-  uint16_t returnValue;
+  const uint16_t *ip;
+  const EMCData *dataPtr;
+  int16_t retValue;
+  uint16_t bp;
+  uint16_t sp;
+  int16_t regs[30];          // VM registers
+  int16_t stack[kStackSize]; // VM stack
+} EMCState;
 
-  // disassembler part
-  uint16_t addrOffset;
-  uint8_t disassemble;
-  char *disasmBuffer;
-  size_t disasmBufferIndex;
-  size_t disasmBufferSize;
-  uint8_t showDisamComment;
-} ScriptVM;
+static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {
+  return state->stack[state->sp + i];
+}
 
-void ScriptVMInit(ScriptVM *vm);
-void ScriptVMSetDisassembler(ScriptVM *vm);
-void ScriptVMRelease(ScriptVM *vm);
-int ScriptExec(ScriptVM *vm, const ScriptInfo *info);
-void ScriptVMDump(const ScriptVM *vm);
+typedef struct _EMCInterpreter {
+  EMCData *_scriptData;
+  EMCDisassembler *disassembler;
+} EMCInterpreter;
+
+int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
+                       EMCData *data);
+void EMCInterpreterUnload(EMCInterpreter *interp, EMCData *data);
+void EMCStateInit(EMCState *scriptState, const EMCData *data);
+int EMCStateSetOffset(EMCState *script,
+                            uint16_t offset);
+int EMCStateStart(EMCState *script, int function);
+int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script);
+int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script);

@@ -1,436 +1,479 @@
 #include "script.h"
 #include "bytes.h"
+#include "format_inf.h"
+#include "script_builtins.h"
+#include "script_disassembler.h"
 #include <assert.h>
-#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void ScriptVMInit(ScriptVM *vm) {
-  memset(vm, 0, sizeof(ScriptVM));
-  vm->stackPointer = STACK_SIZE;
-  vm->framePointer = FRAME_POINTER_INIT;
-}
-
-void ScriptVMRelease(ScriptVM *vm) {
-  if (vm->disassemble) {
-    free(vm->disasmBuffer);
-  }
-}
-
-void ScriptVMSetDisassembler(ScriptVM *vm) {
-  if (vm->disassemble) {
-    return;
-  }
-  vm->disassemble = 1;
-  vm->disasmBufferSize = 512;
-  vm->disasmBuffer = malloc(vm->disasmBufferSize);
-  vm->disasmBufferIndex = 0;
-}
-
-void ScriptVMDump(const ScriptVM *vm) {
-  printf("stack %i\n", vm->stackPointer);
-  for (int i = 0; i < STACK_SIZE; i++) {
-    printf("%i: %X\n", i, vm->stack[i]);
-  }
-}
-
-typedef struct {
-  uint16_t scriptStart;
-  uint16_t currentAddress;
-  uint16_t currentWord;
-} ScriptContext;
-
-void stackPush(ScriptVM *vm, uint16_t value) {
-  if (vm->stackPointer == 0) {
-    printf("stackPush: Stack Overflow %i\n", vm->stackPointer);
-    assert(0);
-    return;
-  }
-  vm->stack[--vm->stackPointer] = value;
-}
-
-uint16_t stackPop(ScriptVM *vm) {
-  if (vm->stackPointer >= STACK_SIZE) {
-    printf("stackPop: Stack Overflow %i\n", vm->stackPointer);
-    assert(0);
-    return 0;
-  }
-
-  return vm->stack[vm->stackPointer++];
-}
-
-uint16_t stackPeek(ScriptVM *vm, int position) {
-  assert(position > 0);
-  if (vm->stackPointer >= STACK_SIZE - position) {
-    printf("stackPeek: Stack Overflow %i\n", vm->stackPointer);
-    assert(0);
-    return 0;
-  }
-
-  return vm->stack[vm->stackPointer + position - 1];
-}
-
-#define PRINTFLIKE(n, m) __attribute__((format(printf, n, m)))
-
-static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...)
-    PRINTFLIKE(3, 4);
-
-static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  size_t bSize = vm->disasmBufferSize - vm->disasmBufferIndex;
-  if (bSize < 64) {
-    vm->disasmBufferSize *= 2;
-    vm->disasmBuffer = realloc(vm->disasmBuffer, vm->disasmBufferSize);
-    bSize = vm->disasmBufferSize - vm->disasmBufferIndex;
-  }
-  size_t writtenSize =
-      vsnprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, fmt, args);
-
-  if (writtenSize > bSize) {
-    printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",
-           writtenSize, bSize);
-    assert(0);
-  }
-  vm->disasmBufferIndex += writtenSize;
-  va_end(args);
-
-  if (vm->showDisamComment) {
-    bSize = vm->disasmBufferSize - writtenSize;
-    writtenSize =
-        snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, "; 0X%04X\n",
-                 ctx->currentAddress - ctx->scriptStart);
-
-    if (writtenSize > bSize) {
-      printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",
-             writtenSize, bSize);
-      assert(0);
-    }
-    vm->disasmBufferIndex += writtenSize;
-  } else {
-    writtenSize =
-        snprintf(vm->disasmBuffer + vm->disasmBufferIndex, bSize, "\n");
-
-    vm->disasmBufferIndex += writtenSize;
-  }
-}
-
-static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
-                            uint16_t parameter) {
-  switch ((ScriptCommand)opCode) {
-
-  case OP_JUMP:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_JUMP, parameter);
-    } else {
-      printf("JUMP %X (%X)\n", parameter, ctx->scriptStart + parameter);
-    }
-    return 1;
-  case OP_PUSH_RETURN_OR_LOCATION:
-    assert(parameter == 1 || parameter == 0);
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_RC, parameter);
-    } else {
-      printf("PUSH_RETURN_OR_LOCATION %X", parameter);
-    }
-    return 1;
-  case OP_PUSH:
-  case OP_PUSH2:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH, parameter);
-    } else {
-      stackPush(vm, parameter);
-    }
-    return 1;
-  case OP_PUSH_VARIABLE:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_VAR, parameter);
-    } else {
-      stackPush(vm, vm->variables[parameter]);
-    }
-    return 1;
-  case OP_PUSH_LOCAL_VARIABLE:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_LOC_VAR, parameter);
-    } else {
-      printf("PUSH LOC VAR %X", parameter);
-    }
-    return 1;
-  case OP_PUSH_PARAMETER:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_ARG, parameter);
-    } else {
-      printf("PushArg 0X%X\n", parameter);
-      stackPush(vm, vm->stack[vm->framePointer + parameter - 1]);
-    }
-    return 1;
-  case OP_POP_RETURN_OR_LOCATION:
-    assert(parameter == 1 || parameter == 0);
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_POP_RC, parameter);
-    } else {
-      if (parameter == 0) { // return value
-        vm->returnValue = stackPop(vm);
-      } else if (parameter == 1) { // POP FRAMEPOINTER + LOCATION
-                                   //      stackPeek(vm, 2);
-        //      vm->framePointer = (uint8_t)stackPop(vm);
-        //      printf("OP_POP_RETURN_OR_LOCATION param 2 not implemented
-        //      ;)\n"); assert(0);
-      }
-    }
-    return 1;
-  case OP_POP_VARIABLE:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_POP, parameter);
-    } else {
-      vm->variables[parameter] = stackPop(vm);
-    }
-    return 1;
-  case OP_POP_LOCAL_VARIABLE:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_POP_LOC_VAR, parameter);
-    } else {
-      printf("POP LOCAL VAR %X\n", parameter);
-    }
-    return 1;
-  case OP_POP_PARAMETER:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "POPPARAM %X", parameter);
-    } else {
-      printf("POP PARAM %X\n", parameter);
-      vm->stack[vm->framePointer + parameter - 1] = stackPop(vm);
-    }
-    return 1;
-  case OP_STACK_REWIND:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_STACK_REWIND, parameter);
-    } else {
-      vm->stackPointer += parameter;
-    }
-    return 1;
-  case OP_STACK_FORWARD:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_STACK_FORWARD, parameter);
-    } else {
-      vm->stackPointer -= parameter;
-    }
-    return 1;
-  case OP_FUNCTION:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_CALL, parameter);
-    } else {
-      parameter &= 0xFF;
-      printf("FUNCTION %X\n", parameter);
-    }
-    return 1;
-  case OP_JUMP_NE:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_JUMP_NE, parameter);
-    } else {
-      printf("JUMP_NE %X\n", parameter);
-    }
-    return 1;
-  case OP_UNARY:
-
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_UNARY, parameter);
-    } else {
-      printf("UNARY %X\n", parameter);
-      assert(parameter == 1 || parameter == 0 || parameter == 2);
-    }
-
-    return 1;
-  case OP_BINARY:
-    assert(parameter <= 17);
-    int16_t right = 0;
-    int16_t left = 0;
-    if (!vm->disassemble) {
-      right = stackPop(vm);
-      left = stackPop(vm);
-    }
-
-    switch (parameter) {
-    case BinaryOp_LogicalAND:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_LOGICAL_AND);
-      } else {
-        stackPush(vm, (left && right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_LogicalOR:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_LOGICAL_OR);
-      } else {
-        stackPush(vm, (left || right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_EQUAL:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_EQUAL);
-      } else {
-        stackPush(vm, (left == right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_NotEQUAL:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_NOT_EQUAL);
-      } else {
-        stackPush(vm, (left != right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_Inf:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_INF);
-      } else {
-        stackPush(vm, (left < right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_InfOrEq:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_INF_EQ);
-      } else {
-        stackPush(vm, (left <= right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_Greater:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_SUP);
-      } else {
-        stackPush(vm, (left > right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_GreaterOrEq:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_SUP_EQ);
-      } else {
-        stackPush(vm, (left >= right) ? 1 : 0);
-      }
-      return 1;
-    case BinaryOp_Add:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_ADD);
-      } else {
-        stackPush(vm, left + right);
-      }
-      return 1;
-    case BinaryOp_Minus:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_MINUS);
-      } else {
-        stackPush(vm, left - right);
-      }
-      return 1;
-    case BinaryOp_Multiply:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_MULTIPLY);
-      } else {
-        stackPush(vm, left * right);
-      }
-      return 1;
-    case BinaryOp_Divide:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_DIVIDE);
-      } else {
-        stackPush(vm, left / right);
-      }
-      return 1;
-    case BinaryOp_RShift:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_RIGHT_SHIFT);
-      } else {
-        stackPush(vm, left >> right);
-      }
-      return 1;
-    case BinaryOp_LShift:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_LEFT_SHIFT);
-      } else {
-        stackPush(vm, left << right);
-      }
-      return 1;
-    case BinaryOp_AND:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_AND);
-      } else {
-        stackPush(vm, left & right);
-      }
-      return 1;
-    case BinaryOp_OR:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_OR);
-      } else {
-        stackPush(vm, left | right);
-      }
-      return 1;
-    case BinaryOp_MOD:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_MOD);
-      } else {
-        stackPush(vm, left % right);
-      }
-      return 1;
-    case BinaryOp_XOR:
-      if (vm->disassemble) {
-        emitLine(vm, ctx, MNEMONIC_XOR);
-      } else {
-        stackPush(vm, left ^ right);
-      }
-      return 1;
-    default:
-      printf("unknown binary op %X\n", parameter);
-      return 0;
-    }
-    break;
-  case OP_RETURN:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, MNEMONIC_RET);
-    } else {
-      printf("RET %X\n", parameter);
-    }
-    return 1;
-  case OP_SETRETURNVALUE:
-    if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_SETRET, parameter);
-    } else {
-      printf("SetRET %X\n", parameter);
-    }
-    return 1;
-  default:
-    printf("unknown instruction at 0X04%X opcode=%x (param=%x)\n",
-           ctx->currentAddress, opCode, parameter);
-  }
+int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
+                       EMCData *data) {
+  data->text = infScript->chunks[kText]._data;
+  data->ordr = (uint16_t *)infScript->chunks[kEmc2Ordr]._data;
+  data->ordrSize = infScript->chunks[kEmc2Ordr]._size / 2;
+  data->data = (uint16_t *)infScript->chunks[kData]._data;
+  data->dataSize = infScript->chunks[kData]._size;
   return 0;
 }
 
-int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
-  uint32_t currentPos = 0;
-  ScriptContext ctx = {0};
-  ctx.scriptStart = currentPos;
-  while (currentPos < info->scriptSize) {
-    ctx.currentAddress = currentPos;
-    uint16_t orig = *(info->scriptData + currentPos++);
-    ctx.currentWord = orig;
-    uint16_t current = swap_uint16(orig);
-    uint16_t parameter = 0;
-    uint8_t opcode = (current >> 8) & 0x1F;
+void EMCInterpreterUnload(EMCInterpreter *interp, EMCData *data) {}
 
-    if ((current & 0x8000) != 0) {
-      /* When this flag is set, the instruction is a GOTO with a 13bit address
-       */
-      opcode = 0;
-      parameter = current & 0x7FFF;
-    } else if ((current & 0x4000) != 0) {
-      /* When this flag is set, the parameter is part of the instruction */
-      parameter = (uint16_t)(int8_t)(current & 0xFF);
-    } else if ((current & 0x2000) != 0) {
-      /* When this flag is set, the parameter is in the next opcode */
-      parameter = swap_uint16(*(info->scriptData + currentPos++));
-    }
-    if (!parseInstruction(vm, &ctx, opcode, parameter)) {
-      return 0;
-    }
+void EMCStateInit(EMCState *scriptState, const EMCData *data) {
+  memset(scriptState, 0, sizeof(EMCState));
+  scriptState->dataPtr = data;
+  scriptState->ip = NULL;
+  scriptState->stack[kStackLastEntry] = 0;
+  scriptState->bp = kStackSize + 1;
+  scriptState->sp = kStackLastEntry;
+}
+
+int EMCStateSetOffset(EMCState *script, uint16_t offset) {
+  script->ip = &script->dataPtr->data[offset];
+  return 1;
+}
+
+int EMCStateStart(EMCState *script, int function) {
+  assert(script->dataPtr);
+  assert(function >= 0);
+  if (function >= (int)script->dataPtr->ordrSize) {
+    printf("Function %i >= %i\n", function, (int)script->dataPtr->ordrSize);
+    return 0;
   }
 
+  uint16_t functionOffset = swap_uint16(script->dataPtr->ordr[function]);
+  printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
+  if (functionOffset == 0xFFFF) {
+    printf("no such function\n");
+    return 0;
+  }
+  functionOffset++;
+  if (functionOffset >= (int)script->dataPtr->dataSize / 2) {
+    printf("%X >= %X\n", functionOffset, (int)script->dataPtr->dataSize / 2);
+    return 0;
+  }
+  return EMCStateSetOffset(script, functionOffset);
+}
+
+int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script) {
+  if (!script->ip || !script->dataPtr)
+    return 0;
   return 1;
+}
+
+static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode) {
+
+  if (funcCode >= getNumBuiltinFunctions()) {
+    EMCDisassemblerEmitLine(disasm, "%s 0X%X", MNEMONIC_CALL, funcCode);
+    return;
+  }
+  EMCDisassemblerEmitLine(disasm, "%s %s", MNEMONIC_CALL,
+                          getBuiltinFunctions()[funcCode].name);
+}
+
+static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
+                       int16_t parameter) {
+
+  switch ((ScriptCommand)opCode) {
+  case OP_JUMP:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_JUMP,
+                              parameter);
+    } else {
+      script->ip = script->dataPtr->data + parameter;
+    }
+    return;
+  case OP_SETRETURNVALUE:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_SETRET,
+                              parameter);
+    } else {
+      script->retValue = parameter;
+    }
+    return;
+  case OP_PUSH_RETURN_OR_LOCATION:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_PUSH_RC,
+                              parameter);
+    } else {
+      switch (parameter) {
+      case 0:
+        script->stack[--script->sp] = script->retValue;
+        return;
+
+      case 1:
+        script->stack[--script->sp] = script->ip - script->dataPtr->data + 1;
+        script->stack[--script->sp] = script->bp;
+        script->bp = script->sp + 2;
+        return;
+
+      default:
+        assert(0);
+        script->ip = NULL;
+      }
+    }
+    return;
+  case OP_PUSH:
+  case OP_PUSH2:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_PUSH,
+                              parameter);
+    } else {
+      script->stack[--script->sp] = parameter;
+    }
+    return;
+  case OP_PUSH_VARIABLE:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X",
+                              MNEMONIC_PUSH_VAR, parameter);
+    } else {
+      script->stack[--script->sp] = script->regs[parameter];
+    }
+    return;
+  case OP_PUSH_LOCAL_VARIABLE:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X",
+                              MNEMONIC_PUSH_LOC_VAR, parameter);
+    } else {
+      script->stack[--script->sp] =
+          script->stack[(-(int32_t)(parameter + 2)) + script->bp];
+    }
+    return;
+  case OP_PUSH_PARAMETER:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X",
+                              MNEMONIC_PUSH_ARG, parameter);
+    } else {
+      script->stack[--script->sp] = script->stack[(parameter - 1) + script->bp];
+    }
+    return;
+  case OP_POP_RETURN_OR_LOCATION:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_POP_RC,
+                              parameter);
+    } else {
+      switch (parameter) {
+      case 0:
+        script->retValue = script->stack[script->sp++];
+        break;
+
+      case 1:
+        if (script->sp >= kStackLastEntry) {
+          // assert(0);
+          script->ip = NULL;
+        } else {
+          script->bp = script->stack[script->sp++];
+          script->ip = script->dataPtr->data + script->stack[script->sp++];
+        }
+        break;
+
+      default:
+        script->ip = NULL;
+      }
+    }
+    return;
+  case OP_POP_VARIABLE:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_POP,
+                              parameter);
+    } else {
+      script->regs[parameter] = script->stack[script->sp++];
+    }
+    return;
+  case OP_POP_LOCAL_VARIABLE:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X",
+                              MNEMONIC_POP_LOC_VAR, parameter);
+    } else {
+      script->stack[(-(int32_t)(parameter + 2)) + script->bp] =
+          script->stack[script->sp++];
+    }
+    return;
+  case OP_POP_PARAMETER:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "POPPARAM %X", parameter);
+    } else {
+      script->stack[(parameter - 1) + script->bp] = script->stack[script->sp++];
+    }
+    return;
+  case OP_STACK_REWIND:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X",
+                              MNEMONIC_STACK_REWIND, parameter);
+    } else {
+      script->sp += parameter;
+    }
+    return;
+  case OP_STACK_FORWARD:
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X",
+                              MNEMONIC_STACK_FORWARD, parameter);
+    } else {
+      script->sp -= parameter;
+    }
+    return;
+  case OP_FUNCTION:
+    if (interp->disassembler) {
+      emitLineFunctionCall(interp->disassembler, parameter);
+    } else {
+      EMCInterpreterExecFunction(interp, script, (uint8_t)parameter);
+    }
+    return;
+  case OP_JUMP_NE:
+    parameter &= 0x7FFF;
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_JUMP_NE,
+                              parameter);
+    } else {
+      if (!script->stack[script->sp++]) {
+        script->ip = script->dataPtr->data + parameter;
+      }
+    }
+    return;
+  case OP_UNARY: {
+    if (interp->disassembler) {
+      EMCDisassemblerEmitLine(interp->disassembler, "%s 0X%X", MNEMONIC_UNARY,
+                              parameter);
+    } else {
+      int16_t value = script->stack[script->sp];
+      switch (parameter) {
+      case 0:
+        if (!value)
+          script->stack[script->sp] = 1;
+        else
+          script->stack[script->sp] = 0;
+        break;
+
+      case 1:
+        script->stack[script->sp] = -value;
+        break;
+
+      case 2:
+        script->stack[script->sp] = ~value;
+        break;
+      default:
+        printf("Unknown negation func: %d\n", parameter);
+        script->ip = NULL;
+        assert(0);
+      }
+    }
+  }
+    return;
+  case OP_BINARY: {
+    int16_t val1 = 0;
+    int16_t val2 = 0;
+    if (interp->disassembler == NULL) {
+      val1 = script->stack[script->sp++];
+      val2 = script->stack[script->sp++];
+    }
+    switch (parameter) {
+    case BinaryOp_LogicalAND:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_LOGICAL_AND);
+      } else {
+        script->stack[--script->sp] = (val2 && val1) ? 1 : 0;
+      }
+
+      return;
+
+    case BinaryOp_LogicalOR:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_LOGICAL_OR);
+      } else {
+
+        script->stack[--script->sp] = (val2 || val1) ? 1 : 0;
+      }
+      return;
+
+    case BinaryOp_EQUAL:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_EQUAL);
+      } else {
+        script->stack[--script->sp] = (val1 == val2) ? 1 : 0;
+      }
+      return;
+
+    case BinaryOp_NotEQUAL:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_NOT_EQUAL);
+      } else {
+        script->stack[--script->sp] = (val1 != val2) ? 1 : 0;
+      }
+      return;
+
+    case BinaryOp_Inf:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_INF);
+      } else {
+        script->stack[--script->sp] = (val1 > val2) ? 1 : 0;
+      }
+      return;
+
+    case BinaryOp_InfOrEq:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_INF_EQ);
+      } else {
+        script->stack[--script->sp] = (val1 >= val2) ? 1 : 0;
+      }
+      return;
+    case BinaryOp_Greater:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_SUP);
+      } else {
+        script->stack[--script->sp] = (val1 < val2) ? 1 : 0;
+      }
+      return;
+
+    case BinaryOp_GreaterOrEq:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_SUP_EQ);
+      } else {
+        script->stack[--script->sp] = (val1 <= val2) ? 1 : 0;
+      }
+      return;
+
+    case BinaryOp_Add:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_ADD);
+      } else {
+        script->stack[--script->sp] = val1 + val2;
+      }
+      return;
+
+    case BinaryOp_Minus:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_MINUS);
+      } else {
+        script->stack[--script->sp] = val2 - val1;
+      }
+      return;
+
+    case BinaryOp_Multiply:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_MULTIPLY);
+      } else {
+        script->stack[--script->sp] = val1 * val2;
+      }
+      return;
+
+    case BinaryOp_Divide:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_DIVIDE);
+      } else {
+        script->stack[--script->sp] = val2 / val1;
+      }
+      return;
+
+    case BinaryOp_RShift:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_RIGHT_SHIFT);
+      } else {
+        script->stack[--script->sp] = val2 >> val1;
+      }
+      return;
+
+    case BinaryOp_LShift:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_LEFT_SHIFT);
+      } else {
+        script->stack[--script->sp] = val2 << val1;
+      }
+      return;
+
+    case BinaryOp_AND:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_AND);
+      } else {
+        script->stack[--script->sp] = val1 & val2;
+      }
+      return;
+
+    case BinaryOp_OR:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_OR);
+      } else {
+        script->stack[--script->sp] = val1 | val2;
+      }
+      return;
+
+    case BinaryOp_MOD:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_MOD);
+      } else {
+        script->stack[--script->sp] = val2 % val1;
+      }
+      return;
+
+    case BinaryOp_XOR:
+      if (interp->disassembler) {
+        EMCDisassemblerEmitLine(interp->disassembler, MNEMONIC_XOR);
+      } else {
+        script->stack[--script->sp] = val1 ^ val2;
+      }
+      return;
+
+    default:
+      printf("Unknown evaluate func: %d\n", parameter);
+      assert(0);
+    }
+    return;
+  }
+  case OP_RETURN:
+    if (interp->disassembler) {
+
+    } else {
+      if (script->sp >= kStackLastEntry) {
+        script->ip = NULL;
+        assert(0);
+      } else {
+        script->retValue = script->stack[script->sp++];
+        uint16_t temp = script->stack[script->sp++];
+        script->stack[kStackLastEntry] = 0;
+        script->ip = &script->dataPtr->data[temp];
+      }
+    }
+    return;
+  }
+}
+
+int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script) {
+  if (!script->ip) {
+    return 0;
+  }
+
+  const uint32_t instOffset =
+      (uint32_t)((const uint8_t *)script->ip -
+                 (const uint8_t *)script->dataPtr->data);
+  if ((int32_t)instOffset < 0 || instOffset >= script->dataPtr->dataSize) {
+    printf("Attempt to execute out of bounds: 0x%.08X out of 0x%.08X\n",
+           instOffset, script->dataPtr->dataSize);
+    assert(0);
+  }
+  int16_t code = swap_uint16(*script->ip++);
+  int16_t opcode = (code >> 8) & 0x1F;
+
+  int16_t parameter = 0;
+  if (code & 0x8000) {
+    opcode = 0;
+    parameter = code & 0x7FFF;
+  } else if (code & 0x4000) {
+    parameter = (int8_t)(code);
+  } else if (code & 0x2000) {
+    parameter = swap_uint16(*script->ip++);
+  }
+
+  if (opcode > 18) {
+    printf("Unknown script opcode: %d at offset 0x%.08X\n", opcode, instOffset);
+  } else {
+    // printf("%X Exec opcode=%X param=%X\n", instOffset,
+    // opcode,interp->_parameter);
+    execOpCode(interp, script, opcode, parameter);
+    // debugC(5, kDebugLevelScript, "[0x%.08X] EMCInterpreter::%s([%d/%u])",
+    // instOffset, _opcodes[opcode].desc, _parameter, (uint)_parameter);
+    //(this->*(_opcodes[opcode].proc))(script);
+  }
+  return script->ip != NULL;
 }

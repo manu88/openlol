@@ -5,6 +5,7 @@
 uint8_t *readBinaryFile(const char *path, size_t *fileSize, size_t *readSize) {
   FILE *inFile = fopen(path, "rb");
   if (!inFile) {
+    printf("error while reading file '%s'\n", path);
     perror("readBinaryFile.open");
     *fileSize = 0;
     *readSize = 0;

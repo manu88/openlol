@@ -49,7 +49,24 @@ static uint16_t parseArg(const char *arg) {
   assert(val < UINT16_MAX && val >= 0);
   return val;
 }
-
+#if 0
+static uint16_t getFunctionId(const char *arg, int *found) {
+  assert(found);
+  *found = 0;
+  if (isalpha(arg[0]) == 0) {
+    return 0;
+  }
+  size_t numFunctions = 0;
+  const ScriptFunDesc *funcs = ScriptGetBuiltinFunctions(&numFunctions);
+  for (int i = 0; i < numFunctions; i++) {
+    if (strcmp(arg, funcs[i].name) == 0) {
+      *found = 1;
+      return i;
+    }
+  }
+  return 0;
+}
+#endif
 static int genByteCode(char *inst, uint16_t bCode[2]) {
   const char *mnemonic = toUpper(strsep(&inst, " "));
   const char *arg = inst;
@@ -140,7 +157,12 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     return 1;
   } else if (strcmp(mnemonic, MNEMONIC_CALL) == 0) {
     assert(arg);
-    uint16_t val = parseArg(arg);
+    int found = 0;
+    uint16_t val = 0;
+    //    uint16_t val = getFunctionId(arg, &found);
+    if (!found) {
+      val = parseArg(arg);
+    }
     bCode[0] = 0x004E + (val << 8);
     return 1;
   } else if (strcmp(mnemonic, MNEMONIC_STACK_REWIND) == 0) {
@@ -306,81 +328,7 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
   return 0;
 }
 
-int EMC_DisassembleFile(const char *binFilepath, const char *outFilePath) {
-  FILE *fileBinP = fopen(binFilepath, "rb");
-  if (fileBinP == NULL) {
-    perror("fopen");
-    return 1;
-  }
-  fseek(fileBinP, 0, SEEK_END);
-  long fsize = ftell(fileBinP);
-  fseek(fileBinP, 0, SEEK_SET);
-  uint8_t *binBuffer = malloc(fsize);
-  if (!binBuffer) {
-    perror("malloc error");
-    fclose(fileBinP);
-    return 1;
-  }
-  fread(binBuffer, fsize, 1, fileBinP);
-  fclose(fileBinP);
-  printf("read %zi bytes\n", fsize);
-
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptVMSetDisassembler(&vm);
-  vm.showDisamComment = 1;
-  ScriptInfo inf;
-  inf.scriptData = (uint16_t *)binBuffer;
-  inf.scriptSize = fsize / 2;
-  assert(vm.disasmBuffer);
-  if (!ScriptExec(&vm, &inf)) {
-    printf("error while disassembling code\n");
-    return 1;
-  }
-
-  printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-
-  FILE *outFileP = fopen(outFilePath, "w");
-  if (outFileP) {
-    fwrite(vm.disasmBuffer, strlen(vm.disasmBuffer), 1, outFileP);
-    fclose(outFileP);
-  }
-
-  ScriptVMRelease(&vm);
-  free(binBuffer);
-  return 0;
-}
-
-int EMC_Exec(const char *scriptFilepath) {
-  FILE *fp = fopen(scriptFilepath, "r");
-  if (fp == NULL) {
-    perror("fopen");
-    return 1;
-  }
-  fseek(fp, 0, SEEK_END);
-  size_t fsize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
-  if (!buffer) {
-    perror("malloc error");
-    fclose(fp);
-    return 1;
-  }
-  fread(buffer, fsize, 1, fp);
-  fclose(fp);
-
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptInfo inf;
-  inf.scriptData = (uint16_t *)buffer;
-  inf.scriptSize = fsize / 2;
-  ScriptExec(&vm, &inf);
-  ScriptVMDump(&vm);
-  ScriptVMRelease(&vm);
-  free(buffer);
-  return 0;
-}
-
+#if 0
 static uint16_t basicBinaryTest(const char *s) {
   size_t bufferSize = 0;
   uint16_t *buffer = EMC_Assemble(s, &bufferSize);
@@ -453,11 +401,57 @@ static void TestInstruction(const char *sOrigin, size_t instructionsCount) {
   free(s);
 }
 
+static void TestJump(void) {
+  const char s[] = "jump 0X2\npush 0XAA\npush 0XAB\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  assert(ScriptExec(&vm, &inf));
+  assert(vm.stack[vm.stackPointer] == 0XAB);
+  assert(vm.stackPointer == STACK_SIZE - 1);
+  ScriptVMRelease(&vm);
+}
+
+static void TestIFNOTGO_0(void) {
+  const char s[] = "push 0x00\nifnotgo 0X5\npush 0XAA\npush 0XAB\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  assert(ScriptExec(&vm, &inf));
+  assert(vm.stack[vm.stackPointer] == 0XAB);
+  assert(vm.stackPointer == STACK_SIZE - 1);
+  ScriptVMRelease(&vm);
+}
+
+static void TestIFNOTGO_1(void) {
+  const char s[] = "push 0x001\nifnotgo 0X5\npush 0XAA\npush 0XAB\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  assert(ScriptExec(&vm, &inf));
+  assert(vm.stack[vm.stackPointer] == 0XAB);
+  assert(vm.stack[vm.stackPointer + 1] == 0XAA);
+  assert(vm.stackPointer == STACK_SIZE - 2);
+  ScriptVMRelease(&vm);
+}
+
 int EMC_Tests(void) {
   printf("EMC_Tests\n");
 
   TestInstruction("PUSHARG 0X1\n", 1);
-  TestInstruction("CALL 0X59\n", 1);
+  TestInstruction("CALL stopTimScript\n", 1);
   TestInstruction("STACKRWD 0X1\n", 1);
   TestInstruction("PUSH 0XFFFF\n", 2);
   TestInstruction("JUMP 0XFF\n", 1);
@@ -488,5 +482,10 @@ int EMC_Tests(void) {
         "Push 0X3C\nPush 0X05\nmultiply\npush 0XA\npush 5\nAdd\ndivide\n";
     expect(basicBinaryTest(s), 0X14);
   }
+  TestJump();
+  TestIFNOTGO_0();
+  TestIFNOTGO_1();
   return 0;
 }
+
+#endif
