@@ -1,21 +1,11 @@
+#include "render.h"
 #include "game.h"
-#include "SDL_events.h"
-#include "SDL_render.h"
-#include "bytes.h"
-#include "format_cmz.h"
-#include "format_dat.h"
-#include "format_shp.h"
-#include "format_vcn.h"
-#include "format_vmp.h"
-#include "format_wll.h"
 #include "renderer.h"
-#include <SDL2/SDL.h>
-#include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+void GameRenderFrame(SDL_Renderer *renderer, LevelContext *ctx) {
+  GameRenderMap(renderer, ctx, 500, 10);
+  GameRenderView(renderer, ctx, 500, 100);
+}
 
 typedef struct {
   int frontDist;
@@ -58,7 +48,6 @@ static ViewConeCell viewConeCell[] = {
     {0, 1},  // P
     {0, -1}, // Q
 };
-#define VIEW_CONE_NUM_CELLS 17
 
 typedef enum {
   CELL_A = 0,
@@ -79,336 +68,6 @@ typedef enum {
   CELL_P,
   CELL_Q,
 } CELL_ID;
-
-typedef enum {
-  North = 0,
-  East = 1,
-  South = 2,
-  West = 3,
-} Orientation;
-
-typedef struct {
-  int x;
-  int y;
-} Point;
-
-typedef struct {
-  Point coords;
-  uint8_t valid;
-} ViewConeEntry;
-
-typedef struct {
-  VCNHandle vcnHandle;
-  VMPHandle vmpHandle;
-  MazeHandle mazHandle;
-  WllHandle wllHandle;
-  DatHandle datHandle;
-  SHPHandle shpHandle;
-
-  Point partyPos;
-  Orientation orientation;
-
-  ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
-} LevelContext;
-
-#define SCREEN_WIDTH 1000
-#define SCREEN_HEIGHT 800
-
-static int GameRun(LevelContext *ctx);
-
-int cmdGame(int argc, char *argv[]) {
-  if (argc < 5) {
-    printf("game maz-file vcn-file vmp-file wall-file dat-file shp-file\n");
-    return 0;
-  }
-  const char *mazFile = argv[0];
-  const char *vcnFile = argv[1];
-  const char *vmpFile = argv[2];
-  const char *wllFile = argv[3];
-
-  const char *datFile = argv[4];
-  const char *shpFile = argv[5];
-
-  printf("maz='%s' vcn='%s' vmp='%s' wll='%s'\n", mazFile, vcnFile, vmpFile,
-         wllFile);
-
-  LevelContext levelCtx = {0};
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(vcnFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!VCNHandleFromLCWBuffer(&levelCtx.vcnHandle, buffer, fileSize)) {
-      printf("VCNDataFromLCWBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(vmpFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!VMPHandleFromLCWBuffer(&levelCtx.vmpHandle, buffer, fileSize)) {
-      printf("VMPDataFromLCWBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(mazFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!MazeHandleFromBuffer(&levelCtx.mazHandle, buffer, fileSize)) {
-      printf("MazeHandleFromBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(wllFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!WllHandleFromBuffer(&levelCtx.wllHandle, buffer, fileSize)) {
-      printf("WllHandleFromBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(datFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!DatHandleFromBuffer(&levelCtx.datHandle, buffer, fileSize)) {
-      printf("DatHandleFromBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(shpFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!SHPHandleFromBuffer(&levelCtx.shpHandle, buffer, fileSize)) {
-      printf("SHPHandleFromBuffer error\n");
-      return 1;
-    }
-  }
-  printf("Got all files\n");
-  GameRun(&levelCtx);
-  VMPHandleRelease(&levelCtx.vmpHandle);
-  VCNHandleRelease(&levelCtx.vcnHandle);
-  MazeHandleRelease(&levelCtx.mazHandle);
-  SHPHandleRelease(&levelCtx.shpHandle);
-  return 0;
-}
-static void GameRenderFrame(SDL_Renderer *renderer, LevelContext *ctx);
-static void GameRenderView(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                           int yOff);
-
-static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                          int yOff);
-
-static int GameRun(LevelContext *ctx) {
-  ctx->partyPos.x = 13;
-  ctx->partyPos.y = 18;
-  ctx->orientation = North;
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    printf("SDL could not be initialized!\n"
-           "SDL_Error: %s\n",
-           SDL_GetError());
-    return 1;
-  }
-  // Create window
-  SDL_Window *window = SDL_CreateWindow(
-      "Basic C SDL project", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-      SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-  if (!window) {
-    printf("Window could not be created!\n"
-           "SDL_Error: %s\n",
-           SDL_GetError());
-    return 1;
-  }
-  SDL_Renderer *renderer =
-      SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  if (!renderer) {
-    printf("Renderer could not be created!\n"
-           "SDL_Error: %s\n",
-           SDL_GetError());
-    return 1;
-  }
-  int quit = 0;
-  int shouldUpdate = 1;
-  // Event loop
-  while (!quit) {
-    SDL_Event e;
-
-    // Wait indefinitely for the next available event
-    SDL_WaitEvent(&e);
-    if (e.type == SDL_QUIT) {
-      quit = 1;
-    } else if (e.type == SDL_KEYDOWN) {
-      switch (e.key.keysym.sym) {
-      case SDLK_z:
-        // go front
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.y -= 1;
-          break;
-        case East:
-          ctx->partyPos.x += 1;
-          break;
-        case South:
-          ctx->partyPos.y += 1;
-          break;
-        case West:
-          ctx->partyPos.x -= 1;
-          break;
-        }
-        break;
-      case SDLK_s:
-        // go back
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.y += 1;
-          break;
-        case East:
-          ctx->partyPos.x -= 1;
-          break;
-        case South:
-          ctx->partyPos.y -= 1;
-          break;
-        case West:
-          ctx->partyPos.x += 1;
-          break;
-        }
-        break;
-      case SDLK_q:
-        // go left
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.x -= 1;
-          break;
-        case East:
-          ctx->partyPos.y -= 1;
-          break;
-        case South:
-          ctx->partyPos.x += 1;
-          break;
-        case West:
-          ctx->partyPos.y += 1;
-          break;
-        }
-        break;
-      case SDLK_d:
-        // go right
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.x += 1;
-          break;
-        case East:
-          ctx->partyPos.y += 1;
-          break;
-        case South:
-          ctx->partyPos.x -= 1;
-          break;
-        case West:
-          ctx->partyPos.y -= 1;
-          break;
-        }
-        break;
-      case SDLK_a:
-        // turn anti-clockwise
-        shouldUpdate = 1;
-        ctx->orientation -= 1;
-        if ((int)ctx->orientation < 0) {
-          ctx->orientation = West;
-        }
-        break;
-      case SDLK_e:
-        // turn clockwise
-        shouldUpdate = 1;
-        ctx->orientation += 1;
-        if (ctx->orientation > West) {
-          ctx->orientation = North;
-        }
-        break;
-      default:
-        break;
-      }
-    }
-    if (shouldUpdate) {
-      memset(ctx->viewConeEntries, 0,
-             sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-      SDL_RenderClear(renderer);
-      GameRenderFrame(renderer, ctx);
-      SDL_RenderPresent(renderer);
-      shouldUpdate = 0;
-    }
-  }
-
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
-  return 0;
-}
-
-static void GameRenderFrame(SDL_Renderer *renderer, LevelContext *ctx) {
-  GameRenderMap(renderer, ctx, 500, 10);
-  GameRenderView(renderer, ctx, 500, 100);
-}
 
 Orientation absOrientation(Orientation partyOrientation,
                            Orientation orientation) {
@@ -458,6 +117,160 @@ static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
     renderDecoration(renderer, ctx, DecorationIndex, mapping->decorationId,
                      destXOffset, destYOffset);
   }
+}
+
+static Point goFront(const Point *pos, Orientation orientation, int distance) {
+  Point pt = *pos;
+  switch (orientation) {
+  case North:
+    pt.y -= distance;
+    break;
+  case East:
+    pt.x += distance;
+    break;
+  case South:
+    pt.y += distance;
+    break;
+  case West:
+    pt.x -= distance;
+    break;
+  }
+  return pt;
+}
+
+static Point goLeft(const Point *pos, Orientation orientation, int distance) {
+  Point pt = *pos;
+  switch (orientation) {
+  case North:
+    pt.x += distance;
+    break;
+  case East:
+    pt.y += distance;
+    break;
+  case South:
+    pt.x -= distance;
+    break;
+  case West:
+    pt.y -= distance;
+    break;
+  }
+  return pt;
+}
+
+static Point goRight(const Point *pos, Orientation orientation, int distance) {
+  Point pt = *pos;
+  switch (orientation) {
+  case North:
+    pt.x -= distance;
+    break;
+  case East:
+    pt.y -= distance;
+    break;
+  case South:
+    pt.x += distance;
+    break;
+  case West:
+    pt.y += distance;
+    break;
+  }
+  return pt;
+}
+
+static Point go(const Point *pos, Orientation orientation, int frontDist,
+                int leftDist) {
+  Point p = *pos;
+  if (frontDist) {
+    p = goFront(&p, orientation, frontDist);
+  }
+  if (leftDist > 0) {
+    p = goRight(&p, orientation, leftDist);
+  } else if (leftDist < 0) {
+    p = goLeft(&p, orientation, -leftDist);
+  }
+  return p;
+}
+
+static void computeViewConeCells(LevelContext *ctx, int x, int y) {
+  for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
+    Point p = go(&ctx->partyPos, ctx->orientation, viewConeCell[i].frontDist,
+                 viewConeCell[i].leftDist);
+    if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
+      ctx->viewConeEntries[i].coords = p;
+      ctx->viewConeEntries[i].valid = 1;
+    }
+  }
+}
+
+void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
+                   int yOff) {
+  const int cellSize = 12;
+  SDL_Rect mapRect;
+  mapRect.w = 32 * cellSize;
+  mapRect.h = 32 * cellSize;
+  mapRect.x = xOff;
+  mapRect.y = yOff;
+  SDL_RenderDrawRect(renderer, &mapRect);
+
+  for (int x = 0; x < 32; x++) {
+    for (int y = 0; y < 32; y++) {
+      MazeBlock block = ctx->mazHandle.maze->wallMappingIndices[y * 32 + x];
+      SDL_Rect cellR;
+      cellR.w = cellSize - 2;
+      cellR.h = cellSize - 2;
+      cellR.x = xOff + x * cellSize;
+      cellR.y = yOff + y * cellSize;
+      SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+      if (block.face[North]) {
+        SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x + cellR.w,
+                           cellR.y);
+      }
+      if (block.face[South]) {
+        SDL_RenderDrawLine(renderer, cellR.x, cellR.y + cellR.h,
+                           cellR.x + cellR.w, cellR.y + cellR.h);
+      }
+      if (block.face[West]) {
+        SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x,
+                           cellR.y + cellR.h);
+      }
+      if (block.face[East]) {
+        SDL_RenderDrawLine(renderer, cellR.x + cellR.w, cellR.y,
+                           cellR.x + cellR.w, cellR.y + cellR.h);
+      }
+      if (x == ctx->partyPos.x && y == ctx->partyPos.y) {
+        SDL_Rect posR;
+        posR.w = cellSize - 12;
+        posR.h = cellSize - 12;
+        posR.x = 6 + xOff + x * cellSize;
+        posR.y = 6 + yOff + y * cellSize;
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        SDL_RenderFillRect(renderer, &posR);
+        int centerX = posR.x + posR.w / 2;
+        int centerY = posR.y + posR.h / 2;
+        switch (ctx->orientation) {
+        case North:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX,
+                             centerY - cellSize / 2);
+          break;
+        case East:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX + cellSize / 2,
+                             centerY);
+          break;
+        case South:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX,
+                             centerY + cellSize / 2);
+          break;
+        case West:
+          SDL_RenderDrawLine(renderer, centerX, centerY, centerX - cellSize / 2,
+                             centerY);
+          break;
+        default:
+          assert(0);
+          break;
+        }
+      }
+      computeViewConeCells(ctx, x, y);
+    } // y loop
+  } // x loop
 }
 
 void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
@@ -770,161 +583,7 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
   }
 }
 
-static void GameRenderView(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                           int yOff) {
+void GameRenderView(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
+                    int yOff) {
   GameRenderScene(renderer, ctx);
-}
-
-static Point goFront(const Point *pos, Orientation orientation, int distance) {
-  Point pt = *pos;
-  switch (orientation) {
-  case North:
-    pt.y -= distance;
-    break;
-  case East:
-    pt.x += distance;
-    break;
-  case South:
-    pt.y += distance;
-    break;
-  case West:
-    pt.x -= distance;
-    break;
-  }
-  return pt;
-}
-
-static Point goLeft(const Point *pos, Orientation orientation, int distance) {
-  Point pt = *pos;
-  switch (orientation) {
-  case North:
-    pt.x += distance;
-    break;
-  case East:
-    pt.y += distance;
-    break;
-  case South:
-    pt.x -= distance;
-    break;
-  case West:
-    pt.y -= distance;
-    break;
-  }
-  return pt;
-}
-
-static Point goRight(const Point *pos, Orientation orientation, int distance) {
-  Point pt = *pos;
-  switch (orientation) {
-  case North:
-    pt.x -= distance;
-    break;
-  case East:
-    pt.y -= distance;
-    break;
-  case South:
-    pt.x += distance;
-    break;
-  case West:
-    pt.y += distance;
-    break;
-  }
-  return pt;
-}
-
-static Point go(const Point *pos, Orientation orientation, int frontDist,
-                int leftDist) {
-  Point p = *pos;
-  if (frontDist) {
-    p = goFront(&p, orientation, frontDist);
-  }
-  if (leftDist > 0) {
-    p = goRight(&p, orientation, leftDist);
-  } else if (leftDist < 0) {
-    p = goLeft(&p, orientation, -leftDist);
-  }
-  return p;
-}
-
-static void computeViewConeCells(LevelContext *ctx, int x, int y) {
-  for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
-    Point p = go(&ctx->partyPos, ctx->orientation, viewConeCell[i].frontDist,
-                 viewConeCell[i].leftDist);
-    if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
-      ctx->viewConeEntries[i].coords = p;
-      ctx->viewConeEntries[i].valid = 1;
-    }
-  }
-}
-
-static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                          int yOff) {
-  const int cellSize = 12;
-  SDL_Rect mapRect;
-  mapRect.w = 32 * cellSize;
-  mapRect.h = 32 * cellSize;
-  mapRect.x = xOff;
-  mapRect.y = yOff;
-  SDL_RenderDrawRect(renderer, &mapRect);
-
-  for (int x = 0; x < 32; x++) {
-    for (int y = 0; y < 32; y++) {
-      MazeBlock block = ctx->mazHandle.maze->wallMappingIndices[y * 32 + x];
-      SDL_Rect cellR;
-      cellR.w = cellSize - 2;
-      cellR.h = cellSize - 2;
-      cellR.x = xOff + x * cellSize;
-      cellR.y = yOff + y * cellSize;
-      SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-      if (block.face[North]) {
-        SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x + cellR.w,
-                           cellR.y);
-      }
-      if (block.face[South]) {
-        SDL_RenderDrawLine(renderer, cellR.x, cellR.y + cellR.h,
-                           cellR.x + cellR.w, cellR.y + cellR.h);
-      }
-      if (block.face[West]) {
-        SDL_RenderDrawLine(renderer, cellR.x, cellR.y, cellR.x,
-                           cellR.y + cellR.h);
-      }
-      if (block.face[East]) {
-        SDL_RenderDrawLine(renderer, cellR.x + cellR.w, cellR.y,
-                           cellR.x + cellR.w, cellR.y + cellR.h);
-      }
-      if (x == ctx->partyPos.x && y == ctx->partyPos.y) {
-        SDL_Rect posR;
-        posR.w = cellSize - 12;
-        posR.h = cellSize - 12;
-        posR.x = 6 + xOff + x * cellSize;
-        posR.y = 6 + yOff + y * cellSize;
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_RenderFillRect(renderer, &posR);
-        int centerX = posR.x + posR.w / 2;
-        int centerY = posR.y + posR.h / 2;
-        switch (ctx->orientation) {
-        case North:
-          SDL_RenderDrawLine(renderer, centerX, centerY, centerX,
-                             centerY - cellSize / 2);
-          break;
-        case East:
-          SDL_RenderDrawLine(renderer, centerX, centerY, centerX + cellSize / 2,
-                             centerY);
-          break;
-        case South:
-          SDL_RenderDrawLine(renderer, centerX, centerY, centerX,
-                             centerY + cellSize / 2);
-          break;
-        case West:
-          SDL_RenderDrawLine(renderer, centerX, centerY, centerX - cellSize / 2,
-                             centerY);
-          break;
-        default:
-          assert(0);
-          break;
-        }
-      }
-      computeViewConeCells(ctx, x, y);
-    } // y loop
-  } // x loop
 }
