@@ -148,11 +148,15 @@ int cmdGame(int argc, char *argv[]) {
   }
   printf("Got all files\n");
   GameRun(&levelCtx);
-  VMPHandleRelease(&levelCtx.vmpHandle);
-  VCNHandleRelease(&levelCtx.vcnHandle);
-  MazeHandleRelease(&levelCtx.mazHandle);
-  SHPHandleRelease(&levelCtx.shpHandle);
+  LevelContextRelease(&levelCtx);
   return 0;
+}
+
+void LevelContextRelease(LevelContext *levelCtx) {
+  VMPHandleRelease(&levelCtx->vmpHandle);
+  VCNHandleRelease(&levelCtx->vcnHandle);
+  MazeHandleRelease(&levelCtx->mazHandle);
+  SHPHandleRelease(&levelCtx->shpHandle);
 }
 
 static int GameRun(LevelContext *ctx) {

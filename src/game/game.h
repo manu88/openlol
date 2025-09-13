@@ -6,31 +6,13 @@
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
+#include "geometry.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct {
-  int x;
-  int y;
-} Point;
-
-typedef struct {
-  Point coords;
-  uint8_t valid;
-} ViewConeEntry;
-
-#define VIEW_CONE_NUM_CELLS 17
-
-typedef enum {
-  North = 0,
-  East = 1,
-  South = 2,
-  West = 3,
-} Orientation;
 
 typedef struct {
   VCNHandle vcnHandle;
@@ -46,4 +28,5 @@ typedef struct {
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 } LevelContext;
 
+void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);

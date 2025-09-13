@@ -119,81 +119,10 @@ static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
   }
 }
 
-static Point goFront(const Point *pos, Orientation orientation, int distance) {
-  Point pt = *pos;
-  switch (orientation) {
-  case North:
-    pt.y -= distance;
-    break;
-  case East:
-    pt.x += distance;
-    break;
-  case South:
-    pt.y += distance;
-    break;
-  case West:
-    pt.x -= distance;
-    break;
-  }
-  return pt;
-}
-
-static Point goLeft(const Point *pos, Orientation orientation, int distance) {
-  Point pt = *pos;
-  switch (orientation) {
-  case North:
-    pt.x += distance;
-    break;
-  case East:
-    pt.y += distance;
-    break;
-  case South:
-    pt.x -= distance;
-    break;
-  case West:
-    pt.y -= distance;
-    break;
-  }
-  return pt;
-}
-
-static Point goRight(const Point *pos, Orientation orientation, int distance) {
-  Point pt = *pos;
-  switch (orientation) {
-  case North:
-    pt.x -= distance;
-    break;
-  case East:
-    pt.y -= distance;
-    break;
-  case South:
-    pt.x += distance;
-    break;
-  case West:
-    pt.y += distance;
-    break;
-  }
-  return pt;
-}
-
-static Point go(const Point *pos, Orientation orientation, int frontDist,
-                int leftDist) {
-  Point p = *pos;
-  if (frontDist) {
-    p = goFront(&p, orientation, frontDist);
-  }
-  if (leftDist > 0) {
-    p = goRight(&p, orientation, leftDist);
-  } else if (leftDist < 0) {
-    p = goLeft(&p, orientation, -leftDist);
-  }
-  return p;
-}
-
 static void computeViewConeCells(LevelContext *ctx, int x, int y) {
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
-    Point p = go(&ctx->partyPos, ctx->orientation, viewConeCell[i].frontDist,
-                 viewConeCell[i].leftDist);
+    Point p = PointGo(&ctx->partyPos, ctx->orientation,
+                      viewConeCell[i].frontDist, viewConeCell[i].leftDist);
     if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
       ctx->viewConeEntries[i].coords = p;
       ctx->viewConeEntries[i].valid = 1;
