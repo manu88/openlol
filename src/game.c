@@ -415,6 +415,51 @@ Orientation absOrientation(Orientation partyOrientation,
   return (orientation + partyOrientation) % 4;
 }
 
+typedef enum {
+  DecorationIndex_N_SOUTH = 1,
+  DecorationIndex_J_SOUTH = 2,
+  DecorationIndex_D_SOUTH = 3,
+  DecorationIndex_P_EAST = 4,
+  DecorationIndex_Q_WEST = 4,
+} DecorationIndex;
+
+static void renderDecoration(SDL_Renderer *renderer, LevelContext *ctx,
+                             DecorationIndex decorationIndex,
+                             uint16_t decorationId, int destXOffset,
+                             int destYOffset) {
+  const DatDecoration *deco = ctx->datHandle.datDecoration + decorationId;
+  if (deco->shapeIndex[decorationIndex] == DECORATION_EMPTY_INDEX) {
+    return;
+  }
+
+  SHPFrame frame = {0};
+  SHPHandleGetFrame(&ctx->shpHandle, &frame, deco->shapeIndex[decorationIndex]);
+  SHPFrameGetImageData(&frame);
+  drawSHPFrame(renderer, &frame, deco->shapeX[decorationIndex] + destXOffset,
+               deco->shapeY[decorationIndex] + destYOffset,
+               ctx->vcnHandle.palette, 2);
+  if (deco->flags & DatDecorationFlags_Mirror) {
+    // TODO: draw mirror
+  }
+
+  if (deco->next) {
+    renderDecoration(renderer, ctx, decorationIndex, deco->next, destXOffset,
+                     destYOffset);
+  }
+}
+
+static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
+                                 DecorationIndex DecorationIndex, uint8_t wmi,
+                                 int destXOffset, int destYOffset) {
+  const WllWallMapping *mapping = WllHandleGetWallMapping(&ctx->wllHandle, wmi);
+
+  if (mapping->decorationId != 0 &&
+      mapping->decorationId <= ctx->datHandle.nbrDecorations) {
+    renderDecoration(renderer, ctx, DecorationIndex, mapping->decorationId,
+                     destXOffset, destYOffset);
+  }
+}
+
 void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
   drawBackground(renderer, &ctx->vcnHandle, &ctx->vmpHandle);
 
@@ -442,8 +487,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, A_east);
+      }
     }
   }
 
@@ -453,8 +499,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, B_east);
+      }
     }
   }
   if (cEntry->valid) {
@@ -463,8 +510,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, C_east);
+      }
     }
   }
   if (eEntry->valid) {
@@ -473,8 +521,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, E_west);
+      }
     }
   }
   if (fEntry->valid) {
@@ -483,8 +532,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, F_west);
+      }
     }
   }
   if (gEntry->valid) {
@@ -493,8 +543,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, G_west);
+      }
     }
   }
   if (bEntry->valid) {
@@ -503,8 +554,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, B_south);
+      }
     }
   }
   if (cEntry->valid) {
@@ -513,8 +565,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, C_south);
+      }
     }
   }
 
@@ -524,8 +577,10 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, D_south);
+      }
+      renderWallDecoration(renderer, ctx, DecorationIndex_D_SOUTH, wmi, 64, 26);
     }
   }
 
@@ -535,8 +590,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, E_south);
+      }
     }
   }
   if (fEntry->valid) {
@@ -545,8 +601,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, F_south);
+      }
     }
   }
   if (hEntry->valid) {
@@ -555,8 +612,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, H_east);
+      }
     }
   }
   if (iEntry->valid) {
@@ -565,8 +623,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, I_east);
+      }
     }
   }
   if (kEntry->valid) {
@@ -575,8 +634,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, K_west);
+      }
     }
   }
   if (lEntry->valid) {
@@ -585,8 +645,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, L_west);
+      }
     }
   }
   if (iEntry->valid) {
@@ -595,8 +656,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, I_south);
+      }
     }
   }
   if (jEntry->valid) {
@@ -605,8 +667,10 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, J_south);
+      }
+      renderWallDecoration(renderer, ctx, DecorationIndex_J_SOUTH, wmi, 48, 20);
     }
   }
   if (kEntry->valid) {
@@ -615,8 +679,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, K_south);
+      }
     }
   }
   if (mEntry->valid) {
@@ -625,8 +690,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, M_east);
+      }
     }
   }
   if (oEntry->valid) {
@@ -635,8 +701,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, O_west);
+      }
     }
   }
   if (mEntry->valid) {
@@ -645,8 +712,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, M_south);
+      }
     }
   }
 
@@ -656,8 +724,9 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, O_south);
+      }
     }
   }
 
@@ -667,32 +736,10 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, N_south);
-      const WllWallMapping *mapping =
-          WllHandleGetWallMapping(&ctx->wllHandle, wmi);
-
-      if (mapping->decorationId <= ctx->datHandle.nbrDecorations) {
-        const DatDecoration *deco =
-            ctx->datHandle.datDecoration + mapping->decorationId;
-        int cellDecorationIndex = 1;
-        if (deco->shapeIndex[cellDecorationIndex] != DECORATION_EMPTY_INDEX) {
-          printf("deco SHP idx=%i x=%i y=%i scale=%i\n",
-                 deco->shapeIndex[cellDecorationIndex],
-                 deco->shapeX[cellDecorationIndex],
-                 deco->shapeY[cellDecorationIndex],
-                 deco->scaleFlag[cellDecorationIndex]);
-
-          SHPFrame frame = {0};
-          SHPHandleGetFrame(&ctx->shpHandle, &frame,
-                            deco->shapeIndex[cellDecorationIndex]);
-          SHPFrameGetImageData(&frame);
-          drawSHPFrame(renderer, &frame, deco->shapeX[cellDecorationIndex] + 24,
-                       deco->shapeY[cellDecorationIndex] + 8,
-                       ctx->vcnHandle.palette, 2);
-          // TODO: draw mirror
-        }
       }
+      renderWallDecoration(renderer, ctx, DecorationIndex_N_SOUTH, wmi, 24, 8);
     }
   }
 
@@ -702,8 +749,10 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, P_east);
+      }
+      renderWallDecoration(renderer, ctx, DecorationIndex_P_EAST, wmi, 0, 0);
     }
   }
 
@@ -713,8 +762,10 @@ void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&ctx->wllHandle, wmi);
-      if (wallType)
+      if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, Q_west);
+      }
+      renderWallDecoration(renderer, ctx, DecorationIndex_Q_WEST, wmi, 0, 0);
     }
   }
 }
