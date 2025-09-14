@@ -171,7 +171,7 @@ static int GameRun(LevelContext *ctx) {
   }
   // Create window
   SDL_Window *window = SDL_CreateWindow(
-      "Basic C SDL project", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+      "Lands Of Lore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
       SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
   if (!window) {
     printf("Window could not be created!\n"
