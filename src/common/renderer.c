@@ -156,7 +156,8 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
 }
 
 void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
-                  int yPos, const uint8_t *palette, int scaleFactor) {
+                  int yPos, const uint8_t *palette, int scaleFactor,
+                  uint8_t xFlip) {
 
   for (int y = 0; y < frame->header.height; y++) {
     for (int x = 0; x < frame->header.width; x++) {
@@ -178,6 +179,9 @@ void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
       rect.w = scaleFactor;
       rect.h = scaleFactor;
       rect.x = (x + xPos) * scaleFactor;
+      if (xFlip) {
+        rect.x = 350 - rect.x;
+      }
       rect.y = (y + yPos) * scaleFactor;
       SDL_RenderFillRect(renderer, &rect);
     }
@@ -190,7 +194,7 @@ void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
       0, frame->header.width, frame->header.height, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
-  drawSHPFrame(renderer, frame, 0, 0, palette, 1);
+  drawSHPFrame(renderer, frame, 0, 0, palette, 1, 0);
 
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, savePngPath);

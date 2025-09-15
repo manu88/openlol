@@ -66,4 +66,4 @@ void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
               const VMPHandle *vmp, int wallType, int wallPosition);
 
 void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int x, int y,
-                  const uint8_t *palette, int scaleFactor);
+                  const uint8_t *palette, int scaleFactor, uint8_t xFlip);
