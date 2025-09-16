@@ -109,7 +109,28 @@ static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
   return minOffset;
 }
 
-void INFScriptListScriptFunctions(INFScript *script) {
+uint16_t *INFScriptGetBlock(const INFScript *script, int block,
+                            size_t *numInstructions) {
+  assert(numInstructions);
+  if (block >= script->segmentsNum) {
+    return NULL;
+  }
+  *numInstructions =
+      script->segments[block].end - script->segments[block].start;
+  return (uint16_t *)script->chunks[kData]._data +
+         script->segments[block].start;
+}
+
+void INFScriptListScriptFunctions(const INFScript *script) {
+  printf("Got %zu offsets\n", script->segmentsNum);
+  for (int i = 0; i < script->segmentsNum; i++) {
+    printf("%i 0X%04X 0X%04X len=%i\n", i, script->segments[i].start,
+           script->segments[i].end,
+           script->segments[i].end - script->segments[i].start);
+  }
+}
+
+static int createSegments(INFScript *script) {
   if (script->segments == NULL) {
     script->segments = malloc(128 * sizeof(ScriptSegment));
     int offsetsIndex = 0;
@@ -122,19 +143,17 @@ void INFScriptListScriptFunctions(INFScript *script) {
       }
     }
     script->segmentsNum = offsetsIndex;
+    // FIXME: do this with one loop
+    for (int i = 0; i < script->segmentsNum; i++) {
+      uint16_t nextOffset =
+          getNextOffset(script->segments[i].start, script->chunks);
+      script->segments[i].end = nextOffset;
+    }
   }
-  printf("Got %zu offsets\n", script->segmentsNum);
-  for (int i = 0; i < script->segmentsNum; i++) {
-    uint16_t nextOffset =
-        getNextOffset(script->segments[i].start, script->chunks);
-    script->segments[i].end = nextOffset;
-    printf("%i 0X%04X 0X%04X\n", i, script->segments[i].start,
-           script->segments[i].end);
-  }
+  return 1;
 }
 
-void INFScriptFromBuffer(INFScript *script, uint8_t *buffer,
-                         size_t bufferSize) {
+int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
   assert(buffer);
   script->originalBuffer = buffer;
   script->originalBufferSize = bufferSize;
@@ -203,4 +222,5 @@ void INFScriptFromBuffer(INFScript *script, uint8_t *buffer,
   // decodeTextArea(script);
   // decodeScriptSegments(script);
   // decodeScript(script);
+  return createSegments(script);
 }

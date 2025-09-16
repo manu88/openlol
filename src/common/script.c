@@ -2,6 +2,8 @@
 #include "bytes.h"
 #include <assert.h>
 #include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +44,7 @@ typedef struct {
 } ScriptContext;
 
 void stackPush(ScriptVM *vm, uint16_t value) {
+  // printf("stackPush 0X%04X\n", value);
   if (vm->stackPointer == 0) {
     printf("stackPush: Stack Overflow %i\n", vm->stackPointer);
     assert(0);
@@ -116,6 +119,9 @@ static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...) {
   }
 }
 
+static uint16_t invokeFunction(ScriptVM *vm, ScriptContext *ctx,
+                               uint16_t funcCode);
+
 static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
                             uint16_t parameter) {
   switch ((ScriptCommand)opCode) {
@@ -124,7 +130,7 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_JUMP, parameter);
     } else {
-      printf("JUMP %X (%X)\n", parameter, ctx->scriptStart + parameter);
+      vm->instructionPointer += parameter;
     }
     return 1;
   case OP_PUSH_RETURN_OR_LOCATION:
@@ -132,7 +138,18 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_RC, parameter);
     } else {
-      printf("PUSH_RETURN_OR_LOCATION %X", parameter);
+      printf("PUSH_RETURN_OR_LOCATION %X\n", parameter);
+      switch (parameter) {
+      case 0:
+        stackPush(vm, vm->returnValue);
+        break;
+      case 1: {
+        uint32_t location = (uint32_t)vm->instructionPointer + 1;
+        stackPush(vm, location);
+        vm->framePointer = vm->stackPointer + 2;
+        break;
+      }
+      }
     }
     return 1;
   case OP_PUSH:
@@ -221,14 +238,16 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_CALL, parameter);
     } else {
       parameter &= 0xFF;
-      printf("FUNCTION %X\n", parameter);
+      vm->returnValue = invokeFunction(vm, ctx, parameter);
     }
     return 1;
   case OP_JUMP_NE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_JUMP_NE, parameter);
     } else {
-      printf("JUMP_NE %X\n", parameter);
+      if (!vm->stack[vm->stackPointer++]) {
+        vm->instructionPointer = parameter & 0x7FFF;
+      }
     }
     return 1;
   case OP_UNARY:
@@ -404,12 +423,11 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
 }
 
 int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
-  uint32_t currentPos = 0;
   ScriptContext ctx = {0};
-  ctx.scriptStart = currentPos;
-  while (currentPos < info->scriptSize) {
-    ctx.currentAddress = currentPos;
-    uint16_t orig = *(info->scriptData + currentPos++);
+  ctx.scriptStart = vm->instructionPointer;
+  while (vm->instructionPointer < info->scriptSize) {
+    ctx.currentAddress = vm->instructionPointer;
+    uint16_t orig = *(info->scriptData + vm->instructionPointer++);
     ctx.currentWord = orig;
     uint16_t current = swap_uint16(orig);
     uint16_t parameter = 0;
@@ -425,7 +443,7 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
       parameter = (uint16_t)(int8_t)(current & 0xFF);
     } else if ((current & 0x2000) != 0) {
       /* When this flag is set, the parameter is in the next opcode */
-      parameter = swap_uint16(*(info->scriptData + currentPos++));
+      parameter = swap_uint16(*(info->scriptData + vm->instructionPointer++));
     }
     if (!parseInstruction(vm, &ctx, opcode, parameter)) {
       return 0;
@@ -433,4 +451,233 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
   }
 
   return 1;
+}
+
+static uint16_t stopTimScript(ScriptVM *vm) {
+  printf("ScriptVM: stopTimScript\n");
+  return 0;
+}
+
+static uint16_t clearDialogueField(ScriptVM *vm) {
+  printf("ScriptVM: clearDialogueField\n");
+  return 0;
+}
+
+static uint16_t playDialogueTalkText(ScriptVM *vm) {
+  printf("ScriptVM: playDialogueTalkText\n");
+  return 0;
+}
+
+static uint16_t runTimScript(ScriptVM *vm) {
+  printf("ScriptVM: runTimScript\n");
+  return 0;
+}
+static uint16_t testGameFlag(ScriptVM *vm) {
+  printf("ScriptVM: testGameFlag\n");
+  return 0;
+}
+
+static uint16_t setGameFlag(ScriptVM *vm) {
+  printf("ScriptVM: setGameFlag\n");
+  return 0;
+}
+
+static uint16_t checkMonsterTypeHostility(ScriptVM *vm) {
+  printf("ScriptVM: checkMonsterTypeHostility\n");
+  return 0;
+}
+
+static uint16_t getDirection(ScriptVM *vm) {
+  printf("ScriptVM: getDirection\n");
+  return 0;
+}
+
+static uint16_t moveMonster(ScriptVM *vm) {
+  uint8_t monsterId = vm->stack[0];
+  uint8_t numBlocks = vm->stack[1];
+  uint8_t xOffs = vm->stack[2];
+  uint8_t yOffs = vm->stack[3];
+  printf("ScriptVM: moveMonster %i numBlocs %i xOffs %i yOffs %i\n", monsterId,
+         numBlocks, xOffs, yOffs);
+  return 1;
+}
+
+typedef uint16_t (*ScriptFunction)(ScriptVM *vm);
+
+static ScriptFunction functions[] = {
+
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    setGameFlag,
+    testGameFlag,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    // 0X10
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL, // 1A
+    NULL,
+    getDirection,
+    NULL,
+
+    NULL,
+    NULL,
+
+    // 0X20
+    NULL,
+    NULL,
+    clearDialogueField,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    // 0X30
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    // 0X40
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    moveMonster,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    runTimScript,
+
+    // 0X50
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    stopTimScript,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    // 0X60
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+
+    // 0X70
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    playDialogueTalkText, // 7A
+    checkMonsterTypeHostility,
+    NULL,
+
+    NULL,
+    NULL,
+    NULL,
+
+    // 0X80
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+};
+
+static const size_t numFunctions = sizeof(functions) / sizeof(ScriptFunction);
+// see
+// https://github.com/scummvm/scummvm/blob/master/engines/kyra/script/script_lol.cpp#L2683
+static uint16_t invokeFunction(ScriptVM *vm, ScriptContext *ctx,
+                               uint16_t funcCode) {
+  printf("FUNCTION 0X%X/%zX\n", funcCode, numFunctions);
+  assert(funcCode < numFunctions);
+  ScriptFunction fun = functions[funcCode];
+  assert(fun);
+  return fun(vm);
 }

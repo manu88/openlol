@@ -351,7 +351,7 @@ int EMC_DisassembleFile(const char *binFilepath, const char *outFilePath) {
   return 0;
 }
 
-int EMC_Exec(const char *scriptFilepath) {
+int EMC_Exec(const char *scriptFilepath, int blockAddr) {
   FILE *fp = fopen(scriptFilepath, "r");
   if (fp == NULL) {
     perror("fopen");
@@ -374,6 +374,7 @@ int EMC_Exec(const char *scriptFilepath) {
   ScriptInfo inf;
   inf.scriptData = (uint16_t *)buffer;
   inf.scriptSize = fsize / 2;
+  printf("scriptSize 0X%04X\n", inf.scriptSize);
   ScriptExec(&vm, &inf);
   ScriptVMDump(&vm);
   ScriptVMRelease(&vm);
@@ -453,6 +454,52 @@ static void TestInstruction(const char *sOrigin, size_t instructionsCount) {
   free(s);
 }
 
+static void TestJump(void) {
+  const char s[] = "jump 0X2\npush 0XAA\npush 0XAB\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  assert(ScriptExec(&vm, &inf));
+  assert(vm.stack[vm.stackPointer] == 0XAB);
+  assert(vm.stackPointer == STACK_SIZE - 1);
+  ScriptVMRelease(&vm);
+}
+
+static void TestIFNOTGO_0(void) {
+  const char s[] = "push 0x00\nifnotgo 0X5\npush 0XAA\npush 0XAB\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  assert(ScriptExec(&vm, &inf));
+  assert(vm.stack[vm.stackPointer] == 0XAB);
+  assert(vm.stackPointer == STACK_SIZE - 1);
+  ScriptVMRelease(&vm);
+}
+
+static void TestIFNOTGO_1(void) {
+  const char s[] = "push 0x001\nifnotgo 0X5\npush 0XAA\npush 0XAB\n";
+  size_t bufferSize = 0;
+  uint16_t *buffer = EMC_Assemble(s, &bufferSize);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  ScriptInfo inf;
+  inf.scriptData = (uint16_t *)buffer;
+  inf.scriptSize = bufferSize;
+  assert(ScriptExec(&vm, &inf));
+  assert(vm.stack[vm.stackPointer] == 0XAB);
+  assert(vm.stack[vm.stackPointer + 1] == 0XAA);
+  assert(vm.stackPointer == STACK_SIZE - 2);
+  ScriptVMRelease(&vm);
+}
+
 int EMC_Tests(void) {
   printf("EMC_Tests\n");
 
@@ -488,5 +535,8 @@ int EMC_Tests(void) {
         "Push 0X3C\nPush 0X05\nmultiply\npush 0XA\npush 5\nAdd\ndivide\n";
     expect(basicBinaryTest(s), 0X14);
   }
+  TestJump();
+  TestIFNOTGO_0();
+  TestIFNOTGO_1();
   return 0;
 }

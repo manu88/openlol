@@ -5,6 +5,8 @@
 
 // TODO check kyrandia scripts here :
 // https://github.com/MrSapps/scummvm-tools/blob/6af4c033d39952939eb204c8c4f94533339f6112/engines/kyra/dekyra_v1.cpp
+// some doc
+// https://web.archive.org/web/20090731123335/http://minniatian.republika.pl/Dune2/Tier2.htm
 
 #define MNEMONIC_JUMP (const char *)"JUMP"
 #define MNEMONIC_RET (const char *)"RET"
@@ -45,6 +47,7 @@
 #define MNEMONIC_NOT_EQUAL (const char *)"NEQUAL"
 
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.h
+
 typedef enum {
   OP_JUMP = 0X00, // JUMP instruction given by the parameter.
   OP_SETRETURNVALUE =
@@ -99,12 +102,12 @@ typedef enum {
 typedef struct {
   uint16_t *scriptData;
   uint32_t scriptSize;
-
 } ScriptInfo;
 
 #define STACK_SIZE 16
 #define FRAME_POINTER_INIT 17
 #define VAR_SIZE 5
+
 typedef struct {
   ScriptInfo *scriptInfo;
   uint16_t stack[STACK_SIZE];
@@ -112,6 +115,7 @@ typedef struct {
   uint8_t framePointer;
   uint16_t variables[VAR_SIZE];
   uint16_t returnValue;
+  uint32_t instructionPointer;
 
   // disassembler part
   uint16_t addrOffset;
