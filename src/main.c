@@ -12,6 +12,7 @@
 #include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
+#include "script.h"
 #include "tests.h"
 #include <_string.h>
 #include <assert.h>
@@ -104,9 +105,15 @@ static int cmdVMP(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdScriptExec(const char *filepath) {
+static int cmdScriptExec(int argc, char *argv[]) {
+  const char *filepath = argv[0];
+  int blockAddr = 0;
+  if (argc > 1) {
+    blockAddr = atoi(argv[1]);
+  }
+  printf("block addr= %X\n", blockAddr);
   printf("asm script '%s'\n", filepath);
-  return EMC_Exec(filepath);
+  return EMC_Exec(filepath, blockAddr);
 }
 
 static int cmdScriptDisassemble(const char *filepath) {
@@ -205,7 +212,7 @@ static int cmdScript(int argc, char *argv[]) {
       printf("script: missing file path\n");
       return 1;
     }
-    return cmdScriptExec(filepath);
+    return cmdScriptExec(argc - 1, argv + 1);
   } else if (strcmp(argv[0], "asm") == 0) {
     if (argc < 2) {
       printf("script: missing file path\n");
@@ -432,29 +439,57 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
 }
 
 static void usageINF(void) {
-  printf("inf subcommands: extract|show infFile\n");
+  printf("inf subcommands: extract|show|exec infFile\n");
+}
+
+static int cmdINFExec(int argc, char *argv[]) {
+  const char *filepath = argv[0];
+  int blockAddr = 0;
+  if (argc > 1) {
+    blockAddr = atoi(argv[1]);
+  }
+  printf("block addr= %X\n", blockAddr);
+  printf("asm script '%s'\n", filepath);
+
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return 1;
+  }
+  INFScript script;
+  INFScriptInit(&script);
+  INFScriptFromBuffer(&script, buffer, fileSize);
+
+  size_t blockSize = 0;
+  uint16_t *scriptBuffer = INFScriptGetBlock(&script, blockAddr, &blockSize);
+  printf("code block is %zi instructions long ,at %p\n", blockSize,
+         (void *)scriptBuffer);
+
+  ScriptInfo info = {0};
+  info.scriptData = (uint16_t *)INFScriptGetCodeBinary(&script);
+  info.scriptSize = INFScriptGetCodeBinarySize(&script);
+  ScriptVM vm;
+  ScriptVMInit(&vm);
+  vm.instructionPointer = scriptBuffer - info.scriptData;
+  ScriptExec(&vm, &info);
+  INFScriptRelease(&script);
+  return 0;
 }
 
 static int cmdINFShowContent(const char *filepath) {
-  FILE *f = fopen(filepath, "rb");
-  if (!f) {
-    perror("open: ");
-    return 1;
-  }
-  fseek(f, 0, SEEK_END);
-  long fsize = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
   if (!buffer) {
     perror("malloc error");
-    fclose(f);
     return 1;
   }
-  fread(buffer, fsize, 1, f);
-  fclose(f);
+
   INFScript script;
   INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fsize);
+  INFScriptFromBuffer(&script, buffer, fileSize);
   printf("INF Content from file '%s':\n", filepath);
   printf("\t%zi instructions\n", INFScriptGetCodeBinarySize(&script));
   INFScriptListText(&script);
@@ -511,6 +546,8 @@ static int cmdINF(int argc, char *argv[]) {
     return cmdINFExtractCode(argv[1]);
   } else if (strcmp(argv[0], "show") == 0 && argc == 2) {
     return cmdINFShowContent(argv[1]);
+  } else if (strcmp(argv[0], "exec") == 0 && argc >= 2) {
+    return cmdINFExec(argc - 1, argv + 1);
   }
   usageINF();
   return 1;
