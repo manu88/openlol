@@ -5,6 +5,7 @@
 #include "format_cps.h"
 #include "format_dat.h"
 #include "format_inf.h"
+#include "format_lang.h"
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
@@ -618,8 +619,41 @@ static int cmdPak(int argc, char *argv[]) {
   return 1;
 }
 
+static int cmdLangShow(const char *filepath) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return 1;
+  }
+  printf("lang file '%s'\n", filepath);
+  LangHandle handle = {0};
+  LangHandleFromBuffer(&handle, buffer, readSize);
+  LangHandleShow(&handle);
+  LangHandleRelease(&handle);
+  return 0;
+}
+
+static void usageLang(void) { printf("lang subcommands: show file\n"); }
+
+static int cmdLang(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("lang command, missing arguments\n");
+    usageLang();
+    return 1;
+  }
+  const char *filepath = argv[1];
+  if (strcmp(argv[0], "show") == 0) {
+    return cmdLangShow(filepath);
+  }
+  usageLang();
+  return 1;
+}
+
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map|script|inf|tests|wll|render|game|dat|shp subcommand "
+  printf("%s: pak|cmz|map|script|inf|tests|wll|render|game|dat|shp|lang "
+         "subcommand "
          "...\n",
          progName);
 }
@@ -657,6 +691,8 @@ int main(int argc, char *argv[]) {
     return cmdDat(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "shp") == 0) {
     return cmdShp(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "lang") == 0) {
+    return cmdLang(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

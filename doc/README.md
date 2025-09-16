@@ -47,3 +47,6 @@ See https://github.com/scummvm/scummvm/blob/master/engines/kyra/script/script_lo
 # DAT
 See https://web.archive.org/web/20180313235324/http://eob.wikispaces.com/eob.dat
 uses the VCN file palette
+
+# FRE
+lang files, see https://web.archive.org/web/20070119182153/http://eob.wikispaces.com/lol.dizenc?token=a26df2e3f5c81f05411e86759caf84f6
