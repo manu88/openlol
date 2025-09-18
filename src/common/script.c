@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static ScriptFunDesc functions[];
+
 void ScriptVMInit(ScriptVM *vm) {
   memset(vm, 0, sizeof(ScriptVM));
   vm->stackPointer = STACK_SIZE;
@@ -74,6 +76,11 @@ uint16_t stackPeek(ScriptVM *vm, int position) {
   return vm->stack[vm->stackPointer + position - 1];
 }
 
+uint16_t stackPos(ScriptVM *vm, uint8_t position) {
+  assert(position < STACK_SIZE);
+  return vm->stack[STACK_SIZE - position];
+}
+
 #define PRINTFLIKE(n, m) __attribute__((format(printf, n, m)))
 
 static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...)
@@ -119,6 +126,15 @@ static void emitLine(ScriptVM *vm, ScriptContext *ctx, const char *fmt, ...) {
   }
 }
 
+static void emitFunctionCall(ScriptVM *vm, ScriptContext *ctx,
+                             uint16_t parameter) {
+  if (functions[parameter].name[0]) {
+    emitLine(vm, ctx, "%s %s", MNEMONIC_CALL, functions[parameter].name);
+  } else {
+    emitLine(vm, ctx, "%s 0X%X", MNEMONIC_CALL, parameter);
+  }
+}
+
 static uint16_t invokeFunction(ScriptVM *vm, ScriptContext *ctx,
                                uint16_t funcCode);
 
@@ -138,7 +154,6 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_RC, parameter);
     } else {
-      printf("PUSH_RETURN_OR_LOCATION %X\n", parameter);
       switch (parameter) {
       case 0:
         stackPush(vm, vm->returnValue);
@@ -172,13 +187,14 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_LOC_VAR, parameter);
     } else {
       printf("PUSH LOC VAR %X", parameter);
+      assert(0);
     }
     return 1;
   case OP_PUSH_PARAMETER:
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_PUSH_ARG, parameter);
     } else {
-      printf("PushArg 0X%X\n", parameter);
+      // printf("PushArg 0X%X\n", parameter);
       stackPush(vm, vm->stack[vm->framePointer + parameter - 1]);
     }
     return 1;
@@ -209,13 +225,13 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_POP_LOC_VAR, parameter);
     } else {
       printf("POP LOCAL VAR %X\n", parameter);
+      assert(0);
     }
     return 1;
   case OP_POP_PARAMETER:
     if (vm->disassemble) {
       emitLine(vm, ctx, "POPPARAM %X", parameter);
     } else {
-      printf("POP PARAM %X\n", parameter);
       vm->stack[vm->framePointer + parameter - 1] = stackPop(vm);
     }
     return 1;
@@ -235,7 +251,7 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     return 1;
   case OP_FUNCTION:
     if (vm->disassemble) {
-      emitLine(vm, ctx, "%s 0X%X", MNEMONIC_CALL, parameter);
+      emitFunctionCall(vm, ctx, parameter);
     } else {
       parameter &= 0xFF;
       vm->returnValue = invokeFunction(vm, ctx, parameter);
@@ -255,11 +271,21 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_UNARY, parameter);
     } else {
-      printf("UNARY %X\n", parameter);
       assert(parameter == 1 || parameter == 0 || parameter == 2);
+      if (parameter == 0) { /* STACK = !STACK */
+        stackPush(vm, stackPop(vm) == 0 ? 1 : 0);
+        return 1;
+      }
+      if (parameter == 1) { /* STACK = -STACK */
+        stackPush(vm, -stackPop(vm));
+        return 1;
+      }
+      if (parameter == 2) { /* STACK = ~STACK */
+        stackPush(vm, ~stackPop(vm));
+        return 1;
+      }
     }
-
-    return 1;
+    return 0;
   case OP_BINARY:
     assert(parameter <= 17);
     int16_t right = 0;
@@ -268,7 +294,6 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
       right = stackPop(vm);
       left = stackPop(vm);
     }
-
     switch (parameter) {
     case BinaryOp_LogicalAND:
       if (vm->disassemble) {
@@ -405,14 +430,14 @@ static int parseInstruction(ScriptVM *vm, ScriptContext *ctx, uint8_t opCode,
     if (vm->disassemble) {
       emitLine(vm, ctx, MNEMONIC_RET);
     } else {
-      printf("RET %X\n", parameter);
+      assert(0);
     }
     return 1;
   case OP_SETRETURNVALUE:
     if (vm->disassemble) {
       emitLine(vm, ctx, "%s 0X%X", MNEMONIC_SETRET, parameter);
     } else {
-      printf("SetRET %X\n", parameter);
+      assert(0);
     }
     return 1;
   default:
@@ -449,8 +474,44 @@ int ScriptExec(ScriptVM *vm, const ScriptInfo *info) {
       return 0;
     }
   }
-
   return 1;
+}
+
+static uint16_t getItemParam(ScriptVM *vm) {
+  printf("ScriptVM: getItemParam\n");
+  return 0;
+}
+
+static uint16_t fadeToBlack(ScriptVM *vm) {
+  printf("ScriptVM: fadeToBlack\n");
+  return 0;
+}
+
+static uint16_t loadBitmap(ScriptVM *vm) {
+  printf("ScriptVM: fadeToBlack\n");
+  return 0;
+}
+
+static uint16_t hideMouse(ScriptVM *vm) {
+  printf("ScriptVM: hideMouse\n");
+  return 0;
+}
+
+static uint16_t showMouse(ScriptVM *vm) {
+  printf("ScriptVM: showMouse\n");
+  return 0;
+}
+
+static uint16_t drawScene(ScriptVM *vm) {
+  printf("ScriptVM: drawScene\n");
+  return 0;
+}
+
+static uint16_t rollDice(ScriptVM *vm) {
+  uint16_t p0 = stackPos(vm, 0);
+  uint16_t p1 = stackPos(vm, 1);
+  printf("ScriptVM: rollDice %X %X\n", p0, p1);
+  return 0;
 }
 
 static uint16_t stopTimScript(ScriptVM *vm) {
@@ -463,8 +524,19 @@ static uint16_t clearDialogueField(ScriptVM *vm) {
   return 0;
 }
 
+static uint16_t setupBackgroundAnimationPart(ScriptVM *vm) {
+  printf("ScriptVM: clearDialogueField\n");
+  return 0;
+}
+
 static uint16_t playDialogueTalkText(ScriptVM *vm) {
-  printf("ScriptVM: playDialogueTalkText\n");
+  uint16_t track = stackPos(vm, 0);
+  printf("ScriptVM: playDialogueTalkText track=0X%X\n", track);
+  return 0;
+}
+
+static uint16_t loadTimScript(ScriptVM *vm) {
+  printf("ScriptVM: loadTimScript\n");
   return 0;
 }
 
@@ -472,8 +544,15 @@ static uint16_t runTimScript(ScriptVM *vm) {
   printf("ScriptVM: runTimScript\n");
   return 0;
 }
+
+static uint16_t releaseTimScript(ScriptVM *vm) {
+  printf("ScriptVM: releaseTimScript\n");
+  return 0;
+}
+
 static uint16_t testGameFlag(ScriptVM *vm) {
-  printf("ScriptVM: testGameFlag\n");
+  uint16_t p = stackPos(vm, 0);
+  printf("ScriptVM: testGameFlag %X\n", p);
   return 0;
 }
 
@@ -492,6 +571,11 @@ static uint16_t getDirection(ScriptVM *vm) {
   return 0;
 }
 
+static uint16_t playCharacterScriptChat(ScriptVM *vm) {
+  printf("ScriptVM: playCharacterScriptChat\n");
+  return 0;
+}
+
 static uint16_t moveMonster(ScriptVM *vm) {
   uint8_t monsterId = vm->stack[0];
   uint8_t numBlocks = vm->stack[1];
@@ -502,182 +586,239 @@ static uint16_t moveMonster(ScriptVM *vm) {
   return 1;
 }
 
-typedef uint16_t (*ScriptFunction)(ScriptVM *vm);
+static uint16_t setGlobalVar(ScriptVM *vm) {
+  uint16_t p0 = stackPos(vm, 0);
+  uint16_t p1 = stackPos(vm, 1);
+  uint16_t p2 = stackPos(vm, 2);
 
-static ScriptFunction functions[] = {
+  printf("ScriptVM: setGlobalVar %X %X %X\n", p0, p1, p2);
+  return 0;
+}
 
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    setGameFlag,
-    testGameFlag,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+static uint16_t printMessage(ScriptVM *vm) {
+  printf("ScriptVM: printMessage\n");
+  return 0;
+}
+
+static uint16_t savePage5(ScriptVM *vm) {
+  printf("ScriptVM: savePage5\n");
+  return 1;
+}
+
+static uint16_t prepareSpecialScene(ScriptVM *vm) {
+  printf("ScriptVM: prepareSpecialScene\n");
+  return 1;
+}
+
+static uint16_t copyRegion(ScriptVM *vm) {
+  printf("ScriptVM: copyRegion\n");
+  return 1;
+}
+
+static uint16_t drawExitButton(ScriptVM *vm) {
+  printf("ScriptVM: drawExitButton\n");
+  return 1;
+}
+
+static ScriptFunDesc functions[] = {
+
+    {NULL},
+    {NULL},
+    {drawScene, "drawScene"},
+    {rollDice, "rollDice"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {setGameFlag, "setGameFlag"},
+    {testGameFlag, "testGameFlag"},
+    {NULL},
+    // 0X0A
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
 
     // 0X10
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL, // 1A
-    NULL,
-    getDirection,
-    NULL,
+    {NULL},
+    {NULL},
+    {getItemParam, "getItemParam"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    // 0X1A
+    {NULL},
+    {NULL},
+    {getDirection, "getDirection"},
+    {NULL},
 
-    NULL,
-    NULL,
+    {NULL},
+    {NULL},
 
     // 0X20
-    NULL,
-    NULL,
-    clearDialogueField,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    {NULL},
+    {NULL},
+    {clearDialogueField, "clearDialogueField"},
+    {setupBackgroundAnimationPart, "setupBackgroundAnimationPart"},
+    {NULL},
+    {hideMouse, "hideMouse"},
+    {showMouse, "showMouse"},
+    {fadeToBlack, "fadeToBlack"},
+    {NULL},
+    {loadBitmap, "loadBitmap"},
+    // 0X2A
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
 
     // 0X30
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    {setGlobalVar, "setGlobalVar"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {copyRegion, "copyRegion"},
+    {NULL},
+    {NULL},
+    // 0X3A
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
 
     // 0X40
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    moveMonster,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    runTimScript,
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {moveMonster, "moveMonster"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    // 0X4A
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {loadTimScript, "loadTimScript"},
+    {runTimScript, "runTimScript"},
 
     // 0X50
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    stopTimScript,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    {releaseTimScript, "releaseTimScript"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {stopTimScript, "stopTimScript"},
+    // 0X5A
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {playCharacterScriptChat, "playCharacterScriptChat"},
+    {NULL},
 
     // 0X60
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    {NULL},
+    {NULL},
+    {drawExitButton, "drawExitButton"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    // 0X6A
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {printMessage, "printMessage"},
 
     // 0X70
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    playDialogueTalkText, // 7A
-    checkMonsterTypeHostility,
-    NULL,
-
-    NULL,
-    NULL,
-    NULL,
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    // 0X7A
+    {playDialogueTalkText, "playDialogueTalkText"},
+    {checkMonsterTypeHostility, "checkMonsterTypeHostility"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
 
     // 0X80
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    // 0X8A
+    {savePage5, "savePage5"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+
+    // 0X90
+    {NULL},
+    {NULL},
+    {prepareSpecialScene, "prepareSpecialScene"},
 };
 
-static const size_t numFunctions = sizeof(functions) / sizeof(ScriptFunction);
+static const size_t numFunctions = sizeof(functions) / sizeof(ScriptFunDesc);
+
+const ScriptFunDesc *ScriptGetBuiltinFunctions(size_t *numFunctions) {
+  assert(numFunctions);
+  *numFunctions = sizeof(functions) / sizeof(ScriptFunDesc);
+  return functions;
+}
+
 // see
 // https://github.com/scummvm/scummvm/blob/master/engines/kyra/script/script_lol.cpp#L2683
 static uint16_t invokeFunction(ScriptVM *vm, ScriptContext *ctx,
                                uint16_t funcCode) {
-  printf("FUNCTION 0X%X/%zX\n", funcCode, numFunctions);
+  if (funcCode >= numFunctions) {
+    printf("FUNCTION 0X%X/%zX\n", funcCode, numFunctions);
+  }
   assert(funcCode < numFunctions);
-  ScriptFunction fun = functions[funcCode];
-  assert(fun);
-  return fun(vm);
+  ScriptFunDesc funDesc = functions[funcCode];
+  if (!funDesc.fun) {
+    printf("FUNCTION 0X%X/%zX\n", funcCode, numFunctions);
+  }
+  assert(funDesc.fun);
+  return funDesc.fun(vm);
 }

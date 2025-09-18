@@ -50,6 +50,23 @@ static uint16_t parseArg(const char *arg) {
   return val;
 }
 
+static uint16_t getFunctionId(const char *arg, int *found) {
+  assert(found);
+  *found = 0;
+  if (isalpha(arg[0]) == 0) {
+    return 0;
+  }
+  size_t numFunctions = 0;
+  const ScriptFunDesc *funcs = ScriptGetBuiltinFunctions(&numFunctions);
+  for (int i = 0; i < numFunctions; i++) {
+    if (strcmp(arg, funcs[i].name) == 0) {
+      *found = 1;
+      return i;
+    }
+  }
+  return 0;
+}
+
 static int genByteCode(char *inst, uint16_t bCode[2]) {
   const char *mnemonic = toUpper(strsep(&inst, " "));
   const char *arg = inst;
@@ -140,7 +157,11 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
     return 1;
   } else if (strcmp(mnemonic, MNEMONIC_CALL) == 0) {
     assert(arg);
-    uint16_t val = parseArg(arg);
+    int found = 0;
+    uint16_t val = getFunctionId(arg, &found);
+    if (!found) {
+      val = parseArg(arg);
+    }
     bCode[0] = 0x004E + (val << 8);
     return 1;
   } else if (strcmp(mnemonic, MNEMONIC_STACK_REWIND) == 0) {
@@ -504,7 +525,7 @@ int EMC_Tests(void) {
   printf("EMC_Tests\n");
 
   TestInstruction("PUSHARG 0X1\n", 1);
-  TestInstruction("CALL 0X59\n", 1);
+  TestInstruction("CALL stopTimScript\n", 1);
   TestInstruction("STACKRWD 0X1\n", 1);
   TestInstruction("PUSH 0XFFFF\n", 2);
   TestInstruction("JUMP 0XFF\n", 1);

@@ -131,3 +131,12 @@ void ScriptVMSetDisassembler(ScriptVM *vm);
 void ScriptVMRelease(ScriptVM *vm);
 int ScriptExec(ScriptVM *vm, const ScriptInfo *info);
 void ScriptVMDump(const ScriptVM *vm);
+
+typedef uint16_t (*ScriptFunction)(ScriptVM *vm);
+
+typedef struct {
+  ScriptFunction fun;
+  char name[32];
+} ScriptFunDesc;
+
+const ScriptFunDesc *ScriptGetBuiltinFunctions(size_t *numFunctions);
