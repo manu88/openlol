@@ -499,7 +499,7 @@ static int cmdINFExec(int argc, char *argv[]) {
 
   size_t blockSize = 0;
   uint16_t *scriptBuffer = INFScriptGetBlock(&script, blockAddr, &blockSize);
-  printf("code block is %zi instructions long ,at %p\n", blockSize,
+  printf("code block is %zi instructions long, at %p\n", blockSize,
          (void *)scriptBuffer);
 
   ScriptInfo info = {0};
