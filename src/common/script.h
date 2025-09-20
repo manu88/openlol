@@ -131,5 +131,3 @@ void EMCStateInit(EMCState *scriptState, const EMCData *data);
 int EMCInterpreterStart(EMCInterpreter *interp, EMCState *script, int function);
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script);
 int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script);
-
-int script2Main(int argc, char *argv[]);

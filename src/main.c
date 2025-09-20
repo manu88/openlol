@@ -160,8 +160,95 @@ static int cmdRender(int argc, char *argv[]) {
   return 0;
 }
 
+static void usageScript(void) {
+  printf("script subcommands: test|offsets [filepath]\n");
+}
+
+static int cmdScriptOffsets(const char *filepath) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+    printf("INFScriptFromBuffer error\n");
+    return 1;
+  }
+  EMCInterpreter interp = {0};
+  EMCData dat = {0};
+  EMCInterpreterLoad(&interp, &script, &dat);
+  for (int i = 0; i < dat.ordrSize; i++) {
+    if (dat.ordr[i] != 0XFFFF) {
+      printf("%X %X\n", i, swap_uint16(dat.ordr[i]));
+    }
+  }
+  return 0;
+}
+
+static int cmdScriptTest(const char *filepath, int functionId) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+    printf("INFScriptFromBuffer error\n");
+    return 1;
+  }
+
+  EMCInterpreter interp = {0};
+  EMCData dat = {0};
+  EMCInterpreterLoad(&interp, &script, &dat);
+  printf("ordrsize=%u datasize=%u\n", dat.ordrSize, dat.dataSize);
+  EMCState state = {0};
+  EMCStateInit(&state, &dat);
+#if 0
+  for (int i = 0; i < dat.ordrSize; i++) {
+    if (dat.ordr[i] != 0XFFFF) {
+      printf("%X %X\n", i, swap_uint16(dat.ordr[i]));
+    }
+  }
+#endif
+
+  if (!EMCInterpreterStart(&interp, &state, functionId)) {
+    printf("EMCInterpreterStart: invalid\n");
+  }
+  int n = 0;
+
+  state.regs[0] = -1; // flags
+  state.regs[1] = -1; // charnum
+  state.regs[2] = 0;  // item
+  state.regs[3] = 0;
+  state.regs[4] = 0;
+  state.regs[5] = functionId;
+
+  while (EMCInterpreterIsValid(&interp, &state)) {
+    if (EMCInterpreterRun(&interp, &state) == 0) {
+      printf("EMCInterpreterRun returned 0\n");
+    }
+    n++;
+  }
+  printf("Exec'ed %i instructions\n", n);
+  INFScriptRelease(&script);
+  return 0;
+}
+
 static int cmdScript(int argc, char *argv[]) {
-  return script2Main(argc - 2, argv + 2);
+  if (argc < 2) {
+    usageScript();
+    return 1;
+  }
+  if (strcmp(argv[0], "test") == 0) {
+    if (argc < 3) {
+      printf("missing functionid\n");
+      return 1;
+    }
+    return cmdScriptTest(argv[1], atoi(argv[2]));
+  } else if (strcmp(argv[0], "offsets") == 0) {
+    return cmdScriptOffsets(argv[1]);
+  }
+  usageScript();
+  return 1;
 }
 
 static void usageSHP(void) {
