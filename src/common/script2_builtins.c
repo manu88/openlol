@@ -61,7 +61,7 @@ static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t getDirection(EMCInterpreter *interp, EMCState *state) {
   printf("getDirection\n");
-  return 0;
+  return 1;
 }
 
 static uint16_t checkRectForMousePointer(EMCInterpreter *interp,
@@ -118,9 +118,12 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
     uint16_t x = 0;
     uint16_t y = 0;
     calcCoordinates(&x, &y, b, 0x80, 0x80);
-    printf("x=%i y=%i\n", x, y);
+    uint16_t xx = b & 0x1F;
+    uint16_t yx = b >> 5;
+    printf("x=%x y=%x\n", xx, yx);
   } break;
-
+  case 0X0A:
+    break;
   default:
     printf("setGlobalVar: unimplemented %x %x %x\n", how, a, b);
     break;
@@ -212,7 +215,7 @@ static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
                                           EMCState *state) {
   int16_t monsterType = EMCStateStackVal(state, 0);
   printf("checkMonsterTypeHostility monsterType=%x\n", monsterType);
-  return 1;
+  return 0;
 }
 static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
   printf("savePage5\n");

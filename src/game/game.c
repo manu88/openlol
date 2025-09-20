@@ -292,6 +292,7 @@ static int GameRun(LevelContext *ctx) {
       }
     }
     if (shouldUpdate) {
+      printf("party x=0X%X y=0X%X\n", ctx->partyPos.x, ctx->partyPos.y);
       memset(ctx->viewConeEntries, 0,
              sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);

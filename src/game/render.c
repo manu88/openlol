@@ -111,15 +111,12 @@ static void renderDecoration(SDL_Renderer *renderer, LevelContext *ctx,
   const DatDecoration *deco = ctx->datHandle.datDecoration + decorationId;
 
   if (deco->shapeIndex[decorationIndex] == DECORATION_EMPTY_INDEX) {
-    printf("Empty shape at index %i\n", decorationIndex);
     return;
   }
 
   SHPFrame frame = {0};
   SHPHandleGetFrame(&ctx->shpHandle, &frame, deco->shapeIndex[decorationIndex]);
   SHPFrameGetImageData(&frame);
-  printf("%i %i shp index %i\n", decorationIndex,
-         deco->scaleFlag[decorationIndex], deco->shapeIndex[decorationIndex]);
   drawSHPFrame(renderer, &frame, deco->shapeX[decorationIndex] + destXOffset,
                deco->shapeY[decorationIndex] + destYOffset,
                ctx->vcnHandle.palette, 2, xFlip);
@@ -145,7 +142,6 @@ static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
                                  int destXOffset, int destYOffset,
                                  uint8_t xFlip) {
   const WllWallMapping *mapping = WllHandleGetWallMapping(&ctx->wllHandle, wmi);
-  printf("mapping->decorationId=%i\n", mapping->decorationId);
   if (mapping->decorationId != 0 &&
       mapping->decorationId <= ctx->datHandle.nbrDecorations) {
     renderDecoration(renderer, ctx, DecorationIndex, mapping->decorationId,
@@ -257,7 +253,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
   const ViewConeEntry *pEntry = ctx->viewConeEntries + CELL_P;
   const ViewConeEntry *qEntry = ctx->viewConeEntries + CELL_Q;
 
-  if (0 && aEntry->valid) {
+  if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -269,7 +265,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     }
   }
 
-  if (0 && bEntry->valid) {
+  if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -280,7 +276,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && cEntry->valid) {
+  if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -291,7 +287,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && eEntry->valid) {
+  if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -302,7 +298,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && fEntry->valid) {
+  if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
@@ -313,7 +309,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && gEntry->valid) {
+  if (gEntry->valid) {
     int index = gEntry->coords.y * 32 + gEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
@@ -324,7 +320,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && bEntry->valid) {
+  if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -335,7 +331,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && cEntry->valid) {
+  if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -361,7 +357,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     }
   }
 
-  if (0 && eEntry->valid) {
+  if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -372,7 +368,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && fEntry->valid) {
+  if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -383,7 +379,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && hEntry->valid) {
+  if (hEntry->valid) {
     int index = hEntry->coords.y * 32 + hEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -394,7 +390,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && iEntry->valid) {
+  if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -405,7 +401,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && kEntry->valid) {
+  if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
@@ -416,7 +412,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && lEntry->valid) {
+  if (lEntry->valid) {
     int index = lEntry->coords.y * 32 + lEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
@@ -427,7 +423,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && iEntry->valid) {
+  if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -447,13 +443,11 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       if (wallType) {
         drawWall(renderer, &ctx->vcnHandle, &ctx->vmpHandle, wallType, J_south);
       }
-      printf("start render DecorationIndex_J_SOUTH\n");
       renderWallDecoration(renderer, ctx, DecorationIndex_J_SOUTH, wmi, 48, 20,
                            0);
-      printf("end render DecorationIndex_J_SOUTH\n");
     }
   }
-  if (0 && kEntry->valid) {
+  if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -464,7 +458,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
     }
   }
-  if (0 && mEntry->valid) {
+  if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -477,7 +471,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
                            0);
     }
   }
-  if (0 && oEntry->valid) {
+  if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];
@@ -490,7 +484,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
                            1);
     }
   }
-  if (0 && mEntry->valid) {
+  if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -504,7 +498,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     }
   }
 
-  if (0 && oEntry->valid) {
+  if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, South)];
@@ -519,6 +513,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     }
   }
 
+  // front facing wall
   if (nEntry->valid) {
     int index = nEntry->coords.y * 32 + nEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
@@ -530,10 +525,17 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
       }
       renderWallDecoration(renderer, ctx, DecorationIndex_N_SOUTH, wmi, 24, 8,
                            0);
+
+      const WllWallMapping *entry =
+          WllHandleGetWallMapping(&ctx->wllHandle, wmi);
+      if (entry) {
+        printf("0X%X 0X%X 0X%X\n", entry->unknown1, entry->unknown2,
+               entry->unknown3);
+      }
     }
   }
 
-  if (0 && pEntry->valid) {
+  if (pEntry->valid) {
     int index = pEntry->coords.y * 32 + pEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, East)];
@@ -546,7 +548,7 @@ static void GameRenderScene(SDL_Renderer *renderer, LevelContext *ctx) {
     }
   }
 
-  if (0 && qEntry->valid) {
+  if (qEntry->valid) {
     int index = qEntry->coords.y * 32 + qEntry->coords.x;
     const MazeBlock *block = ctx->mazHandle.maze->wallMappingIndices + index;
     uint8_t wmi = block->face[absOrientation(ctx->orientation, West)];

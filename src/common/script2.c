@@ -379,14 +379,23 @@ int script2Main(int argc, char *argv[]) {
 #if 0
   for (int i = 0; i < dat.ordrSize; i++) {
     if (dat.ordr[i] != 0XFFFF) {
-      printf("%i %i\n", i, swap_uint16(dat.ordr[i]));
+      printf("%X %X\n", i, swap_uint16(dat.ordr[i]));
     }
   }
 #endif
-  if (!EMCInterpreterStart(&interp, &state, atoi(argv[0]))) {
+  int functionId = atoi(argv[0]);
+  if (!EMCInterpreterStart(&interp, &state, functionId)) {
     printf("EMCInterpreterStart: invalid\n");
   }
   int n = 0;
+
+  state.regs[0] = -1; // flags
+  state.regs[1] = -1; // charnum
+  state.regs[2] = 0;  // item
+  state.regs[3] = 0;
+  state.regs[4] = 0;
+  state.regs[5] = functionId;
+
   while (EMCInterpreterIsValid(&interp, &state)) {
     if (EMCInterpreterRun(&interp, &state) == 0) {
       printf("EMCInterpreterRun returned 0\n");
