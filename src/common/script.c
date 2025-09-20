@@ -1,7 +1,7 @@
-#include "script2.h"
+#include "script.h"
 #include "bytes.h"
 #include "format_inf.h"
-#include "script2_builtins.h"
+#include "script_builtins.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

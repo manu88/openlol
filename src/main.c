@@ -13,7 +13,7 @@
 #include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
-#include "script2.h"
+#include "script.h"
 #include "tests.h"
 #include <_string.h>
 #include <assert.h>
@@ -158,12 +158,6 @@ static int cmdRender(int argc, char *argv[]) {
   VMPHandleRelease(&vmpHandle);
   VCNHandleRelease(&vcnHandle);
   return 0;
-}
-
-static int cmdScriptTests(void) { return EMC_Tests(); }
-
-static void usageScript(void) {
-  printf("script subcommands: asm|exec|tests|disasm [filepath]\n");
 }
 
 static int cmdScript(int argc, char *argv[]) {

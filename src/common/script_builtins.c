@@ -1,6 +1,5 @@
-#include "script2_builtins.h"
-#include "bytes.h"
-#include "script2.h"
+#include "script_builtins.h"
+#include "script.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

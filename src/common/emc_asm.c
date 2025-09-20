@@ -4,7 +4,7 @@
 #include <string.h>
 #define _GNU_SOURCE
 #include "bytes.h"
-#include "script2.h"
+#include "script.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
