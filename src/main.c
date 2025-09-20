@@ -14,6 +14,7 @@
 #include "pak_file.h"
 #include "renderer.h"
 #include "script.h"
+#include "script2.h"
 #include "tests.h"
 #include <_string.h>
 #include <assert.h>
@@ -766,6 +767,8 @@ int main(int argc, char *argv[]) {
     return cmdShp(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "lang") == 0) {
     return cmdLang(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "script2") == 0) {
+    return script2Main(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

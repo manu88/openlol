@@ -62,8 +62,8 @@ void LangHandleShow(LangHandle *handle) {
   for (int i = 0; i < handle->count; i++) {
 
     uint16_t size = LangHandleGetString(handle, i, dest);
-    printf("%i/%i offset=%i size=%i '%s'\n", i, handle->count, offsets[i], size,
-           dest);
+    printf("  %i/%i offset=%i size=%i '%s'\n", i, handle->count, offsets[i],
+           size, dest);
   }
 }
 
