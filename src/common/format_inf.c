@@ -1,6 +1,5 @@
 #include "format_inf.h"
 #include "bytes.h"
-#include "script.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -44,54 +43,6 @@ size_t INFScriptGetCodeBinarySize(const INFScript *script) {
 
 const uint16_t *INFScriptGetCodeBinary(const INFScript *script) {
   return (uint16_t *)script->chunks[kData]._data;
-}
-
-static int decodeScript(INFScript *script) {
-  uint16_t *scriptData = (uint16_t *)script->chunks[kData]._data;
-  uint32_t scriptSize = script->chunks[kData]._size / 2;
-  ScriptInfo info = {0};
-  info.scriptData = scriptData;
-  info.scriptSize = scriptSize;
-
-  printf("---- start script ---- \n");
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptVMSetDisassembler(&vm);
-  ScriptExec(&vm, &info);
-  printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-  printf("'%s'\n", vm.disasmBuffer);
-  ScriptVMRelease(&vm);
-  return 1;
-}
-
-static int decodeScriptSegments(INFScript *script) {
-  for (int i = 0; i < script->segmentsNum; i++) {
-    uint16_t offset = script->segments[i].start;
-
-    uint16_t *scriptData = ((uint16_t *)script->chunks[kData]._data) + offset;
-    uint16_t end = script->segments[i].end;
-    if (end == 0XFFFF) {
-
-      end = script->segments[i].start + 12;
-      printf("end is 0XFFFF set new val to %i\n", end);
-    }
-    uint32_t scriptSize = end - script->segments[i].start;
-    ScriptInfo info = {0};
-    info.scriptData = scriptData;
-    info.scriptSize = scriptSize;
-
-    printf("---- start script %i at 0X%04X  (size %u) ---- \n", i, offset,
-           scriptSize);
-    ScriptVM vm;
-    ScriptVMInit(&vm);
-    ScriptVMSetDisassembler(&vm);
-    vm.addrOffset = offset;
-    ScriptExec(&vm, &info);
-    printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-    printf("'%s'\n", vm.disasmBuffer);
-    ScriptVMRelease(&vm);
-  }
-  return 1;
 }
 
 static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {

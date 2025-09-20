@@ -4,7 +4,7 @@
 #include <string.h>
 #define _GNU_SOURCE
 #include "bytes.h"
-#include "script.h"
+#include "script2.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -49,7 +49,7 @@ static uint16_t parseArg(const char *arg) {
   assert(val < UINT16_MAX && val >= 0);
   return val;
 }
-
+#if 0
 static uint16_t getFunctionId(const char *arg, int *found) {
   assert(found);
   *found = 0;
@@ -66,7 +66,7 @@ static uint16_t getFunctionId(const char *arg, int *found) {
   }
   return 0;
 }
-
+#endif
 static int genByteCode(char *inst, uint16_t bCode[2]) {
   const char *mnemonic = toUpper(strsep(&inst, " "));
   const char *arg = inst;
@@ -158,7 +158,8 @@ static int genByteCode(char *inst, uint16_t bCode[2]) {
   } else if (strcmp(mnemonic, MNEMONIC_CALL) == 0) {
     assert(arg);
     int found = 0;
-    uint16_t val = getFunctionId(arg, &found);
+    uint16_t val = 0;
+    //    uint16_t val = getFunctionId(arg, &found);
     if (!found) {
       val = parseArg(arg);
     }
@@ -327,82 +328,7 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
   return 0;
 }
 
-int EMC_DisassembleFile(const char *binFilepath, const char *outFilePath) {
-  FILE *fileBinP = fopen(binFilepath, "rb");
-  if (fileBinP == NULL) {
-    perror("fopen");
-    return 1;
-  }
-  fseek(fileBinP, 0, SEEK_END);
-  long fsize = ftell(fileBinP);
-  fseek(fileBinP, 0, SEEK_SET);
-  uint8_t *binBuffer = malloc(fsize);
-  if (!binBuffer) {
-    perror("malloc error");
-    fclose(fileBinP);
-    return 1;
-  }
-  fread(binBuffer, fsize, 1, fileBinP);
-  fclose(fileBinP);
-  printf("read %zi bytes\n", fsize);
-
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptVMSetDisassembler(&vm);
-  vm.showDisamComment = 1;
-  ScriptInfo inf;
-  inf.scriptData = (uint16_t *)binBuffer;
-  inf.scriptSize = fsize / 2;
-  assert(vm.disasmBuffer);
-  if (!ScriptExec(&vm, &inf)) {
-    printf("error while disassembling code\n");
-    return 1;
-  }
-
-  printf("Wrote %zi bytes of assembly code\n", vm.disasmBufferIndex);
-
-  FILE *outFileP = fopen(outFilePath, "w");
-  if (outFileP) {
-    fwrite(vm.disasmBuffer, strlen(vm.disasmBuffer), 1, outFileP);
-    fclose(outFileP);
-  }
-
-  ScriptVMRelease(&vm);
-  free(binBuffer);
-  return 0;
-}
-
-int EMC_Exec(const char *scriptFilepath, int blockAddr) {
-  FILE *fp = fopen(scriptFilepath, "r");
-  if (fp == NULL) {
-    perror("fopen");
-    return 1;
-  }
-  fseek(fp, 0, SEEK_END);
-  size_t fsize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
-  if (!buffer) {
-    perror("malloc error");
-    fclose(fp);
-    return 1;
-  }
-  fread(buffer, fsize, 1, fp);
-  fclose(fp);
-
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptInfo inf;
-  inf.scriptData = (uint16_t *)buffer;
-  inf.scriptSize = fsize / 2;
-  printf("scriptSize 0X%04X\n", inf.scriptSize);
-  ScriptExec(&vm, &inf);
-  ScriptVMDump(&vm);
-  ScriptVMRelease(&vm);
-  free(buffer);
-  return 0;
-}
-
+#if 0
 static uint16_t basicBinaryTest(const char *s) {
   size_t bufferSize = 0;
   uint16_t *buffer = EMC_Assemble(s, &bufferSize);
@@ -561,3 +487,5 @@ int EMC_Tests(void) {
   TestIFNOTGO_1();
   return 0;
 }
+
+#endif

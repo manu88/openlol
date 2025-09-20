@@ -13,7 +13,6 @@
 #include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
-#include "script.h"
 #include "script2.h"
 #include "tests.h"
 #include <_string.h>
@@ -107,39 +106,6 @@ static int cmdVMP(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdScriptExec(int argc, char *argv[]) {
-  const char *filepath = argv[0];
-  int blockAddr = 0;
-  if (argc > 1) {
-    blockAddr = atoi(argv[1]);
-  }
-  printf("block addr= %X\n", blockAddr);
-  printf("asm script '%s'\n", filepath);
-  return EMC_Exec(filepath, blockAddr);
-}
-
-static int cmdScriptDisassemble(const char *filepath) {
-  char *outFilePath = strAppend(filepath, ".asm");
-  if (!outFilePath) {
-    return 1;
-  }
-  printf("disasm script '%s' to file '%s'\n", filepath, outFilePath);
-  int ret = EMC_DisassembleFile(filepath, outFilePath);
-  free(outFilePath);
-  return ret;
-}
-
-static int cmdScriptASM(const char *filepath) {
-  char *outFilePath = strAppend(filepath, ".bin");
-  if (!outFilePath) {
-    return 1;
-  }
-  printf("asm script '%s' to file '%s'\n", filepath, outFilePath);
-  int ret = EMC_AssembleFile(filepath, outFilePath);
-  free(outFilePath);
-  return ret;
-}
-
 static int cmdRender(int argc, char *argv[]) {
   if (argc < 3) {
     printf("render vcn-file vmp-file wallpos\n");
@@ -201,34 +167,7 @@ static void usageScript(void) {
 }
 
 static int cmdScript(int argc, char *argv[]) {
-  if (argc < 1) {
-    printf("script command, missing arguments\n");
-    usageScript();
-    return 1;
-  }
-
-  const char *filepath = argv[1];
-
-  if (strcmp(argv[0], "exec") == 0) {
-    if (argc < 2) {
-      printf("script: missing file path\n");
-      return 1;
-    }
-    return cmdScriptExec(argc - 1, argv + 1);
-  } else if (strcmp(argv[0], "asm") == 0) {
-    if (argc < 2) {
-      printf("script: missing file path\n");
-      return 1;
-    }
-    return cmdScriptASM(filepath);
-  } else if (strcmp(argv[0], "disasm") == 0) {
-    return cmdScriptDisassemble(filepath);
-  } else if (strcmp(argv[0], "tests") == 0) {
-    return cmdScriptTests();
-  }
-  printf("unkown subcommand '%s'\n", argv[0]);
-  usageScript();
-  return 1;
+  return script2Main(argc - 2, argv + 2);
 }
 
 static void usageSHP(void) {
@@ -441,77 +380,7 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
 }
 
 static void usageINF(void) {
-  printf("inf subcommands: extract|show|exec|disasm infFile [blockAddr]\n");
-}
-
-static int cmdINFDisasm(int argc, char *argv[]) {
-  const char *filepath = argv[0];
-  int blockAddr = 0;
-  if (argc > 1) {
-    blockAddr = atoi(argv[1]);
-  }
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
-  if (!buffer) {
-    perror("malloc error");
-    return 1;
-  }
-  INFScript script;
-  INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fileSize);
-
-  size_t blockSize = 0;
-  uint16_t *scriptBuffer = INFScriptGetBlock(&script, blockAddr, &blockSize);
-
-  ScriptInfo info = {0};
-  info.scriptData = (uint16_t *)INFScriptGetCodeBinary(&script);
-  info.scriptSize = INFScriptGetCodeBinarySize(&script);
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  ScriptVMSetDisassembler(&vm);
-  vm.showDisamComment = 1;
-  vm.instructionPointer = scriptBuffer - info.scriptData;
-  ScriptExec(&vm, &info);
-  printf("%s\n", vm.disasmBuffer);
-  INFScriptRelease(&script);
-  return 0;
-}
-
-static int cmdINFExec(int argc, char *argv[]) {
-  const char *filepath = argv[0];
-  int blockAddr = 0;
-  if (argc > 1) {
-    blockAddr = atoi(argv[1]);
-  }
-  printf("block addr= %X\n", blockAddr);
-  printf("asm script '%s'\n", filepath);
-
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
-  if (!buffer) {
-    perror("malloc error");
-    return 1;
-  }
-  INFScript script;
-  INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fileSize);
-
-  size_t blockSize = 0;
-  uint16_t *scriptBuffer = INFScriptGetBlock(&script, blockAddr, &blockSize);
-  printf("code block is %zi instructions long, at %p\n", blockSize,
-         (void *)scriptBuffer);
-
-  ScriptInfo info = {0};
-  info.scriptData = (uint16_t *)INFScriptGetCodeBinary(&script);
-  info.scriptSize = INFScriptGetCodeBinarySize(&script);
-  ScriptVM vm;
-  ScriptVMInit(&vm);
-  vm.instructionPointer = scriptBuffer - info.scriptData;
-  ScriptExec(&vm, &info);
-  INFScriptRelease(&script);
-  return 0;
+  printf("inf subcommands: extract|show| infFile [blockAddr]\n");
 }
 
 static int cmdINFShowContent(const char *filepath) {
@@ -582,10 +451,6 @@ static int cmdINF(int argc, char *argv[]) {
     return cmdINFExtractCode(argv[1]);
   } else if (strcmp(argv[0], "show") == 0 && argc == 2) {
     return cmdINFShowContent(argv[1]);
-  } else if (strcmp(argv[0], "exec") == 0 && argc >= 2) {
-    return cmdINFExec(argc - 1, argv + 1);
-  } else if (strcmp(argv[0], "disasm") == 0 && argc >= 2) {
-    return cmdINFDisasm(argc - 1, argv + 1);
   }
   usageINF();
   return 1;
@@ -767,8 +632,6 @@ int main(int argc, char *argv[]) {
     return cmdShp(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "lang") == 0) {
     return cmdLang(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "script2") == 0) {
-    return script2Main(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
