@@ -437,12 +437,12 @@ void EMCInterpreterExecFunction(EMCInterpreter *interp, EMCState *state,
                                 uint8_t funcNum) {
 
   if (funcNum >= numFunctions) {
-    printf("unimplemented func %X\n", interp->_parameter);
+    printf("unimplemented func %X\n", funcNum);
   }
   assert(funcNum < numFunctions);
   ScriptFunDesc desc = functions[funcNum];
   if (desc.fun == NULL) {
-    printf("unimplemented func %X\n", interp->_parameter);
+    printf("unimplemented func %X\n", funcNum);
   }
   state->retValue = desc.fun(interp, state);
 }

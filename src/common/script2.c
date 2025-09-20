@@ -94,19 +94,19 @@ int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script) {
   return 1;
 }
 
-static void execOpCode(EMCInterpreter *interp, EMCState *script,
-                       int16_t opCode) {
+static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
+                       int16_t parameter) {
 
   switch ((ScriptCommand)opCode) {
 
   case OP_JUMP:
-    script->ip = script->dataPtr->data + interp->_parameter;
+    script->ip = script->dataPtr->data + parameter;
     return;
   case OP_SETRETURNVALUE:
-    script->retValue = interp->_parameter;
+    script->retValue = parameter;
     return;
   case OP_PUSH_RETURN_OR_LOCATION:
-    switch (interp->_parameter) {
+    switch (parameter) {
     case 0:
       script->stack[--script->sp] = script->retValue;
       return;
@@ -124,21 +124,20 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
     return;
   case OP_PUSH:
   case OP_PUSH2:
-    script->stack[--script->sp] = interp->_parameter;
+    script->stack[--script->sp] = parameter;
     return;
   case OP_PUSH_VARIABLE:
-    script->stack[--script->sp] = script->regs[interp->_parameter];
+    script->stack[--script->sp] = script->regs[parameter];
     return;
   case OP_PUSH_LOCAL_VARIABLE:
     script->stack[--script->sp] =
-        script->stack[(-(int32_t)(interp->_parameter + 2)) + script->bp];
+        script->stack[(-(int32_t)(parameter + 2)) + script->bp];
     return;
   case OP_PUSH_PARAMETER:
-    script->stack[--script->sp] =
-        script->stack[(interp->_parameter - 1) + script->bp];
+    script->stack[--script->sp] = script->stack[(parameter - 1) + script->bp];
     return;
   case OP_POP_RETURN_OR_LOCATION:
-    switch (interp->_parameter) {
+    switch (parameter) {
     case 0:
       script->retValue = script->stack[script->sp++];
       break;
@@ -158,34 +157,33 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
     }
     return;
   case OP_POP_VARIABLE:
-    script->regs[interp->_parameter] = script->stack[script->sp++];
+    script->regs[parameter] = script->stack[script->sp++];
     return;
   case OP_POP_LOCAL_VARIABLE:
-    script->stack[(-(int32_t)(interp->_parameter + 2)) + script->bp] =
+    script->stack[(-(int32_t)(parameter + 2)) + script->bp] =
         script->stack[script->sp++];
     return;
   case OP_POP_PARAMETER:
-    script->stack[(interp->_parameter - 1) + script->bp] =
-        script->stack[script->sp++];
+    script->stack[(parameter - 1) + script->bp] = script->stack[script->sp++];
     return;
   case OP_STACK_REWIND:
-    script->sp += interp->_parameter;
+    script->sp += parameter;
     return;
   case OP_STACK_FORWARD:
-    script->sp -= interp->_parameter;
+    script->sp -= parameter;
     return;
   case OP_FUNCTION:
-    EMCInterpreterExecFunction(interp, script, (uint8_t)interp->_parameter);
+    EMCInterpreterExecFunction(interp, script, (uint8_t)parameter);
     return;
   case OP_JUMP_NE:
     if (!script->stack[script->sp++]) {
-      interp->_parameter &= 0x7FFF;
-      script->ip = script->dataPtr->data + interp->_parameter;
+      parameter &= 0x7FFF;
+      script->ip = script->dataPtr->data + parameter;
     }
     return;
   case OP_UNARY: {
     int16_t value = script->stack[script->sp];
-    switch (interp->_parameter) {
+    switch (parameter) {
     case 0:
       if (!value)
         script->stack[script->sp] = 1;
@@ -202,7 +200,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
       break;
 
     default:
-      printf("Unknown negation func: %d\n", interp->_parameter);
+      printf("Unknown negation func: %d\n", parameter);
       script->ip = NULL;
       assert(0);
     }
@@ -215,7 +213,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
     int16_t val1 = script->stack[script->sp++];
     int16_t val2 = script->stack[script->sp++];
 
-    switch (interp->_parameter) {
+    switch (parameter) {
     case 0:
       ret = (val2 && val1) ? 1 : 0;
       break;
@@ -289,7 +287,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
       break;
 
     default:
-      printf("Unknown evaluate func: %d\n", interp->_parameter);
+      printf("Unknown evaluate func: %d\n", parameter);
       error = 1;
     }
     if (error) {
@@ -317,8 +315,6 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
 }
 
 int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script) {
-  interp->_parameter = 0;
-
   if (!script->ip) {
     return 0;
   }
@@ -334,14 +330,14 @@ int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script) {
   int16_t code = swap_uint16(*script->ip++);
   int16_t opcode = (code >> 8) & 0x1F;
 
-  interp->_parameter = 0;
+  int16_t parameter = 0;
   if (code & 0x8000) {
     opcode = 0;
-    interp->_parameter = code & 0x7FFF;
+    parameter = code & 0x7FFF;
   } else if (code & 0x4000) {
-    interp->_parameter = (int8_t)(code);
+    parameter = (int8_t)(code);
   } else if (code & 0x2000) {
-    interp->_parameter = swap_uint16(*script->ip++);
+    parameter = swap_uint16(*script->ip++);
   }
 
   if (opcode > 18) {
@@ -349,7 +345,7 @@ int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script) {
   } else {
     // printf("%X Exec opcode=%X param=%X\n", instOffset,
     // opcode,interp->_parameter);
-    execOpCode(interp, script, opcode);
+    execOpCode(interp, script, opcode, parameter);
     // debugC(5, kDebugLevelScript, "[0x%.08X] EMCInterpreter::%s([%d/%u])",
     // instOffset, _opcodes[opcode].desc, _parameter, (uint)_parameter);
     //(this->*(_opcodes[opcode].proc))(script);

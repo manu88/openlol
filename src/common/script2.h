@@ -31,7 +31,6 @@ static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {
 typedef struct _EMCInterpreter {
   EMCData *_scriptData;
 
-  int16_t _parameter;
 } EMCInterpreter;
 
 int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
