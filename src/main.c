@@ -14,6 +14,7 @@
 #include "pak_file.h"
 #include "renderer.h"
 #include "script.h"
+#include "script_disassembler.h"
 #include "tests.h"
 #include <_string.h>
 #include <assert.h>
@@ -161,7 +162,7 @@ static int cmdRender(int argc, char *argv[]) {
 }
 
 static void usageScript(void) {
-  printf("script subcommands: test|offsets [filepath]\n");
+  printf("script subcommands: test|offsets|disasm [filepath]\n");
 }
 
 static int cmdScriptOffsets(const char *filepath) {
@@ -185,6 +186,45 @@ static int cmdScriptOffsets(const char *filepath) {
   return 0;
 }
 
+static int cmdScriptDisasm(const char *filepath, int offset) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+    printf("INFScriptFromBuffer error\n");
+    return 1;
+  }
+
+  EMCInterpreter interp = {0};
+  EMCDisassembler disassembler = {0};
+  EMCDisassemblerInit(&disassembler);
+  interp.disassembler = &disassembler;
+  EMCData dat = {0};
+  EMCInterpreterLoad(&interp, &script, &dat);
+  EMCState state = {0};
+  EMCStateInit(&state, &dat);
+
+  EMCStateSetOffset(&state, offset);
+  int n = 0;
+
+  while (EMCInterpreterIsValid(&interp, &state)) {
+    if (EMCInterpreterRun(&interp, &state) == 0) {
+      printf("EMCInterpreterRun returned 0\n");
+    }
+    n++;
+    if (n > 80) {
+      break;
+    }
+  }
+  printf("Exec'ed %i instructions\n", n);
+  INFScriptRelease(&script);
+  printf("%s\n", disassembler.disasmBuffer);
+  EMCDisassemblerRelease(&disassembler);
+  return 0;
+}
+
 static int cmdScriptTest(const char *filepath, int functionId) {
   size_t fileSize = 0;
   size_t readSize = 0;
@@ -199,18 +239,10 @@ static int cmdScriptTest(const char *filepath, int functionId) {
   EMCInterpreter interp = {0};
   EMCData dat = {0};
   EMCInterpreterLoad(&interp, &script, &dat);
-  printf("ordrsize=%u datasize=%u\n", dat.ordrSize, dat.dataSize);
   EMCState state = {0};
   EMCStateInit(&state, &dat);
-#if 0
-  for (int i = 0; i < dat.ordrSize; i++) {
-    if (dat.ordr[i] != 0XFFFF) {
-      printf("%X %X\n", i, swap_uint16(dat.ordr[i]));
-    }
-  }
-#endif
 
-  if (!EMCInterpreterStart(&interp, &state, functionId)) {
+  if (!EMCStateStart(&state, functionId)) {
     printf("EMCInterpreterStart: invalid\n");
   }
   int n = 0;
@@ -246,6 +278,12 @@ static int cmdScript(int argc, char *argv[]) {
     return cmdScriptTest(argv[1], atoi(argv[2]));
   } else if (strcmp(argv[0], "offsets") == 0) {
     return cmdScriptOffsets(argv[1]);
+  } else if (strcmp(argv[0], "disasm") == 0) {
+    if (argc < 3) {
+      printf("missing functionid\n");
+      return 1;
+    }
+    return cmdScriptDisasm(argv[1], atoi(argv[2]));
   }
   usageScript();
   return 1;

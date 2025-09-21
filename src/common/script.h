@@ -1,5 +1,6 @@
 #pragma once
 #include "format_inf.h"
+#include "script_disassembler.h"
 #include <stdint.h>
 
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.h
@@ -99,8 +100,6 @@ typedef struct {
   uint32_t ordrSize;
   uint16_t *ordr;
   uint32_t dataSize;
-
-  // const Common::Array<const Opcode *> *sysFuncs;
 } EMCData;
 
 typedef struct _EMCState {
@@ -121,13 +120,15 @@ static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {
 
 typedef struct _EMCInterpreter {
   EMCData *_scriptData;
-
+  EMCDisassembler *disassembler;
 } EMCInterpreter;
 
 int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
                        EMCData *data);
 void EMCInterpreterUnload(EMCInterpreter *interp, EMCData *data);
 void EMCStateInit(EMCState *scriptState, const EMCData *data);
-int EMCInterpreterStart(EMCInterpreter *interp, EMCState *script, int function);
+int EMCStateSetOffset(EMCState *script,
+                            uint16_t offset);
+int EMCStateStart(EMCState *script, int function);
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script);
 int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script);
