@@ -4,13 +4,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef uint16_t (*ScriptFunction)(EMCInterpreter *interp, EMCState *state);
-
-typedef struct {
-  ScriptFunction fun;
-  char name[32];
-} ScriptFunDesc;
-
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   printf("getWallType\n");
   return 0;
@@ -431,6 +424,10 @@ static ScriptFunDesc functions[] = {
 };
 
 static const size_t numFunctions = sizeof(functions) / sizeof(ScriptFunDesc);
+
+ScriptFunDesc *getBuiltinFunctions(void) { return functions; }
+
+size_t getNumBuiltinFunctions(void) { return numFunctions; }
 
 void EMCInterpreterExecFunction(EMCInterpreter *interp, EMCState *state,
                                 uint8_t funcNum) {

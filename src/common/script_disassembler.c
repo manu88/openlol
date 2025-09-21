@@ -14,7 +14,7 @@ void EMCDisassemblerRelease(EMCDisassembler *disassembler) {
   free(disassembler->disasmBuffer);
 }
 
-void emitLine(EMCDisassembler *disasm, const char *fmt, ...) {
+void EMCDisassemblerEmitLine(EMCDisassembler *disasm, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   size_t bSize = disasm->disasmBufferSize - disasm->disasmBufferIndex;
