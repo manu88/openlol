@@ -291,7 +291,7 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageSHP(void) {
-  printf("shp subcommands: list|render filepath [index] [palette]\n");
+  printf("shp subcommands: list|extract filepath [index] [palette]\n");
 }
 
 static int cmdShp(int argc, char *argv[]) {
