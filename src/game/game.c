@@ -1,5 +1,8 @@
 #include "game.h"
-
+#include "SDL_events.h"
+#include "SDL_pixels.h"
+#include "SDL_render.h"
+#include "SDL_surface.h"
 #include "bytes.h"
 #include "format_cmz.h"
 #include "format_dat.h"
@@ -9,6 +12,7 @@
 #include "format_wll.h"
 #include "render.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -20,6 +24,7 @@
 #define SCREEN_HEIGHT 800
 
 static int GameRun(LevelContext *ctx);
+static int GameInit(void);
 
 int cmdGame(int argc, char *argv[]) {
   if (argc < 5) {
@@ -147,6 +152,7 @@ int cmdGame(int argc, char *argv[]) {
     }
   }
   printf("Got all files\n");
+  GameInit();
   GameRun(&levelCtx);
   LevelContextRelease(&levelCtx);
   return 0;
@@ -159,16 +165,128 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
-static int GameRun(LevelContext *ctx) {
-  ctx->partyPos.x = 13;
-  ctx->partyPos.y = 18;
-  ctx->orientation = North;
+static TTF_Font *font = NULL;
+
+static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {
+  int shouldUpdate = 1;
+  switch (e->key.keysym.sym) {
+  case SDLK_z:
+    // go front
+    shouldUpdate = 1;
+    switch (ctx->orientation) {
+    case North:
+      ctx->partyPos.y -= 1;
+      break;
+    case East:
+      ctx->partyPos.x += 1;
+      break;
+    case South:
+      ctx->partyPos.y += 1;
+      break;
+    case West:
+      ctx->partyPos.x -= 1;
+      break;
+    }
+    break;
+  case SDLK_s:
+    // go back
+    shouldUpdate = 1;
+    switch (ctx->orientation) {
+    case North:
+      ctx->partyPos.y += 1;
+      break;
+    case East:
+      ctx->partyPos.x -= 1;
+      break;
+    case South:
+      ctx->partyPos.y -= 1;
+      break;
+    case West:
+      ctx->partyPos.x += 1;
+      break;
+    }
+    break;
+  case SDLK_q:
+    // go left
+    shouldUpdate = 1;
+    switch (ctx->orientation) {
+    case North:
+      ctx->partyPos.x -= 1;
+      break;
+    case East:
+      ctx->partyPos.y -= 1;
+      break;
+    case South:
+      ctx->partyPos.x += 1;
+      break;
+    case West:
+      ctx->partyPos.y += 1;
+      break;
+    }
+    break;
+  case SDLK_d:
+    // go right
+    shouldUpdate = 1;
+    switch (ctx->orientation) {
+    case North:
+      ctx->partyPos.x += 1;
+      break;
+    case East:
+      ctx->partyPos.y += 1;
+      break;
+    case South:
+      ctx->partyPos.x -= 1;
+      break;
+    case West:
+      ctx->partyPos.y -= 1;
+      break;
+    }
+    break;
+  case SDLK_a:
+    // turn anti-clockwise
+    shouldUpdate = 1;
+    ctx->orientation -= 1;
+    if ((int)ctx->orientation < 0) {
+      ctx->orientation = West;
+    }
+    break;
+  case SDLK_e:
+    // turn clockwise
+    shouldUpdate = 1;
+    ctx->orientation += 1;
+    if (ctx->orientation > West) {
+      ctx->orientation = North;
+    }
+    break;
+  default:
+    break;
+  }
+  return shouldUpdate;
+}
+
+static int GameInit(void) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 1;
   }
+  if (TTF_Init() == -1) {
+    printf("SDL could not be initialized!\n"
+           "SDL_Error: %s\n",
+           TTF_GetError());
+    return 1;
+  }
+
+  font = TTF_OpenFont("/Library/Fonts/Arial Unicode.ttf", 18);
+  assert(font);
+}
+
+static int GameRun(LevelContext *ctx) {
+  ctx->partyPos.x = 13;
+  ctx->partyPos.y = 18;
+  ctx->orientation = North;
+
   // Create window
   SDL_Window *window = SDL_CreateWindow(
       "Lands Of Lore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -187,6 +305,11 @@ static int GameRun(LevelContext *ctx) {
            SDL_GetError());
     return 1;
   }
+
+  SDL_Surface *textSurface = NULL;
+  SDL_Texture *gTextOutput = NULL;
+
+  SDL_StartTextInput();
   int quit = 0;
   int shouldUpdate = 1;
   // Event loop
@@ -198,98 +321,13 @@ static int GameRun(LevelContext *ctx) {
     if (e.type == SDL_QUIT) {
       quit = 1;
     } else if (e.type == SDL_KEYDOWN) {
-      switch (e.key.keysym.sym) {
-      case SDLK_z:
-        // go front
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.y -= 1;
-          break;
-        case East:
-          ctx->partyPos.x += 1;
-          break;
-        case South:
-          ctx->partyPos.y += 1;
-          break;
-        case West:
-          ctx->partyPos.x -= 1;
-          break;
-        }
-        break;
-      case SDLK_s:
-        // go back
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.y += 1;
-          break;
-        case East:
-          ctx->partyPos.x -= 1;
-          break;
-        case South:
-          ctx->partyPos.y -= 1;
-          break;
-        case West:
-          ctx->partyPos.x += 1;
-          break;
-        }
-        break;
-      case SDLK_q:
-        // go left
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.x -= 1;
-          break;
-        case East:
-          ctx->partyPos.y -= 1;
-          break;
-        case South:
-          ctx->partyPos.x += 1;
-          break;
-        case West:
-          ctx->partyPos.y += 1;
-          break;
-        }
-        break;
-      case SDLK_d:
-        // go right
-        shouldUpdate = 1;
-        switch (ctx->orientation) {
-        case North:
-          ctx->partyPos.x += 1;
-          break;
-        case East:
-          ctx->partyPos.y += 1;
-          break;
-        case South:
-          ctx->partyPos.x -= 1;
-          break;
-        case West:
-          ctx->partyPos.y -= 1;
-          break;
-        }
-        break;
-      case SDLK_a:
-        // turn anti-clockwise
-        shouldUpdate = 1;
-        ctx->orientation -= 1;
-        if ((int)ctx->orientation < 0) {
-          ctx->orientation = West;
-        }
-        break;
-      case SDLK_e:
-        // turn clockwise
-        shouldUpdate = 1;
-        ctx->orientation += 1;
-        if (ctx->orientation > West) {
-          ctx->orientation = North;
-        }
-        break;
-      default:
-        break;
-      }
+      shouldUpdate = processGameInputs(ctx, &e);
+
+    } else if (e.type == SDL_TEXTINPUT) {
+      printf("Got text input event\n");
+
+    } else if (e.type == SDL_TEXTEDITING) {
+      printf("Got TEXTEDITING event\n");
     }
     if (shouldUpdate) {
       printf("party x=0X%X y=0X%X\n", ctx->partyPos.x, ctx->partyPos.y);
@@ -298,6 +336,20 @@ static int GameRun(LevelContext *ctx) {
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
       SDL_RenderClear(renderer);
       GameRenderFrame(renderer, ctx);
+
+      if (textSurface) {
+        SDL_FreeSurface(textSurface);
+      }
+      textSurface = TTF_RenderUTF8_Solid(font, "lands of lore",
+                                         (SDL_Color){255, 255, 255, 255});
+
+      if (gTextOutput) {
+        SDL_DestroyTexture(gTextOutput);
+      }
+      gTextOutput = SDL_CreateTextureFromSurface(renderer, textSurface);
+      SDL_Rect dstrect = {100, 600, textSurface->w, textSurface->h};
+      SDL_RenderCopy(renderer, gTextOutput, NULL, &dstrect);
+
       SDL_RenderPresent(renderer);
       shouldUpdate = 0;
     }
