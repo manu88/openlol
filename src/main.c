@@ -712,6 +712,17 @@ static int cmdWSA(int argc, char *argv[]) {
   }
   WSAHandle handle;
   WSAHandleInit(&handle);
+  WSAHandleFromBuffer(&handle, buffer, readSize);
+  printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X\n",
+         handle.header.numFrames, handle.header.xPos, handle.header.yPos,
+         handle.header.width, handle.header.height, handle.header.hasPalette);
+
+  for (int i = 0; i < handle.header.numFrames + 2; i++) {
+
+    uint32_t frameOffset = handle.header.frameOffsets[i];
+    size_t offset = WSAHandleGetFrameOffset(&handle, i) - handle.originalBuffer;
+    printf("%i %zx\n", i, offset);
+  }
   WSAHandleRelease(&handle);
   return 0;
 }

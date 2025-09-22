@@ -1,4 +1,5 @@
 #include "format_wsa.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,5 +12,22 @@ void WSAHandleRelease(WSAHandle *handle) {
 
 int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize) {
-  return 0;
+
+  handle->header = *(WSAHeader *)buffer;
+  handle->originalBuffer = (uint8_t *)buffer;
+  handle->header.frameOffsets = (uint32_t *)(handle->originalBuffer + 14);
+
+  if (handle->header.hasPalette) {
+    handle->header.palette =
+        handle->originalBuffer + 14 + (handle->header.numFrames + 2) * 4;
+  } else {
+    handle->header.palette = NULL;
+  }
+  return 1;
+}
+
+uint8_t *WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
+  assert(index < handle->header.numFrames + 2);
+  uint32_t frameOffset = handle->header.frameOffsets[index];
+  return handle->originalBuffer + frameOffset + handle->header.hasPalette * 768;
 }

@@ -4,7 +4,7 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.DIP‘ : Translations, localized strings?
 - ‘.SHP‘ : Sprites sheet, see https://moddingwiki.shikadi.net/wiki/Westwood_SHP_Format_(Dune_II)
 - ‘.CPS‘ : images https://moddingwiki.shikadi.net/wiki/Westwood_CPS_Format
-- ‘.WSA‘ : images
+- ‘.WSA‘ : animations. see https://web.archive.org/web/20070119221145/http://eob.wikispaces.com/lol.wsa?token=d90db02368ef4405b16fea9347e22287 and https://moddingwiki.shikadi.net/wiki/Westwood_WSA_Format
 - ‘.TIM‘ : Timing and other animation WSA information?
 - ‘.VMP‘ : The vmp files contains information about how to put together the 8x8 blocks defined in the corresponding vcn files, into proper walls (including the background).
 - ‘.VCN‘ : .vcn files contains graphics for the walls including the background.
