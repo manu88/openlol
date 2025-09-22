@@ -7,6 +7,7 @@
 #include "format_inf.h"
 #include "format_lang.h"
 #include "format_shp.h"
+#include "format_tim.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
@@ -693,6 +694,19 @@ static int cmdLangShow(const char *filepath) {
   return 0;
 }
 
+static void usageTim(void) { printf("tim subcommands: show file\n"); }
+
+static int cmdTim(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("tim command, missing arguments\n");
+    usageTim();
+    return 1;
+  }
+  const char *filepath = argv[0];
+  TimShowFile(filepath);
+  return 0;
+}
+
 static void usageLang(void) { printf("lang subcommands: show file\n"); }
 
 static int cmdLang(int argc, char *argv[]) {
@@ -751,6 +765,8 @@ int main(int argc, char *argv[]) {
     return cmdShp(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "lang") == 0) {
     return cmdLang(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "tim") == 0) {
+    return cmdTim(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
