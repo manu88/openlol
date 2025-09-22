@@ -19,12 +19,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xlocale/_stdio.h>
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 800
 
-static int GameRun(LevelContext *ctx);
-static int GameInit(void);
+static int GameRun(GameContext *gameCtx, LevelContext *ctx);
+static int GameInit(GameContext *gameCtx);
 
 int cmdGame(int argc, char *argv[]) {
   if (argc < 5) {
@@ -152,9 +153,14 @@ int cmdGame(int argc, char *argv[]) {
     }
   }
   printf("Got all files\n");
-  GameInit();
-  GameRun(&levelCtx);
+
+  GameContext gameCtx = {0};
+  if (!GameInit(&gameCtx)) {
+    return 1;
+  }
+  GameRun(&gameCtx, &levelCtx);
   LevelContextRelease(&levelCtx);
+  GameContextRelease(&gameCtx);
   return 0;
 }
 
@@ -164,8 +170,6 @@ void LevelContextRelease(LevelContext *levelCtx) {
   MazeHandleRelease(&levelCtx->mazHandle);
   SHPHandleRelease(&levelCtx->shpHandle);
 }
-
-static TTF_Font *font = NULL;
 
 static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {
   int shouldUpdate = 1;
@@ -264,99 +268,106 @@ static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {
   return shouldUpdate;
 }
 
-static int GameInit(void) {
+static int GameInit(GameContext *gameCtx) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
-    return 1;
+    return 0;
   }
   if (TTF_Init() == -1) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
            TTF_GetError());
-    return 1;
+    return 0;
   }
 
-  font = TTF_OpenFont("/Library/Fonts/Arial Unicode.ttf", 18);
-  assert(font);
-}
+  gameCtx->font = TTF_OpenFont("/Library/Fonts/Arial Unicode.ttf", 18);
+  if (!gameCtx->font) {
+    printf("unable to create font\n"
+           "SDL_Error: %s\n",
+           TTF_GetError());
+    return 0;
+  }
 
-static int GameRun(LevelContext *ctx) {
-  ctx->partyPos.x = 13;
-  ctx->partyPos.y = 18;
-  ctx->orientation = North;
-
-  // Create window
-  SDL_Window *window = SDL_CreateWindow(
-      "Lands Of Lore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-      SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-  if (!window) {
+  gameCtx->window = SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
+                                     SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
+                                     SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+  if (!gameCtx->window) {
     printf("Window could not be created!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 1;
   }
-  SDL_Renderer *renderer =
-      SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  if (!renderer) {
+  gameCtx->renderer =
+      SDL_CreateRenderer(gameCtx->window, -1, SDL_RENDERER_ACCELERATED);
+  if (!gameCtx->renderer) {
     printf("Renderer could not be created!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 1;
   }
+  return 1;
+}
 
-  SDL_Surface *textSurface = NULL;
-  SDL_Texture *gTextOutput = NULL;
+static char textStatsBuffer[1024];
 
-  SDL_StartTextInput();
+static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
+  int statsPosX = 20;
+  int statsPosY = 300;
+  snprintf(textStatsBuffer, 1024, "pose x=%i y=%i o=%i", ctx->partyPos.x,
+           ctx->partyPos.y, ctx->orientation);
+  gameCtx->textSurface = TTF_RenderUTF8_Solid(gameCtx->font, textStatsBuffer,
+                                              (SDL_Color){255, 255, 255, 255});
+
+  gameCtx->textTexture =
+      SDL_CreateTextureFromSurface(gameCtx->renderer, gameCtx->textSurface);
+  SDL_Rect dstrect = {statsPosX, statsPosY, gameCtx->textSurface->w,
+                      gameCtx->textSurface->h};
+  SDL_RenderCopy(gameCtx->renderer, gameCtx->textTexture, NULL, &dstrect);
+  SDL_DestroyTexture(gameCtx->textTexture);
+  SDL_FreeSurface(gameCtx->textSurface);
+}
+
+static int GameRun(GameContext *gameCtx, LevelContext *ctx) {
+  ctx->partyPos.x = 13;
+  ctx->partyPos.y = 18;
+  ctx->orientation = North;
+
   int quit = 0;
   int shouldUpdate = 1;
   // Event loop
   while (!quit) {
     SDL_Event e;
-
     // Wait indefinitely for the next available event
     SDL_WaitEvent(&e);
     if (e.type == SDL_QUIT) {
       quit = 1;
     } else if (e.type == SDL_KEYDOWN) {
       shouldUpdate = processGameInputs(ctx, &e);
-
-    } else if (e.type == SDL_TEXTINPUT) {
-      printf("Got text input event\n");
-
-    } else if (e.type == SDL_TEXTEDITING) {
-      printf("Got TEXTEDITING event\n");
     }
     if (shouldUpdate) {
-      printf("party x=0X%X y=0X%X\n", ctx->partyPos.x, ctx->partyPos.y);
       memset(ctx->viewConeEntries, 0,
              sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-      SDL_RenderClear(renderer);
-      GameRenderFrame(renderer, ctx);
+      SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
+      SDL_RenderClear(gameCtx->renderer);
+      GameRenderFrame(gameCtx->renderer, ctx);
 
-      if (textSurface) {
-        SDL_FreeSurface(textSurface);
-      }
-      textSurface = TTF_RenderUTF8_Solid(font, "lands of lore",
-                                         (SDL_Color){255, 255, 255, 255});
+      renderTextStats(gameCtx, ctx);
 
-      if (gTextOutput) {
-        SDL_DestroyTexture(gTextOutput);
-      }
-      gTextOutput = SDL_CreateTextureFromSurface(renderer, textSurface);
-      SDL_Rect dstrect = {100, 600, textSurface->w, textSurface->h};
-      SDL_RenderCopy(renderer, gTextOutput, NULL, &dstrect);
-
-      SDL_RenderPresent(renderer);
+      SDL_RenderPresent(gameCtx->renderer);
       shouldUpdate = 0;
     }
   }
 
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
   SDL_Quit();
   return 0;
+}
+
+void GameContextRelease(GameContext *gameCtx) {
+  SDL_DestroyRenderer(gameCtx->renderer);
+  SDL_DestroyWindow(gameCtx->window);
+  if (gameCtx->font) {
+    TTF_CloseFont(gameCtx->font);
+  }
 }
