@@ -10,6 +10,7 @@
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
+#include "geometry.h"
 #include "render.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -310,23 +311,35 @@ static int GameInit(GameContext *gameCtx) {
   return 1;
 }
 
-static char textStatsBuffer[1024];
-
-static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
-  int statsPosX = 20;
-  int statsPosY = 300;
-  snprintf(textStatsBuffer, 1024, "pose x=%i y=%i o=%i", ctx->partyPos.x,
-           ctx->partyPos.y, ctx->orientation);
-  gameCtx->textSurface = TTF_RenderUTF8_Solid(gameCtx->font, textStatsBuffer,
+static void renderStatLine(GameContext *gameCtx, const char *line, int x,
+                           int y) {
+  gameCtx->textSurface = TTF_RenderUTF8_Solid(gameCtx->font, line,
                                               (SDL_Color){255, 255, 255, 255});
 
   gameCtx->textTexture =
       SDL_CreateTextureFromSurface(gameCtx->renderer, gameCtx->textSurface);
-  SDL_Rect dstrect = {statsPosX, statsPosY, gameCtx->textSurface->w,
-                      gameCtx->textSurface->h};
+  SDL_Rect dstrect = {x, y, gameCtx->textSurface->w, gameCtx->textSurface->h};
   SDL_RenderCopy(gameCtx->renderer, gameCtx->textTexture, NULL, &dstrect);
   SDL_DestroyTexture(gameCtx->textTexture);
   SDL_FreeSurface(gameCtx->textSurface);
+}
+
+static char textStatsBuffer[512];
+
+static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
+  int statsPosX = 20;
+  int statsPosY = 300;
+
+  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "stats:");
+  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
+
+  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "pose x=%i y=%i o=%i %c",
+           ctx->partyPos.x, ctx->partyPos.y, ctx->orientation,
+           ctx->orientation == North ? 'N'
+                                     : (ctx->orientation == South  ? 'S'
+                                        : ctx->orientation == East ? 'E'
+                                                                   : 'W'));
+  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY + 20);
 }
 
 static int GameRun(GameContext *gameCtx, LevelContext *ctx) {
@@ -339,7 +352,6 @@ static int GameRun(GameContext *gameCtx, LevelContext *ctx) {
   // Event loop
   while (!quit) {
     SDL_Event e;
-    // Wait indefinitely for the next available event
     SDL_WaitEvent(&e);
     if (e.type == SDL_QUIT) {
       quit = 1;
