@@ -10,6 +10,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char *EMCStateGetDataString(const EMCState *state, int16_t index) {
+  uint32_t strIndex = swap_uint16(((uint16_t *)state->dataPtr->text)[index]);
+
+  return (char *)(state->dataPtr->text + strIndex);
+}
+
 int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
                        EMCData *data) {
   data->text = infScript->chunks[kText]._data;

@@ -18,7 +18,7 @@ void INFScriptRelease(INFScript *script) {
 void INFScriptListText(const INFScript *script) {
   printf("TEXT chunk:\n");
   // first is size
-  for (uint32_t pos = 1; pos < (script->chunks[kText]._size << 1); ++pos) {
+  for (uint32_t pos = 0; pos < (script->chunks[kText]._size << 1); ++pos) {
     if (swap_uint16(((uint16_t *)script->chunks[kText]._data)[pos]) >=
         script->originalBufferSize) {
       break;

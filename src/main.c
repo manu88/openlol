@@ -180,7 +180,7 @@ static int cmdScriptOffsets(const char *filepath) {
   EMCInterpreterLoad(&interp, &script, &dat);
   for (int i = 0; i < dat.ordrSize; i++) {
     if (dat.ordr[i] != 0XFFFF) {
-      printf("%X %X\n", i, swap_uint16(dat.ordr[i]));
+      printf("%i %X\n", i, swap_uint16(dat.ordr[i]));
     }
   }
   return 0;

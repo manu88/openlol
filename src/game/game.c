@@ -324,14 +324,17 @@ static void renderStatLine(GameContext *gameCtx, const char *line, int x,
   SDL_FreeSurface(gameCtx->textSurface);
 }
 
+uint16_t calcNewBlockPosition(uint16_t curBlock, uint16_t direction) {
+  static const int16_t blockPosTable[] = {-32, 1, 32, -1};
+  assert(direction < sizeof(blockPosTable) / sizeof(int16_t));
+  return (curBlock + blockPosTable[direction]) & 0x3FF;
+}
+
 static char textStatsBuffer[512];
 
 static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   int statsPosX = 20;
   int statsPosY = 300;
-
-  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "stats:");
-  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   snprintf(textStatsBuffer, sizeof(textStatsBuffer), "pose x=%i y=%i o=%i %c",
            ctx->partyPos.x, ctx->partyPos.y, ctx->orientation,
@@ -339,7 +342,12 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
                                      : (ctx->orientation == South  ? 'S'
                                         : ctx->orientation == East ? 'E'
                                                                    : 'W'));
-  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY + 20);
+  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
+
+  statsPosY += 20;
+  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "newblockpos: %i",
+           calcNewBlockPosition(0, ctx->orientation));
+  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 }
 
 static int GameRun(GameContext *gameCtx, LevelContext *ctx) {

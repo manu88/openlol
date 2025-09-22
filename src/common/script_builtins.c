@@ -9,8 +9,9 @@ static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
-  printf("drawScene\n");
-  return 0;
+  int16_t p0 = EMCStateStackVal(state, 0);
+  printf("drawScene %X\n", p0);
+  return 1;
 }
 static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
   printf("rollDice\n");
@@ -32,9 +33,6 @@ static uint16_t queryGameFlag(uint16_t flag) {
 }
 static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
   uint16_t p = EMCStateStackVal(state, 0);
-  if (p < 0) {
-    return 0;
-  }
 
   printf("testGameFlag %X\n", p);
   assert((p >> 3) >= 0 && (p >> 3) <= 100);
@@ -83,7 +81,10 @@ static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
-  printf("loadBitmap\n");
+  int16_t p0 = EMCStateStackVal(state, 0);
+  int16_t p1 = EMCStateStackVal(state, 1);
+  const char *f = EMCStateGetDataString(state, p0);
+  printf("loadBitmap %X %X '%s'\n", p0, p1, f);
   return 0;
 }
 static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
@@ -122,6 +123,40 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
   }
   return 0;
 }
+
+static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
+  printf("loadSoundFile\n");
+  return 0;
+}
+
+static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
+  printf("playMusicTrack\n");
+  return 0;
+}
+
+static uint16_t fadeClearSceneWindow(EMCInterpreter *interp, EMCState *state) {
+  printf("fadeClearSceneWindow\n");
+  return 0;
+}
+
+static uint16_t fadeSequencePalette(EMCInterpreter *interp, EMCState *state) {
+  printf("fadeSequencePalette\n");
+  return 0;
+}
+
+static uint16_t initSceneWindowDialogue(EMCInterpreter *interp,
+                                        EMCState *state) {
+  int16_t p0 = EMCStateStackVal(state, 0);
+  printf("initSceneWindowDialogue %x\n", p0);
+  return 0;
+}
+
+static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
+                                         EMCState *state) {
+  printf("startBackgroundAnimation\n");
+  return 0;
+}
+
 static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
   printf("copyRegion\n");
   return 0;
@@ -131,7 +166,9 @@ static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
-  printf("loadTimScript\n");
+  int16_t p0 = EMCStateStackVal(state, 0);
+  const char *str = EMCStateGetDataString(state, p0);
+  printf("loadTimScript %x :'%s'.TIM\n", p0, str);
   return 0;
 }
 
@@ -273,7 +310,7 @@ static ScriptFunDesc functions[] = {
     {checkRectForMousePointer, "checkRectForMousePointer"},
     {clearDialogueField, "clearDialogueField"},
     {setupBackgroundAnimationPart, "setupBackgroundAnimationPart"},
-    {NULL},
+    {startBackgroundAnimation, "startBackgroundAnimation"},
     {hideMouse, "hideMouse"},
     {showMouse, "showMouse"},
     {fadeToBlack, "fadeToBlack"},
@@ -297,9 +334,9 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {copyRegion, "copyRegion"},
     {NULL},
-    {NULL},
+    {fadeClearSceneWindow, "fadeClearSceneWindow"},
     // 0X3A
-    {NULL},
+    {fadeSequencePalette, "fadeSequencePalette"},
     {NULL},
     {NULL},
     {NULL},
@@ -327,7 +364,7 @@ static ScriptFunDesc functions[] = {
 
     // 0X50
     {releaseTimScript, "releaseTimScript"},
-    {NULL},
+    {initSceneWindowDialogue, "initSceneWindowDialogue"},
     {NULL},
     {getItemInHand, "getItemInHand"},
     {NULL},
@@ -348,8 +385,8 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {drawExitButton, "drawExitButton"},
-    {NULL},
-    {NULL},
+    {loadSoundFile, "loadSoundFile"},
+    {playMusicTrack, "playMusicTrack"},
     {NULL},
     {NULL},
     {NULL},
