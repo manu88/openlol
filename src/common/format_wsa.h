@@ -21,10 +21,11 @@ typedef struct {
 typedef struct {
   WSAHeader header;
   uint8_t *originalBuffer;
+  size_t bufferSize;
 } WSAHandle;
 
 void WSAHandleInit(WSAHandle *handle);
 void WSAHandleRelease(WSAHandle *handle);
 int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
-uint8_t *WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index);
+uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index);

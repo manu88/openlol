@@ -15,6 +15,7 @@ int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
 
   handle->header = *(WSAHeader *)buffer;
   handle->originalBuffer = (uint8_t *)buffer;
+  handle->bufferSize = bufferSize;
   handle->header.frameOffsets = (uint32_t *)(handle->originalBuffer + 14);
 
   if (handle->header.hasPalette) {
@@ -26,8 +27,8 @@ int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
   return 1;
 }
 
-uint8_t *WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
+uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
   assert(index < handle->header.numFrames + 2);
   uint32_t frameOffset = handle->header.frameOffsets[index];
-  return handle->originalBuffer + frameOffset + handle->header.hasPalette * 768;
+  return frameOffset + handle->header.hasPalette * 768;
 }

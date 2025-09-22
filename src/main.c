@@ -694,15 +694,7 @@ static int cmdLangShow(const char *filepath) {
   return 0;
 }
 
-static void usageWSA(void) { printf("wsa subcommands: show file\n"); }
-
-static int cmdWSA(int argc, char *argv[]) {
-  if (argc < 1) {
-    printf("wsa command, missing arguments\n");
-    usageWSA();
-    return 1;
-  }
-  const char *filepath = argv[0];
+static int cmdWSAShow(const char *filepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
@@ -713,18 +705,37 @@ static int cmdWSA(int argc, char *argv[]) {
   WSAHandle handle;
   WSAHandleInit(&handle);
   WSAHandleFromBuffer(&handle, buffer, readSize);
-  printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X\n",
+  printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X delta=%X\n",
          handle.header.numFrames, handle.header.xPos, handle.header.yPos,
-         handle.header.width, handle.header.height, handle.header.hasPalette);
+         handle.header.width, handle.header.height, handle.header.hasPalette,
+         handle.header.delta);
 
   for (int i = 0; i < handle.header.numFrames + 2; i++) {
-
-    uint32_t frameOffset = handle.header.frameOffsets[i];
-    size_t offset = WSAHandleGetFrameOffset(&handle, i) - handle.originalBuffer;
-    printf("%i %zx\n", i, offset);
+    uint32_t frameOffset = WSAHandleGetFrameOffset(&handle, i);
+    printf("%i %X %zX:\n", i, frameOffset, handle.bufferSize);
+    if (frameOffset == handle.bufferSize) {
+      printf("IS ZERO\n");
+    }
   }
   WSAHandleRelease(&handle);
   return 0;
+}
+
+static void usageWSA(void) { printf("wsa subcommands: show file\n"); }
+
+static int cmdWSA(int argc, char *argv[]) {
+  if (argc < 2) {
+    printf("wsa command, missing arguments\n");
+    usageWSA();
+    return 1;
+  }
+
+  const char *filepath = argv[1];
+  if (strcmp(argv[0], "show") == 0) {
+    return cmdWSAShow(filepath);
+  }
+  usageWSA();
+  return 1;
 }
 
 static void usageTim(void) { printf("tim subcommands: show file\n"); }
