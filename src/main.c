@@ -1,6 +1,5 @@
 
 #include "bytes.h"
-#include "emc_asm.h"
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_dat.h"
@@ -703,7 +702,27 @@ static int cmdTim(int argc, char *argv[]) {
     return 1;
   }
   const char *filepath = argv[0];
-  TimShowFile(filepath);
+
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return 1;
+  }
+
+  TIMHandle handle = {0};
+  TIMHandleInit(&handle);
+  TIMHandleFromBuffer(&handle, buffer, readSize);
+
+  if (handle.text) {
+    printf("Text:'%s'\n", TIMHandleGetText(&handle));
+  }
+
+  printf("Got %zu avtl chunks\n", handle.avtlSize);
+  printf("Got %i functions\n", handle.numFunctions);
+
+  TIMHandleRelease(&handle);
   return 0;
 }
 
