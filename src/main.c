@@ -10,6 +10,7 @@
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
+#include "format_wsa.h"
 #include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
@@ -693,6 +694,28 @@ static int cmdLangShow(const char *filepath) {
   return 0;
 }
 
+static void usageWSA(void) { printf("wsa subcommands: show file\n"); }
+
+static int cmdWSA(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("wsa command, missing arguments\n");
+    usageWSA();
+    return 1;
+  }
+  const char *filepath = argv[0];
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return 1;
+  }
+  WSAHandle handle;
+  WSAHandleInit(&handle);
+  WSAHandleRelease(&handle);
+  return 0;
+}
+
 static void usageTim(void) { printf("tim subcommands: show file\n"); }
 
 static int cmdTim(int argc, char *argv[]) {
@@ -702,7 +725,6 @@ static int cmdTim(int argc, char *argv[]) {
     return 1;
   }
   const char *filepath = argv[0];
-
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
@@ -786,6 +808,8 @@ int main(int argc, char *argv[]) {
     return cmdLang(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "tim") == 0) {
     return cmdTim(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "wsa") == 0) {
+    return cmdWSA(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
