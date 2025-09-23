@@ -256,7 +256,7 @@ uint8_t *DecompressRLEZeroD2(const uint8_t *fileData, size_t datalen,
                              int frameWidth, int frameHeight) {
   int fullLength = frameWidth * frameHeight;
   uint8_t *finalImage = malloc(fullLength);
-
+  assert(finalImage);
   int outLineOffset = 0;
   int offset = 0;
   for (int y = 0; y < frameHeight; y++) {
