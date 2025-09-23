@@ -58,7 +58,7 @@ int CPSImageFromFile(CPSImage *image, const uint8_t *buffer,
   }
   image->paletteSize = file->paletteSize;
   image->data = malloc(file->uncompressedSize);
-  image->imageSize = dataSize;
+  image->imageSize = file->uncompressedSize;
   if (!image->data) {
     return 0;
   }
