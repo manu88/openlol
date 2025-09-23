@@ -1,10 +1,12 @@
 
 #include "bytes.h"
+#include "format_40.h"
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_dat.h"
 #include "format_inf.h"
 #include "format_lang.h"
+#include "format_lcw.h"
 #include "format_shp.h"
 #include "format_tim.h"
 #include "format_vcn.h"
@@ -694,6 +696,52 @@ static int cmdLangShow(const char *filepath) {
   return 0;
 }
 
+static int cmdWSAExtract(const char *filepath, int frameNum) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return 1;
+  }
+  WSAHandle handle;
+  WSAHandleInit(&handle);
+  WSAHandleFromBuffer(&handle, buffer, readSize);
+  printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X delta=%i\n",
+         handle.header.numFrames, handle.header.xPos, handle.header.yPos,
+         handle.header.width, handle.header.height, handle.header.hasPalette,
+         handle.header.delta);
+  if (frameNum < 0 || frameNum >= handle.header.numFrames) {
+    printf("invalid frameNum\n");
+    WSAHandleRelease(&handle);
+    return 1;
+  }
+  printf("Extract frame %i/%i\n", frameNum, handle.header.numFrames);
+
+  uint32_t offset = WSAHandleGetFrameOffset(&handle, frameNum);
+  const uint8_t *frameData = handle.originalBuffer + offset;
+  size_t frameSize = WSAHandleGetFrameOffset(&handle, frameNum + 1) - offset;
+  size_t destSize = handle.header.delta;
+  uint8_t *outData = malloc(destSize);
+
+  ssize_t decompressedSize =
+      LCWDecompress(frameData, frameSize, outData, destSize);
+  printf("LCWDecompress: decompressedSize=%zi\n", decompressedSize);
+
+  size_t fullSize = handle.header.width * handle.header.height;
+  uint8_t *outData2 = malloc(fullSize);
+  Format40Decode(outData, decompressedSize, outData2);
+
+  WSAFrameToPng(outData2, fullSize, handle.header.palette, "frameWSA.png",
+                handle.header.width, handle.header.height);
+
+  free(outData);
+  free(outData2);
+
+  WSAHandleRelease(&handle);
+  return 0;
+}
+
 static int cmdWSAShow(const char *filepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
@@ -721,7 +769,9 @@ static int cmdWSAShow(const char *filepath) {
   return 0;
 }
 
-static void usageWSA(void) { printf("wsa subcommands: show file\n"); }
+static void usageWSA(void) {
+  printf("wsa subcommands: show|extract file [framenum]\n");
+}
 
 static int cmdWSA(int argc, char *argv[]) {
   if (argc < 2) {
@@ -733,6 +783,13 @@ static int cmdWSA(int argc, char *argv[]) {
   const char *filepath = argv[1];
   if (strcmp(argv[0], "show") == 0) {
     return cmdWSAShow(filepath);
+  } else if (strcmp(argv[0], "extract") == 0) {
+    if (argc < 3) {
+      printf("missing frameNum argument\n");
+      usageWSA();
+      return 1;
+    }
+    return cmdWSAExtract(filepath, atoi(argv[2]));
   }
   usageWSA();
   return 1;

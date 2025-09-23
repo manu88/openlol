@@ -3,7 +3,9 @@
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
+#include "format_wsa.h"
 #include <SDL2/SDL.h>
+#include <stddef.h>
 #include <stdint.h>
 
 /*
@@ -48,6 +50,8 @@ typedef enum {
   Q_west,
 } WallRenderIndex;
 
+void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
+                   const char *savePngPath, int w, int h);
 void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
