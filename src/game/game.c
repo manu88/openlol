@@ -78,8 +78,10 @@ int cmdGame(int argc, char *argv[]) {
 
     if (!VMPHandleFromLCWBuffer(&levelCtx.vmpHandle, buffer, fileSize)) {
       printf("VMPDataFromLCWBuffer error\n");
+      free(buffer);
       return 1;
     }
+    free(buffer);
   }
   {
     size_t fileSize = 0;
@@ -96,8 +98,10 @@ int cmdGame(int argc, char *argv[]) {
 
     if (!MazeHandleFromBuffer(&levelCtx.mazHandle, buffer, fileSize)) {
       printf("MazeHandleFromBuffer error\n");
+      free(buffer);
       return 1;
     }
+    free(buffer);
   }
   {
     size_t fileSize = 0;
