@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1640"
+   LastUpgradeVersion = "2600"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -34,6 +34,8 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      enableAddressSanitizer = "YES"
+      enableASanStackUseAfterReturn = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -53,19 +55,31 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "pak"
+            argument = "game"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "extract"
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL1.CMZ"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/data/CHAPTER1.PAK"
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.VCN"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "LEVEL1.XXX"
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.VMP"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL1.WLL"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.DAT"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.SHP"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
