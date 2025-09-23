@@ -19,6 +19,9 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
   uint8_t *buff = (uint8_t *)buffer;
   uint8_t chunkName[sizeof("TEXT") + 1];
   while (readSize < bufferSize) {
+    if (bufferSize - readSize < 4) {
+      break;
+    }
     memcpy(chunkName, buff, 4);
     chunkName[4] = '\0';
     buff += 4;
