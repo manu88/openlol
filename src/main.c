@@ -796,12 +796,11 @@ static int cmdWSA(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageTim(void) { printf("tim subcommands: show file\n"); }
+static void usageTim(void) { printf("tim subcommands: show|anim file\n"); }
 
-static int cmdTim(int argc, char *argv[]) {
+static int cmdShowTim(int argc, char *argv[]) {
   if (argc < 1) {
-    printf("tim command, missing arguments\n");
-    usageTim();
+    printf("show command, missing arguments\n");
     return 1;
   }
   const char *filepath = argv[0];
@@ -832,6 +831,28 @@ static int cmdTim(int argc, char *argv[]) {
 
   TIMHandleRelease(&handle);
   return 0;
+}
+
+static int cmdAnimateTim(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("tim command, missing arguments\n");
+    return 1;
+  }
+  return 0;
+}
+
+static int cmdTim(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("tim command, missing arguments\n");
+    usageTim();
+    return 1;
+  }
+  if (strcmp(argv[0], "show") == 0) {
+    return cmdShowTim(argc - 1, argv + 1);
+  } else if (strcmp(argv[0], "anim") == 0) {
+    return cmdAnimateTim(argc - 1, argv + 1);
+  }
+  usageTim();
 }
 
 static void usageLang(void) { printf("lang subcommands: show file\n"); }
