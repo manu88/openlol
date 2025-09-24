@@ -4,6 +4,7 @@
 typedef struct {
   int16_t procFunc;
   int currentFunc;
+  int nextFunc;
   uint16_t procParam;
   TIMHandle *_tim;
 
