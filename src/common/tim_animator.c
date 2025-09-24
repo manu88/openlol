@@ -44,6 +44,9 @@ static void mainLoop(TIMAnimator *animator) {
     if (e.type == SDL_QUIT) {
       quit = 1;
     }
+    if (TIMInterpreterIsRunning(&animator->_interpreter)) {
+      TIMInterpreterUpdate(&animator->_interpreter);
+    }
   }
 }
 
@@ -53,6 +56,7 @@ int TIMAnimatorRunAnim(TIMAnimator *animator, TIMHandle *tim) {
   }
   printf("TIMAnimatorRunAnim\n");
   animator->tim = tim;
+  TIMInterpreterStart(&animator->_interpreter, tim);
   mainLoop(animator);
-  return TIMInterpreterExec(&animator->_interpreter, animator->tim);
+  return 1;
 }

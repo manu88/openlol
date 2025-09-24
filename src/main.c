@@ -828,7 +828,10 @@ static int cmdShowTim(int argc, char *argv[]) {
 
   TIMInterpreter interp;
   TIMInterpreterInit(&interp);
-  TIMInterpreterExec(&interp, &handle);
+  TIMInterpreterStart(&interp, &handle);
+  while (TIMInterpreterIsRunning(&interp)) {
+    TIMInterpreterUpdate(&interp);
+  }
 
   TIMHandleRelease(&handle);
   return 0;

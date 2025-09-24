@@ -14,4 +14,7 @@ typedef struct {
 
 void TIMInterpreterInit(TIMInterpreter *interp);
 void TIMInterpreterRelease(TIMInterpreter *interp);
-int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim);
+
+void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim);
+int TIMInterpreterIsRunning(const TIMInterpreter *interp);
+void TIMInterpreterUpdate(TIMInterpreter *interp);
