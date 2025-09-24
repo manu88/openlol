@@ -11,16 +11,16 @@ typedef struct {
   uint16_t *avtl;
 } TimFunction;
 
-#define NUM_TIM_FUNCTIONS 10
+#define TIM_NUM_FUNCTIONS 10
 
 typedef struct {
   uint8_t *text;
   size_t textSize;
 
   uint16_t *avtl;
-  size_t avtlSize;
+  size_t avtlSize; // size in sizeof(uint16_t)!
 
-  TimFunction functions[NUM_TIM_FUNCTIONS];
+  TimFunction functions[TIM_NUM_FUNCTIONS];
   int numFunctions;
 
   uint8_t *originalBuffer;
@@ -31,5 +31,4 @@ void TIMHandleRelease(TIMHandle *handle);
 int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
 
-const char *TIMHandleGetText(TIMHandle *handle);
-int TIMHandleExec(TIMHandle *handle);
+const char *TIMHandleGetText(TIMHandle *handle, int index);

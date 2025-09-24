@@ -19,6 +19,7 @@
 #include "script.h"
 #include "script_disassembler.h"
 #include "tests.h"
+#include "tim_interpreter.h"
 #include <_string.h>
 #include <assert.h>
 #include <stddef.h>
@@ -817,11 +818,17 @@ static int cmdTim(int argc, char *argv[]) {
   TIMHandleFromBuffer(&handle, buffer, readSize);
 
   if (handle.text) {
-    printf("Text:'%s'\n", TIMHandleGetText(&handle));
+    printf("Text:'%s'\n", TIMHandleGetText(&handle, 0));
+  } else {
+    printf("No text\n");
   }
 
   printf("Got %zu avtl chunks\n", handle.avtlSize);
   printf("Got %i functions\n", handle.numFunctions);
+
+  TimInterpreter interp;
+  TimInterpreterInit(&interp);
+  TimInterpreterExec(&interp, &handle);
 
   TIMHandleRelease(&handle);
   return 0;

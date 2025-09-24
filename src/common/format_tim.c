@@ -31,7 +31,6 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
       readSize += 4;
     } else if (strcmp((char *)chunkName, "TEXT") == 0) {
       uint32_t textSize = swap_uint32(*(uint32_t *)buff);
-      textSize += textSize % 2 != 0 ? 1 : 0;
       buff += 4;
       readSize += 4;
       handle->text = buff;
@@ -39,10 +38,9 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
       buff += textSize;
       readSize += textSize;
     } else if (strcmp((char *)chunkName, "AVTL") == 0) {
-      uint32_t dataSize = swap_uint32(*(uint32_t *)buff);
+      uint32_t dataSize = swap_uint32(*(uint32_t *)buff); // size in bytes!
       buff += 4;
       readSize += 4;
-
       handle->avtlSize = dataSize / 2;
       handle->avtl = (uint16_t *)buff;
 
@@ -58,10 +56,9 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
   if (handle->textSize < 0) {
     assert(handle->text);
   }
-
-  handle->numFunctions = handle->avtlSize < NUM_TIM_FUNCTIONS
+  handle->numFunctions = handle->avtlSize < TIM_NUM_FUNCTIONS
                              ? handle->avtlSize
-                             : NUM_TIM_FUNCTIONS;
+                             : TIM_NUM_FUNCTIONS;
   for (int i = 0; i < handle->numFunctions; i++) {
     uint16_t offset = handle->avtl[i];
     handle->functions[i].avtl = handle->avtl + offset;
@@ -70,11 +67,10 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
   return 1;
 }
 
-const char *TIMHandleGetText(TIMHandle *handle) {
+const char *TIMHandleGetText(TIMHandle *handle, int index) {
+  assert(index == 0); // need to implement indexing
   if (handle->textSize == 0) {
     return NULL;
   }
   return (const char *)handle->text + *(handle->text);
 }
-
-int TIMHandleExec(TIMHandle *handle) { return 0; }
