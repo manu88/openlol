@@ -164,14 +164,13 @@ static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
     // interp->_tim->clickedButton = 0;
 
     const char *tmpStr[3];
-    int cnt = 0;
 
     for (int i = 1; i < 4; i++) {
       printf("%i %X\n", i, param[i]);
       if (param[i] != 0xFFFF) {
         getLangString(param[i]);
         // tmpStr[i-1] = getTableString(param[i]);
-        cnt++;
+
       } else {
         tmpStr[i - 1] = 0;
       }
@@ -188,29 +187,29 @@ static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
   return -1;
 }
 
-int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
-
+void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim) {
   interp->_tim = tim;
   if (interp->_tim->functions[0].ip == NULL) {
     interp->_tim->functions[0].ip = interp->_tim->functions[0].avtl;
   }
+  interp->looped = 1;
+}
 
-  int loop = 10;
+int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
+  TIMInterpreterStart(interp, tim);
   do {
     for (interp->currentFunc = 0; interp->currentFunc < TIM_NUM_FUNCTIONS;
          interp->currentFunc++) {
+      printf(">>>ENTRER for (interp->currentFunc %i\n", interp->currentFunc);
       TimFunction *cur = interp->_tim->functions + interp->currentFunc;
-      if (interp->procFunc != -1) {
-        execCommand(interp, 28, &interp->procParam);
-      }
 
       int running = 1;
-      int cnt = 0;
+
       while (cur->ip && running) {
-        if (cnt++ > 0) {
-          if (interp->procFunc != -1) {
-            execCommand(interp, 28, &interp->procParam);
-          }
+
+        if (interp->procFunc != -1) {
+          execCommand(interp, TIM_COMMAND_ID_PROCESS_DIALOGUE,
+                      &interp->procParam);
         }
 
         int8_t opcode = cur->ip[2] & 0XFF;
@@ -229,7 +228,7 @@ int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
           running = 0;
           break;
         case -1:
-          loop = 0;
+          interp->looped = 0;
           running = 0;
           break;
         default:
@@ -238,8 +237,8 @@ int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
         if (cur->ip) {
           cur->ip += cur->ip[0];
         }
-      }
-    }
-  } while (loop--);
+      } // end while
+    } // end for
+  } while (interp->looped);
   return 0;
 }
