@@ -5,14 +5,14 @@
 
 void TIMAnimatorInit(TIMAnimator *animator) {
   memset(animator, 0, sizeof(TIMAnimator));
-  TimInterpreterInit(&animator->_interpreter);
+  TIMInterpreterInit(&animator->_interpreter);
 }
 void TIMAnimatorRelease(TIMAnimator *animator) {
-  TimInterpreterRelease(&animator->_interpreter);
+  TIMInterpreterRelease(&animator->_interpreter);
 }
 
 int TIMAnimatorRunAnim(TIMAnimator *animator, TIMHandle *tim) {
   printf("TIMAnimatorRunAnim\n");
   animator->tim = tim;
-  return TimInterpreterExec(&animator->_interpreter, animator->tim);
+  return TIMInterpreterExec(&animator->_interpreter, animator->tim);
 }

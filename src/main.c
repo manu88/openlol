@@ -826,9 +826,9 @@ static int cmdShowTim(int argc, char *argv[]) {
   printf("Got %zu avtl chunks\n", handle.avtlSize);
   printf("Got %i functions\n", handle.numFunctions);
 
-  TimInterpreter interp;
-  TimInterpreterInit(&interp);
-  TimInterpreterExec(&interp, &handle);
+  TIMInterpreter interp;
+  TIMInterpreterInit(&interp);
+  TIMInterpreterExec(&interp, &handle);
 
   TIMHandleRelease(&handle);
   return 0;

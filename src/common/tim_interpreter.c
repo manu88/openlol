@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 
-void TimInterpreterInit(TimInterpreter *interp) {
-  memset(interp, 0, sizeof(TimInterpreter));
+void TIMInterpreterInit(TIMInterpreter *interp) {
+  memset(interp, 0, sizeof(TIMInterpreter));
   interp->procFunc = -1;
 }
 
-void TimInterpreterRelease(TimInterpreter *interp) {}
+void TIMInterpreterRelease(TIMInterpreter *interp) {}
 
 typedef enum {
   TIM_COMMAND_ID_STOP_ALL_FUNCS = 0X01,
@@ -48,7 +48,7 @@ static void getLangString(uint16_t id) {
   printf("real lang string id=%i uselevel=%i\n", realId, useLevelFile);
 }
 
-static int execTIMOpCode(TimInterpreter *interp, uint16_t opcode,
+static int execTIMOpCode(TIMInterpreter *interp, uint16_t opcode,
                          const uint16_t *param) {
   switch ((TIM_OPCODE)opcode) {
   case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE: {
@@ -77,7 +77,7 @@ static int execTIMOpCode(TimInterpreter *interp, uint16_t opcode,
   return -1;
 }
 
-static void advanceToOpCode(TimInterpreter *interp, int opCode,
+static void advanceToOpCode(TIMInterpreter *interp, int opCode,
                             int prevProcFunc) {
   TimFunction *f = interp->_tim->functions + prevProcFunc;
   uint16_t len = f->ip[0];
@@ -93,7 +93,7 @@ static void advanceToOpCode(TimInterpreter *interp, int opCode,
   // f->nextTime = _system->getMillis();
 }
 
-static int execCommand(TimInterpreter *interp, uint8_t cmdID,
+static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
                        const uint16_t *param) {
   printf("execCommand %X\n", cmdID);
   switch ((TIM_COMMAND_ID)cmdID) {
@@ -188,7 +188,7 @@ static int execCommand(TimInterpreter *interp, uint8_t cmdID,
   return -1;
 }
 
-int TimInterpreterExec(TimInterpreter *interp, TIMHandle *tim) {
+int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
 
   interp->_tim = tim;
   if (interp->_tim->functions[0].ip == NULL) {

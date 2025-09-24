@@ -6,8 +6,8 @@ typedef struct {
   int currentFunc;
   uint16_t procParam;
   TIMHandle *_tim;
-} TimInterpreter;
+} TIMInterpreter;
 
-void TimInterpreterInit(TimInterpreter *interp);
-void TimInterpreterRelease(TimInterpreter *interp);
-int TimInterpreterExec(TimInterpreter *interp, TIMHandle *tim);
+void TIMInterpreterInit(TIMInterpreter *interp);
+void TIMInterpreterRelease(TIMInterpreter *interp);
+int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim);

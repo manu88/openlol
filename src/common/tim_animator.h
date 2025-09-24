@@ -3,7 +3,7 @@
 #include "tim_interpreter.h"
 typedef struct {
   TIMHandle *tim;
-  TimInterpreter _interpreter;
+  TIMInterpreter _interpreter;
 } TIMAnimator;
 
 void TIMAnimatorInit(TIMAnimator *animator);
