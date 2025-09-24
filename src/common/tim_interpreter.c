@@ -232,23 +232,27 @@ static void updateInternal(TIMInterpreter *interp) {
 }
 
 void TIMInterpreterUpdate(TIMInterpreter *interp) {
-  if (interp->nextFunc == interp->currentFunc + 1) {
-    interp->currentFunc++;
-    if (interp->currentFunc >= TIM_NUM_FUNCTIONS) {
-      interp->currentFunc = 0;
-      interp->nextFunc = 0;
-      return;
+  if (interp->state == 0) {
+    if (interp->nextFunc == interp->currentFunc + 1) {
+      interp->currentFunc++;
+      if (interp->currentFunc >= TIM_NUM_FUNCTIONS) {
+        interp->currentFunc = 0;
+        interp->nextFunc = 0;
+        return;
+      }
+    }
+    interp->state = 1;
+
+    printf(">>>ENTRER for (interp->currentFunc %i\n", interp->currentFunc);
+    interp->cur = interp->_tim->functions + interp->currentFunc;
+    interp->running = 1;
+  }
+  if (interp->state == 1) {
+    if (interp->cur->ip && interp->running) {
+      updateInternal(interp);
+    } else {
+      interp->nextFunc++;
+      interp->state = 0;
     }
   }
-
-  printf(">>>ENTRER for (interp->currentFunc %i\n", interp->currentFunc);
-  interp->cur = interp->_tim->functions + interp->currentFunc;
-  interp->running = 1;
-
-  while (interp->cur->ip && interp->running) {
-
-    updateInternal(interp);
-
-  } // end while
-  interp->nextFunc++;
 }

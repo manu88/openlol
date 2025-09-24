@@ -8,6 +8,7 @@ typedef struct {
   uint16_t procParam;
   TIMHandle *_tim;
 
+  int state;
   int looped;
   int running;
   TimFunction *cur;
