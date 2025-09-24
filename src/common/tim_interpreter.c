@@ -199,6 +199,38 @@ int TIMInterpreterIsRunning(const TIMInterpreter *interp) {
   return interp->looped;
 }
 
+static void updateInternal(TIMInterpreter *interp) {
+  if (interp->procFunc != -1) {
+    execCommand(interp, TIM_COMMAND_ID_PROCESS_DIALOGUE, &interp->procParam);
+  }
+
+  int8_t opcode = interp->cur->ip[2] & 0XFF;
+  printf("opcode=%X from 0X%04X 0X%04X 0X%04X\n", opcode, interp->cur->ip[0],
+         interp->cur->ip[1], interp->cur->ip[2]);
+
+  int retCmd = execCommand(interp, opcode, interp->cur->ip + 3);
+  switch (retCmd) {
+  case 1:
+    break;
+  case -3:
+    interp->procFunc = interp->currentFunc;
+    //_currentTim->dlgFunc = -1;
+    break;
+  case -2:
+    interp->running = 0;
+    break;
+  case -1:
+    interp->looped = 0;
+    interp->running = 0;
+    break;
+  default:
+    assert(0);
+  }
+  if (interp->cur->ip) {
+    interp->cur->ip += interp->cur->ip[0];
+  }
+}
+
 void TIMInterpreterUpdate(TIMInterpreter *interp) {
   if (interp->nextFunc == interp->currentFunc + 1) {
     interp->currentFunc++;
@@ -211,39 +243,12 @@ void TIMInterpreterUpdate(TIMInterpreter *interp) {
 
   printf(">>>ENTRER for (interp->currentFunc %i\n", interp->currentFunc);
   interp->cur = interp->_tim->functions + interp->currentFunc;
-
   interp->running = 1;
 
   while (interp->cur->ip && interp->running) {
-    if (interp->procFunc != -1) {
-      execCommand(interp, TIM_COMMAND_ID_PROCESS_DIALOGUE, &interp->procParam);
-    }
 
-    int8_t opcode = interp->cur->ip[2] & 0XFF;
-    printf("opcode=%X from 0X%04X 0X%04X 0X%04X\n", opcode, interp->cur->ip[0],
-           interp->cur->ip[1], interp->cur->ip[2]);
+    updateInternal(interp);
 
-    int retCmd = execCommand(interp, opcode, interp->cur->ip + 3);
-    switch (retCmd) {
-    case 1:
-      break;
-    case -3:
-      interp->procFunc = interp->currentFunc;
-      //_currentTim->dlgFunc = -1;
-      break;
-    case -2:
-      interp->running = 0;
-      break;
-    case -1:
-      interp->looped = 0;
-      interp->running = 0;
-      break;
-    default:
-      assert(0);
-    }
-    if (interp->cur->ip) {
-      interp->cur->ip += interp->cur->ip[0];
-    }
   } // end while
   interp->nextFunc++;
 }
