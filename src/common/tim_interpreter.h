@@ -8,6 +8,8 @@ typedef struct {
   TIMHandle *_tim;
 
   int looped;
+  int running;
+  TimFunction *cur;
 } TIMInterpreter;
 
 void TIMInterpreterInit(TIMInterpreter *interp);

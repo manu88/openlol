@@ -201,22 +201,22 @@ int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
     for (interp->currentFunc = 0; interp->currentFunc < TIM_NUM_FUNCTIONS;
          interp->currentFunc++) {
       printf(">>>ENTRER for (interp->currentFunc %i\n", interp->currentFunc);
-      TimFunction *cur = interp->_tim->functions + interp->currentFunc;
+      interp->cur = interp->_tim->functions + interp->currentFunc;
 
-      int running = 1;
+      interp->running = 1;
 
-      while (cur->ip && running) {
+      while (interp->cur->ip && interp->running) {
 
         if (interp->procFunc != -1) {
           execCommand(interp, TIM_COMMAND_ID_PROCESS_DIALOGUE,
                       &interp->procParam);
         }
 
-        int8_t opcode = cur->ip[2] & 0XFF;
-        printf("opcode=%X from 0X%04X 0X%04X 0X%04X\n", opcode, cur->ip[0],
-               cur->ip[1], cur->ip[2]);
+        int8_t opcode = interp->cur->ip[2] & 0XFF;
+        printf("opcode=%X from 0X%04X 0X%04X 0X%04X\n", opcode,
+               interp->cur->ip[0], interp->cur->ip[1], interp->cur->ip[2]);
 
-        int retCmd = execCommand(interp, opcode, cur->ip + 3);
+        int retCmd = execCommand(interp, opcode, interp->cur->ip + 3);
         switch (retCmd) {
         case 1:
           break;
@@ -225,17 +225,17 @@ int TIMInterpreterExec(TIMInterpreter *interp, TIMHandle *tim) {
           //_currentTim->dlgFunc = -1;
           break;
         case -2:
-          running = 0;
+          interp->running = 0;
           break;
         case -1:
           interp->looped = 0;
-          running = 0;
+          interp->running = 0;
           break;
         default:
           assert(0);
         }
-        if (cur->ip) {
-          cur->ip += cur->ip[0];
+        if (interp->cur->ip) {
+          interp->cur->ip += interp->cur->ip[0];
         }
       } // end while
     } // end for
