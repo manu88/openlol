@@ -22,6 +22,7 @@ clean:
 	rm -f $(EXECUTABLE)
 	rm -f src/*.d
 	rm -f src/common/*.d
+	rm -f src/game/*.d
 
 .PHONY: clean all
 
