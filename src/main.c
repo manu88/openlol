@@ -19,6 +19,7 @@
 #include "script.h"
 #include "script_disassembler.h"
 #include "tests.h"
+#include "tim_animator.h"
 #include "tim_interpreter.h"
 #include <_string.h>
 #include <assert.h>
@@ -838,6 +839,26 @@ static int cmdAnimateTim(int argc, char *argv[]) {
     printf("tim command, missing arguments\n");
     return 1;
   }
+  const char *filepath = argv[0];
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return 1;
+  }
+
+  TIMHandle handle = {0};
+  TIMHandleInit(&handle);
+  TIMHandleFromBuffer(&handle, buffer, readSize);
+
+  TIMAnimator animator;
+  TIMAnimatorInit(&animator);
+
+  TIMAnimatorRunAnim(&animator, &handle);
+
+  TIMAnimatorRelease(&animator);
+  TIMHandleRelease(&handle);
   return 0;
 }
 
@@ -853,6 +874,7 @@ static int cmdTim(int argc, char *argv[]) {
     return cmdAnimateTim(argc - 1, argv + 1);
   }
   usageTim();
+  return 1;
 }
 
 static void usageLang(void) { printf("lang subcommands: show file\n"); }

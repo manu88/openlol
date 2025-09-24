@@ -9,4 +9,5 @@ typedef struct {
 } TimInterpreter;
 
 void TimInterpreterInit(TimInterpreter *interp);
+void TimInterpreterRelease(TimInterpreter *interp);
 int TimInterpreterExec(TimInterpreter *interp, TIMHandle *tim);

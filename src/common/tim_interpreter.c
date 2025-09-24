@@ -9,6 +9,9 @@ void TimInterpreterInit(TimInterpreter *interp) {
   memset(interp, 0, sizeof(TimInterpreter));
   interp->procFunc = -1;
 }
+
+void TimInterpreterRelease(TimInterpreter *interp) {}
+
 typedef enum {
   TIM_COMMAND_ID_STOP_ALL_FUNCS = 0X01,
   TIM_COMMAND_ID_WSA_INIT = 0X02,
