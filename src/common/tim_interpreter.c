@@ -64,7 +64,7 @@ static int execTIMOpCode(TIMInterpreter *interp, uint16_t opcode,
   }
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE: {
     uint16_t redraw = param[0];
-    printf("OpCode restore after scene: redraw=%x", redraw);
+    printf("OpCode restore after scene: redraw=%x\n", redraw);
     return 1;
   }
   case TIM_OPCODE_FADE_CLEAR_WINDOW: {

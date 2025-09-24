@@ -855,7 +855,9 @@ static int cmdAnimateTim(int argc, char *argv[]) {
   TIMAnimator animator;
   TIMAnimatorInit(&animator);
 
-  TIMAnimatorRunAnim(&animator, &handle);
+  if (TIMAnimatorRunAnim(&animator, &handle) == 0) {
+    printf("TIMAnimatorRunAnim error\n");
+  }
 
   TIMAnimatorRelease(&animator);
   TIMHandleRelease(&handle);
