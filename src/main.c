@@ -784,7 +784,9 @@ static int cmdWSA(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageTim(void) { printf("tim subcommands: show|anim file\n"); }
+static void usageTim(void) {
+  printf("tim subcommands: show|anim file [langfile]\n");
+}
 
 static int cmdShowTim(int argc, char *argv[]) {
   if (argc < 1) {
@@ -844,13 +846,30 @@ static int cmdAnimateTim(int argc, char *argv[]) {
 
   TIMAnimator animator;
   TIMAnimatorInit(&animator);
-
+  LangHandle lang = {0};
+  if (argc == 2) {
+    const char *langFilepath = argv[1];
+    printf("using lang file '%s'\n", langFilepath);
+    size_t fileSize = 0;
+    size_t readSize = 0;
+    uint8_t *buffer = readBinaryFile(langFilepath, &fileSize, &readSize);
+    if (!buffer) {
+      perror("malloc error");
+      TIMHandleRelease(&handle);
+      return 1;
+    }
+    LangHandleFromBuffer(&lang, buffer, readSize);
+    animator.lang = &lang;
+  }
   if (TIMAnimatorRunAnim(&animator, &handle) == 0) {
     printf("TIMAnimatorRunAnim error\n");
   }
 
   TIMAnimatorRelease(&animator);
   TIMHandleRelease(&handle);
+  if (lang.originalBuffer) {
+    LangHandleRelease(&lang);
+  }
   return 0;
 }
 

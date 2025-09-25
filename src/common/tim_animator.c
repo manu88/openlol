@@ -130,6 +130,8 @@ static void mainLoop(TIMAnimator *animator) {
       case SDLK_SPACE:
         if (TIMInterpreterIsRunning(&animator->_interpreter)) {
           TIMInterpreterUpdate(&animator->_interpreter);
+        } else {
+          printf("TIM anim is done\n");
         }
         SDL_RenderPresent(animator->renderer);
       }
