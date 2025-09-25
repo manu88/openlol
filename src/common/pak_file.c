@@ -10,7 +10,7 @@ void PAKFileRelease(PAKFile *file) {
   fclose(file->fp);
   for (int i = 0; i < file->count; i++) {
     if (file->entries[i].data) {
-      free(file->entries->data);
+      free(file->entries[i].data);
     }
   }
   free(file->entries);
