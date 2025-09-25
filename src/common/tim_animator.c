@@ -3,6 +3,7 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "bytes.h"
+#include "format_lang.h"
 #include "format_wsa.h"
 #include "renderer.h"
 #include "tim_interpreter.h"
@@ -99,6 +100,23 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
   free(frame0Data);
 }
 
+static char tempStr[1024];
+static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId) {
+  TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
+  assert(animator);
+  printf("TIMAnimator callbackPlayDialogue stringId=%i", stringId);
+  uint8_t useLevelFile = 0;
+  int realId = LangGetString(stringId, &useLevelFile);
+  if (!useLevelFile) {
+    assert(0); // to implement :)
+  }
+  if (realId != -1 && animator->lang) {
+
+    LangHandleGetString(animator->lang, realId, tempStr, sizeof(tempStr));
+    printf("Dialogue: '%s'", tempStr);
+  }
+}
+
 void TIMAnimatorInit(TIMAnimator *animator) {
   memset(animator, 0, sizeof(TIMAnimator));
   TIMInterpreterInit(&animator->_interpreter);
@@ -107,6 +125,8 @@ void TIMAnimatorInit(TIMAnimator *animator) {
       callbackWSAInit;
   animator->_interpreter.callbacks.TIMInterpreterCallbacks_WSADisplayFrame =
       callbackWSADisplayFrame;
+  animator->_interpreter.callbacks.TIMInterpreterCallbacks_PlayDialogue =
+      callbackPlayDialogue;
 }
 void TIMAnimatorRelease(TIMAnimator *animator) {
   TIMInterpreterRelease(&animator->_interpreter);
@@ -133,6 +153,7 @@ static void mainLoop(TIMAnimator *animator) {
         } else {
           printf("TIM anim is done\n");
         }
+        printf("update\n");
         SDL_RenderPresent(animator->renderer);
       }
     }

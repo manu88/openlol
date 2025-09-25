@@ -1,4 +1,5 @@
 #include "script_builtins.h"
+#include "format_lang.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -196,20 +197,6 @@ static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 
-static void getLangString(uint16_t id) {
-  if (id == 0xFFFF)
-    return;
-
-  uint16_t realId = id & 0x3FFF;
-  int useLevelFile = 0;
-  if (id & 0x4000) {
-    useLevelFile = 0;
-  } else {
-    useLevelFile = 1;
-  }
-  printf("real lang string id=%i uselevel=%i\n", realId, useLevelFile);
-}
-
 static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
                                         EMCState *state) {
   int16_t charId = EMCStateStackVal(state, 0);
@@ -217,7 +204,13 @@ static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
   int16_t stringId = EMCStateStackVal(state, 2);
   printf("playCharacterScriptChat charId=%i mode=%i stringId=%i\n", charId,
          mode, stringId);
-  getLangString(stringId);
+  uint8_t useLevelFile;
+  int realStringId = LangGetString(stringId, &useLevelFile);
+  if (realStringId != 1) {
+    printf("invalid string id\n");
+  } else {
+    printf("real lang string id=%i uselevel=%i\n", realStringId, useLevelFile);
+  }
   return 0;
 }
 static uint16_t drawExitButton(EMCInterpreter *interp, EMCState *state) {
@@ -227,12 +220,18 @@ static uint16_t drawExitButton(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
   int16_t type = EMCStateStackVal(state, 0);
-  int16_t stringID = EMCStateStackVal(state, 1);
+  int16_t stringId = EMCStateStackVal(state, 1);
   int16_t soundID = EMCStateStackVal(state, 2);
 
-  printf("printMessage type=0X%X stringID=0X%X soundID=0X%X\n", type, stringID,
+  printf("printMessage type=0X%X stringID=0X%X soundID=0X%X\n", type, stringId,
          soundID);
-  getLangString(stringID);
+  uint8_t useLevelFile;
+  int realStringId = LangGetString(stringId, &useLevelFile);
+  if (realStringId != 1) {
+    printf("invalid string id\n");
+  } else {
+    printf("real lang string id=%i uselevel=%i\n", realStringId, useLevelFile);
+  }
   return 0;
 }
 static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {

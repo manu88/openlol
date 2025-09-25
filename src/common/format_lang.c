@@ -29,29 +29,32 @@ uint16_t decompressAndTranslate(const char *s, char *dest, uint16_t destLen) {
     uint8_t c = *s;
     if ((c & 0x80) != 0) {
       c &= 0x7F;
+      assert(count + 1 < destLen);
       dest[count++] = couples[c >> 3]; /* 1st char */
       c = couples[c + 16];             /* 2nd char */
     } else if (c == 0x1B) {
       c = 0x7F + *(++s);
     }
+    assert(count + 1 < destLen);
     dest[count++] = c;
     if (count >= destLen - 1) {
       printf("decompressAndTranslate : truncating output !\n");
       break;
     }
   }
+  assert(count < destLen);
   dest[count] = 0;
   return count;
 }
 
 uint16_t LangHandleGetString(const LangHandle *handle, uint16_t index,
-                             char *outBuffer) {
+                             char *outBuffer, size_t outBufferSize) {
   assert(outBuffer);
   assert(index < handle->count);
   uint16_t *offsets = (uint16_t *)handle->originalBuffer;
   const uint16_t off = offsets[index];
   const char *dat = (const char *)handle->originalBuffer + off;
-  uint16_t size = decompressAndTranslate(dat, outBuffer, 1024);
+  uint16_t size = decompressAndTranslate(dat, outBuffer, outBufferSize);
   return size;
 }
 
@@ -61,7 +64,7 @@ void LangHandleShow(LangHandle *handle) {
   printf("Count = %i\n", handle->count);
   for (int i = 0; i < handle->count; i++) {
 
-    uint16_t size = LangHandleGetString(handle, i, dest);
+    uint16_t size = LangHandleGetString(handle, i, dest, 1024);
     printf("  %i/%i offset=%i size=%i '%s'\n", i, handle->count, offsets[i],
            size, dest);
   }
@@ -78,4 +81,18 @@ int LangHandleFromBuffer(LangHandle *handle, uint8_t *buffer,
   const uint16_t *offsets = (uint16_t *)handle->originalBuffer;
   handle->count = offsets[0] / 2 - 1;
   return 1;
+}
+
+int LangGetString(uint16_t id, uint8_t *useLevelFile) {
+  if (id == 0xFFFF)
+    return -1;
+  assert(useLevelFile);
+  uint16_t realId = id & 0x3FFF;
+  *useLevelFile = 0;
+  if (id & 0x4000) {
+    *useLevelFile = 0;
+  } else {
+    *useLevelFile = 1;
+  }
+  return realId;
 }

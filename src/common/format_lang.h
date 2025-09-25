@@ -16,4 +16,7 @@ int LangHandleFromBuffer(LangHandle *handle, uint8_t *buffer,
                          size_t bufferSize);
 void LangHandleShow(LangHandle *handle);
 uint16_t LangHandleGetString(const LangHandle *handle, uint16_t index,
-                             char *outBuffer);
+                             char *outBuffer, size_t outBufferSize);
+
+// -1 means invalid id, otherwise cast to uint16_t
+int LangGetString(uint16_t id, uint8_t *useLevelFile);

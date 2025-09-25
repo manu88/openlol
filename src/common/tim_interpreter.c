@@ -1,4 +1,5 @@
 #include "tim_interpreter.h"
+#include "format_lang.h"
 #include "format_tim.h"
 #include <assert.h>
 #include <stdint.h>
@@ -33,21 +34,6 @@ typedef enum {
   TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT = 0X0D,
 } TIM_OPCODE;
 
-// FIXME duplicate in script_builtins.c
-static void getLangString(uint16_t id) {
-  if (id == 0xFFFF)
-    return;
-
-  uint16_t realId = id & 0x3FFF;
-  int useLevelFile = 0;
-  if (id & 0x4000) {
-    useLevelFile = 0;
-  } else {
-    useLevelFile = 1;
-  }
-  printf("real lang string id=%i uselevel=%i\n", realId, useLevelFile);
-}
-
 static int execTIMOpCode(TIMInterpreter *interp, uint16_t opcode,
                          const uint16_t *param) {
   switch ((TIM_OPCODE)opcode) {
@@ -59,7 +45,9 @@ static int execTIMOpCode(TIMInterpreter *interp, uint16_t opcode,
   case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
     uint16_t strID = param[0];
     printf("OPCode play dialogue p=0X%X\n", strID);
-    getLangString(strID);
+    if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
+      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(interp, strID);
+    }
     return 1;
   }
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE: {
@@ -175,8 +163,16 @@ static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
     for (int i = 1; i < 4; i++) {
       printf("%i %X\n", i, param[i]);
       if (param[i] != 0xFFFF) {
-        getLangString(param[i]);
-        // tmpStr[i-1] = getTableString(param[i]);
+        uint8_t useLevelFile;
+        int realStringId = LangGetString(param[i], &useLevelFile);
+        if (realStringId != 1) {
+          printf("invalid string id\n");
+        } else {
+          printf("real lang string id=%i uselevel=%i\n", realStringId,
+                 useLevelFile);
+        }
+        // getLangString(param[i]);
+        //  tmpStr[i-1] = getTableString(param[i]);
 
       } else {
         tmpStr[i - 1] = 0;

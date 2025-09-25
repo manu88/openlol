@@ -8,6 +8,8 @@ typedef struct {
                                           const char *wsaFile);
   void (*TIMInterpreterCallbacks_WSADisplayFrame)(TIMInterpreter *interp,
                                                   int frameIndex, int frame);
+  void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
+                                               uint16_t strID);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {
