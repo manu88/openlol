@@ -1,6 +1,7 @@
 #include "format_tim.h"
 #include "bytes.h"
 #include <assert.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,6 +62,7 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
                              : TIM_NUM_FUNCTIONS;
   for (int i = 0; i < handle->numFunctions; i++) {
     uint16_t offset = handle->avtl[i];
+
     handle->functions[i].avtl = handle->avtl + offset;
   }
 

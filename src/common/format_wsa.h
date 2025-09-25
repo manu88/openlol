@@ -3,6 +3,15 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+typedef enum {
+  WSA_OFFSCREEN_DECODE = 0x1,
+  WSA_NO_LAST_FRAME = 0x2,
+  WSA_NO_FIRST_FRAME = 0x4,
+  WSA_FLIPPED = 0x8,
+  WSA_HAS_PALETTE = 0x10,
+  WSA_XOR = 0x20
+} WSAFlags;
+
 typedef struct {
   uint16_t numFrames;
   uint16_t xPos;

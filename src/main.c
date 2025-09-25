@@ -1,12 +1,10 @@
 
 #include "bytes.h"
-#include "format_40.h"
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_dat.h"
 #include "format_inf.h"
 #include "format_lang.h"
-#include "format_lcw.h"
 #include "format_shp.h"
 #include "format_tim.h"
 #include "format_vcn.h"
@@ -812,16 +810,17 @@ static int cmdShowTim(int argc, char *argv[]) {
     printf("No text\n");
   }
 
-  printf("Got %zu avtl chunks\n", handle.avtlSize);
-  printf("Got %i functions\n", handle.numFunctions);
-
   TIMInterpreter interp;
   TIMInterpreterInit(&interp);
-  TIMInterpreterStart(&interp, &handle);
+
+  uint32_t ms = 0;
+  TIMInterpreterStart(&interp, &handle, ms);
   while (TIMInterpreterIsRunning(&interp)) {
-    TIMInterpreterUpdate(&interp);
+    TIMInterpreterUpdate(&interp, ms);
+    ms += 30;
   }
 
+  // TimeHandleTest(&handle);
   TIMHandleRelease(&handle);
   return 0;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "SDL_render.h"
 #include "format_lang.h"
 #include "format_tim.h"
 #include "format_wsa.h"
@@ -12,6 +13,7 @@ typedef struct {
 
   SDL_Window *window;
   SDL_Renderer *renderer;
+  SDL_Texture *pixBuf;
 } TIMAnimator;
 
 void TIMAnimatorInit(TIMAnimator *animator);

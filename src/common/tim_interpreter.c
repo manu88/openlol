@@ -1,17 +1,9 @@
 #include "tim_interpreter.h"
-#include "format_lang.h"
-#include "format_tim.h"
 #include <assert.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-void TIMInterpreterInit(TIMInterpreter *interp) {
-  memset(interp, 0, sizeof(TIMInterpreter));
-  interp->procFunc = -1;
-}
-
-void TIMInterpreterRelease(TIMInterpreter *interp) {}
+#define TIM_START_OFFSET 1
 
 typedef enum {
   TIM_COMMAND_ID_STOP_ALL_FUNCS = 0X01,
@@ -27,6 +19,36 @@ typedef enum {
   TIM_COMMAND_SET_LOOP_IP = 0X14,
 } TIM_COMMAND_ID;
 
+static const char *timCommandsName(uint8_t code) {
+  switch ((TIM_COMMAND_ID)code) {
+  case TIM_COMMAND_ID_STOP_ALL_FUNCS:
+    return "TIM_COMMAND_ID_STOP_ALL_FUNCS";
+  case TIM_COMMAND_ID_WSA_INIT:
+    return "TIM_COMMAND_ID_WSA_INIT";
+  case TIM_COMMAND_ID_WSA_RELEASE:
+    return "TIM_COMMAND_ID_WSA_RELEASE";
+  case TIM_COMMAND_ID_WSA_DISPLAY_FRAME:
+    return "TIM_COMMAND_ID_WSA_DISPLAY_FRAME";
+  case TIM_COMMAND_ID_CONTINUE_LOOP:
+    return "TIM_COMMAND_ID_CONTINUE_LOOP";
+  case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
+    return "TIM_COMMAND_ID_RESET_ALL_RUNTIMES";
+  case TIM_COMMAND_ID_CMD_RETURN_1:
+    return "TIM_COMMAND_ID_CMD_RETURN_1";
+  case TIM_COMMAND_ID_EXEC_OPCODE:
+    return "TIM_COMMAND_ID_EXEC_OPCODE";
+  case TIM_COMMAND_ID_PROCESS_DIALOGUE:
+    return "TIM_COMMAND_ID_PROCESS_DIALOGUE";
+  case TIM_COMMAND_ID_DIALOG_BOX:
+    return "TIM_COMMAND_ID_DIALOG_BOX";
+  case TIM_COMMAND_SET_LOOP_IP:
+    return "TIM_COMMAND_SET_LOOP_IP";
+    break;
+  }
+  assert(0);
+  return NULL;
+}
+
 typedef enum {
   TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
   TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
@@ -34,218 +56,134 @@ typedef enum {
   TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT = 0X0D,
 } TIM_OPCODE;
 
-static int execTIMOpCode(TIMInterpreter *interp, uint16_t opcode,
-                         const uint16_t *param) {
-  switch ((TIM_OPCODE)opcode) {
-  case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE: {
-    uint16_t controlMode = param[0];
-    printf("OPCode init scene window dialogue p=0X%X\n", controlMode);
-    return 1;
-  }
-  case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
-    uint16_t strID = param[0];
-    printf("OPCode play dialogue p=0X%X\n", strID);
-    if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
-      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(interp, strID);
-    }
-    return 1;
-  }
-  case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE: {
-    uint16_t redraw = param[0];
-    printf("OpCode restore after scene: redraw=%x\n", redraw);
-    return 1;
-  }
-  case TIM_OPCODE_FADE_CLEAR_WINDOW: {
-    return 1;
-  }
+typedef struct {
+  uint16_t len;
+  uint16_t something0;
+  uint8_t instrCode;
+  uint8_t something1;
+} TImInstruction;
+
+void TIMInterpreterInit(TIMInterpreter *interp) {
+  memset(interp, 0, sizeof(TIMInterpreter));
+  interp->loopStartPos = -1;
+}
+void TIMInterpreterRelease(TIMInterpreter *interp) {}
+
+void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim,
+                         uint32_t timeMs) {
+  interp->_tim = tim;
+  interp->pos = TIM_START_OFFSET;
+}
+
+static void processOpCode(const uint16_t *params, int numParams) {
+  assert(numParams);
+  numParams--;
+  switch ((TIM_OPCODE)params[0]) {
+  case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE:
+    printf("\t TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE %i params\n", numParams);
+    break;
+  case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
+    printf("\t TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE %i params\n",
+           numParams);
+    break;
+  case TIM_OPCODE_FADE_CLEAR_WINDOW:
+    printf("\t TIM_OPCODE_FADE_CLEAR_WINDOW %i params\n", numParams);
+    break;
+  case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT:
+    printf("\t TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT %i params\n", numParams);
+    break;
   default:
-    printf("unimplemented TIM opcode 0X%X\n", opcode);
     assert(0);
   }
-  return -1;
 }
 
-static void advanceToOpCode(TIMInterpreter *interp, int opCode,
-                            int prevProcFunc) {
-  TimFunction *f = interp->_tim->functions + prevProcFunc;
-  uint16_t len = f->ip[0];
-  while ((f->ip[2] & 0xFF) != opCode) {
-    if ((f->ip[2] & 0xFF) == 1) {
-      f->ip[0] = len;
-      break;
-    }
-    len = f->ip[0];
-    f->ip += len;
-  }
+static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
+                              size_t pos) {
+  const TImInstruction *instr = (const TImInstruction *)buffer;
+  const uint16_t *instrParams = buffer + 3;
+  int numParams =
+      instr->len - 3; // 3 is size of minimum instruction size w/o params
 
-  // f->nextTime = _system->getMillis();
-}
+  printf("0X%zX Instruction len=%i code=%02X %s  %i params: ", pos, instr->len,
+         instr->instrCode, timCommandsName(instr->instrCode), numParams);
+  for (int i = 0; i < numParams; i++) {
+    printf(" 0X%X ", instrParams[i]);
+  }
+  printf("\n");
 
-static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
-                       const uint16_t *param) {
-  printf("execCommand %X\n", cmdID);
-  switch ((TIM_COMMAND_ID)cmdID) {
-  case TIM_COMMAND_ID_STOP_ALL_FUNCS: {
-    printf("Stop all functions\n");
-    return -1;
-  }
-  case TIM_COMMAND_ID_PROCESS_DIALOGUE: {
-    printf("processDialogue\n");
-    int res = 1;
-    if (res == 0) {
-      return 0;
-    }
+  switch ((TIM_COMMAND_ID)instr->instrCode) {
 
-    interp->_tim->functions[interp->currentFunc].loopIp = 0;
-    int prevProcFunc = interp->procFunc;
-    interp->procFunc = -1;
-    if (interp->procParam) {
-      advanceToOpCode(interp, 21, prevProcFunc);
-    }
-    return res;
-  }
-  case TIM_COMMAND_ID_WSA_RELEASE: {
-    int index = param[0];
-    printf("WSA_RELEASE index=%i\n", index);
-    return 1;
-  }
+  case TIM_COMMAND_ID_STOP_ALL_FUNCS:
+
+    break;
   case TIM_COMMAND_ID_WSA_INIT: {
-    int index = param[0];
-    uint16_t strParam = param[1];
-    uint16_t x = (int16_t)param[2];
-    uint16_t y = (int16_t)param[3];
-    uint16_t offscreen = param[4];
-    uint16_t wsaFlags = param[5];
-    const char *wsaFile = TIMHandleGetText(interp->_tim, index);
-    printf("WSA_INIT index=%i strIndex=%X wsaFile='%s' x=%X y=%X offsreen=%X "
-           "wsaFlags=%X\n",
-           index, strParam, wsaFile, x, y, offscreen, wsaFlags);
+    // int index = instrParams[0];
+    uint16_t strParam = instrParams[1];
+    uint16_t x = (int16_t)instrParams[2];
+    uint16_t y = (int16_t)instrParams[3];
+    uint16_t offscreen = instrParams[4];
+    uint16_t wsaFlags = instrParams[5];
+    const char *wsaFile = TIMHandleGetText(interp->_tim, strParam);
     if (interp->callbacks.TIMInterpreterCallbacks_WSAInit) {
-      interp->callbacks.TIMInterpreterCallbacks_WSAInit(interp, wsaFile);
+      interp->callbacks.TIMInterpreterCallbacks_WSAInit(interp, wsaFile, x, y,
+                                                        offscreen, wsaFlags);
     }
-    return 1;
+    break;
   }
+  case TIM_COMMAND_ID_WSA_RELEASE:
+
+    break;
   case TIM_COMMAND_ID_WSA_DISPLAY_FRAME: {
-    int frameIndex = param[0];
-    int frame = param[1];
-    printf("WSA_DISPLAY_FRAME frameIndex=%i frame=%X\n", frameIndex, frame);
+    int frameIndex = instrParams[0];
+    int frame = instrParams[1];
     if (interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame) {
       interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame(
           interp, frameIndex, frame);
     }
-    return 1;
+    break;
   }
-  case TIM_COMMAND_ID_EXEC_OPCODE: {
-    const uint16_t opcode = *param++;
-    printf("Exec Tim OPCode 0X%X\n", opcode);
-    return execTIMOpCode(interp, opcode, param);
-  }
-  case TIM_COMMAND_ID_RESET_ALL_RUNTIMES: {
-    return 1;
-  }
+
+  case TIM_COMMAND_ID_CONTINUE_LOOP:
+    assert(interp->loopStartPos != -1);
+    interp->restartLoop = 1;
+    break;
+  case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
+
+    break;
   case TIM_COMMAND_ID_CMD_RETURN_1:
-    return 1;
-  case TIM_COMMAND_SET_LOOP_IP: {
-    interp->_tim->functions[interp->currentFunc].loopIp =
-        interp->_tim->functions[interp->currentFunc].ip;
-    return 1;
-  }
-  case TIM_COMMAND_ID_DIALOG_BOX: {
-    printf("DIALOG BOX\n");
-    uint16_t func = *param;
-    assert(func < TIM_NUM_FUNCTIONS);
 
-    interp->procParam = func;
-    int numButtons = 0;
-    uint16_t buttonStrIds[3] = {0};
-    for (int i = 1; i < 4; i++) {
-      if (param[i] != 0xFFFF) {
-        buttonStrIds[i - 1] = param[i];
-        numButtons++;
-      }
-    }
-    if (interp->callbacks.TIMInterpreterCallbacks_ShowButtons) {
-      interp->callbacks.TIMInterpreterCallbacks_ShowButtons(
-          interp, buttonStrIds, numButtons);
-    }
-    return -3;
-  }
+    break;
+  case TIM_COMMAND_ID_EXEC_OPCODE:
 
-  case TIM_COMMAND_ID_CONTINUE_LOOP: {
-    return -2;
-  }
+    break;
+  case TIM_COMMAND_ID_PROCESS_DIALOGUE:
+
+    break;
+  case TIM_COMMAND_ID_DIALOG_BOX:
+
+    break;
+  case TIM_COMMAND_SET_LOOP_IP:
+    interp->loopStartPos = pos;
+    break;
   default:
-    printf("unimplemented TIM commands %X\n", cmdID);
     assert(0);
   }
-  return -1;
-}
-
-void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim) {
-  interp->_tim = tim;
-  if (interp->_tim->functions[0].ip == NULL) {
-    interp->_tim->functions[0].ip = interp->_tim->functions[0].avtl;
+  if (instr->instrCode == TIM_COMMAND_ID_EXEC_OPCODE) {
+    processOpCode(instrParams, numParams);
   }
-  interp->looped = 1;
+  return instr->len;
 }
 
 int TIMInterpreterIsRunning(const TIMInterpreter *interp) {
-  return interp->looped;
+  return interp->pos < interp->_tim->avtlSize;
 }
-
-static void updateInternal(TIMInterpreter *interp) {
-  if (interp->procFunc != -1) {
-    execCommand(interp, TIM_COMMAND_ID_PROCESS_DIALOGUE, &interp->procParam);
-  }
-
-  int8_t opcode = interp->cur->ip[2] & 0XFF;
-  printf("opcode=%X from 0X%04X 0X%04X 0X%04X\n", opcode, interp->cur->ip[0],
-         interp->cur->ip[1], interp->cur->ip[2]);
-
-  int retCmd = execCommand(interp, opcode, interp->cur->ip + 3);
-  switch (retCmd) {
-  case 1:
-    break;
-  case -3:
-    interp->procFunc = interp->currentFunc;
-    //_currentTim->dlgFunc = -1;
-    break;
-  case -2:
-    interp->running = 0;
-    break;
-  case -1:
-    interp->looped = 0;
-    interp->running = 0;
-    break;
-  default:
-    assert(0);
-  }
-  if (interp->cur->ip) {
-    interp->cur->ip += interp->cur->ip[0];
-  }
-}
-
-void TIMInterpreterUpdate(TIMInterpreter *interp) {
-  if (interp->state == 0) {
-    if (interp->nextFunc == interp->currentFunc + 1) {
-      interp->currentFunc++;
-      if (interp->currentFunc >= TIM_NUM_FUNCTIONS) {
-        interp->currentFunc = 0;
-        interp->nextFunc = 0;
-        return;
-      }
-    }
-    interp->state = 1;
-
-    interp->cur = interp->_tim->functions + interp->currentFunc;
-    interp->running = 1;
-  }
-  if (interp->state == 1) {
-    if (interp->cur->ip && interp->running) {
-      updateInternal(interp);
-    } else {
-      interp->nextFunc++;
-      interp->state = 0;
-    }
+void TIMInterpreterUpdate(TIMInterpreter *interp, uint32_t timeMs) {
+  int adv =
+      processInstruction(interp, interp->_tim->avtl + interp->pos, interp->pos);
+  if (interp->restartLoop) {
+    interp->restartLoop = 0;
+    interp->pos = interp->loopStartPos;
+  } else {
+    interp->pos += adv;
   }
 }
