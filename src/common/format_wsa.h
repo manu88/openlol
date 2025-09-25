@@ -29,3 +29,5 @@ void WSAHandleRelease(WSAHandle *handle);
 int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
 uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index);
+
+uint8_t *WSAHandleGetFrame(const WSAHandle *handle, uint32_t index);

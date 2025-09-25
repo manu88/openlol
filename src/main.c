@@ -720,26 +720,13 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   }
   printf("Extract frame %i/%i\n", frameNum, handle.header.numFrames);
 
-  uint32_t offset = WSAHandleGetFrameOffset(&handle, frameNum);
-  const uint8_t *frameData = handle.originalBuffer + offset;
-  size_t frameSize = WSAHandleGetFrameOffset(&handle, frameNum + 1) - offset;
-  size_t destSize = handle.header.delta;
-  uint8_t *outData = malloc(destSize);
-
-  ssize_t decompressedSize =
-      LCWDecompress(frameData, frameSize, outData, destSize);
-  printf("LCWDecompress: decompressedSize=%zi\n", decompressedSize);
-
-  size_t fullSize = handle.header.width * handle.header.height;
-  uint8_t *outData2 = malloc(fullSize);
-  Format40Decode(outData, decompressedSize, outData2);
-
-  WSAFrameToPng(outData2, fullSize, handle.header.palette, "frameWSA.png",
-                handle.header.width, handle.header.height);
-
-  free(outData);
-  free(outData2);
-
+  uint8_t *frameData = WSAHandleGetFrame(&handle, frameNum);
+  if (frameData) {
+    size_t fullSize = handle.header.width * handle.header.height;
+    WSAFrameToPng(frameData, fullSize, handle.header.palette, "frameWSA.png",
+                  handle.header.width, handle.header.height);
+    free(frameData);
+  }
   WSAHandleRelease(&handle);
   return 0;
 }
