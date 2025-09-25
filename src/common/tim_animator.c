@@ -1,7 +1,17 @@
 #include "tim_animator.h"
+#include "SDL_keycode.h"
+#include "SDL_rect.h"
+#include "SDL_render.h"
+#include "bytes.h"
+#include "format_wsa.h"
+#include "renderer.h"
 #include "tim_interpreter.h"
+#include <_string.h>
+#include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <xlocale/_stdio.h>
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
@@ -16,36 +26,113 @@ static int initSDLStuff(TIMAnimator *animator) {
   if (animator->window == NULL) {
     return 0;
   }
+
+  animator->renderer =
+      SDL_CreateRenderer(animator->window, -1, SDL_RENDERER_ACCELERATED);
+
   return 1;
+}
+
+static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile) {
+  TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
+  assert(animator);
+  printf("TIMAnimator: callbackWSAInit '%s'\n", wsaFile);
+
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  char filePath[12] = "";
+  snprintf(filePath, 12, "%s.wsa", wsaFile);
+  uint8_t *buffer = readBinaryFile(filePath, &fileSize, &readSize);
+  if (!buffer) {
+    perror("malloc error");
+    return;
+  }
+  WSAHandleInit(&animator->wsa);
+  WSAHandleFromBuffer(&animator->wsa, buffer, readSize);
+  printf("WSAHandle created\n");
+}
+
+static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
+                           size_t dataSize, const uint8_t *paletteBuffer, int w,
+                           int h) {
+  printf("renderCPSImage\n");
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      int offset = (w * y) + x;
+      if (offset >= dataSize) {
+        printf("Offset %i >= %zu\n", offset, dataSize);
+      }
+      assert(offset < dataSize);
+      uint8_t paletteIdx = *(imgData + offset);
+      uint8_t r;
+      uint8_t g;
+      uint8_t b;
+      if (paletteBuffer) {
+        r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
+        g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
+        b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
+      } else {
+        r = paletteIdx;
+        g = paletteIdx;
+        b = paletteIdx;
+      }
+
+      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+      SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
+      SDL_RenderFillRect(renderer, &rect);
+    }
+  }
+}
+
+static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
+                                    int frame) {
+  TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
+  assert(animator);
+  printf("TIMAnimator: callbackWSADisplayFrame frameIndex=%i fram=%i\n",
+         frameIndex, frame);
+  uint8_t *frame0Data = WSAHandleGetFrame(&animator->wsa, frameIndex);
+  assert(frame0Data);
+  size_t fullSize = animator->wsa.header.width * animator->wsa.header.height;
+  renderCPSImage(animator->renderer, frame0Data, fullSize,
+                 animator->wsa.header.palette, animator->wsa.header.width,
+                 animator->wsa.header.height);
+  free(frame0Data);
 }
 
 void TIMAnimatorInit(TIMAnimator *animator) {
   memset(animator, 0, sizeof(TIMAnimator));
   TIMInterpreterInit(&animator->_interpreter);
+  animator->_interpreter.callbackCtx = animator;
+  animator->_interpreter.callbacks.TIMInterpreterCallbacks_WSAInit =
+      callbackWSAInit;
+  animator->_interpreter.callbacks.TIMInterpreterCallbacks_WSADisplayFrame =
+      callbackWSADisplayFrame;
 }
 void TIMAnimatorRelease(TIMAnimator *animator) {
   TIMInterpreterRelease(&animator->_interpreter);
   if (animator->window) {
     SDL_DestroyWindow(animator->window);
   }
+  SDL_DestroyRenderer(animator->renderer);
+  WSAHandleRelease(&animator->wsa);
 }
 
 static void mainLoop(TIMAnimator *animator) {
-  SDL_Surface *screenSurface = screenSurface =
-      SDL_GetWindowSurface(animator->window);
-  SDL_FillRect(screenSurface, NULL,
-               SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-  SDL_UpdateWindowSurface(animator->window);
-
+  SDL_RenderClear(animator->renderer);
   int quit = 0;
   while (!quit) {
     SDL_Event e;
     SDL_WaitEvent(&e);
     if (e.type == SDL_QUIT) {
       quit = 1;
-    }
-    if (TIMInterpreterIsRunning(&animator->_interpreter)) {
-      TIMInterpreterUpdate(&animator->_interpreter);
+    } else if (e.type == SDL_KEYDOWN) {
+      switch (e.key.keysym.sym) {
+      case SDLK_SPACE:
+        if (TIMInterpreterIsRunning(&animator->_interpreter)) {
+          TIMInterpreterUpdate(&animator->_interpreter);
+        }
+        SDL_RenderPresent(animator->renderer);
+      }
     }
   }
 }

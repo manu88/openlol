@@ -1,7 +1,19 @@
 #pragma once
 #include "format_tim.h"
 
+typedef struct _TIMInterpreter TIMInterpreter;
+
 typedef struct {
+  void (*TIMInterpreterCallbacks_WSAInit)(TIMInterpreter *interp,
+                                          const char *wsaFile);
+  void (*TIMInterpreterCallbacks_WSADisplayFrame)(TIMInterpreter *interp,
+                                                  int frameIndex, int frame);
+} TIMInterpreterCallbacks;
+
+typedef struct _TIMInterpreter {
+  TIMInterpreterCallbacks callbacks;
+  void *callbackCtx;
+
   int16_t procFunc;
   int currentFunc;
   int nextFunc;

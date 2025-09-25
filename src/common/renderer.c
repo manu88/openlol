@@ -10,8 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 
-static inline uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
-#define VGA8To8(x) x
+
 
 static void renderPalette(SDL_Renderer *renderer, const uint8_t *paletteBuffer,
                           int offsetX, int offsetY) {

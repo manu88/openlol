@@ -132,12 +132,19 @@ static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
     printf("WSA_INIT index=%i strIndex=%X wsaFile='%s' x=%X y=%X offsreen=%X "
            "wsaFlags=%X\n",
            index, strParam, wsaFile, x, y, offscreen, wsaFlags);
+    if (interp->callbacks.TIMInterpreterCallbacks_WSAInit) {
+      interp->callbacks.TIMInterpreterCallbacks_WSAInit(interp, wsaFile);
+    }
     return 1;
   }
   case TIM_COMMAND_ID_WSA_DISPLAY_FRAME: {
     int frameIndex = param[0];
     int frame = param[1];
     printf("WSA_DISPLAY_FRAME frameIndex=%i frame=%X\n", frameIndex, frame);
+    if (interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame) {
+      interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame(
+          interp, frameIndex, frame);
+    }
     return 1;
   }
   case TIM_COMMAND_ID_EXEC_OPCODE: {
@@ -243,7 +250,6 @@ void TIMInterpreterUpdate(TIMInterpreter *interp) {
     }
     interp->state = 1;
 
-    printf(">>>ENTRER for (interp->currentFunc %i\n", interp->currentFunc);
     interp->cur = interp->_tim->functions + interp->currentFunc;
     interp->running = 1;
   }

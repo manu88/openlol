@@ -8,6 +8,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+static inline uint8_t VGA6To8(uint8_t v) { return (v * 255) / 63; }
+#define VGA8To8(x) x
+
 /*
     Field of vision: the 17 map positions required to read for rendering a
    screen and the 25 possible wall configurations that these positions might
