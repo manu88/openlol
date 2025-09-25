@@ -111,9 +111,28 @@ static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId) {
     assert(0); // to implement :)
   }
   if (realId != -1 && animator->lang) {
-
     LangHandleGetString(animator->lang, realId, tempStr, sizeof(tempStr));
-    printf("Dialogue: '%s'", tempStr);
+    printf("Dialogue: '%s'\n", tempStr);
+  }
+}
+
+static void callbackShowButtons(TIMInterpreter *interp,
+                                uint16_t buttonStrIds[3], int numButtons) {
+  printf("TIMAnimator callbackShowButtons numButtons=%i %X %X %X\n", numButtons,
+         buttonStrIds[0], buttonStrIds[1], buttonStrIds[2]);
+  TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
+  assert(animator);
+  for (int i = 0; i < numButtons; i++) {
+    assert(buttonStrIds[i] != 0XFFFF);
+    uint8_t useLevelFile = 0;
+    int realId = LangGetString(buttonStrIds[i], &useLevelFile);
+    if (!useLevelFile) {
+      assert(0); // to implement :)
+    }
+    if (realId != -1 && animator->lang) {
+      LangHandleGetString(animator->lang, realId, tempStr, sizeof(tempStr));
+      printf("Dialogue Button %i: '%s'\n", i, tempStr);
+    }
   }
 }
 
@@ -127,6 +146,8 @@ void TIMAnimatorInit(TIMAnimator *animator) {
       callbackWSADisplayFrame;
   animator->_interpreter.callbacks.TIMInterpreterCallbacks_PlayDialogue =
       callbackPlayDialogue;
+  animator->_interpreter.callbacks.TIMInterpreterCallbacks_ShowButtons =
+      callbackShowButtons;
 }
 void TIMAnimatorRelease(TIMAnimator *animator) {
   TIMInterpreterRelease(&animator->_interpreter);

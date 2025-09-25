@@ -156,30 +156,21 @@ static int execCommand(TIMInterpreter *interp, uint8_t cmdID,
     assert(func < TIM_NUM_FUNCTIONS);
 
     interp->procParam = func;
-    // interp->_tim->clickedButton = 0;
-
-    const char *tmpStr[3];
-
+    int numButtons = 0;
+    uint16_t buttonStrIds[3] = {0};
     for (int i = 1; i < 4; i++) {
-      printf("%i %X\n", i, param[i]);
       if (param[i] != 0xFFFF) {
-        uint8_t useLevelFile;
-        int realStringId = LangGetString(param[i], &useLevelFile);
-        if (realStringId != 1) {
-          printf("invalid string id\n");
-        } else {
-          printf("real lang string id=%i uselevel=%i\n", realStringId,
-                 useLevelFile);
-        }
-        // getLangString(param[i]);
-        //  tmpStr[i-1] = getTableString(param[i]);
-
-      } else {
-        tmpStr[i - 1] = 0;
+        buttonStrIds[i - 1] = param[i];
+        numButtons++;
       }
+    }
+    if (interp->callbacks.TIMInterpreterCallbacks_ShowButtons) {
+      interp->callbacks.TIMInterpreterCallbacks_ShowButtons(
+          interp, buttonStrIds, numButtons);
     }
     return -3;
   }
+
   case TIM_COMMAND_ID_CONTINUE_LOOP: {
     return -2;
   }

@@ -1,5 +1,6 @@
 #pragma once
 #include "format_tim.h"
+#include <stdint.h>
 
 typedef struct _TIMInterpreter TIMInterpreter;
 
@@ -9,7 +10,10 @@ typedef struct {
   void (*TIMInterpreterCallbacks_WSADisplayFrame)(TIMInterpreter *interp,
                                                   int frameIndex, int frame);
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
-                                               uint16_t strID);
+                                               uint16_t strId);
+  void (*TIMInterpreterCallbacks_ShowButtons)(TIMInterpreter *interp,
+                                              uint16_t buttonStrIds[3],
+                                              int numButtons);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {
