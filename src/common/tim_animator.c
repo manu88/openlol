@@ -167,14 +167,16 @@ static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId) {
   }
 }
 
-static void callbackShowButtons(TIMInterpreter *interp,
-                                uint16_t buttonStrIds[3], int numButtons) {
-  printf("TIMAnimator callbackShowButtons numButtons=%i %X %X %X\n", numButtons,
-         buttonStrIds[0], buttonStrIds[1], buttonStrIds[2]);
+static void callbackShowButtons(TIMInterpreter *interp, uint16_t functionId,
+                                const uint16_t buttonStrIds[3]) {
+  printf("TIMAnimator callbackShowButtons  %X %X %X\n", buttonStrIds[0],
+         buttonStrIds[1], buttonStrIds[2]);
   TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
   assert(animator);
-  for (int i = 0; i < numButtons; i++) {
-    assert(buttonStrIds[i] != 0XFFFF);
+  for (int i = 0; i < 3; i++) {
+    if (buttonStrIds[i] == 0XFFFF) {
+      break;
+    }
     uint8_t useLevelFile = 0;
     int realId = LangGetString(buttonStrIds[i], &useLevelFile);
     if (!useLevelFile) {

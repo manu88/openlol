@@ -14,9 +14,8 @@ typedef struct {
                                                   int frameIndex, int frame);
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
                                                uint16_t strId);
-  void (*TIMInterpreterCallbacks_ShowButtons)(TIMInterpreter *interp,
-                                              uint16_t buttonStrIds[3],
-                                              int numButtons);
+  void (*TIMInterpreterCallbacks_ShowButtons)(TIMInterpreter *interp, uint16_t functionId,
+                                              const uint16_t buttonStrIds[3]);
   void (*TIMInterpreterCallbacks_InitSceneDialog)(TIMInterpreter *interp,
                                                   int controlMode);
 } TIMInterpreter2Callbacks;
@@ -27,6 +26,8 @@ typedef struct _TIMInterpreter {
 
   TIMHandle *_tim;
   size_t pos;
+
+  uint8_t dontLoop; // just list instructions
 
   int loopStartPos;
   int restartLoop;

@@ -812,7 +812,7 @@ static int cmdShowTim(int argc, char *argv[]) {
 
   TIMInterpreter interp;
   TIMInterpreterInit(&interp);
-
+  interp.dontLoop = 1;
   uint32_t ms = 0;
   TIMInterpreterStart(&interp, &handle, ms);
   while (TIMInterpreterIsRunning(&interp)) {

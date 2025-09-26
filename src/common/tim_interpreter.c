@@ -89,6 +89,10 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
   switch (timOpCode) {
   case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE:
     printf("\t TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE %i params\n", numParams);
+    if (interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog) {
+      interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog(interp,
+                                                                params[0]);
+    }
     break;
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
     printf("\t TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE %i params\n",
@@ -98,10 +102,9 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     printf("\t TIM_OPCODE_FADE_CLEAR_WINDOW %i params\n", numParams);
     break;
   case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
-    const uint16_t stringId = params[0];
     printf("\t TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT %i params\n", numParams);
     if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
-      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(interp, stringId);
+      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(interp, params[0]);
     }
     break;
   }
@@ -168,34 +171,40 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     }
     break;
   }
-
   case TIM_COMMAND_ID_CONTINUE_LOOP:
-    assert(interp->loopStartPos != -1);
-    interp->restartLoop = 1;
+    if (interp->dontLoop == 0) {
+      assert(interp->loopStartPos != -1);
+      interp->restartLoop = 1;
+    }
     break;
   case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
-
     break;
   case TIM_COMMAND_ID_CMD_RETURN_1:
-
     break;
   case TIM_COMMAND_ID_EXEC_OPCODE:
-
+    processOpCode(interp, instrParams, numParams);
     break;
   case TIM_COMMAND_ID_PROCESS_DIALOGUE:
+    printf("TIM_COMMAND_ID_PROCESS_DIALOGUE %i\n", numParams);
 
     break;
-  case TIM_COMMAND_ID_DIALOG_BOX:
-
+  case TIM_COMMAND_ID_DIALOG_BOX: {
+    uint16_t functionId = instrParams[0];
+    printf("TIM_COMMAND_ID_DIALOG_BOX %X\n", instrParams[0]);
+    if (interp->callbacks.TIMInterpreterCallbacks_ShowButtons) {
+      interp->callbacks.TIMInterpreterCallbacks_ShowButtons(interp,functionId,
+                                                            instrParams + 1);
+    }
     break;
+  }
   case TIM_COMMAND_SET_LOOP_IP:
-    interp->loopStartPos = pos;
+    if (interp->dontLoop == 0) {
+      interp->loopStartPos = pos;
+    }
+
     break;
   default:
     assert(0);
-  }
-  if (instr->instrCode == TIM_COMMAND_ID_EXEC_OPCODE) {
-    processOpCode(interp, instrParams, numParams);
   }
   return instr->len;
 }
