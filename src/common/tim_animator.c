@@ -282,11 +282,12 @@ static void hideButton(TIMAnimator *animator, int index) {
   }
 }
 
-static void mainLoop(TIMAnimator *animator, uint32_t ms) {
+static void mainLoop(TIMAnimator *animator) {
   int quit = 0;
+  int timeToWait = 0;
   while (!quit) {
     SDL_Event e;
-    SDL_WaitEventTimeout(&e, 30);
+    SDL_WaitEventTimeout(&e, timeToWait);
     SDL_RenderClear(animator->renderer);
     if (e.type == SDL_QUIT) {
       quit = 1;
@@ -307,15 +308,15 @@ static void mainLoop(TIMAnimator *animator, uint32_t ms) {
         animator->buttonsState[2] = 1;
         break;
       case SDLK_SPACE:
-        if (TIMInterpreterIsRunning(&animator->_interpreter)) {
-          TIMInterpreterUpdate(&animator->_interpreter, ms);
-        } else {
-          printf("TIM anim is done\n");
-        }
-        ms += 30;
-
         break;
       }
+    }
+
+    if (TIMInterpreterIsRunning(&animator->_interpreter)) {
+      timeToWait = TIMInterpreterUpdate(&animator->_interpreter) * 10;
+    } else {
+      printf("TIM anim is done\n");
+      break;
     }
     SDL_RenderCopy(animator->renderer, animator->pixBuf, NULL, NULL);
     if (animator->currentDialog) {
@@ -337,8 +338,7 @@ int TIMAnimatorRunAnim(TIMAnimator *animator, TIMHandle *tim) {
   }
   printf("TIMAnimatorRunAnim\n");
   animator->tim = tim;
-  uint32_t ms = 0;
-  TIMInterpreterStart(&animator->_interpreter, tim, ms);
-  mainLoop(animator, ms);
+  TIMInterpreterStart(&animator->_interpreter, tim);
+  mainLoop(animator);
   return 1;
 }

@@ -76,8 +76,7 @@ void TIMInterpreterInit(TIMInterpreter *interp) {
 }
 void TIMInterpreterRelease(TIMInterpreter *interp) {}
 
-void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim,
-                         uint32_t timeMs) {
+void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim) {
   interp->_tim = tim;
   printf("Mystery word = 0X%X\n", interp->_tim->avtl[0]);
   interp->pos = TIM_START_OFFSET;
@@ -150,6 +149,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   }
   printf("\n");
 
+  interp->currentInstructionDuration = instr->duration;
   switch ((TIM_COMMAND_ID)instr->instrCode) {
 
   case TIM_COMMAND_ID_STOP_ALL_FUNCS:
@@ -235,13 +235,15 @@ void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex) {
   interp->buttonState[buttonIndex] = 1;
 }
 
-void TIMInterpreterUpdate(TIMInterpreter *interp, uint32_t timeMs) {
+int TIMInterpreterUpdate(TIMInterpreter *interp) {
   int adv =
       processInstruction(interp, interp->_tim->avtl + interp->pos, interp->pos);
+
   if (interp->restartLoop) {
     interp->restartLoop = 0;
     interp->pos = interp->loopStartPos;
   } else {
     interp->pos += adv;
   }
+  return interp->currentInstructionDuration;
 }

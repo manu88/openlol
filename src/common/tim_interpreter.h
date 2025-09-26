@@ -36,13 +36,14 @@ typedef struct _TIMInterpreter {
 
   int buttonState[3];
 
+  int currentInstructionDuration;
+
 } TIMInterpreter;
 
 void TIMInterpreterInit(TIMInterpreter *interp);
 void TIMInterpreterRelease(TIMInterpreter *interp);
 
-void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim,
-                         uint32_t timeMs);
+void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim);
 int TIMInterpreterIsRunning(const TIMInterpreter *interp);
-void TIMInterpreterUpdate(TIMInterpreter *interp, uint32_t timeMs);
+int TIMInterpreterUpdate(TIMInterpreter *interp);
 void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex);
