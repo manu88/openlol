@@ -275,6 +275,13 @@ void TIMAnimatorRelease(TIMAnimator *animator) {
   WSAHandleRelease(&animator->wsa);
 }
 
+static void hideButton(TIMAnimator *animator, int index) {
+  if (animator->buttonText[index]) {
+    free(animator->buttonText[index]);
+    animator->buttonText[index] = NULL;
+  }
+}
+
 static void mainLoop(TIMAnimator *animator, uint32_t ms) {
   int quit = 0;
   while (!quit) {
@@ -289,6 +296,7 @@ static void mainLoop(TIMAnimator *animator, uint32_t ms) {
         printf("Button1\n");
         animator->buttonsState[0] = 1;
         TIMInterpreterButtonClicked(&animator->_interpreter, 0);
+        hideButton(animator, 0);
         break;
       case SDLK_2:
         printf("Button2\n");
