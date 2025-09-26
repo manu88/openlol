@@ -1,5 +1,6 @@
 #include "format_tim.h"
 #include "bytes.h"
+#include <_ctype.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -54,8 +55,17 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
       assert(0);
     }
   }
-  if (handle->textSize < 0) {
+  if (handle->textSize > 0) {
     assert(handle->text);
+    int i = 0;
+    for (; i < handle->textSize / 2; i++) {
+      uint16_t *b = (uint16_t *)handle->text;
+      uint16_t offset = b[i];
+      if (offset >= handle->textSize) {
+        break;
+      }
+    }
+    handle->numTextStrings = i;
   }
   handle->numFunctions = handle->avtlSize < TIM_NUM_FUNCTIONS
                              ? handle->avtlSize
@@ -70,9 +80,10 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
 }
 
 const char *TIMHandleGetText(TIMHandle *handle, int index) {
-  assert(index == 0); // need to implement indexing
+  assert(index <= handle->numTextStrings);
   if (handle->textSize == 0) {
     return NULL;
   }
-  return (const char *)handle->text + *(handle->text);
+  uint16_t offset = ((uint16_t *)handle->text)[index];
+  return (const char *)handle->text + offset;
 }

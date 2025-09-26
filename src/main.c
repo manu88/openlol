@@ -805,7 +805,9 @@ static int cmdShowTim(int argc, char *argv[]) {
   TIMHandleFromBuffer(&handle, buffer, readSize);
 
   if (handle.text) {
-    printf("Text:'%s'\n", TIMHandleGetText(&handle, 0));
+    for (int i = 0; i < handle.numTextStrings; i++) {
+      printf("Text: %i '%s'\n", i, TIMHandleGetText(&handle, i));
+    }
   } else {
     printf("No text\n");
   }

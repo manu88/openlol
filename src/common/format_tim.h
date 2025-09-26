@@ -17,6 +17,8 @@ typedef struct {
   uint8_t *text;
   size_t textSize;
 
+  int numTextStrings;
+
   uint16_t *avtl;
   size_t avtlSize; // size in sizeof(uint16_t)!
 
