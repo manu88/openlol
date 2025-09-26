@@ -2,7 +2,6 @@
 #include "SDL_error.h"
 #include "SDL_events.h"
 #include "SDL_keycode.h"
-#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "bytes.h"
 #include "format_lang.h"
@@ -67,6 +66,9 @@ const char *wsaFlags(int flags) {
   return s;
 }
 
+static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
+                                    int frame);
+
 static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
                             int y, int offscreen, int flags) {
   TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
@@ -77,8 +79,8 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
 
   size_t fileSize = 0;
   size_t readSize = 0;
-  char filePath[12] = "";
-  snprintf(filePath, 12, "%s.wsa", wsaFile);
+  char filePath[16] = "";
+  snprintf(filePath, sizeof(filePath), "%s.wsa", wsaFile);
   uint8_t *buffer = readBinaryFile(filePath, &fileSize, &readSize);
   if (!buffer) {
     perror("malloc error");
@@ -87,6 +89,7 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   WSAHandleInit(&animator->wsa);
   WSAHandleFromBuffer(&animator->wsa, buffer, readSize);
   printf("WSAHandle created\n");
+  callbackWSADisplayFrame(interp, 0, 0);
 }
 
 static void callbackWSARelease(TIMInterpreter *interp, int index) {
@@ -95,7 +98,7 @@ static void callbackWSARelease(TIMInterpreter *interp, int index) {
 
 static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
                            size_t dataSize, const uint8_t *paletteBuffer, int w,
-                           int h) {
+                           int h, int doXOR) {
   assert(animator->pixBuf);
   void *data;
   int pitch;
@@ -120,9 +123,12 @@ static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
         g = paletteIdx;
         b = paletteIdx;
       }
-      if (r && g && b) {
-        uint32_t *row = (unsigned int *)((char *)data + pitch * y);
-        row[x] = row[x] ^ (0XFF + (r << 0X10) + (g << 0X8) + b);
+
+      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+      if (doXOR) {
+        row[x] ^= 0XFF + (r << 0X10) + (g << 0X8) + b;
+      } else {
+        row[x] = 0XFF + (r << 0X10) + (g << 0X8) + b;
       }
     }
   }
@@ -139,7 +145,8 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
   assert(frameData);
   size_t fullSize = animator->wsa.header.width * animator->wsa.header.height;
   renderWSAFrame(animator, frameData, fullSize, animator->wsa.header.palette,
-                 animator->wsa.header.width, animator->wsa.header.height);
+                 animator->wsa.header.width, animator->wsa.header.height,
+                 frame != 0);
   free(frameData);
 }
 

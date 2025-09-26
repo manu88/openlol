@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include <string.h>
 
-
-
 static void renderPalette(SDL_Renderer *renderer, const uint8_t *paletteBuffer,
                           int offsetX, int offsetY) {
   for (int i = 0; i < 256; i++) {
@@ -51,10 +49,11 @@ static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
         g = paletteIdx;
         b = paletteIdx;
       }
-
-      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-      SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
-      SDL_RenderFillRect(renderer, &rect);
+      if (r && g && b) {
+        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+        SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
+        SDL_RenderFillRect(renderer, &rect);
+      }
     }
   }
 }

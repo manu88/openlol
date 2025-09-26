@@ -1,5 +1,6 @@
 #include "tim_interpreter.h"
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -53,7 +54,11 @@ typedef enum {
   TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
   TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
   TIM_OPCODE_FADE_CLEAR_WINDOW = 0X05,
+  TIM_OPCODE_CLEAR_TEXT_FIELD = 0X0A,
+  TIM_OPCODE_LOAD_SOUND_FILE = 0X0B,
+  TIM_OPCODE_PLAY_MUSIC_TRACK = 0X0C,
   TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT = 0X0D,
+  TIM_OPCODE_PLAY_SOUND_FX = 0X0E,
 } TIM_OPCODE;
 
 typedef struct {
@@ -75,10 +80,13 @@ void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim,
   interp->pos = TIM_START_OFFSET;
 }
 
-static void processOpCode(const uint16_t *params, int numParams) {
+static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
+                          int numParams) {
   assert(numParams);
   numParams--;
-  switch ((TIM_OPCODE)params[0]) {
+  TIM_OPCODE timOpCode = params[0];
+  params++;
+  switch (timOpCode) {
   case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE:
     printf("\t TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE %i params\n", numParams);
     break;
@@ -89,10 +97,28 @@ static void processOpCode(const uint16_t *params, int numParams) {
   case TIM_OPCODE_FADE_CLEAR_WINDOW:
     printf("\t TIM_OPCODE_FADE_CLEAR_WINDOW %i params\n", numParams);
     break;
-  case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT:
+  case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
+    const uint16_t stringId = params[0];
     printf("\t TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT %i params\n", numParams);
+    if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
+      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(interp, stringId);
+    }
+    break;
+  }
+  case TIM_OPCODE_CLEAR_TEXT_FIELD:
+    printf("\t TIM_OPCODE_CLEAR_TEXT_FIELD %i params\n", numParams);
+    break;
+  case TIM_OPCODE_LOAD_SOUND_FILE:
+    printf("\t TIM_OPCODE_LOAD_SOUND_FILE %i params\n", numParams);
+    break;
+  case TIM_OPCODE_PLAY_MUSIC_TRACK:
+    printf("\t TIM_OPCODE_PLAY_MUSIC_TRACK %i params\n", numParams);
+    break;
+  case TIM_OPCODE_PLAY_SOUND_FX:
+    printf("\t TIM_OPCODE_PLAY_SOUND_FX %i params\n", numParams);
     break;
   default:
+    printf("Unimplemented TIM Opcode %X\n", params[0]);
     assert(0);
   }
 }
@@ -169,7 +195,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     assert(0);
   }
   if (instr->instrCode == TIM_COMMAND_ID_EXEC_OPCODE) {
-    processOpCode(instrParams, numParams);
+    processOpCode(interp, instrParams, numParams);
   }
   return instr->len;
 }
