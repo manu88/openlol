@@ -37,7 +37,8 @@
       enableAddressSanitizer = "YES"
       enableASanStackUseAfterReturn = "YES"
       launchStyle = "0"
-      useCustomWorkingDirectory = "NO"
+      useCustomWorkingDirectory = "YES"
+      customWorkingDirectory = "/Users/manueldeneu/Documents/dev/landsoflore"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
@@ -55,32 +56,36 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "game"
+            argument = "tim"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL1.CMZ"
+            argument = "anim"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.VCN"
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/GUARD2.TIM"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL01.FRE"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.VMP"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL1.WLL"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.DAT"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.SHP"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

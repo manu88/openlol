@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		594887D02E8681B300684ABD /* tim_animator.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887CF2E8681B300684ABD /* tim_animator.c */; };
+		594887D32E8681C000684ABD /* tim_interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887D22E8681C000684ABD /* tim_interpreter.c */; };
 		59A9823A2E8306F800A6A596 /* format_inf.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A982062E8306F800A6A596 /* format_inf.c */; };
 		59A9823B2E8306F800A6A596 /* format_wll.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A982142E8306F800A6A596 /* format_wll.c */; };
 		59A9823C2E8306F800A6A596 /* format_cps.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A982022E8306F800A6A596 /* format_cps.c */; };
@@ -50,6 +52,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		594887CE2E8681B300684ABD /* tim_animator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_animator.h; sourceTree = "<group>"; };
+		594887CF2E8681B300684ABD /* tim_animator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tim_animator.c; sourceTree = "<group>"; };
+		594887D12E8681C000684ABD /* tim_interpreter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_interpreter.h; sourceTree = "<group>"; };
+		594887D22E8681C000684ABD /* tim_interpreter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tim_interpreter.c; sourceTree = "<group>"; };
 		59A981F92E8306F800A6A596 /* bytes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bytes.h; sourceTree = "<group>"; };
 		59A981FA2E8306F800A6A596 /* bytes.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bytes.c; sourceTree = "<group>"; };
 		59A981FB2E8306F800A6A596 /* emc_asm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = emc_asm.h; sourceTree = "<group>"; };
@@ -154,6 +160,10 @@
 				59A982122E8306F800A6A596 /* format_vmp.c */,
 				59A982132E8306F800A6A596 /* format_wll.h */,
 				59A982142E8306F800A6A596 /* format_wll.c */,
+				594887D12E8681C000684ABD /* tim_interpreter.h */,
+				594887D22E8681C000684ABD /* tim_interpreter.c */,
+				594887CE2E8681B300684ABD /* tim_animator.h */,
+				594887CF2E8681B300684ABD /* tim_animator.c */,
 				59A982152E8306F800A6A596 /* format_wsa.h */,
 				59A982162E8306F800A6A596 /* format_wsa.c */,
 				59A982172E8306F800A6A596 /* pak_file.h */,
@@ -311,6 +321,8 @@
 				59A982542E8306F800A6A596 /* format_cmz.c in Sources */,
 				59A982552E8306F800A6A596 /* game.c in Sources */,
 				59A982562E8306F800A6A596 /* tests.c in Sources */,
+				594887D02E8681B300684ABD /* tim_animator.c in Sources */,
+				594887D32E8681C000684ABD /* tim_interpreter.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <xlocale/_stdio.h>
 
@@ -19,8 +20,15 @@
 
 #define ANIM_WIDTH 300
 #define ANIM_HEIGHT 200
+
 static int initSDLStuff(TIMAnimator *animator) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    return 0;
+  }
+  if (TTF_Init() == -1) {
+    printf("SDL could not be initialized!\n"
+           "SDL_Error: %s\n",
+           TTF_GetError());
     return 0;
   }
   animator->window = SDL_CreateWindow("TIM animator", SDL_WINDOWPOS_UNDEFINED,
@@ -40,7 +48,28 @@ static int initSDLStuff(TIMAnimator *animator) {
   if (animator->pixBuf == NULL) {
     printf("Error: %s\n", SDL_GetError());
   }
+
+  animator->font = TTF_OpenFont("/Library/Fonts/Arial Unicode.ttf", 18);
+  if (!animator->font) {
+    printf("unable to create font\n"
+           "SDL_Error: %s\n",
+           TTF_GetError());
+    return 0;
+  }
   return 1;
+}
+
+static void renderStatLine(TIMAnimator *animator, const char *line, int x,
+                           int y) {
+  animator->textSurface = TTF_RenderUTF8_Solid(animator->font, line,
+                                               (SDL_Color){255, 255, 255, 255});
+
+  animator->textTexture =
+      SDL_CreateTextureFromSurface(animator->renderer, animator->textSurface);
+  SDL_Rect dstrect = {x, y, animator->textSurface->w, animator->textSurface->h};
+  SDL_RenderCopy(animator->renderer, animator->textTexture, NULL, &dstrect);
+  SDL_DestroyTexture(animator->textTexture);
+  SDL_FreeSurface(animator->textSurface);
 }
 
 const char *wsaFlags(int flags) {
@@ -150,20 +179,23 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
   free(frameData);
 }
 
-static char tempStr[1024];
-
 static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId) {
   TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
   assert(animator);
-  printf("TIMAnimator callbackPlayDialogue stringId=%i", stringId);
+  printf("TIMAnimator callbackPlayDialogue stringId=%i\n", stringId);
   uint8_t useLevelFile = 0;
   int realId = LangGetString(stringId, &useLevelFile);
   if (!useLevelFile) {
     assert(0); // to implement :)
   }
   if (realId != -1 && animator->lang) {
-    LangHandleGetString(animator->lang, realId, tempStr, sizeof(tempStr));
-    printf("Dialogue: '%s'\n", tempStr);
+    if (animator->currentDialog == NULL) {
+      animator->currentDialog = malloc(1024);
+      assert(animator->currentDialog);
+      memset(animator->currentDialog, 0, 1024);
+    }
+    printf("Dialog id %i\n", realId);
+    LangHandleGetString(animator->lang, realId, animator->currentDialog, 1024);
   }
 }
 
@@ -178,13 +210,21 @@ static void callbackShowButtons(TIMInterpreter *interp, uint16_t functionId,
       break;
     }
     uint8_t useLevelFile = 0;
+    printf("LangGetString %i %X\n", i, buttonStrIds[i]);
     int realId = LangGetString(buttonStrIds[i], &useLevelFile);
+    assert(realId != -1);
     if (!useLevelFile) {
       assert(0); // to implement :)
     }
     if (realId != -1 && animator->lang) {
-      LangHandleGetString(animator->lang, realId, tempStr, sizeof(tempStr));
-      printf("Dialogue Button %i: '%s'\n", i, tempStr);
+      if (animator->buttonText[i] == NULL) {
+        animator->buttonText[i] = malloc(16);
+        assert(animator->buttonText[i]);
+        memset(animator->buttonText[i], 0, 16);
+      }
+      printf("realID = %x\n", realId);
+      LangHandleGetString(animator->lang, realId, animator->buttonText[i], 16);
+      printf("Dialogue Button %i: '%s'\n", i, animator->buttonText[i]);
     }
   }
 }
@@ -216,6 +256,21 @@ void TIMAnimatorRelease(TIMAnimator *animator) {
     SDL_DestroyWindow(animator->window);
   }
   SDL_DestroyRenderer(animator->renderer);
+
+  SDL_DestroyTexture(animator->pixBuf);
+
+  if (animator->font) {
+    TTF_CloseFont(animator->font);
+  }
+  if (animator->currentDialog) {
+    free(animator->currentDialog);
+  }
+  for (int i = 0; i < 3; i++) {
+    if (animator->buttonText[i]) {
+      free(animator->buttonText[i]);
+    }
+  }
+
   WSAHandleRelease(&animator->wsa);
 }
 
@@ -224,6 +279,7 @@ static void mainLoop(TIMAnimator *animator, uint32_t ms) {
   while (!quit) {
     SDL_Event e;
     SDL_WaitEventTimeout(&e, 30);
+    SDL_RenderClear(animator->renderer);
     if (e.type == SDL_QUIT) {
       quit = 1;
     } else if (e.type == SDL_KEYDOWN) {
@@ -239,8 +295,15 @@ static void mainLoop(TIMAnimator *animator, uint32_t ms) {
         break;
       }
     }
-    SDL_RenderClear(animator->renderer);
     SDL_RenderCopy(animator->renderer, animator->pixBuf, NULL, NULL);
+    if (animator->currentDialog) {
+      renderStatLine(animator, animator->currentDialog, 10, 300);
+    }
+    for (int i = 0; i < 3; i++) {
+      if (animator->buttonText[i]) {
+        renderStatLine(animator, animator->buttonText[i], 100, 350);
+      }
+    }
     SDL_RenderPresent(animator->renderer);
   } // end while
   SDL_Quit();
