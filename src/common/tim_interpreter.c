@@ -53,6 +53,8 @@ static const char *timCommandsName(uint8_t code) {
 typedef enum {
   TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
   TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
+  TIM_OPCODE_GIVE_ITEM = 0X03,
+  TIM_OPCODE_SET_PARTY_POS = 0X04,
   TIM_OPCODE_FADE_CLEAR_WINDOW = 0X05,
   TIM_OPCODE_CLEAR_TEXT_FIELD = 0X0A,
   TIM_OPCODE_LOAD_SOUND_FILE = 0X0B,
@@ -63,9 +65,9 @@ typedef enum {
 
 typedef struct {
   uint16_t len;
-  uint16_t something0;
+  uint16_t duration;
   uint8_t instrCode;
-  uint8_t something1;
+  uint8_t _unused;
 } TImInstruction;
 
 void TIMInterpreterInit(TIMInterpreter *interp) {
@@ -77,6 +79,7 @@ void TIMInterpreterRelease(TIMInterpreter *interp) {}
 void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim,
                          uint32_t timeMs) {
   interp->_tim = tim;
+  printf("Mystery word = 0X%X\n", interp->_tim->avtl[0]);
   interp->pos = TIM_START_OFFSET;
 }
 
@@ -97,6 +100,12 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
     printf("\t TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE %i params\n",
            numParams);
+    break;
+  case TIM_OPCODE_GIVE_ITEM:
+    printf("\t TIM_OPCODE_GIVE_ITEM %i params\n", numParams);
+    break;
+  case TIM_OPCODE_SET_PARTY_POS:
+    printf("\t TIM_OPCODE_SET_PARTY_POS %i params\n", numParams);
     break;
   case TIM_OPCODE_FADE_CLEAR_WINDOW:
     printf("\t TIM_OPCODE_FADE_CLEAR_WINDOW %i params\n", numParams);
@@ -121,7 +130,7 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     printf("\t TIM_OPCODE_PLAY_SOUND_FX %i params\n", numParams);
     break;
   default:
-    printf("Unimplemented TIM Opcode %X\n", params[0]);
+    printf("Unimplemented TIM Opcode %X\n", timOpCode);
     assert(0);
   }
 }
@@ -133,8 +142,9 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   int numParams =
       instr->len - 3; // 3 is size of minimum instruction size w/o params
 
-  printf("0X%zX Instruction len=%i code=%02X %s  %i params: ", pos, instr->len,
-         instr->instrCode, timCommandsName(instr->instrCode), numParams);
+  printf("0X%zX Instruction dur=0X%X len=%i code=%02X %s  %i params: ", pos,
+         instr->duration, instr->len, instr->instrCode,
+         timCommandsName(instr->instrCode), numParams);
   for (int i = 0; i < numParams; i++) {
     printf(" 0X%X ", instrParams[i]);
   }
@@ -171,12 +181,6 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     }
     break;
   }
-  case TIM_COMMAND_ID_CONTINUE_LOOP:
-    if (interp->dontLoop == 0) {
-      assert(interp->loopStartPos != -1);
-      interp->restartLoop = 1;
-    }
-    break;
   case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
     break;
   case TIM_COMMAND_ID_CMD_RETURN_1:
@@ -186,17 +190,30 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     break;
   case TIM_COMMAND_ID_PROCESS_DIALOGUE:
     printf("TIM_COMMAND_ID_PROCESS_DIALOGUE %i\n", numParams);
-
     break;
   case TIM_COMMAND_ID_DIALOG_BOX: {
     uint16_t functionId = instrParams[0];
     printf("TIM_COMMAND_ID_DIALOG_BOX %X\n", instrParams[0]);
     if (interp->callbacks.TIMInterpreterCallbacks_ShowButtons) {
-      interp->callbacks.TIMInterpreterCallbacks_ShowButtons(interp,functionId,
+      interp->callbacks.TIMInterpreterCallbacks_ShowButtons(interp, functionId,
                                                             instrParams + 1);
     }
     break;
   }
+  case TIM_COMMAND_ID_CONTINUE_LOOP:
+    if (interp->dontLoop == 0) {
+      assert(interp->loopStartPos != -1);
+      interp->inLoop = 1;
+      interp->restartLoop = 1;
+
+      if (interp->buttonState[0]) {
+        printf("\t\t\tButton ok clicked\n");
+        interp->buttonState[0] = 0;
+        interp->inLoop = 0;
+        interp->restartLoop = 0;
+      }
+    }
+    break;
   case TIM_COMMAND_SET_LOOP_IP:
     if (interp->dontLoop == 0) {
       interp->loopStartPos = pos;
@@ -212,6 +229,12 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 int TIMInterpreterIsRunning(const TIMInterpreter *interp) {
   return interp->pos < interp->_tim->avtlSize;
 }
+
+void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex) {
+  assert(buttonIndex < 3);
+  interp->buttonState[buttonIndex] = 1;
+}
+
 void TIMInterpreterUpdate(TIMInterpreter *interp, uint32_t timeMs) {
   int adv =
       processInstruction(interp, interp->_tim->avtl + interp->pos, interp->pos);

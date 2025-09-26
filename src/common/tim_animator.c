@@ -7,6 +7,7 @@
 #include "format_lang.h"
 #include "format_wsa.h"
 #include "renderer.h"
+#include "tim_interpreter.h"
 #include <_string.h>
 #include <assert.h>
 #include <stdint.h>
@@ -284,6 +285,19 @@ static void mainLoop(TIMAnimator *animator, uint32_t ms) {
       quit = 1;
     } else if (e.type == SDL_KEYDOWN) {
       switch (e.key.keysym.sym) {
+      case SDLK_1:
+        printf("Button1\n");
+        animator->buttonsState[0] = 1;
+        TIMInterpreterButtonClicked(&animator->_interpreter, 0);
+        break;
+      case SDLK_2:
+        printf("Button2\n");
+        animator->buttonsState[1] = 1;
+        break;
+      case SDLK_3:
+        printf("Button3\n");
+        animator->buttonsState[2] = 1;
+        break;
       case SDLK_SPACE:
         if (TIMInterpreterIsRunning(&animator->_interpreter)) {
           TIMInterpreterUpdate(&animator->_interpreter, ms);

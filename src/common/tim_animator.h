@@ -6,6 +6,7 @@
 #include "tim_interpreter.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <stdint.h>
 
 typedef struct {
   WSAHandle wsa;
@@ -22,6 +23,8 @@ typedef struct {
   SDL_Window *window;
   SDL_Renderer *renderer;
   SDL_Texture *pixBuf;
+
+  uint8_t buttonsState[3];
 } TIMAnimator;
 
 void TIMAnimatorInit(TIMAnimator *animator);

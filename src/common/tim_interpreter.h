@@ -14,7 +14,8 @@ typedef struct {
                                                   int frameIndex, int frame);
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
                                                uint16_t strId);
-  void (*TIMInterpreterCallbacks_ShowButtons)(TIMInterpreter *interp, uint16_t functionId,
+  void (*TIMInterpreterCallbacks_ShowButtons)(TIMInterpreter *interp,
+                                              uint16_t functionId,
                                               const uint16_t buttonStrIds[3]);
   void (*TIMInterpreterCallbacks_InitSceneDialog)(TIMInterpreter *interp,
                                                   int controlMode);
@@ -31,6 +32,9 @@ typedef struct _TIMInterpreter {
 
   int loopStartPos;
   int restartLoop;
+  int inLoop;
+
+  int buttonState[3];
 
 } TIMInterpreter;
 
@@ -41,3 +45,4 @@ void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim,
                          uint32_t timeMs);
 int TIMInterpreterIsRunning(const TIMInterpreter *interp);
 void TIMInterpreterUpdate(TIMInterpreter *interp, uint32_t timeMs);
+void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex);
