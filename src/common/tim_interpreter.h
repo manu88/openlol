@@ -20,10 +20,10 @@ typedef struct {
                                               const uint16_t buttonStrIds[3]);
   void (*TIMInterpreterCallbacks_InitSceneDialog)(TIMInterpreter *interp,
                                                   int controlMode);
-} TIMInterpreter2Callbacks;
+} TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {
-  TIMInterpreter2Callbacks callbacks;
+  TIMInterpreterCallbacks callbacks;
   void *callbackCtx;
 
   TIMHandle *_tim;
