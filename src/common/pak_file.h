@@ -25,7 +25,12 @@ void PAKFileInit(PAKFile *file);
 void PAKFileRelease(PAKFile *file);
 int PAKFileRead(PAKFile *file, const char *filepath);
 
-int PakFileExtract(PAKFile *file, PAKEntry *entry, const char *toFile);
+int PakFileExtract(const PAKFile *file, PAKEntry *entry, const char *toFile);
 const char *PakFileEntryGetExtension(const PAKEntry *entry);
 
 uint8_t *PakFileGetEntryData(const PAKFile *file, PAKEntry *entry);
+
+const PAKFile *PakFileGetMain(void);
+int PakFileLoadMain(const char *filepath);
+void PakFileReleaseMain(void);
+

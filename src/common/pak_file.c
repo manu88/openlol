@@ -65,7 +65,7 @@ const char *PakFileEntryGetExtension(const PAKEntry *entry) {
   return entry->filename + strlen(entry->filename) - 3;
 }
 
-int PakFileExtract(PAKFile *file, PAKEntry *entry, const char *toFile) {
+int PakFileExtract(const PAKFile *file, PAKEntry *entry, const char *toFile) {
   uint8_t *fileData = PakFileGetEntryData(file, entry);
   if (!fileData) {
     return 1;
@@ -94,4 +94,29 @@ uint8_t *PakFileGetEntryData(const PAKFile *file, PAKEntry *entry) {
     }
   }
   return entry->data;
+}
+
+static PAKFile _mainPak;
+static int _mainPakLoaded = 0;
+const PAKFile *PakFileGetMain(void) {
+  if (!_mainPakLoaded) {
+    return NULL;
+  }
+  return &_mainPak;
+}
+
+int PakFileLoadMain(const char *filepath) {
+  _mainPakLoaded = 0;
+  PAKFileInit(&_mainPak);
+  if (!PAKFileRead(&_mainPak, filepath)) {
+    return 0;
+  }
+  _mainPakLoaded = 1;
+  return 1;
+}
+
+void PakFileReleaseMain(void) {
+  if (_mainPakLoaded) {
+    PAKFileRelease(&_mainPak);
+  }
 }

@@ -23,9 +23,11 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#define _POSIX_C_SOURCE 2
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static int cmdWLL(int argc, char *argv[]) {
   size_t fileSize = 0;
@@ -602,51 +604,37 @@ static void usagePak(void) {
   printf("pak subcommands: list|extract pakFilepath [file]\n");
 }
 
-static int cmdPakList(const char *pakfilepath) {
-  PAKFile file;
-  PAKFileInit(&file);
-
-  if (PAKFileRead(&file, pakfilepath) == 0) {
-    perror("Error while reading file");
-    return 1;
-  }
-
-  for (int i = 0; i <= file.count; i++) {
-    PAKEntry *entry = &file.entries[i];
+static int cmdPakList(void) {
+  const PAKFile *file = PakFileGetMain();
+  assert(file);
+  for (int i = 0; i <= file->count; i++) {
+    PAKEntry *entry = &file->entries[i];
     printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", i, i,
            entry->offset, entry->filename, PakFileEntryGetExtension(entry),
            entry->fileSize);
   }
-
-  PAKFileRelease(&file);
   return 0;
 }
 
-static int cmdPakExtract(const char *pakfilepath, const char *fileToShow) {
-  PAKFile file;
-  PAKFileInit(&file);
-
-  if (PAKFileRead(&file, pakfilepath) == 0) {
-    perror("Error while reading file");
-    return 1;
-  }
+static int cmdPakExtract(const char *fileToShow) {
+  const PAKFile *file = PakFileGetMain();
+  assert(file);
 
   int found = 0;
   int ok = 0;
-  for (int i = 0; i < file.count; i++) {
-    PAKEntry *entry = &file.entries[i];
+  for (int i = 0; i < file->count; i++) {
+    PAKEntry *entry = &file->entries[i];
     if (strcmp(entry->filename, fileToShow) == 0) {
       printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", i, i,
              entry->offset, entry->filename, PakFileEntryGetExtension(entry),
              entry->fileSize);
       found = 1;
 
-      ok = PakFileExtract(&file, entry, fileToShow);
+      ok = PakFileExtract(file, entry, fileToShow);
       break;
     }
   }
 
-  PAKFileRelease(&file);
   if (!found) {
     printf("File '%s' not found in PAK\n", fileToShow);
     return 1;
@@ -660,19 +648,18 @@ static int cmdPak(int argc, char *argv[]) {
     usagePak();
     return 1;
   }
-  if (argc < 2) {
-    printf("pak list: missing pak file path\n");
+  if (!PakFileGetMain()) {
+    printf("pak list: missing pak file path, use -p option\n");
     return 1;
   }
-  const char *filepath = argv[1];
   if (strcmp(argv[0], "list") == 0) {
-    return cmdPakList(filepath);
+    return cmdPakList();
   } else if (strcmp(argv[0], "extract") == 0) {
     if (argc < 3) {
       printf("pak extract: missing file name \n");
       return 1;
     }
-    return cmdPakExtract(filepath, argv[2]);
+    return cmdPakExtract(argv[2]);
   }
 
   printf("Unknown pak command '%s'\n", argv[0]);
@@ -752,6 +739,7 @@ static int cmdWSAShow(const char *filepath) {
       printf("IS ZERO\n");
     }
   }
+
   WSAHandleRelease(&handle);
   return 0;
 }
@@ -911,11 +899,7 @@ static void usage(const char *progName) {
          progName);
 }
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    usage(argv[0]);
-    return 0;
-  }
+static int doCMD(int argc, char *argv[]) {
   if (strcmp(argv[1], "pak") == 0) {
     return cmdPak(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cmz") == 0) {
@@ -954,4 +938,38 @@ int main(int argc, char *argv[]) {
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
   return 1;
+}
+
+int main(int argc, char *argv[]) {
+  const char *progName = argv[0];
+  const char *pakFilePath = NULL;
+  char c;
+  while ((c = getopt(argc, argv, "hp:")) != -1) {
+    switch (c) {
+    case 'h':
+      usage(progName);
+      return 0;
+    case 'p':
+      pakFilePath = optarg;
+      break;
+    }
+  }
+
+  argc = argc - optind + 1;
+  argv = argv + optind - 1;
+
+  if (argc < 2) {
+    usage(progName);
+    return 0;
+  }
+  if (pakFilePath) {
+    printf("Using pak file '%s'\n", pakFilePath);
+    if (!PakFileLoadMain(pakFilePath)) {
+      printf("error while reading pak file %s\n", pakFilePath);
+      return 1;
+    }
+  }
+  int ret = doCMD(argc, argv);
+  PakFileReleaseMain();
+  return ret;
 }
