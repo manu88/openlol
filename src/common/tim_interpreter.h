@@ -13,7 +13,8 @@ typedef struct {
   void (*TIMInterpreterCallbacks_WSADisplayFrame)(TIMInterpreter *interp,
                                                   int frameIndex, int frame);
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
-                                               uint16_t strId);
+                                               uint16_t strId, int argc,
+                                               const uint16_t *argv);
   void (*TIMInterpreterCallbacks_ShowButtons)(TIMInterpreter *interp,
                                               uint16_t functionId,
                                               const uint16_t buttonStrIds[3]);

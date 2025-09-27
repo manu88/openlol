@@ -10,6 +10,8 @@
 
 typedef struct {
   WSAHandle wsa;
+  int animXOffset;
+  int animYOffset;
   TIMHandle *tim;
   TIMInterpreter _interpreter;
   LangHandle *lang;

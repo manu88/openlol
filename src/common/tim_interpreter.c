@@ -112,7 +112,8 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
   case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
     printf("\t TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT %i params\n", numParams);
     if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
-      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(interp, params[0]);
+      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(
+          interp, params[0], numParams - 1, numParams > 1 ? params + 1 : NULL);
     }
     break;
   }

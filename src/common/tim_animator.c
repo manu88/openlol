@@ -106,7 +106,8 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   printf("TIMAnimator: callbackWSAInit wsa file='%s' x=%i y=%i offscreen=%i "
          "flags=%X %s\n",
          wsaFile, x, y, offscreen, flags, wsaFlags(flags));
-
+  animator->animXOffset = x;
+  animator->animYOffset = y;
   size_t fileSize = 0;
   size_t readSize = 0;
   char filePath[16] = "";
@@ -119,11 +120,13 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   WSAHandleInit(&animator->wsa);
   WSAHandleFromBuffer(&animator->wsa, buffer, readSize);
   printf("WSAHandle created\n");
-  callbackWSADisplayFrame(interp, 0, 0);
 }
 
 static void callbackWSARelease(TIMInterpreter *interp, int index) {
   printf("TIMAnimator: callbackWSARelease index=%i\n", index);
+  TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
+  assert(animator);
+  WSAHandleRelease(&animator->wsa);
 }
 
 static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
@@ -153,12 +156,13 @@ static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
         g = paletteIdx;
         b = paletteIdx;
       }
-
-      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+      int xx = x + animator->animXOffset;
+      int yy = y + animator->animYOffset;
+      uint32_t *row = (unsigned int *)((char *)data + pitch * yy);
       if (doXOR) {
-        row[x] ^= 0XFF + (r << 0X10) + (g << 0X8) + b;
+        row[xx] ^= 0XFF + (r << 0X10) + (g << 0X8) + b;
       } else {
-        row[x] = 0XFF + (r << 0X10) + (g << 0X8) + b;
+        row[xx] = 0XFF + (r << 0X10) + (g << 0X8) + b;
       }
     }
   }
@@ -180,10 +184,18 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
   free(frameData);
 }
 
-static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId) {
+static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId,
+                                 int argc, const uint16_t *argv) {
   TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
   assert(animator);
-  printf("TIMAnimator callbackPlayDialogue stringId=%i\n", stringId);
+  printf("TIMAnimator callbackPlayDialogue stringId=%i argc=%i\n", stringId,
+         argc);
+  if (argc) {
+    for (int i = 0; i < argc; i++) {
+      printf("0X%X ", argv[i]);
+    }
+    printf("\n");
+  }
   uint8_t useLevelFile = 0;
   int realId = LangGetString(stringId, &useLevelFile);
   if (!useLevelFile) {
