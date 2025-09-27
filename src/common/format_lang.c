@@ -70,7 +70,7 @@ void LangHandleShow(LangHandle *handle) {
   }
 }
 
-void LangHandleRelease(LangHandle *handle) { free(handle->originalBuffer); }
+void LangHandleRelease(LangHandle *handle) {}
 
 int LangHandleFromBuffer(LangHandle *handle, uint8_t *buffer,
                          size_t bufferSize) {

@@ -65,6 +65,15 @@ const char *PakFileEntryGetExtension(const PAKEntry *entry) {
   return entry->filename + strlen(entry->filename) - 3;
 }
 
+int PakFileGetEntryIndex(const PAKFile *file, const char *name) {
+  for (int i = 0; i <= file->count; i++) {
+    if (strcmp(name, file->entries[i].filename) == 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 int PakFileExtract(const PAKFile *file, PAKEntry *entry, const char *toFile) {
   uint8_t *fileData = PakFileGetEntryData(file, entry);
   if (!fileData) {

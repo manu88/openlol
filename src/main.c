@@ -667,22 +667,6 @@ static int cmdPak(int argc, char *argv[]) {
   return 1;
 }
 
-static int cmdLangShow(const char *filepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
-  if (!buffer) {
-    perror("malloc error");
-    return 1;
-  }
-  printf("lang file '%s'\n", filepath);
-  LangHandle handle = {0};
-  LangHandleFromBuffer(&handle, buffer, readSize);
-  LangHandleShow(&handle);
-  LangHandleRelease(&handle);
-  return 0;
-}
-
 static int cmdWSAExtract(const char *filepath, int frameNum) {
   size_t fileSize = 0;
   size_t readSize = 0;
@@ -877,6 +861,37 @@ static int cmdTim(int argc, char *argv[]) {
 }
 
 static void usageLang(void) { printf("lang subcommands: show file\n"); }
+
+static int cmdLangShow(const char *filepath) {
+  uint8_t *buffer = NULL;
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  if (PakFileGetMain()) {
+    int index = PakFileGetEntryIndex(PakFileGetMain(), filepath);
+    if (index == -1) {
+      return 1;
+    }
+    buffer = PakFileGetEntryData(PakFileGetMain(),
+                                 &PakFileGetMain()->entries[index]);
+    dataSize = PakFileGetMain()->entries[index].fileSize;
+  } else {
+    size_t fileSize = 0;
+    buffer = readBinaryFile(filepath, &fileSize, &dataSize);
+    if (!buffer) {
+      perror("malloc error");
+      return 1;
+    }
+    freeBuffer = 1;
+  }
+  printf("lang file '%s'\n", filepath);
+  LangHandle handle = {0};
+  LangHandleFromBuffer(&handle, buffer, dataSize);
+  LangHandleShow(&handle);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  return 0;
+}
 
 static int cmdLang(int argc, char *argv[]) {
   if (argc < 1) {
