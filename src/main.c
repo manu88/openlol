@@ -29,6 +29,29 @@
 #include <string.h>
 #include <unistd.h>
 
+static uint8_t *getFileContent(const char *filepath, size_t *dataSize,
+                               int *freeBuffer) {
+  uint8_t *buffer = NULL;
+  if (PakFileGetMain()) {
+    int index = PakFileGetEntryIndex(PakFileGetMain(), filepath);
+    if (index == -1) {
+      return NULL;
+    }
+    buffer = PakFileGetEntryData(PakFileGetMain(),
+                                 &PakFileGetMain()->entries[index]);
+    *dataSize = PakFileGetMain()->entries[index].fileSize;
+  } else {
+    size_t fileSize = 0;
+    buffer = readBinaryFile(filepath, &fileSize, dataSize);
+    if (!buffer) {
+      perror("malloc error");
+      return NULL;
+    }
+    *freeBuffer = 1;
+  }
+  return buffer;
+}
+
 static int cmdWLL(int argc, char *argv[]) {
   size_t fileSize = 0;
   size_t readSize = 0;
@@ -863,26 +886,9 @@ static int cmdTim(int argc, char *argv[]) {
 static void usageLang(void) { printf("lang subcommands: show file\n"); }
 
 static int cmdLangShow(const char *filepath) {
-  uint8_t *buffer = NULL;
   size_t dataSize = 0;
   int freeBuffer = 0;
-  if (PakFileGetMain()) {
-    int index = PakFileGetEntryIndex(PakFileGetMain(), filepath);
-    if (index == -1) {
-      return 1;
-    }
-    buffer = PakFileGetEntryData(PakFileGetMain(),
-                                 &PakFileGetMain()->entries[index]);
-    dataSize = PakFileGetMain()->entries[index].fileSize;
-  } else {
-    size_t fileSize = 0;
-    buffer = readBinaryFile(filepath, &fileSize, &dataSize);
-    if (!buffer) {
-      perror("malloc error");
-      return 1;
-    }
-    freeBuffer = 1;
-  }
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
   printf("lang file '%s'\n", filepath);
   LangHandle handle = {0};
   LangHandleFromBuffer(&handle, buffer, dataSize);
