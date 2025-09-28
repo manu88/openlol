@@ -443,34 +443,27 @@ static int cmdMap(int argc, char *argv[]) {
 
 static void usageCPS(void) { printf("cps extract cpsfile \n"); }
 
-static int cmdCPSExtract(const char *cpsFile) {
-  FILE *inFile = fopen(cpsFile, "rb");
-  if (!inFile) {
-    perror("open: ");
-    return 1;
-  }
-  fseek(inFile, 0, SEEK_END);
-  long inFileSize = ftell(inFile);
-  fseek(inFile, 0, SEEK_SET);
-  uint8_t *buffer = malloc(inFileSize);
+static int cmdCPSExtract(const char *filepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
   if (!buffer) {
-    perror("malloc error");
-    fclose(inFile);
+    printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
-  fread(buffer, inFileSize, 1, inFile);
-  fclose(inFile);
   CPSImage image;
-  int ok = CPSImageFromFile(&image, buffer, inFileSize);
-  free(buffer);
+  int ok = CPSImageFromFile(&image, buffer, dataSize);
+  if (freeBuffer) {
+    free(buffer);
+  }
   if (ok) {
-    char *destFile = strdup(cpsFile);
-    assert(destFile);
-    destFile[strlen(destFile) - 3] = 'p';
-    destFile[strlen(destFile) - 2] = 'n';
-    destFile[strlen(destFile) - 1] = 'g';
-    CPSImageToPng(&image, destFile);
-    free(destFile);
+    char *destFilePath = strdup(filepath);
+    assert(destFilePath);
+    destFilePath[strlen(destFilePath) - 3] = 'p';
+    destFilePath[strlen(destFilePath) - 2] = 'n';
+    destFilePath[strlen(destFilePath) - 1] = 'g';
+    CPSImageToPng(&image, destFilePath);
+    free(destFilePath);
     CPSImageRelease(&image);
   }
 
@@ -896,6 +889,10 @@ static int cmdLangShow(const char *filepath) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
   printf("lang file '%s'\n", filepath);
   LangHandle handle = {0};
   LangHandleFromBuffer(&handle, buffer, dataSize);
