@@ -719,8 +719,15 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   uint8_t *frameData = WSAHandleGetFrame(&handle, frameNum);
   if (frameData) {
     size_t fullSize = handle.header.width * handle.header.height;
-    WSAFrameToPng(frameData, fullSize, handle.header.palette, "frameWSA.png",
+
+    char ext[8] = "";
+    snprintf(ext, 8, "-%i.png", frameNum);
+    char *outFilePath = strAppend(filepath, ext);
+    assert(outFilePath);
+    printf("Rendering png file '%s'\n", outFilePath);
+    WSAFrameToPng(frameData, fullSize, handle.header.palette, outFilePath,
                   handle.header.width, handle.header.height);
+    free(outFilePath);
     free(frameData);
   }
   WSAHandleRelease(&handle);
