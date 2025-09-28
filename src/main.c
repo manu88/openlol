@@ -441,14 +441,9 @@ static int cmdMap(int argc, char *argv[]) {
   return 0;
 }
 
-static void usageCPS(void) { printf("cps cpsfile \n"); }
+static void usageCPS(void) { printf("cps extract cpsfile \n"); }
 
-static int cmdCPS(int argc, char *argv[]) {
-  if (argc < 1) {
-    usageCPS();
-    return 1;
-  }
-  const char *cpsFile = argv[0];
+static int cmdCPSExtract(const char *cpsFile) {
   FILE *inFile = fopen(cpsFile, "rb");
   if (!inFile) {
     perror("open: ");
@@ -480,6 +475,18 @@ static int cmdCPS(int argc, char *argv[]) {
   }
 
   return !ok;
+}
+
+static int cmdCPS(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageCPS();
+    return 1;
+  }
+  if (strcmp(argv[0], "extract") == 0) {
+    return cmdCPSExtract(argv[1]);
+  }
+  usageCPS();
+  return 1;
 }
 
 static void usageCMZ(void) { printf("cmz subcommands: unzip cpsFilepath\n"); }
