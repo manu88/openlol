@@ -19,7 +19,7 @@ typedef enum {
   TIM_COMMAND_ID_DIALOG_BOX = 0X1D,
   TIM_COMMAND_SET_LOOP_IP = 0X14,
 } TIM_COMMAND_ID;
-
+#if 0
 static const char *timCommandsName(uint8_t code) {
   switch ((TIM_COMMAND_ID)code) {
   case TIM_COMMAND_ID_STOP_ALL_FUNCS:
@@ -49,7 +49,7 @@ static const char *timCommandsName(uint8_t code) {
   assert(0);
   return NULL;
 }
-
+#endif
 typedef enum {
   TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
   TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
@@ -142,14 +142,16 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   int numParams =
       instr->len - 3; // 3 is size of minimum instruction size w/o params
 
+  /*
   printf("0X%zX Instruction dur=0X%X len=%i code=%02X %s  %i params: ", pos,
          instr->duration, instr->len, instr->instrCode,
          timCommandsName(instr->instrCode), numParams);
+
   for (int i = 0; i < numParams; i++) {
     printf(" 0X%X ", instrParams[i]);
   }
   printf("\n");
-
+  */
   interp->currentInstructionDuration = instr->duration;
   switch ((TIM_COMMAND_ID)instr->instrCode) {
 

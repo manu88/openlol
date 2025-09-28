@@ -2,7 +2,8 @@
 #include <assert.h>
 #include <stdint.h>
 
-void Format40Decode(const uint8_t *src, size_t srcSize, uint8_t *dst) {
+void Format40Decode(const uint8_t *src, size_t srcSize, uint8_t *dst,
+                    uint8_t xor) {
   uint16_t cmd;
   uint16_t count;
   assert(src[srcSize - 3] == 0X80);
@@ -15,13 +16,21 @@ void Format40Decode(const uint8_t *src, size_t srcSize, uint8_t *dst) {
     if (cmd == 0) {
       /* XOR with value */
       for (count = *src++; count > 0; count--) {
-        *dst++ ^= *src;
+        if (xor) {
+          *dst++ ^= *src;
+        } else {
+          *dst++ = *src;
+        }
       }
       src++;
     } else if ((cmd & 0x80) == 0) {
       /* XOR with string */
       for (count = cmd; count > 0; count--) {
-        *dst++ ^= *src++;
+        if (xor) {
+          *dst++ ^= *src++;
+        } else {
+          *dst++ = *src++;
+        }
       }
     } else if (cmd != 0x80) {
       /* skip bytes */
@@ -40,12 +49,20 @@ void Format40Decode(const uint8_t *src, size_t srcSize, uint8_t *dst) {
       } else if ((cmd & 0x4000) == 0) {
         /* XOR with string */
         for (count = cmd & 0x3FFF; count > 0; count--) {
-          *dst++ ^= *src++;
+          if (xor) {
+            *dst++ ^= *src++;
+          } else {
+            *dst++ = *src++;
+          }
         }
       } else {
         /* XOR with value */
         for (count = cmd & 0x3FFF; count > 0; count--) {
-          *dst++ ^= *src;
+          if (xor) {
+            *dst++ ^= *src;
+          } else {
+            *dst++ = *src;
+          }
         }
         src++;
       }

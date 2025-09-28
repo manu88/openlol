@@ -64,7 +64,7 @@ void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
   SDL_Surface *surface = SDL_CreateRGBSurface(0, 800, 400, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
-  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 0, 0);
   SDL_RenderClear(renderer);
 
   renderCPSImage(renderer, frame, size, palette, w, h);

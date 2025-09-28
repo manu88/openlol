@@ -27,6 +27,9 @@ typedef struct {
   SDL_Texture *pixBuf;
 
   uint8_t buttonsState[3];
+
+  uint8_t *wsaFrameBuffer;
+  int wsaFlags;
 } TIMAnimator;
 
 void TIMAnimatorInit(TIMAnimator *animator);

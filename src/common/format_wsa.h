@@ -39,4 +39,9 @@ int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
 uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index);
 
-uint8_t *WSAHandleGetFrame(const WSAHandle *handle, uint32_t index);
+/*
+Decode the frame and xor it into frameBuffer.
+frameBuffer size must be handle->header.width * handle->header.height;
+*/
+int WSAHandleGetFrame(const WSAHandle *handle, uint32_t index,
+                      uint8_t *frameBuffer, uint8_t xor);

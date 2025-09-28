@@ -2,6 +2,7 @@
 #include "format_40.h"
 #include "format_lcw.h"
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -32,24 +33,23 @@ uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
   return frameOffset + (handle->header.hasPalette * 768);
 }
 
-uint8_t *WSAHandleGetFrame(const WSAHandle *handle, uint32_t index) {
+int WSAHandleGetFrame(const WSAHandle *handle, uint32_t index,
+                      uint8_t *frameBuffer, uint8_t xor) {
+  assert(frameBuffer);
   uint32_t offset = WSAHandleGetFrameOffset(handle, index);
   const uint8_t *frameData = handle->originalBuffer + offset;
   size_t frameSize = WSAHandleGetFrameOffset(handle, index + 1) - offset;
   size_t destSize = handle->header.delta;
   uint8_t *lcwDecompressedData = malloc(destSize);
   if (!lcwDecompressedData) {
-    return NULL;
+    return 0;
   }
   ssize_t decompressedSize =
       LCWDecompress(frameData, frameSize, lcwDecompressedData, destSize);
 
-  size_t fullSize = handle->header.width * handle->header.height;
-  uint8_t *outData = malloc(fullSize);
-  memset(outData, 0, fullSize);
-  if (outData) {
-    Format40Decode(lcwDecompressedData, decompressedSize, outData);
+  if (frameBuffer) {
+    Format40Decode(lcwDecompressedData, decompressedSize, frameBuffer, 1);
   }
   free(lcwDecompressedData);
-  return outData;
+  return 1;
 }

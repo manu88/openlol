@@ -716,8 +716,9 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   }
   printf("Extract frame %i/%i\n", frameNum, handle.header.numFrames);
 
-  uint8_t *frameData = WSAHandleGetFrame(&handle, frameNum);
-  if (frameData) {
+  uint8_t *frameData = malloc(handle.header.width * handle.header.height);
+  assert(frameData);
+  if (WSAHandleGetFrame(&handle, frameNum, frameData, 1)) {
     size_t fullSize = handle.header.width * handle.header.height;
 
     char ext[8] = "";

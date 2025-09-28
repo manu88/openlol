@@ -106,6 +106,7 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   printf("TIMAnimator: callbackWSAInit wsa file='%s' x=%i y=%i offscreen=%i "
          "flags=%X %s\n",
          wsaFile, x, y, offscreen, flags, wsaFlags(flags));
+  animator->wsaFlags = flags;
   animator->animXOffset = x;
   animator->animYOffset = y;
   size_t fileSize = 0;
@@ -119,6 +120,15 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   }
   WSAHandleInit(&animator->wsa);
   WSAHandleFromBuffer(&animator->wsa, buffer, readSize);
+
+  if (animator->wsaFrameBuffer) {
+    free(animator->wsaFrameBuffer);
+  }
+  animator->wsaFrameBuffer =
+      malloc(animator->wsa.header.width * animator->wsa.header.height);
+  memset(animator->wsaFrameBuffer, 0,
+         animator->wsa.header.width * animator->wsa.header.height);
+  assert(animator->wsaFrameBuffer);
   printf("WSAHandle created\n");
 }
 
@@ -144,24 +154,15 @@ static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
       }
       assert(offset < dataSize);
       uint8_t paletteIdx = *(imgData + offset);
-      uint8_t r;
-      uint8_t g;
-      uint8_t b;
-      if (paletteBuffer) {
-        r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
-        g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
-        b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
-      } else {
-        r = paletteIdx;
-        g = paletteIdx;
-        b = paletteIdx;
-      }
-      int xx = x + animator->animXOffset;
-      int yy = y + animator->animYOffset;
-      uint32_t *row = (unsigned int *)((char *)data + pitch * yy);
-      if (doXOR) {
-        row[xx] ^= 0XFF + (r << 0X10) + (g << 0X8) + b;
-      } else {
+
+      uint8_t r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
+      uint8_t g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
+      uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
+      if (r != 255 && b != 255 && b != 0) {
+        int xx = x + animator->animXOffset;
+        int yy = y + animator->animYOffset;
+        uint32_t *row = (unsigned int *)((char *)data + pitch * yy);
+
         row[xx] = 0XFF + (r << 0X10) + (g << 0X8) + b;
       }
     }
@@ -175,13 +176,13 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
   assert(animator);
   printf("TIMAnimator: callbackWSADisplayFrame frameIndex=%i fram=%i\n",
          frameIndex, frame);
-  uint8_t *frameData = WSAHandleGetFrame(&animator->wsa, frame);
-  assert(frameData);
+
+  WSAHandleGetFrame(&animator->wsa, frame, animator->wsaFrameBuffer, 1);
+  assert(animator->wsaFrameBuffer);
   size_t fullSize = animator->wsa.header.width * animator->wsa.header.height;
-  renderWSAFrame(animator, frameData, fullSize, animator->wsa.header.palette,
-                 animator->wsa.header.width, animator->wsa.header.height,
-                 frame != 0);
-  free(frameData);
+  renderWSAFrame(animator, animator->wsaFrameBuffer, fullSize,
+                 animator->wsa.header.palette, animator->wsa.header.width,
+                 animator->wsa.header.height, animator->wsaFlags & WSA_XOR);
 }
 
 static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId,
@@ -285,6 +286,9 @@ void TIMAnimatorRelease(TIMAnimator *animator) {
   }
 
   WSAHandleRelease(&animator->wsa);
+  if (animator->wsaFrameBuffer) {
+    free(animator->wsaFrameBuffer);
+  }
 }
 
 static void hideButton(TIMAnimator *animator, int index) {
