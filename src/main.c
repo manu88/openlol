@@ -691,16 +691,17 @@ static int cmdPak(int argc, char *argv[]) {
 }
 
 static int cmdWSAExtract(const char *filepath, int frameNum) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
   if (!buffer) {
-    perror("malloc error");
+    printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
+
   WSAHandle handle;
   WSAHandleInit(&handle);
-  WSAHandleFromBuffer(&handle, buffer, readSize);
+  WSAHandleFromBuffer(&handle, buffer, dataSize);
   printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X delta=%i\n",
          handle.header.numFrames, handle.header.xPos, handle.header.yPos,
          handle.header.width, handle.header.height, handle.header.hasPalette,
@@ -708,6 +709,9 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   if (frameNum < 0 || frameNum >= handle.header.numFrames) {
     printf("invalid frameNum\n");
     WSAHandleRelease(&handle);
+    if (freeBuffer) {
+      free(buffer);
+    }
     return 1;
   }
   printf("Extract frame %i/%i\n", frameNum, handle.header.numFrames);
@@ -720,20 +724,23 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
     free(frameData);
   }
   WSAHandleRelease(&handle);
+  if (freeBuffer) {
+    free(buffer);
+  }
   return 0;
 }
 
 static int cmdWSAShow(const char *filepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
   if (!buffer) {
-    perror("malloc error");
+    printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
   WSAHandle handle;
   WSAHandleInit(&handle);
-  WSAHandleFromBuffer(&handle, buffer, readSize);
+  WSAHandleFromBuffer(&handle, buffer, dataSize);
   printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X delta=%X\n",
          handle.header.numFrames, handle.header.xPos, handle.header.yPos,
          handle.header.width, handle.header.height, handle.header.hasPalette,
@@ -748,6 +755,9 @@ static int cmdWSAShow(const char *filepath) {
   }
 
   WSAHandleRelease(&handle);
+  if (freeBuffer) {
+    free(buffer);
+  }
   return 0;
 }
 
