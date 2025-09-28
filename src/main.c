@@ -798,12 +798,7 @@ static void usageTim(void) {
   printf("tim subcommands: show|anim file [langfile]\n");
 }
 
-static int cmdShowTim(int argc, char *argv[]) {
-  if (argc < 1) {
-    printf("show command, missing arguments\n");
-    return 1;
-  }
-  const char *filepath = argv[0];
+static int cmdShowTim(const char *filepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
@@ -838,12 +833,7 @@ static int cmdShowTim(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdAnimateTim(int argc, char *argv[]) {
-  if (argc < 1) {
-    printf("tim command, missing arguments\n");
-    return 1;
-  }
-  const char *filepath = argv[0];
+static int cmdAnimateTim(const char *filepath, const char *langFilepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
@@ -859,8 +849,7 @@ static int cmdAnimateTim(int argc, char *argv[]) {
   TIMAnimator animator;
   TIMAnimatorInit(&animator);
   LangHandle lang = {0};
-  if (argc == 2) {
-    const char *langFilepath = argv[1];
+  if (langFilepath) {
     printf("using lang file '%s'\n", langFilepath);
     size_t fileSize = 0;
     size_t readSize = 0;
@@ -886,15 +875,15 @@ static int cmdAnimateTim(int argc, char *argv[]) {
 }
 
 static int cmdTim(int argc, char *argv[]) {
-  if (argc < 1) {
+  if (argc < 2) {
     printf("tim command, missing arguments\n");
     usageTim();
     return 1;
   }
   if (strcmp(argv[0], "show") == 0) {
-    return cmdShowTim(argc - 1, argv + 1);
+    return cmdShowTim(argv[1]);
   } else if (strcmp(argv[0], "anim") == 0) {
-    return cmdAnimateTim(argc - 1, argv + 1);
+    return cmdAnimateTim(argv[1], argc > 2 ? argv[2] : NULL);
   }
   usageTim();
   return 1;
