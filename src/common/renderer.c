@@ -49,7 +49,7 @@ static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
         g = paletteIdx;
         b = paletteIdx;
       }
-      if (r && g && b) {
+      if (1) { // r && g && b) {
         SDL_SetRenderDrawColor(renderer, r, g, b, 255);
         SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
         SDL_RenderFillRect(renderer, &rect);

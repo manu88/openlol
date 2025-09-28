@@ -12,6 +12,7 @@ int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize) {
 
   handle->header = *(WSAHeader *)buffer;
+  assert(handle->header.hasPalette == 0 || handle->header.hasPalette == 1);
   handle->originalBuffer = (uint8_t *)buffer;
   handle->bufferSize = bufferSize;
   handle->header.frameOffsets = (uint32_t *)(handle->originalBuffer + 14);
@@ -28,7 +29,7 @@ int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
 uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
   assert(index < handle->header.numFrames + 2);
   uint32_t frameOffset = handle->header.frameOffsets[index];
-  return frameOffset + handle->header.hasPalette * 768;
+  return frameOffset + (handle->header.hasPalette * 768);
 }
 
 uint8_t *WSAHandleGetFrame(const WSAHandle *handle, uint32_t index) {
@@ -45,6 +46,7 @@ uint8_t *WSAHandleGetFrame(const WSAHandle *handle, uint32_t index) {
 
   size_t fullSize = handle->header.width * handle->header.height;
   uint8_t *outData = malloc(fullSize);
+  memset(outData, 0, fullSize);
   if (outData) {
     Format40Decode(lcwDecompressedData, decompressedSize, outData);
   }
