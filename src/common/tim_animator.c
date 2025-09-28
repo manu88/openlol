@@ -297,6 +297,8 @@ static void hideButton(TIMAnimator *animator, int index) {
 static void mainLoop(TIMAnimator *animator) {
   int quit = 0;
   int timeToWait = 0;
+
+  int stepNext = 0;
   while (!quit) {
     SDL_Event e;
     SDL_WaitEventTimeout(&e, timeToWait);
@@ -320,15 +322,19 @@ static void mainLoop(TIMAnimator *animator) {
         animator->buttonsState[2] = 1;
         break;
       case SDLK_SPACE:
+        stepNext = 1;
         break;
       }
     }
+    if (stepNext) {
 
-    if (TIMInterpreterIsRunning(&animator->_interpreter)) {
-      timeToWait = TIMInterpreterUpdate(&animator->_interpreter) * 10;
-    } else {
-      printf("TIM anim is done\n");
-      break;
+      if (TIMInterpreterIsRunning(&animator->_interpreter)) {
+        timeToWait = TIMInterpreterUpdate(&animator->_interpreter) * 10;
+      } else {
+        printf("TIM anim is done\n");
+        break;
+      }
+      stepNext = 0;
     }
     SDL_RenderCopy(animator->renderer, animator->pixBuf, NULL, NULL);
     if (animator->currentDialog) {
