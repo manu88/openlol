@@ -1,5 +1,6 @@
 #include "game.h"
 #include "SDL_events.h"
+#include "SDL_keyboard.h"
 #include "SDL_keycode.h"
 #include "SDL_pixels.h"
 #include "SDL_render.h"
@@ -199,21 +200,45 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
-static int processConsoleInputs(GameContext *gameCtx, const SDL_Event *e) {
-  switch (e->key.keysym.sym) {
-  case SDLK_BACKSPACE:
-    gameCtx->consoleHasFocus = 0;
-    printf("reset console focus\n");
-    break;
-  }
+static char cmdBuffer[1024];
+
+static void execCmd(GameContext *gameCtx, const char *cmd) {
+  printf("exec cmd '%s'\n", cmd);
 }
+
+static int processConsoleInputs(GameContext *gameCtx, const SDL_Event *e) {
+  assert(SDL_IsTextInputActive());
+  if (e->type == SDL_KEYDOWN) {
+    if (e->key.keysym.sym == SDLK_ESCAPE) {
+      gameCtx->consoleHasFocus = 0;
+      printf("reset console focus\n");
+      SDL_StopTextInput();
+      return 1;
+    } else if (e->key.keysym.sym == SDLK_BACKSPACE) {
+      if (strlen(cmdBuffer)) {
+        cmdBuffer[strlen(cmdBuffer) - 1] = 0;
+      }
+    } else if (e->key.keysym.sym == SDLK_RETURN) {
+
+      execCmd(gameCtx, cmdBuffer);
+      cmdBuffer[0] = 0;
+    }
+  }
+
+  if (e->type == SDL_TEXTINPUT) {
+    strcat(cmdBuffer, e->text.text);
+  }
+  return 1;
+}
+
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   LevelContext *ctx = gameCtx->level;
   int shouldUpdate = 1;
   switch (e->key.keysym.sym) {
-  case SDLK_BACKSPACE:
+  case SDLK_ESCAPE:
     gameCtx->consoleHasFocus = 1;
     printf("set console focus\n");
+    SDL_StartTextInput();
     break;
   case SDLK_z:
     // go front
@@ -369,6 +394,9 @@ static int GameInit(GameContext *gameCtx) {
 
 static void renderStatLine(GameContext *gameCtx, const char *line, int x,
                            int y) {
+  if (strlen(line) == 0) {
+    return;
+  }
   gameCtx->textSurface = TTF_RenderUTF8_Solid(gameCtx->font, line,
                                               (SDL_Color){255, 255, 255, 255});
 
@@ -409,6 +437,9 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   snprintf(textStatsBuffer, sizeof(textStatsBuffer), "console mode: %i",
            gameCtx->consoleHasFocus);
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
+
+  statsPosY += 20;
+  renderStatLine(gameCtx, cmdBuffer, statsPosX, statsPosY);
 }
 
 static int runScript(GameContext *gameCtx, int function) {
@@ -446,10 +477,11 @@ static int GameRun(GameContext *gameCtx) {
     SDL_WaitEvent(&e);
     if (e.type == SDL_QUIT) {
       quit = 1;
-    } else if (e.type == SDL_KEYDOWN) {
-      if (gameCtx->consoleHasFocus) {
-        shouldUpdate = processConsoleInputs(gameCtx, &e);
-      } else {
+    }
+    if (gameCtx->consoleHasFocus) {
+      shouldUpdate = processConsoleInputs(gameCtx, &e);
+    } else {
+      if (e.type == SDL_KEYDOWN) {
         shouldUpdate = processGameInputs(gameCtx, &e);
       }
     }
