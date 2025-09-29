@@ -214,7 +214,7 @@ static int cmdScriptTest(const char *filepath, int functionId) {
   EMCInterpreterLoad(&interp, &script, &dat);
   EMCState state = {0};
   EMCStateInit(&state, &dat);
-
+  EMCStateSetOffset(&state, functionId);
   if (!EMCStateStart(&state, functionId)) {
     printf("EMCInterpreterStart: invalid\n");
   }
