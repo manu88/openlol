@@ -1,5 +1,5 @@
 #include "script_builtins.h"
-#include "format_lang.h"
+#include "formats/format_lang.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>

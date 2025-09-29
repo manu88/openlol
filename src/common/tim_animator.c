@@ -4,8 +4,8 @@
 #include "SDL_keycode.h"
 #include "SDL_render.h"
 #include "bytes.h"
-#include "format_lang.h"
-#include "format_wsa.h"
+#include "formats/format_lang.h"
+#include "formats/format_wsa.h"
 #include "renderer.h"
 #include "tim_interpreter.h"
 #include <_string.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "format_inf.h"
+#include "formats/format_inf.h"
 #include "script_disassembler.h"
 #include <stdint.h>
 

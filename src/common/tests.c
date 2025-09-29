@@ -1,5 +1,5 @@
 #include "tests.h"
-#include "format_lcw.h"
+#include "formats/format_lcw.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

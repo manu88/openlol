@@ -1,8 +1,8 @@
 #pragma once
-#include "format_cps.h"
-#include "format_shp.h"
-#include "format_vcn.h"
-#include "format_vmp.h"
+#include "formats/format_cps.h"
+#include "formats/format_shp.h"
+#include "formats/format_vcn.h"
+#include "formats/format_vmp.h"
 #include "game.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>

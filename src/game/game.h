@@ -1,14 +1,14 @@
 #pragma once
 
 #include "SDL_render.h"
-#include "format_cmz.h"
-#include "format_cps.h"
-#include "format_dat.h"
-#include "format_inf.h"
-#include "format_shp.h"
-#include "format_vcn.h"
-#include "format_vmp.h"
-#include "format_wll.h"
+#include "formats/format_cmz.h"
+#include "formats/format_cps.h"
+#include "formats/format_dat.h"
+#include "formats/format_inf.h"
+#include "formats/format_shp.h"
+#include "formats/format_vcn.h"
+#include "formats/format_vmp.h"
+#include "formats/format_wll.h"
 #include "geometry.h"
 #include "pak_file.h"
 #include <SDL2/SDL_ttf.h>

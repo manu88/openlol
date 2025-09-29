@@ -2,8 +2,8 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
-#include "format_vcn.h"
-#include "format_vmp.h"
+#include "formats/format_vcn.h"
+#include "formats/format_vmp.h"
 #include "game.h"
 #include "geometry.h"
 #include <SDL_image.h>

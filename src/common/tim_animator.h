@@ -1,8 +1,8 @@
 #pragma once
 #include "SDL_render.h"
-#include "format_lang.h"
-#include "format_tim.h"
-#include "format_wsa.h"
+#include "formats/format_lang.h"
+#include "formats/format_tim.h"
+#include "formats/format_wsa.h"
 #include "tim_interpreter.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>

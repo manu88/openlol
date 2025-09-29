@@ -1,6 +1,6 @@
 #include "script.h"
 #include "bytes.h"
-#include "format_inf.h"
+#include "formats/format_inf.h"
 #include "script_builtins.h"
 #include "script_disassembler.h"
 #include <assert.h>
