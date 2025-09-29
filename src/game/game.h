@@ -48,6 +48,9 @@ typedef struct {
 
   INFScript script;
   EMCInterpreter interp;
+
+  // dev/debug things
+  int consoleHasFocus;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

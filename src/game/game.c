@@ -1,5 +1,6 @@
 #include "game.h"
 #include "SDL_events.h"
+#include "SDL_keycode.h"
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
@@ -198,9 +199,22 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
-static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {
+static int processConsoleInputs(GameContext *gameCtx, const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_BACKSPACE:
+    gameCtx->consoleHasFocus = 0;
+    printf("reset console focus\n");
+    break;
+  }
+}
+static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
+  LevelContext *ctx = gameCtx->level;
   int shouldUpdate = 1;
   switch (e->key.keysym.sym) {
+  case SDLK_BACKSPACE:
+    gameCtx->consoleHasFocus = 1;
+    printf("set console focus\n");
+    break;
   case SDLK_z:
     // go front
     shouldUpdate = 1;
@@ -390,6 +404,11 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   snprintf(textStatsBuffer, sizeof(textStatsBuffer), "newblockpos: %i",
            calcNewBlockPosition(0, ctx->orientation));
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
+
+  statsPosY += 20;
+  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "console mode: %i",
+           gameCtx->consoleHasFocus);
+  renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 }
 
 static int runScript(GameContext *gameCtx, int function) {
@@ -408,6 +427,7 @@ static int runScript(GameContext *gameCtx, int function) {
       printf("EMCInterpreterRun returned 0\n");
     }
   }
+  return 1;
 }
 
 static int GameRun(GameContext *gameCtx) {
@@ -427,7 +447,11 @@ static int GameRun(GameContext *gameCtx) {
     if (e.type == SDL_QUIT) {
       quit = 1;
     } else if (e.type == SDL_KEYDOWN) {
-      shouldUpdate = processGameInputs(ctx, &e);
+      if (gameCtx->consoleHasFocus) {
+        shouldUpdate = processConsoleInputs(gameCtx, &e);
+      } else {
+        shouldUpdate = processGameInputs(gameCtx, &e);
+      }
     }
     if (shouldUpdate) {
       memset(ctx->viewConeEntries, 0,
