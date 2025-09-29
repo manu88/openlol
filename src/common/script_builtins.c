@@ -51,8 +51,10 @@ static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getDirection(EMCInterpreter *interp, EMCState *state) {
-  printf("getDirection\n");
-  return 1;
+  if (interp->callbacks.EMCInterpreterCallbacks_GetDirection) {
+    return interp->callbacks.EMCInterpreterCallbacks_GetDirection(interp);
+  }
+  return 0;
 }
 
 static uint16_t checkRectForMousePointer(EMCInterpreter *interp,

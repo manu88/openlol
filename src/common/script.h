@@ -120,9 +120,19 @@ static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {
 
 const char *EMCStateGetDataString(const EMCState *state, int16_t index);
 
+typedef struct _EMCInterpreter EMCInterpreter;
+
+typedef struct _EMCInterpreterCallbacks {
+  uint16_t (*EMCInterpreterCallbacks_GetDirection)(EMCInterpreter *interp);
+} EMCInterpreterCallbacks;
+
 typedef struct _EMCInterpreter {
   EMCData *_scriptData;
   EMCDisassembler *disassembler;
+
+  EMCInterpreterCallbacks callbacks;
+  void *callbackCtx;
+
 } EMCInterpreter;
 
 int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,

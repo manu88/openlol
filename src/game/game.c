@@ -19,6 +19,7 @@
 #include "pak_file.h"
 #include "render.h"
 #include "script.h"
+#include "script_builtins.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <_string.h>
@@ -34,6 +35,12 @@
 
 static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
+
+static uint16_t callbacksGetDirection(EMCInterpreter *interp) {
+  GameContext *ctx = (GameContext *)interp->callbackCtx;
+  assert(ctx);
+  return ctx->level->orientation;
+}
 
 int cmdGame(int argc, char *argv[]) {
   if (argc < 7) {
@@ -188,6 +195,9 @@ int cmdGame(int argc, char *argv[]) {
   printf("Got all files\n");
 
   gameCtx.level = &levelCtx;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetDirection =
+      callbacksGetDirection;
+  gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);
