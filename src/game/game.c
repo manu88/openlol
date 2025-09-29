@@ -15,6 +15,7 @@
 #include "geometry.h"
 #include "pak_file.h"
 #include "render.h"
+#include "script.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
@@ -45,6 +46,11 @@ int cmdGame(int argc, char *argv[]) {
   const char *datFile = argv[4];
   const char *shpFile = argv[5];
   const char *infFile = argv[6];
+
+  GameContext gameCtx = {0};
+  if (!GameInit(&gameCtx)) {
+    return 1;
+  }
 
   LevelContext levelCtx = {0};
   {
@@ -171,17 +177,13 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
     assert(readSize == fileSize);
-    if (!INFScriptFromBuffer(&levelCtx.script, buffer, fileSize)) {
+    if (!INFScriptFromBuffer(&gameCtx.script, buffer, fileSize)) {
       printf("INFScriptFromBuffer error\n");
       return 1;
     }
   }
   printf("Got all files\n");
 
-  GameContext gameCtx = {0};
-  if (!GameInit(&gameCtx)) {
-    return 1;
-  }
   gameCtx.level = &levelCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
@@ -194,7 +196,6 @@ void LevelContextRelease(LevelContext *levelCtx) {
   VCNHandleRelease(&levelCtx->vcnHandle);
   MazeHandleRelease(&levelCtx->mazHandle);
   SHPHandleRelease(&levelCtx->shpHandle);
-  INFScriptRelease(&levelCtx->script);
 }
 
 static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {
@@ -391,6 +392,24 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 }
 
+static int runScript(GameContext *gameCtx, int function) {
+  EMCData dat = {0};
+  EMCInterpreterLoad(&gameCtx->interp, &gameCtx->script, &dat);
+  EMCState state = {0};
+  EMCStateInit(&state, &dat);
+  EMCStateSetOffset(&state, 400);
+
+  if (!EMCStateStart(&state, function)) {
+    printf("EMCInterpreterStart: invalid\n");
+  }
+
+  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
+    if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
+      printf("EMCInterpreterRun returned 0\n");
+    }
+  }
+}
+
 static int GameRun(GameContext *gameCtx) {
   LevelContext *ctx = gameCtx->level;
   ctx->partyPos.x = 13;
@@ -399,6 +418,8 @@ static int GameRun(GameContext *gameCtx) {
 
   int quit = 0;
   int shouldUpdate = 1;
+
+  runScript(gameCtx, 400);
   // Event loop
   while (!quit) {
     SDL_Event e;
@@ -433,4 +454,5 @@ void GameContextRelease(GameContext *gameCtx) {
   }
   PAKFileRelease(&gameCtx->generalPak);
   CPSImageRelease(&gameCtx->playField);
+  INFScriptRelease(&gameCtx->script);
 }

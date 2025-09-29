@@ -176,7 +176,9 @@ static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
 static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);
   int16_t p1 = EMCStateStackVal(state, 0);
-  printf("runTimScript %X %X\n", p0, p1);
+
+  const char *name = EMCStateGetDataString(state, p0);
+  printf("runTimScript %X %X '%s'\n", p0, p1, name);
   return 0;
 }
 static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {

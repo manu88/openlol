@@ -11,6 +11,7 @@
 #include "formats/format_wll.h"
 #include "geometry.h"
 #include "pak_file.h"
+#include "script.h"
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
 #include <stddef.h>
@@ -26,7 +27,6 @@ typedef struct {
   WllHandle wllHandle;
   DatHandle datHandle;
   SHPHandle shpHandle;
-  INFScript script;
 
   Point partyPos;
   Orientation orientation;
@@ -45,6 +45,9 @@ typedef struct {
   SDL_Texture *textTexture;
   TTF_Font *font;
   PAKFile generalPak;
+
+  INFScript script;
+  EMCInterpreter interp;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
