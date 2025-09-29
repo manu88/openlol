@@ -3,7 +3,7 @@
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
-#include "format_wsa.h"
+#include "game.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -62,15 +62,10 @@ void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
                    const uint8_t *palette);
 
-void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos);
-
-void RenderScene(SDL_Renderer *renderer, const VCNHandle *vcn,
-                 const VMPHandle *vmp, int wallType);
-
 void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
                     const VMPHandle *vmp);
-void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
-              const VMPHandle *vmp, int wallType, int wallPosition);
+void drawWall(GameContext *ctx, const VCNHandle *vcn, const VMPHandle *vmp,
+              int wallType, int wallPosition);
 
 void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int x, int y,
                   const uint8_t *palette, int scaleFactor, uint8_t xFlip);

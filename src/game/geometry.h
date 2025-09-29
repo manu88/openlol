@@ -26,3 +26,8 @@ Point PointGoLeft(const Point *pos, Orientation orientation, int distance);
 Point PointGoRight(const Point *pos, Orientation orientation, int distance);
 Point PointGo(const Point *pos, Orientation orientation, int frontDist,
               int leftDist);
+
+#define MAZE_COORDS_X (int)112
+#define MAZE_COORDS_Y (int)0
+#define MAZE_COORDS_W (int)174
+#define MAZE_COORDS_H (int)120

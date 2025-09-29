@@ -2,12 +2,14 @@
 
 #include "SDL_render.h"
 #include "format_cmz.h"
+#include "format_cps.h"
 #include "format_dat.h"
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
 #include "geometry.h"
+#include "pak_file.h"
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
 #include <stddef.h>
@@ -31,12 +33,16 @@ typedef struct {
 } LevelContext;
 
 typedef struct {
+
+  LevelContext *level;
   SDL_Renderer *renderer;
   SDL_Window *window;
 
+  CPSImage playField;
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;
   TTF_Font *font;
+  PAKFile generalPak;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

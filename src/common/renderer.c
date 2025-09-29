@@ -4,6 +4,8 @@
 #include "SDL_surface.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
+#include "game.h"
+#include "geometry.h"
 #include <SDL_image.h>
 #include <assert.h>
 #include <stddef.h>
@@ -100,10 +102,10 @@ static void drawPix(SDL_Renderer *renderer, int x, int y, uint8_t r, uint8_t g,
                     uint8_t b) {
   SDL_SetRenderDrawColor(renderer, r, g, b, 255);
   SDL_Rect rect;
-  rect.w = 2;
-  rect.h = 2;
-  rect.x = x * 2;
-  rect.y = y * 2;
+  rect.w = 1;
+  rect.h = 1;
+  rect.x = MAZE_COORDS_X + x;
+  rect.y = MAZE_COORDS_Y + y;
   if (r && g && b) {
     SDL_RenderFillRect(renderer, &rect);
   }
@@ -205,9 +207,11 @@ void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
       rect.h = scaleFactor;
       rect.x = (x + xPos) * scaleFactor;
       if (xFlip) {
-        rect.x = 350 - rect.x;
+        rect.x = MAZE_COORDS_W - rect.x;
       }
+      rect.x += MAZE_COORDS_X;
       rect.y = (y + yPos) * scaleFactor;
+      rect.y += MAZE_COORDS_Y;
       SDL_RenderFillRect(renderer, &rect);
     }
   }
@@ -288,8 +292,9 @@ WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
         {-101, 19, 15, 3, 0, 1}, /* Q-west */
 };
 
-void drawWall(SDL_Renderer *renderer, const VCNHandle *vcn,
-              const VMPHandle *vmp, int wallType, int wallPosition) {
+void drawWall(GameContext *gameCtx, const VCNHandle *vcn, const VMPHandle *vmp,
+              int wallType, int wallPosition) {
+  SDL_Renderer *renderer = gameCtx->renderer;
   const WallRenderData *wallCfg = &wallRenderData[wallPosition];
   int flipX = wallCfg->flipFlag;
   int offset = wallCfg->baseOffset;
@@ -336,32 +341,4 @@ void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
       blitBlock(renderer, vcn, tile.blockIndex, x * 8, y * 8, tile.flipped);
     }
   }
-}
-
-void RenderScene(SDL_Renderer *renderer, const VCNHandle *vcn,
-                 const VMPHandle *vmp, int wallType) {
-  drawBackground(renderer, vcn, vmp);
-
-  for (int i = 0; i < 25; i++) {
-    drawWall(renderer, vcn, vmp, wallType, i);
-  }
-}
-
-void testRenderScene(const VCNHandle *vcn, const VMPHandle *vmp, int wallPos) {
-  const int width = 22 * 8;  // 176
-  const int height = 15 * 8; // 120
-
-  SDL_Init(SDL_INIT_VIDEO);
-  SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
-
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-  SDL_RenderClear(renderer);
-
-  RenderScene(renderer, vcn, vmp, 1);
-
-  SDL_RenderPresent(renderer);
-  IMG_SavePNG(surface, "render.png");
-
-  SDL_DestroyRenderer(renderer);
 }

@@ -5,12 +5,14 @@
 #include "SDL_surface.h"
 #include "bytes.h"
 #include "format_cmz.h"
+#include "format_cps.h"
 #include "format_dat.h"
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
 #include "format_wll.h"
 #include "geometry.h"
+#include "pak_file.h"
 #include "render.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -25,7 +27,7 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 800
 
-static int GameRun(GameContext *gameCtx, LevelContext *ctx);
+static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
 
 int cmdGame(int argc, char *argv[]) {
@@ -163,7 +165,8 @@ int cmdGame(int argc, char *argv[]) {
   if (!GameInit(&gameCtx)) {
     return 1;
   }
-  GameRun(&gameCtx, &levelCtx);
+  gameCtx.level = &levelCtx;
+  GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);
   return 0;
@@ -274,6 +277,21 @@ static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {
 }
 
 static int GameInit(GameContext *gameCtx) {
+  PAKFileInit(&gameCtx->generalPak);
+  if (PAKFileRead(&gameCtx->generalPak, "data/GENERAL.PAK") == 0) {
+    printf("unable to read 'data/GENERAL.PAK' file\n");
+    return 0;
+  }
+
+  int index = PakFileGetEntryIndex(&gameCtx->generalPak, "PLAYFLD.CPS");
+  if (index == -1) {
+    printf("unable to get 'PLAYFLD.CPS' file from general pak\n");
+  }
+  uint8_t *playFieldData = PakFileGetEntryData(&gameCtx->generalPak, index);
+  if (CPSImageFromFile(&gameCtx->playField, playFieldData,
+                       gameCtx->generalPak.entries[index].fileSize) == 0) {
+    printf("unable to get playFieldData\n");
+  }
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
@@ -312,6 +330,7 @@ static int GameInit(GameContext *gameCtx) {
            SDL_GetError());
     return 1;
   }
+
   return 1;
 }
 
@@ -338,7 +357,7 @@ static char textStatsBuffer[512];
 
 static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   int statsPosX = 20;
-  int statsPosY = 300;
+  int statsPosY = 400;
 
   snprintf(textStatsBuffer, sizeof(textStatsBuffer), "pose x=%i y=%i o=%i %c",
            ctx->partyPos.x, ctx->partyPos.y, ctx->orientation,
@@ -354,7 +373,8 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 }
 
-static int GameRun(GameContext *gameCtx, LevelContext *ctx) {
+static int GameRun(GameContext *gameCtx) {
+  LevelContext *ctx = gameCtx->level;
   ctx->partyPos.x = 13;
   ctx->partyPos.y = 18;
   ctx->orientation = North;
@@ -375,8 +395,7 @@ static int GameRun(GameContext *gameCtx, LevelContext *ctx) {
              sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
       SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
       SDL_RenderClear(gameCtx->renderer);
-      GameRenderFrame(gameCtx->renderer, ctx);
-
+      GameRenderFrame(gameCtx);
       renderTextStats(gameCtx, ctx);
 
       SDL_RenderPresent(gameCtx->renderer);
@@ -394,4 +413,6 @@ void GameContextRelease(GameContext *gameCtx) {
   if (gameCtx->font) {
     TTF_CloseFont(gameCtx->font);
   }
+  PAKFileRelease(&gameCtx->generalPak);
+  CPSImageRelease(&gameCtx->playField);
 }

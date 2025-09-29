@@ -134,60 +134,6 @@ static int cmdVMP(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdRender(int argc, char *argv[]) {
-  if (argc < 3) {
-    printf("render vcn-file vmp-file wallpos\n");
-    return 0;
-  }
-  const char *vcnFile = argv[0];
-  const char *vmpFile = argv[1];
-  int wallpos = atoi(argv[2]);
-  printf("vcn='%s' vmp='%s'\n", vcnFile, vmpFile);
-  VCNHandle vcnHandle = {0};
-  VMPHandle vmpHandle = {0};
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(vcnFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!VCNHandleFromLCWBuffer(&vcnHandle, buffer, fileSize)) {
-      printf("VCNDataFromLCWBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(vmpFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!VMPHandleFromLCWBuffer(&vmpHandle, buffer, fileSize)) {
-      printf("VMPDataFromLCWBuffer error\n");
-      return 1;
-    }
-  }
-  printf("Got both files\n");
-  testRenderScene(&vcnHandle, &vmpHandle, wallpos);
-  VMPHandleRelease(&vmpHandle);
-  VCNHandleRelease(&vcnHandle);
-  return 0;
-}
-
 static void usageScript(void) {
   printf("script subcommands: test|offsets|disasm [filepath]\n");
 }
@@ -961,8 +907,6 @@ static int doCMD(int argc, char *argv[]) {
     return cmdScript(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "tests") == 0) {
     return UnitTests();
-  } else if (strcmp(argv[1], "render") == 0) {
-    return cmdRender(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "game") == 0) {
     return cmdGame(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "dat") == 0) {
