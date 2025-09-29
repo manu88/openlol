@@ -15,36 +15,6 @@ void INFScriptRelease(INFScript *script) {
   free(script->segments);
 }
 
-void INFScriptListText(const INFScript *script) {
-  printf("TEXT chunk:\n");
-  // first is size
-  for (uint32_t pos = 0; pos < (script->chunks[kText]._size << 1); ++pos) {
-    if (swap_uint16(((uint16_t *)script->chunks[kText]._data)[pos]) >=
-        script->originalBufferSize) {
-      break;
-    }
-    uint32_t startoffset =
-        swap_uint16(((uint16_t *)script->chunks[kText]._data)[pos]);
-    printf("\tIndex: %X Offset: %X:\n", pos, startoffset);
-    /*uint32_t endoffset = TO_BE_16(((uint16_t*)_chunks[kText]._data)[pos+1]);
-    printf("\nstartoffset = %d, endoffset = %d\n\n", startoffset, endoffset);
-    for (; startoffset < endoffset; ++startoffset) {
-            printf("%c", *(char*)(_chunks[kText]._additional + startoffset));
-    }
-    printf("\n");*/
-    printf("%d(%d) : %s\n", pos, startoffset,
-           (char *)(script->chunks[kText]._data + startoffset));
-  }
-}
-
-size_t INFScriptGetCodeBinarySize(const INFScript *script) {
-  return script->chunks[kData]._size / 2;
-}
-
-const uint16_t *INFScriptGetCodeBinary(const INFScript *script) {
-  return (uint16_t *)script->chunks[kData]._data;
-}
-
 static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
   const uint16_t *b = (const uint16_t *)chunks[kEmc2Ordr]._data;
   uint16_t minOffset = 0XFFFF;
@@ -58,27 +28,6 @@ static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
     }
   }
   return minOffset;
-}
-
-uint16_t *INFScriptGetBlock(const INFScript *script, int block,
-                            size_t *numInstructions) {
-  assert(numInstructions);
-  if (block >= script->segmentsNum) {
-    return NULL;
-  }
-  *numInstructions =
-      script->segments[block].end - script->segments[block].start;
-  return (uint16_t *)script->chunks[kData]._data +
-         script->segments[block].start;
-}
-
-void INFScriptListScriptFunctions(const INFScript *script) {
-  printf("Got %zu offsets\n", script->segmentsNum);
-  for (int i = 0; i < script->segmentsNum; i++) {
-    printf("%i 0X%04X 0X%04X len=%i\n", i, script->segments[i].start,
-           script->segments[i].end,
-           script->segments[i].end - script->segments[i].start);
-  }
 }
 
 static int createSegments(INFScript *script) {
@@ -169,9 +118,5 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       }
     }
   }
-  // decodeORDRScriptFunctions(script);
-  // decodeTextArea(script);
-  // decodeScriptSegments(script);
-  // decodeScript(script);
   return createSegments(script);
 }

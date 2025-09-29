@@ -471,83 +471,6 @@ static int cmdCMZUnzip(const char *cmzfilePath) {
   return err;
 }
 
-static void usageINF(void) {
-  printf("inf subcommands: extract|show| infFile [blockAddr]\n");
-}
-
-static int cmdINFShowContent(const char *filepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
-  if (!buffer) {
-    perror("malloc error");
-    return 1;
-  }
-
-  INFScript script;
-  INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fileSize);
-  printf("INF Content from file '%s':\n", filepath);
-  printf("\t%zi instructions\n", INFScriptGetCodeBinarySize(&script));
-  INFScriptListText(&script);
-  printf("Script function segments:\n");
-  INFScriptListScriptFunctions(&script);
-  INFScriptRelease(&script);
-  return 0;
-}
-
-static int cmdINFExtractCode(const char *filepath) {
-  FILE *f = fopen(filepath, "rb");
-  if (!f) {
-    perror("open: ");
-    return 1;
-  }
-  fseek(f, 0, SEEK_END);
-  long fsize = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  uint8_t *buffer = malloc(fsize);
-  if (!buffer) {
-    perror("malloc error");
-    fclose(f);
-    return 1;
-  }
-  fread(buffer, fsize, 1, f);
-  fclose(f);
-  INFScript script;
-  INFScriptInit(&script);
-  INFScriptFromBuffer(&script, buffer, fsize);
-
-  size_t numInstructions = INFScriptGetCodeBinarySize(&script);
-  const uint16_t *instructions = INFScriptGetCodeBinary(&script);
-
-  char outFilePath[64] = "";
-  assert(snprintf(outFilePath, 64, "%s.script.bin", filepath) < 64);
-
-  FILE *outFile = fopen(outFilePath, "wb");
-  if (outFile) {
-    fwrite(instructions, numInstructions * 2, 1, outFile);
-    fclose(outFile);
-  }
-
-  INFScriptRelease(&script);
-  return 0;
-}
-
-static int cmdINF(int argc, char *argv[]) {
-  if (argc < 1) {
-    printf("inf command, missing arguments\n");
-    usageINF();
-    return 1;
-  }
-  if (strcmp(argv[0], "extract") == 0 && argc == 2) {
-    return cmdINFExtractCode(argv[1]);
-  } else if (strcmp(argv[0], "show") == 0 && argc == 2) {
-    return cmdINFShowContent(argv[1]);
-  }
-  usageINF();
-  return 1;
-}
-
 static int cmdCMZ(int argc, char *argv[]) {
   if (argc < 1) {
     printf("cmz command, missing arguments\n");
@@ -897,8 +820,6 @@ static int doCMD(int argc, char *argv[]) {
     return cmdVCN(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "vmp") == 0) {
     return cmdVMP(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "inf") == 0) {
-    return cmdINF(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
     return cmdCPS(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "map") == 0) {
