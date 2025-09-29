@@ -34,7 +34,7 @@ typedef struct {
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 } LevelContext;
 
-typedef struct {
+typedef struct _GameContext {
 
   LevelContext *level;
   SDL_Renderer *renderer;
@@ -51,8 +51,10 @@ typedef struct {
 
   // dev/debug things
   int consoleHasFocus;
+  char *cmdBuffer;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
 void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);
+int runScript(GameContext *gameCtx, int function);

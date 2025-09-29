@@ -6,6 +6,7 @@
 #include "SDL_render.h"
 #include "SDL_surface.h"
 #include "bytes.h"
+#include "console.h"
 #include "formats/format_cmz.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
@@ -27,12 +28,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <xlocale/_stdio.h>
 
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 800
 
-static int runScript(GameContext *gameCtx, int function);
 static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
 
@@ -202,57 +201,6 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
-static void doExec(GameContext *gameCtx, int argc, char *argv[]) {
-  assert(argc);
-  if (strcmp(argv[0], "exec") == 0) {
-    int function = atoi(argv[1]);
-    printf("script exec function %i\n", function);
-    runScript(gameCtx, function);
-  }
-}
-
-static char cmdBuffer[1024];
-static void execCmd(GameContext *gameCtx, const char *cmd) {
-  char *str = (char *)cmd;
-  char *tok = NULL;
-  int argc = 0;
-  char **argv = NULL;
-  while ((tok = strsep(&str, " ")) != NULL) {
-    argv = realloc(argv, (argc + 1) * sizeof(char *));
-    argv[argc] = tok;
-    argc++;
-  }
-  if (argc) {
-    doExec(gameCtx, argc, argv);
-  }
-  free(argv);
-}
-
-static int processConsoleInputs(GameContext *gameCtx, const SDL_Event *e) {
-  assert(SDL_IsTextInputActive());
-  if (e->type == SDL_KEYDOWN) {
-    if (e->key.keysym.sym == SDLK_ESCAPE) {
-      gameCtx->consoleHasFocus = 0;
-      printf("reset console focus\n");
-      SDL_StopTextInput();
-      return 1;
-    } else if (e->key.keysym.sym == SDLK_BACKSPACE) {
-      if (strlen(cmdBuffer) > 2) {
-        cmdBuffer[strlen(cmdBuffer) - 1] = 0;
-      }
-    } else if (e->key.keysym.sym == SDLK_RETURN) {
-
-      execCmd(gameCtx, cmdBuffer + 2);
-      snprintf(cmdBuffer, 1024, "> ");
-    }
-  }
-
-  if (e->type == SDL_TEXTINPUT) {
-    strcat(cmdBuffer, e->text.text);
-  }
-  return 1;
-}
-
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   LevelContext *ctx = gameCtx->level;
   int shouldUpdate = 1;
@@ -410,7 +358,8 @@ static int GameInit(GameContext *gameCtx) {
            SDL_GetError());
     return 1;
   }
-  snprintf(cmdBuffer, 1024, "> ");
+  setupConsole(gameCtx);
+  snprintf(gameCtx->cmdBuffer, 1024, "> ");
   return 1;
 }
 
@@ -461,10 +410,10 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
-  renderStatLine(gameCtx, cmdBuffer, statsPosX, statsPosY);
+  renderStatLine(gameCtx, gameCtx->cmdBuffer, statsPosX, statsPosY);
 }
 
-static int runScript(GameContext *gameCtx, int function) {
+int runScript(GameContext *gameCtx, int function) {
   EMCData dat = {0};
   EMCInterpreterLoad(&gameCtx->interp, &gameCtx->script, &dat);
   EMCState state = {0};
