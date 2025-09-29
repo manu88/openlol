@@ -74,26 +74,9 @@ int PakFileGetEntryIndex(const PAKFile *file, const char *name) {
   return -1;
 }
 
-int PakFileExtract(const PAKFile *file, PAKEntry *entry, const char *toFile) {
-  uint8_t *fileData = PakFileGetEntryData(file, entry);
-  if (!fileData) {
-    return 1;
-  }
-  FILE *f = fopen(toFile, "wb");
-  if (!f) {
-    perror("open");
-    return 1;
-  }
-  if (fwrite(fileData, entry->fileSize, 1, f) != 1) {
-    perror("write");
-    fclose(f);
-    return 1;
-  }
-  fclose(f);
-  return 0;
-}
-
-uint8_t *PakFileGetEntryData(const PAKFile *file, PAKEntry *entry) {
+uint8_t *PakFileGetEntryData(const PAKFile *file, int index) {
+  assert(index >= 0 && index < file->count);
+  PAKEntry *entry = file->entries + index;
   if (entry->data == NULL) {
     fseek(file->fp, entry->offset, SEEK_SET);
     entry->data = malloc(entry->fileSize);

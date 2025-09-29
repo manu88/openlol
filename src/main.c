@@ -37,8 +37,7 @@ static uint8_t *getFileContent(const char *filepath, size_t *dataSize,
     if (index == -1) {
       return NULL;
     }
-    buffer = PakFileGetEntryData(PakFileGetMain(),
-                                 &PakFileGetMain()->entries[index]);
+    buffer = PakFileGetEntryData(PakFileGetMain(), index);
     *dataSize = PakFileGetMain()->entries[index].fileSize;
   } else {
     size_t fileSize = 0;
@@ -623,9 +622,7 @@ static int cmdCMZ(int argc, char *argv[]) {
   return 1;
 }
 
-static void usagePak(void) {
-  printf("pak subcommands: list|extract pakFilepath [file]\n");
-}
+static void usagePak(void) { printf("pak subcommands: list|extract [file]\n"); }
 
 static int cmdPakList(void) {
   const PAKFile *file = PakFileGetMain();
@@ -639,30 +636,42 @@ static int cmdPakList(void) {
   return 0;
 }
 
+static int pakFileExtract(const PAKFile *file, int index, const PAKEntry *entry,
+                          const char *toFile) {
+  uint8_t *fileData = PakFileGetEntryData(file, index);
+  if (!fileData) {
+    return 1;
+  }
+  FILE *f = fopen(toFile, "wb");
+  if (!f) {
+    perror("open");
+    return 1;
+  }
+  if (fwrite(fileData, entry->fileSize, 1, f) != 1) {
+    perror("write");
+    fclose(f);
+    return 1;
+  }
+  fclose(f);
+  return 0;
+}
+
 static int cmdPakExtract(const char *fileToShow) {
   const PAKFile *file = PakFileGetMain();
   assert(file);
 
-  int found = 0;
-  int ok = 0;
-  for (int i = 0; i < file->count; i++) {
-    PAKEntry *entry = &file->entries[i];
-    if (strcmp(entry->filename, fileToShow) == 0) {
-      printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", i, i,
-             entry->offset, entry->filename, PakFileEntryGetExtension(entry),
-             entry->fileSize);
-      found = 1;
-
-      ok = PakFileExtract(file, entry, fileToShow);
-      break;
-    }
-  }
-
-  if (!found) {
+  int index = PakFileGetEntryIndex(file, fileToShow);
+  if (index == -1) {
     printf("File '%s' not found in PAK\n", fileToShow);
     return 1;
   }
-  return ok;
+  PAKEntry *entry = &file->entries[index];
+
+  printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", index, index,
+         entry->offset, entry->filename, PakFileEntryGetExtension(entry),
+         entry->fileSize);
+
+  return pakFileExtract(file, index, entry, fileToShow);
 }
 
 static int cmdPak(int argc, char *argv[]) {
@@ -678,11 +687,11 @@ static int cmdPak(int argc, char *argv[]) {
   if (strcmp(argv[0], "list") == 0) {
     return cmdPakList();
   } else if (strcmp(argv[0], "extract") == 0) {
-    if (argc < 3) {
+    if (argc < 2) {
       printf("pak extract: missing file name \n");
       return 1;
     }
-    return cmdPakExtract(argv[2]);
+    return cmdPakExtract(argv[1]);
   }
 
   printf("Unknown pak command '%s'\n", argv[0]);
