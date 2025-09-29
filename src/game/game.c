@@ -20,6 +20,7 @@
 #include "script.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <_string.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -31,6 +32,7 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 800
 
+static int runScript(GameContext *gameCtx, int function);
 static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
 
@@ -200,10 +202,30 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
-static char cmdBuffer[1024];
+static void doExec(GameContext *gameCtx, int argc, char *argv[]) {
+  assert(argc);
+  if (strcmp(argv[0], "exec") == 0) {
+    int function = atoi(argv[1]);
+    printf("script exec function %i\n", function);
+    runScript(gameCtx, function);
+  }
+}
 
+static char cmdBuffer[1024];
 static void execCmd(GameContext *gameCtx, const char *cmd) {
-  printf("exec cmd '%s'\n", cmd);
+  char *str = (char *)cmd;
+  char *tok = NULL;
+  int argc = 0;
+  char **argv = NULL;
+  while ((tok = strsep(&str, " ")) != NULL) {
+    argv = realloc(argv, (argc + 1) * sizeof(char *));
+    argv[argc] = tok;
+    argc++;
+  }
+  if (argc) {
+    doExec(gameCtx, argc, argv);
+  }
+  free(argv);
 }
 
 static int processConsoleInputs(GameContext *gameCtx, const SDL_Event *e) {
@@ -215,13 +237,13 @@ static int processConsoleInputs(GameContext *gameCtx, const SDL_Event *e) {
       SDL_StopTextInput();
       return 1;
     } else if (e->key.keysym.sym == SDLK_BACKSPACE) {
-      if (strlen(cmdBuffer)) {
+      if (strlen(cmdBuffer) > 2) {
         cmdBuffer[strlen(cmdBuffer) - 1] = 0;
       }
     } else if (e->key.keysym.sym == SDLK_RETURN) {
 
-      execCmd(gameCtx, cmdBuffer);
-      cmdBuffer[0] = 0;
+      execCmd(gameCtx, cmdBuffer + 2);
+      snprintf(cmdBuffer, 1024, "> ");
     }
   }
 
@@ -388,7 +410,7 @@ static int GameInit(GameContext *gameCtx) {
            SDL_GetError());
     return 1;
   }
-
+  snprintf(cmdBuffer, 1024, "> ");
   return 1;
 }
 

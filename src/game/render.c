@@ -593,13 +593,14 @@ static void GameRenderScene(GameContext *gameCtx) {
       }
       renderWallDecoration(renderer, level, DecorationIndex_N_SOUTH, wmi, 24, 8,
                            0);
-
+#if 0
       const WllWallMapping *entry =
           WllHandleGetWallMapping(&level->wllHandle, wmi);
       if (entry) {
         printf("0X%X 0X%X 0X%X\n", entry->unknown1, entry->unknown2,
                entry->unknown3);
       }
+#endif
     }
   }
 
