@@ -7,6 +7,7 @@
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_dat.h"
+#include "format_inf.h"
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
@@ -31,8 +32,9 @@ static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
 
 int cmdGame(int argc, char *argv[]) {
-  if (argc < 5) {
-    printf("game maz-file vcn-file vmp-file wall-file dat-file shp-file\n");
+  if (argc < 7) {
+    printf("game maz-file vcn-file vmp-file wall-file dat-file shp-file "
+           "inf-file\n");
     return 0;
   }
   const char *mazFile = argv[0];
@@ -42,9 +44,7 @@ int cmdGame(int argc, char *argv[]) {
 
   const char *datFile = argv[4];
   const char *shpFile = argv[5];
-
-  printf("maz='%s' vcn='%s' vmp='%s' wll='%s'\n", mazFile, vcnFile, vmpFile,
-         wllFile);
+  const char *infFile = argv[6];
 
   LevelContext levelCtx = {0};
   {
@@ -159,6 +159,23 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
   }
+  {
+    size_t fileSize = 0;
+    size_t readSize = 0;
+    uint8_t *buffer = readBinaryFile(infFile, &fileSize, &readSize);
+    if (!buffer) {
+      return 1;
+    }
+    if (readSize == 0) {
+      free(buffer);
+      return 1;
+    }
+    assert(readSize == fileSize);
+    if (!INFScriptFromBuffer(&levelCtx.script, buffer, fileSize)) {
+      printf("INFScriptFromBuffer error\n");
+      return 1;
+    }
+  }
   printf("Got all files\n");
 
   GameContext gameCtx = {0};
@@ -177,6 +194,7 @@ void LevelContextRelease(LevelContext *levelCtx) {
   VCNHandleRelease(&levelCtx->vcnHandle);
   MazeHandleRelease(&levelCtx->mazHandle);
   SHPHandleRelease(&levelCtx->shpHandle);
+  INFScriptRelease(&levelCtx->script);
 }
 
 static int processGameInputs(LevelContext *ctx, const SDL_Event *e) {

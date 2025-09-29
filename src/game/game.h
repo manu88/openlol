@@ -4,6 +4,7 @@
 #include "format_cmz.h"
 #include "format_cps.h"
 #include "format_dat.h"
+#include "format_inf.h"
 #include "format_shp.h"
 #include "format_vcn.h"
 #include "format_vmp.h"
@@ -25,6 +26,7 @@ typedef struct {
   WllHandle wllHandle;
   DatHandle datHandle;
   SHPHandle shpHandle;
+  INFScript script;
 
   Point partyPos;
   Orientation orientation;
