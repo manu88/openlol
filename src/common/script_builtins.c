@@ -1,5 +1,4 @@
 #include "script_builtins.h"
-#include "formats/format_lang.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -102,27 +101,23 @@ void calcCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
   *y = ((block & 0xFFE0) << 3) | yOffs;
 }
 
+static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
+  uint16_t how = EMCStateStackVal(state, 0);
+  uint16_t a = EMCStateStackVal(state, 1);
+  if (interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar) {
+    return interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar(interp, how,
+                                                                  a);
+  }
+  return 0;
+}
+
 static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
   uint16_t how = EMCStateStackVal(state, 0);
   uint16_t a = EMCStateStackVal(state, 1);
   uint16_t b = EMCStateStackVal(state, 2);
-
-  printf("setGlobalVar %x %x %x\n", how, a, b);
-  assert(how < 0x0d);
-  switch (how) {
-  case 0X0: {
-    uint16_t x = 0;
-    uint16_t y = 0;
-    calcCoordinates(&x, &y, b, 0x80, 0x80);
-    uint16_t xx = b & 0x1F;
-    uint16_t yx = b >> 5;
-    printf("x=%x y=%x\n", xx, yx);
-  } break;
-  case 0X0A:
-    break;
-  default:
-    printf("setGlobalVar: unimplemented %x %x %x\n", how, a, b);
-    break;
+  if (interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar) {
+    return interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar(interp, how,
+                                                                  a, b);
   }
   return 0;
 }
@@ -206,37 +201,36 @@ static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
   int16_t charId = EMCStateStackVal(state, 0);
   int16_t mode = EMCStateStackVal(state, 1);
   int16_t stringId = EMCStateStackVal(state, 2);
-  printf("playCharacterScriptChat charId=%i mode=%i stringId=%i\n", charId,
-         mode, stringId);
-  uint8_t useLevelFile;
-  int realStringId = LangGetString(stringId, &useLevelFile);
-  if (realStringId != 1) {
-    printf("invalid string id\n");
-  } else {
-    printf("real lang string id=%i uselevel=%i\n", realStringId, useLevelFile);
+
+  if (interp->callbacks.EMCInterpreterCallbacks_PlayDialogue) {
+    interp->callbacks.EMCInterpreterCallbacks_PlayDialogue(interp, charId, mode,
+                                                           stringId);
   }
-  return 0;
+  return 1;
 }
+
 static uint16_t drawExitButton(EMCInterpreter *interp, EMCState *state) {
   printf("drawExitButton\n");
   return 0;
 }
 
-static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
-  int16_t type = EMCStateStackVal(state, 0);
-  int16_t stringId = EMCStateStackVal(state, 1);
-  int16_t soundID = EMCStateStackVal(state, 2);
+static uint16_t triggerEventOnMouseButtonClick(EMCInterpreter *interp,
+                                               EMCState *state) {
+  int evt = EMCStateStackVal(state, 0);
+  printf("triggerEventOnMouseButtonClick evt=%X\n", evt);
+  return 1;
+}
 
-  printf("printMessage type=0X%X stringID=0X%X soundID=0X%X\n", type, stringId,
-         soundID);
-  uint8_t useLevelFile;
-  int realStringId = LangGetString(stringId, &useLevelFile);
-  if (realStringId != 1) {
-    printf("invalid string id\n");
-  } else {
-    printf("real lang string id=%i uselevel=%i\n", realStringId, useLevelFile);
+static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
+  uint16_t type = EMCStateStackVal(state, 0);
+  uint16_t stringId = EMCStateStackVal(state, 1);
+  uint16_t soundID = EMCStateStackVal(state, 2);
+
+  if (interp->callbacks.EMCInterpreterCallbacks_PrintMessage) {
+    interp->callbacks.EMCInterpreterCallbacks_PrintMessage(interp, type,
+                                                           stringId, soundID);
   }
-  return 0;
+  return 1;
 }
 static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {
   int16_t track = EMCStateStackVal(state, 0);
@@ -260,7 +254,7 @@ static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t getGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
   printf("getGlobalScriptVar\n");
-  return 0;
+  return 1;
 }
 
 static uint16_t setGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
@@ -325,7 +319,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {getGlobalScriptVar, "getGlobalScriptVar"},
     {setGlobalScriptVar, "setGlobalScriptVar"},
-    {NULL},
+    {getGlobalVar, "getGlobalVar"},
 
     // 0X30
     {setGlobalVar, "setGlobalVar"},
@@ -424,7 +418,7 @@ static ScriptFunDesc functions[] = {
 
     // 0X80
     {NULL},
-    {NULL},
+    {triggerEventOnMouseButtonClick, "triggerEventOnMouseButtonClick"},
     {NULL},
     {NULL},
     {NULL},

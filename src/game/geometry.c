@@ -1,4 +1,5 @@
 #include "geometry.h"
+#include <assert.h>
 
 Point PointGoFront(const Point *pos, Orientation orientation, int distance) {
   Point pt = *pos;
@@ -69,4 +70,20 @@ Point PointGo(const Point *pos, Orientation orientation, int frontDist,
     p = PointGoLeft(&p, orientation, -leftDist);
   }
   return p;
+}
+
+void BlockGetCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
+                         uint16_t yOffs) {
+  *x = (block & 0x1F) << 8 | xOffs;
+  *y = ((block & 0xFFE0) << 3) | yOffs;
+}
+
+uint16_t BlockFromCoords(uint16_t x, uint16_t y) {
+	return (((y & 0xFF00) >> 3) | (x >> 8)) & 0x3FF;
+}
+
+uint16_t BlockCalcNewPosition(uint16_t curBlock, uint16_t direction) {
+  static const int16_t blockPosTable[] = {-32, 1, 32, -1};
+  assert(direction < sizeof(blockPosTable) / sizeof(int16_t));
+  return (curBlock + blockPosTable[direction]) & 0x3FF;
 }

@@ -593,6 +593,7 @@ static void GameRenderScene(GameContext *gameCtx) {
       }
       renderWallDecoration(renderer, level, DecorationIndex_N_SOUTH, wmi, 24, 8,
                            0);
+
 #if 0
       const WllWallMapping *entry =
           WllHandleGetWallMapping(&level->wllHandle, wmi);

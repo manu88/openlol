@@ -11,6 +11,7 @@
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
 #include "formats/format_inf.h"
+#include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
@@ -39,7 +40,101 @@ static int GameInit(GameContext *gameCtx);
 static uint16_t callbacksGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
+  printf("callbacksGetDirection will return %X\n", ctx->level->orientation);
   return ctx->level->orientation;
+}
+
+static char dialOrMsgBuffer[1024];
+static void callbacksPlayDialogue(EMCInterpreter *interp, int16_t charId,
+                                  int16_t mode, uint16_t strId) {
+  GameContext *ctx = (GameContext *)interp->callbackCtx;
+  assert(ctx);
+  printf("callbacksPlayDialogue charId=%i, mode=%i stringID=%i\n", charId, mode,
+         strId);
+
+  uint8_t useLevelFile = 0;
+  int realStringId = LangGetString(strId, &useLevelFile);
+  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
+
+  LangHandleGetString(&ctx->level->levelLang, realStringId, dialOrMsgBuffer,
+                      sizeof(dialOrMsgBuffer));
+  printf("DIAL: '%s'\n", dialOrMsgBuffer);
+}
+
+static void callbacksPrintMessage(EMCInterpreter *interp, uint16_t type,
+                                  uint16_t strId, uint16_t soundId) {
+  GameContext *ctx = (GameContext *)interp->callbackCtx;
+  assert(ctx);
+  printf("callbacksPrintMessage type=%i stringID=%i soundID=%i\n", type, strId,
+         soundId);
+  uint8_t useLevelFile = 0;
+  int realStringId = LangGetString(strId, &useLevelFile);
+  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
+  LangHandleGetString(&ctx->level->levelLang, realStringId, dialOrMsgBuffer,
+                      sizeof(dialOrMsgBuffer));
+  printf("MSG: '%s'\n", dialOrMsgBuffer);
+}
+
+static uint16_t callbacksGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
+                                      uint16_t a) {
+  GameContext *ctx = (GameContext *)interp->callbackCtx;
+  assert(ctx);
+  printf("callbacks GetGlobalVar id=%i\n", id);
+  switch (id) {
+  case EMCGlobalVarID_CurrentBlock:
+    return 1;
+  case EMCGlobalVarID_CurrentDir:
+    return ctx->level->orientation;
+  case EMCGlobalVarID_CurrentLevel:
+  case EMCGlobalVarID_ItemInHand:
+  case EMCGlobalVarID_Brightness:
+  case EMCGlobalVarID_Credits:
+  case EMCGlobalVarID_6:
+  case EMCGlobalVarID_7_Unused:
+    assert(0);
+  case EMCGlobalVarID_UpdateFlags:
+  case EMCGlobalVarID_OilLampStatus:
+  case EMCGlobalVarID_SceneDefaultUpdate:
+  case EMCGlobalVarID_CompassBroken:
+  case EMCGlobalVarID_DrainMagic:
+  case EMCGlobalVarID_SpeechVolume:
+  case EMCGlobalVarID_AbortTIMFlag:
+    break;
+  }
+  return 0;
+}
+
+static uint16_t callbacksSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
+                                      uint16_t a, uint16_t b) {
+  printf("callbacks SetGlobalVar id=%i %i %i\n", id, a, b);
+  switch (id) {
+  case EMCGlobalVarID_CurrentBlock: {
+    uint16_t x = 0;
+    uint16_t y = 0;
+    BlockGetCoordinates(&x, &y, b, 0x80, 0x80);
+    uint16_t xx = b & 0x1F;
+    uint16_t yx = b >> 5;
+    printf("x=%x y=%x\n", xx, yx);
+    break;
+  }
+  case EMCGlobalVarID_CurrentDir:
+  case EMCGlobalVarID_CurrentLevel:
+  case EMCGlobalVarID_ItemInHand:
+  case EMCGlobalVarID_Brightness:
+  case EMCGlobalVarID_Credits:
+  case EMCGlobalVarID_6:
+  case EMCGlobalVarID_7_Unused:
+    assert(0);
+  case EMCGlobalVarID_UpdateFlags:
+  case EMCGlobalVarID_OilLampStatus:
+  case EMCGlobalVarID_SceneDefaultUpdate:
+  case EMCGlobalVarID_CompassBroken:
+  case EMCGlobalVarID_DrainMagic:
+  case EMCGlobalVarID_SpeechVolume:
+  case EMCGlobalVarID_AbortTIMFlag:
+    break;
+  }
+  return 1;
 }
 
 int cmdGame(int argc, char *argv[]) {
@@ -192,11 +287,36 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
   }
+  {
+    size_t fileSize = 0;
+    size_t readSize = 0;
+    uint8_t *buffer = readBinaryFile("LEVEL01.FRE", &fileSize, &readSize);
+    if (!buffer) {
+      return 1;
+    }
+    if (readSize == 0) {
+      free(buffer);
+      return 1;
+    }
+    assert(readSize == fileSize);
+    if (!LangHandleFromBuffer(&levelCtx.levelLang, buffer, fileSize)) {
+      printf("LangHandleFromBuffer error\n");
+      return 1;
+    }
+  }
   printf("Got all files\n");
 
   gameCtx.level = &levelCtx;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetDirection =
       callbacksGetDirection;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_PlayDialogue =
+      callbacksPlayDialogue;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_PrintMessage =
+      callbacksPrintMessage;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetGlobalVar =
+      callbacksGetGlobalVar;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_SetGlobalVar =
+      callbacksSetGlobalVar;
   gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
@@ -389,12 +509,6 @@ static void renderStatLine(GameContext *gameCtx, const char *line, int x,
   SDL_FreeSurface(gameCtx->textSurface);
 }
 
-uint16_t calcNewBlockPosition(uint16_t curBlock, uint16_t direction) {
-  static const int16_t blockPosTable[] = {-32, 1, 32, -1};
-  assert(direction < sizeof(blockPosTable) / sizeof(int16_t));
-  return (curBlock + blockPosTable[direction]) & 0x3FF;
-}
-
 static char textStatsBuffer[512];
 
 static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
@@ -410,8 +524,10 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
-  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "newblockpos: %i",
-           calcNewBlockPosition(0, ctx->orientation));
+  snprintf(textStatsBuffer, sizeof(textStatsBuffer),
+           "block: %i  newblockpos: %i",
+           BlockFromCoords(ctx->partyPos.x, ctx->partyPos.y),
+           BlockCalcNewPosition(0, ctx->orientation));
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
@@ -423,15 +539,20 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, gameCtx->cmdBuffer, statsPosX, statsPosY);
 }
 
+static int runLevelInitScript(GameContext *gameCtx) {
+  return runScript(gameCtx, -1);
+}
+
 int runScript(GameContext *gameCtx, int function) {
   EMCData dat = {0};
   EMCInterpreterLoad(&gameCtx->interp, &gameCtx->script, &dat);
   EMCState state = {0};
   EMCStateInit(&state, &dat);
-  EMCStateSetOffset(&state, 400);
-
-  if (!EMCStateStart(&state, function)) {
-    printf("EMCInterpreterStart: invalid\n");
+  EMCStateSetOffset(&state, 0);
+  if (function > 0) {
+    if (!EMCStateStart(&state, function)) {
+      printf("EMCInterpreterStart: invalid\n");
+    }
   }
 
   while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
@@ -451,7 +572,7 @@ static int GameRun(GameContext *gameCtx) {
   int quit = 0;
   int shouldUpdate = 1;
 
-  runScript(gameCtx, 400);
+  runLevelInitScript(gameCtx);
   // Event loop
   while (!quit) {
     SDL_Event e;
@@ -473,7 +594,6 @@ static int GameRun(GameContext *gameCtx) {
       SDL_RenderClear(gameCtx->renderer);
       GameRenderFrame(gameCtx);
       renderTextStats(gameCtx, ctx);
-
       SDL_RenderPresent(gameCtx->renderer);
       shouldUpdate = 0;
     }

@@ -1,6 +1,8 @@
 #include "console.h"
 #include "game.h"
 #include <assert.h>
+#include <stdint.h>
+#include <string.h>
 
 static char cmdBuffer[1024];
 

@@ -31,3 +31,8 @@ Point PointGo(const Point *pos, Orientation orientation, int frontDist,
 #define MAZE_COORDS_Y (int)0
 #define MAZE_COORDS_W (int)174
 #define MAZE_COORDS_H (int)120
+
+void BlockGetCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
+                         uint16_t yOffs);
+uint16_t BlockFromCoords(uint16_t x, uint16_t y);
+uint16_t BlockCalcNewPosition(uint16_t curBlock, uint16_t direction);

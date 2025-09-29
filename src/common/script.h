@@ -120,10 +120,40 @@ static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {
 
 const char *EMCStateGetDataString(const EMCState *state, int16_t index);
 
+typedef enum {
+  EMCGlobalVarID_CurrentBlock = 0,
+  EMCGlobalVarID_CurrentDir = 1,
+  EMCGlobalVarID_CurrentLevel = 2,
+  EMCGlobalVarID_ItemInHand = 3,
+  EMCGlobalVarID_Brightness = 4,
+  EMCGlobalVarID_Credits = 5,
+  EMCGlobalVarID_6 = 6,
+  EMCGlobalVarID_7_Unused = 7,
+  EMCGlobalVarID_UpdateFlags = 8,
+  EMCGlobalVarID_OilLampStatus = 9,
+  EMCGlobalVarID_SceneDefaultUpdate = 10,
+  EMCGlobalVarID_CompassBroken = 11,
+  EMCGlobalVarID_DrainMagic = 12,
+  EMCGlobalVarID_SpeechVolume = 13,
+  EMCGlobalVarID_AbortTIMFlag = 14,
+} EMCGlobalVarID;
+
 typedef struct _EMCInterpreter EMCInterpreter;
 
 typedef struct _EMCInterpreterCallbacks {
+  uint16_t (*EMCInterpreterCallbacks_SetGlobalVar)(EMCInterpreter *interp,
+                                                   EMCGlobalVarID id,
+                                                   uint16_t a, uint16_t b);
+  uint16_t (*EMCInterpreterCallbacks_GetGlobalVar)(EMCInterpreter *interp,
+                                                   EMCGlobalVarID id,
+                                                   uint16_t a);
   uint16_t (*EMCInterpreterCallbacks_GetDirection)(EMCInterpreter *interp);
+  void (*EMCInterpreterCallbacks_PlayDialogue)(EMCInterpreter *interp,
+                                               int16_t charId, int16_t mode,
+                                               uint16_t strId);
+  void (*EMCInterpreterCallbacks_PrintMessage)(EMCInterpreter *interp,
+                                               uint16_t type, uint16_t strId,
+                                               uint16_t soundId);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

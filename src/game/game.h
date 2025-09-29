@@ -5,6 +5,7 @@
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
 #include "formats/format_inf.h"
+#include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
@@ -27,6 +28,7 @@ typedef struct {
   WllHandle wllHandle;
   DatHandle datHandle;
   SHPHandle shpHandle;
+  LangHandle levelLang;
 
   Point partyPos;
   Orientation orientation;
