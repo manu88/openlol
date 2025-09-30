@@ -461,8 +461,12 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   int statsPosX = 20;
   int statsPosY = 400;
 
-  snprintf(textStatsBuffer, sizeof(textStatsBuffer), "pose x=%i y=%i o=%i %c",
-           ctx->partyPos.x, ctx->partyPos.y, ctx->orientation,
+  uint16_t gameX = 0;
+  uint16_t gameY = 0;
+  GetGameCoords(ctx->partyPos.x, ctx->partyPos.y, &gameX, &gameY);
+  snprintf(textStatsBuffer, sizeof(textStatsBuffer),
+           "pose x=%i (%X) y=%i (%X) o=%i %c", ctx->partyPos.x, gameX,
+           ctx->partyPos.y, gameY, ctx->orientation,
            ctx->orientation == North ? 'N'
                                      : (ctx->orientation == South  ? 'S'
                                         : ctx->orientation == East ? 'E'
@@ -470,10 +474,10 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
+  uint16_t block = BlockFromCoords(gameX, gameY);
   snprintf(textStatsBuffer, sizeof(textStatsBuffer),
-           "block: %i  newblockpos: %i",
-           BlockFromCoords(ctx->partyPos.x, ctx->partyPos.y),
-           BlockCalcNewPosition(0, ctx->orientation));
+           "block: %X  newblockpos: %X", block,
+           BlockCalcNewPosition(block, ctx->orientation));
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;

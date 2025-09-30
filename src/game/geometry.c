@@ -94,3 +94,10 @@ void GetRealCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut) {
   *xOut = x >> 8;
   *yOut = (y & 0XFF00) >> 8;
 }
+
+void GetGameCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut) {
+  assert(xOut);
+  assert(yOut);
+  *xOut = x << 8;
+  *yOut = (y + 0XFF00) << 8;
+}
