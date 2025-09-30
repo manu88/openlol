@@ -285,6 +285,7 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
     assert(readSize == fileSize);
+    INFScriptInit(&gameCtx.iniScript);
     if (!INFScriptFromBuffer(&gameCtx.iniScript, buffer, fileSize)) {
       printf("INFScriptFromBuffer error\n");
       return 1;
@@ -302,6 +303,7 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
     assert(readSize == fileSize);
+    INFScriptInit(&gameCtx.script);
     if (!INFScriptFromBuffer(&gameCtx.script, buffer, fileSize)) {
       printf("INFScriptFromBuffer error\n");
       return 1;
@@ -556,15 +558,16 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   statsPosY += 20;
   renderStatLine(gameCtx, gameCtx->cmdBuffer, statsPosX, statsPosY);
 }
+
 static int runINIScript(GameContext *gameCtx) {
   EMCData dat = {0};
   EMCDataLoad(&dat, &gameCtx->iniScript);
-  EMCState state = {0};
-  EMCStateInit(&state, &dat);
-  EMCStateSetOffset(&state, 0);
-
-  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
-    if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
+  EMCState iniState = {0};
+  EMCStateInit(&iniState, &dat);
+  EMCStateSetOffset(&iniState, 0);
+  EMCStateStart(&iniState, 0);
+  while (EMCInterpreterIsValid(&gameCtx->interp, &iniState)) {
+    if (EMCInterpreterRun(&gameCtx->interp, &iniState) == 0) {
       printf("EMCInterpreterRun returned 0\n");
     }
   }
