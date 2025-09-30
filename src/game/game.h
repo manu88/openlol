@@ -49,6 +49,7 @@ typedef struct _GameContext {
   PAKFile generalPak;
 
   INFScript script;
+  INFScript iniScript;
   EMCInterpreter interp;
 
   // dev/debug things

@@ -16,8 +16,7 @@ const char *EMCStateGetDataString(const EMCState *state, int16_t index) {
   return (char *)(state->dataPtr->text + strIndex);
 }
 
-int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
-                       EMCData *data) {
+int EMCDataLoad(EMCData *data, const INFScript *infScript) {
   data->text = infScript->chunks[kText]._data;
   data->ordr = (uint16_t *)infScript->chunks[kEmc2Ordr]._data;
   data->ordrSize = infScript->chunks[kEmc2Ordr]._size / 2;

@@ -276,6 +276,23 @@ int cmdGame(int argc, char *argv[]) {
   {
     size_t fileSize = 0;
     size_t readSize = 0;
+    uint8_t *buffer = readBinaryFile("LEVEL1.INI", &fileSize, &readSize);
+    if (!buffer) {
+      return 1;
+    }
+    if (readSize == 0) {
+      free(buffer);
+      return 1;
+    }
+    assert(readSize == fileSize);
+    if (!INFScriptFromBuffer(&gameCtx.iniScript, buffer, fileSize)) {
+      printf("INFScriptFromBuffer error\n");
+      return 1;
+    }
+  }
+  {
+    size_t fileSize = 0;
+    size_t readSize = 0;
     uint8_t *buffer = readBinaryFile(infFile, &fileSize, &readSize);
     if (!buffer) {
       return 1;
@@ -539,6 +556,20 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   statsPosY += 20;
   renderStatLine(gameCtx, gameCtx->cmdBuffer, statsPosX, statsPosY);
 }
+static int runINIScript(GameContext *gameCtx) {
+  EMCData dat = {0};
+  EMCDataLoad(&dat, &gameCtx->iniScript);
+  EMCState state = {0};
+  EMCStateInit(&state, &dat);
+  EMCStateSetOffset(&state, 0);
+
+  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
+    if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
+      printf("EMCInterpreterRun returned 0\n");
+    }
+  }
+  return 1;
+}
 
 static int runLevelInitScript(GameContext *gameCtx) {
   return runScript(gameCtx, -1);
@@ -546,7 +577,7 @@ static int runLevelInitScript(GameContext *gameCtx) {
 
 int runScript(GameContext *gameCtx, int function) {
   EMCData dat = {0};
-  EMCInterpreterLoad(&gameCtx->interp, &gameCtx->script, &dat);
+  EMCDataLoad(&dat, &gameCtx->script);
   EMCState state = {0};
   EMCStateInit(&state, &dat);
   EMCStateSetOffset(&state, 0);
@@ -573,6 +604,9 @@ static int GameRun(GameContext *gameCtx) {
   int quit = 0;
   int shouldUpdate = 1;
 
+  printf("START runINIScript\n");
+  runINIScript(gameCtx);
+  printf("DONE runINIScript\n");
   runLevelInitScript(gameCtx);
   // Event loop
   while (!quit) {

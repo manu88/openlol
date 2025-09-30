@@ -165,8 +165,7 @@ typedef struct _EMCInterpreter {
 
 } EMCInterpreter;
 
-int EMCInterpreterLoad(EMCInterpreter *interp, const INFScript *infScript,
-                       EMCData *data);
+int EMCDataLoad(EMCData *data, const INFScript *infScript);
 void EMCInterpreterUnload(EMCInterpreter *interp, EMCData *data);
 void EMCStateInit(EMCState *scriptState, const EMCData *data);
 int EMCStateSetOffset(EMCState *script, uint16_t offset);
