@@ -13,8 +13,8 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.WLL‘ : WaLL data, maybe decoration data?
 - ‘.FRE‘ : FREnch text compressed with a Dizio-Encoding
 - ‘.INF‘ : Script data similar to Eob inf, Data is arranged using Legend of Kyrandia's script format (info about Dune II's EMC: https://web.archive.org/web/20080922215518/http://minniatian.republika.pl/Dune2/EMC.HTM)
+- ‘.INI‘ : INF script in disguise, used for level initialization.
 - ‘.CMZ‘ : EoB maze definition, but compressed with Format 80
-- ‘.INI‘ : level-related?
 - '.DAT' : level decoration data 
 
 ## format 80
