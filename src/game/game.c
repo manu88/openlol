@@ -201,14 +201,14 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
   assert(GameEnvironmentLoadChapter(1));
-  if (argc < 7) {
-    printf("game maz-file vcn-file vmp-file wall-file dat-file shp-file "
-           "inf-file\n");
+  if (argc < 3) {
+    printf("game wall-file ini-file inf-file\n");
     return 0;
   }
 
-  const char *wllFile = argv[3];
-  const char *infFile = argv[6];
+  const char *iniFile = argv[0];
+  const char *infFile = argv[1];
+  const char *wllFile = argv[2];
 
   GameContext gameCtx = {0};
   if (!GameInit(&gameCtx)) {
@@ -237,7 +237,7 @@ int cmdGame(int argc, char *argv[]) {
   {
     size_t fileSize = 0;
     size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile("LEVEL1.INI", &fileSize, &readSize);
+    uint8_t *buffer = readBinaryFile(iniFile, &fileSize, &readSize);
     if (!buffer) {
       return 1;
     }
@@ -270,7 +270,6 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
   }
-  printf("Got all files\n");
 
   gameCtx.level = &levelCtx;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetDirection =
