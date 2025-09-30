@@ -4,6 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const char *LanguageGetExtension(Language lang) {
+  switch (lang) {
+  case Language_FR:
+    return "FRE";
+  }
+  assert(0);
+}
+
 // from https://github.com/OpenDUNE/OpenDUNE/blob/master/src/string.c#L127
 uint16_t decompressAndTranslate(const char *s, char *dest, uint16_t destLen) {
   static const char couples[] = " etainosrlhcdupm" /* 1st char */

@@ -4,10 +4,14 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+typedef enum {
+  Language_FR = 0,
+} Language;
+
+const char *LanguageGetExtension(Language lang);
+
 typedef struct {
-
   uint16_t count;
-
   uint8_t *originalBuffer;
 } LangHandle;
 

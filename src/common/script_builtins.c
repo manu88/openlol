@@ -256,6 +256,7 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
   int16_t p5 = EMCStateStackVal(state, 0);
   printf("loadLevelGraphics '%s' %X %X %X %X %X\n",
          EMCStateGetDataString(state, p0), p1, p2, p3, p4, p5);
+         // files: VCF VCN VMP
   return 1;
 }
 

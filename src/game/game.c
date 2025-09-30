@@ -16,6 +16,7 @@
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
 #include "formats/format_wll.h"
+#include "game_envir.h"
 #include "geometry.h"
 #include "pak_file.h"
 #include "render.h"
@@ -138,6 +139,8 @@ static uint16_t callbacksSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
 }
 
 int cmdGame(int argc, char *argv[]) {
+  assert(GameEnvironmentInit("data"));
+  assert(GameEnvironmentLoadChapter(1));
   if (argc < 7) {
     printf("game maz-file vcn-file vmp-file wall-file dat-file shp-file "
            "inf-file\n");
@@ -288,18 +291,13 @@ int cmdGame(int argc, char *argv[]) {
     }
   }
   {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile("LEVEL01.FRE", &fileSize, &readSize);
-    if (!buffer) {
+    GameFile langFile = {0};
+    assert(GameEnvironmentGetLangFile(&langFile, "LEVEL01"));
+    if (!langFile.buffer) {
       return 1;
     }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-    if (!LangHandleFromBuffer(&levelCtx.levelLang, buffer, fileSize)) {
+    if (!LangHandleFromBuffer(&levelCtx.levelLang, langFile.buffer,
+                              langFile.bufferSize)) {
       printf("LangHandleFromBuffer error\n");
       return 1;
     }
@@ -321,6 +319,9 @@ int cmdGame(int argc, char *argv[]) {
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);
+
+  printf("GameEnvironmentRelease\n");
+  GameEnvironmentRelease();
   return 0;
 }
 
