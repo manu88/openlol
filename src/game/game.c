@@ -198,6 +198,20 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
   // files: VCF VCN VMP
 }
 
+static void installCallbacks(EMCInterpreter *interp) {
+  interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
+  interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
+  interp->callbacks.EMCInterpreterCallbacks_PrintMessage = callbackPrintMessage;
+  interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar = callbackGetGlobalVar;
+  interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar = callbackSetGlobalVar;
+  interp->callbacks.EMCInterpreterCallbacks_LoadLangFile = callbackLoadLangFile;
+  interp->callbacks.EMCInterpreterCallbacks_LoadCMZ = callbackLoadCMZ;
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes =
+      callbackLoadLevelShapes;
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics =
+      callbackLoadLevelGraphics;
+}
+
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
   assert(GameEnvironmentLoadChapter(1));
@@ -272,25 +286,7 @@ int cmdGame(int argc, char *argv[]) {
   }
 
   gameCtx.level = &levelCtx;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetDirection =
-      callbackGetDirection;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_PlayDialogue =
-      callbackPlayDialogue;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_PrintMessage =
-      callbackPrintMessage;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetGlobalVar =
-      callbackGetGlobalVar;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_SetGlobalVar =
-      callbackSetGlobalVar;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLangFile =
-      callbackLoadLangFile;
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadCMZ = callbackLoadCMZ;
-
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLevelShapes =
-      callbackLoadLevelShapes;
-
-  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLevelGraphics =
-      callbackLoadLevelGraphics;
+  installCallbacks(&gameCtx.interp);
   gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
