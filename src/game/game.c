@@ -38,7 +38,7 @@
 static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
 
-static uint16_t callbacksGetDirection(EMCInterpreter *interp) {
+static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   printf("callbacksGetDirection will return %X\n", ctx->level->orientation);
@@ -46,8 +46,8 @@ static uint16_t callbacksGetDirection(EMCInterpreter *interp) {
 }
 
 static char dialOrMsgBuffer[1024];
-static void callbacksPlayDialogue(EMCInterpreter *interp, int16_t charId,
-                                  int16_t mode, uint16_t strId) {
+static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
+                                 int16_t mode, uint16_t strId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   printf("callbacksPlayDialogue charId=%i, mode=%i stringID=%i\n", charId, mode,
@@ -62,8 +62,8 @@ static void callbacksPlayDialogue(EMCInterpreter *interp, int16_t charId,
   printf("DIAL: '%s'\n", dialOrMsgBuffer);
 }
 
-static void callbacksPrintMessage(EMCInterpreter *interp, uint16_t type,
-                                  uint16_t strId, uint16_t soundId) {
+static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
+                                 uint16_t strId, uint16_t soundId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   printf("callbacksPrintMessage type=%i stringID=%i soundID=%i\n", type, strId,
@@ -76,8 +76,8 @@ static void callbacksPrintMessage(EMCInterpreter *interp, uint16_t type,
   printf("MSG: '%s'\n", dialOrMsgBuffer);
 }
 
-static uint16_t callbacksGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
-                                      uint16_t a) {
+static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
+                                     uint16_t a) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   printf("callbacks GetGlobalVar id=%i\n", id);
@@ -105,8 +105,8 @@ static uint16_t callbacksGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   return 0;
 }
 
-static uint16_t callbacksSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
-                                      uint16_t a, uint16_t b) {
+static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
+                                     uint16_t a, uint16_t b) {
   printf("callbacks SetGlobalVar id=%i %i %i\n", id, a, b);
   switch (id) {
   case EMCGlobalVarID_CurrentBlock: {
@@ -136,6 +136,20 @@ static uint16_t callbacksSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
     break;
   }
   return 1;
+}
+
+static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadLangFile '%s'\n", file);
+  GameFile langFile = {0};
+  assert(GameEnvironmentGetLangFile(&langFile, "LEVEL01"));
+  if (!langFile.buffer) {
+    return;
+  }
+  if (!LangHandleFromBuffer(&gameCtx->level->levelLang, langFile.buffer,
+                            langFile.bufferSize)) {
+    printf("LangHandleFromBuffer error\n");
+  }
 }
 
 int cmdGame(int argc, char *argv[]) {
@@ -309,31 +323,21 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
   }
-  {
-    GameFile langFile = {0};
-    assert(GameEnvironmentGetLangFile(&langFile, "LEVEL01"));
-    if (!langFile.buffer) {
-      return 1;
-    }
-    if (!LangHandleFromBuffer(&levelCtx.levelLang, langFile.buffer,
-                              langFile.bufferSize)) {
-      printf("LangHandleFromBuffer error\n");
-      return 1;
-    }
-  }
   printf("Got all files\n");
 
   gameCtx.level = &levelCtx;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetDirection =
-      callbacksGetDirection;
+      callbackGetDirection;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_PlayDialogue =
-      callbacksPlayDialogue;
+      callbackPlayDialogue;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_PrintMessage =
-      callbacksPrintMessage;
+      callbackPrintMessage;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_GetGlobalVar =
-      callbacksGetGlobalVar;
+      callbackGetGlobalVar;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_SetGlobalVar =
-      callbacksSetGlobalVar;
+      callbackSetGlobalVar;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLangFile =
+      callbackLoadLangFile;
   gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);

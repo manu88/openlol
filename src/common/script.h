@@ -154,6 +154,8 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_PrintMessage)(EMCInterpreter *interp,
                                                uint16_t type, uint16_t strId,
                                                uint16_t soundId);
+  void (*EMCInterpreterCallbacks_LoadLangFile)(EMCInterpreter *interp,
+                                               const char *file);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
