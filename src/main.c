@@ -5,6 +5,7 @@
 #include "formats/format_dat.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "formats/format_tim.h"
 #include "formats/format_vcn.h"
@@ -567,6 +568,63 @@ static int cmdPak(int argc, char *argv[]) {
   return 1;
 }
 
+static void usageSAV(void) { printf("sav subcommands: show file\n"); }
+
+static int cmdSAVShow(const char *filepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+
+  SAVHandle handle = {0};
+  SAVHandleFromBuffer(&handle, buffer, dataSize);
+  SAVSlot slot = {0};
+  if (SAVHandleGetSlot(&handle, &slot)) {
+    printf("Slot name '%s'\n", slot.header->name);
+    printf("+CHARACTERS\n");
+    for (int i = 0; i < 4; i++) {
+      const SAVCharacter *ch = slot.characters[i];
+      printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%X "
+             "magicPointsCur=%X "
+             "magicPointsMax=%X\n",
+             i, ch->flags, ch->name, ch->raceClassSex, ch->id,
+             ch->magicPointsCur, ch->magicPointsMax);
+    }
+
+    printf("+GENERAL\n");
+    uint16_t x = 0;
+    uint16_t y = 0;
+    GetRealCoords(slot.general->posX, slot.general->posY, &x, &y);
+    printf("block=%X x=%X y=%X (real %i %i)\n", slot.general->currentBlock,
+           slot.general->posX, slot.general->posY, x, y);
+    printf("orientation=%X compass=%X\n", slot.general->currentDirection,
+           slot.general->compassDirection);
+    printf("level %i\n", slot.general->currentLevel);
+    printf("selected char %i\n", slot.general->selectedChar);
+    printf("+INVENTORY\n");
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+      if (slot.inventory[i]) {
+        printf("%i: 0X%X\n", i, slot.inventory[i]);
+      }
+    }
+  }
+  free(buffer);
+  return 0;
+}
+static int cmdSAV(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageSAV();
+    return 1;
+  }
+  if (strcmp(argv[0], "show") == 0) {
+    return cmdSAVShow(argv[1]);
+  }
+  return 1;
+}
+
 static int cmdWSAExtract(const char *filepath, int frameNum) {
   size_t dataSize = 0;
   int freeBuffer = 0;
@@ -839,6 +897,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdTim(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "wsa") == 0) {
     return cmdWSA(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "sav") == 0) {
+    return cmdSAV(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

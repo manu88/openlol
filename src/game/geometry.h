@@ -36,3 +36,5 @@ void BlockGetCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
                          uint16_t yOffs);
 uint16_t BlockFromCoords(uint16_t x, uint16_t y);
 uint16_t BlockCalcNewPosition(uint16_t curBlock, uint16_t direction);
+
+void GetRealCoords(uint16_t x, uint16_t y, uint16_t*xOut, uint16_t *yOut);

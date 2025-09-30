@@ -79,11 +79,18 @@ void BlockGetCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
 }
 
 uint16_t BlockFromCoords(uint16_t x, uint16_t y) {
-	return (((y & 0xFF00) >> 3) | (x >> 8)) & 0x3FF;
+  return (((y & 0xFF00) >> 3) | (x >> 8)) & 0x3FF;
 }
 
 uint16_t BlockCalcNewPosition(uint16_t curBlock, uint16_t direction) {
   static const int16_t blockPosTable[] = {-32, 1, 32, -1};
   assert(direction < sizeof(blockPosTable) / sizeof(int16_t));
   return (curBlock + blockPosTable[direction]) & 0x3FF;
+}
+
+void GetRealCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut) {
+  assert(xOut);
+  assert(yOut);
+  *xOut = x >> 8;
+  *yOut = (y & 0XFF00) >> 8;
 }
