@@ -232,6 +232,99 @@ static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
   }
   return 1;
 }
+
+static uint16_t loadBlockProperties(EMCInterpreter *interp, EMCState *state) {
+  const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  printf("loadBlockProperties '%s'\n", file);
+  return 1;
+}
+
+static uint16_t loadMonsterShapes(EMCInterpreter *interp, EMCState *state) {
+  const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  int16_t p1 = EMCStateStackVal(state, 0);
+  int16_t p2 = EMCStateStackVal(state, 0);
+  printf("loadMonsterShapes '%s' %X %X\n", file, p1, p2);
+  return 1;
+}
+
+static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
+  int16_t p0 = EMCStateStackVal(state, 0);
+  int16_t p1 = EMCStateStackVal(state, 0);
+  int16_t p2 = EMCStateStackVal(state, 0);
+  int16_t p3 = EMCStateStackVal(state, 0);
+  int16_t p4 = EMCStateStackVal(state, 0);
+  int16_t p5 = EMCStateStackVal(state, 0);
+  printf("loadLevelGraphics '%s' %X %X %X %X %X\n",
+         EMCStateGetDataString(state, p0), p1, p2, p3, p4, p5);
+  return 1;
+}
+
+static uint16_t setPaletteBrightness(EMCInterpreter *interp, EMCState *state) {
+  printf("setPaletteBrightness\n");
+  return 1;
+}
+
+static uint16_t loadMonsterProperties(EMCInterpreter *interp, EMCState *state) {
+
+  uint16_t monsterIndex = EMCStateStackVal(state, 0);
+  uint16_t shapeIndex = EMCStateStackVal(state, 1);
+
+  uint16_t fightingStats[9] = {0};
+  fightingStats[0] = (EMCStateStackVal(state, 2) << 8) / 100; // hit chance
+  fightingStats[1] = 256;
+  fightingStats[2] = (EMCStateStackVal(state, 3) << 8) / 100; // protection
+  fightingStats[3] = EMCStateStackVal(state, 4);              // evade chance
+  fightingStats[4] = (EMCStateStackVal(state, 5) << 8) / 100; // speed
+  fightingStats[5] = (EMCStateStackVal(state, 6) << 8) / 100;
+  fightingStats[6] = (EMCStateStackVal(state, 7) << 8) / 100;
+  fightingStats[7] = (EMCStateStackVal(state, 8) << 8) / 100;
+  fightingStats[8] = 0;
+  printf("loadMonsterProperties monster %X shape %X hit=%i prot=%i evade=%i "
+         "speed=%i\n",
+         monsterIndex, shapeIndex, fightingStats[0], fightingStats[2],
+         fightingStats[3], fightingStats[4]);
+  return 1;
+}
+
+static uint16_t loadDoorShapes(EMCInterpreter *interp, EMCState *state) {
+  const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  printf("loadDoorShapes '%s' %X %X\n", file, p1, p2);
+  return 1;
+}
+
+static uint16_t loadLangFile(EMCInterpreter *interp, EMCState *state) {
+  const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  printf("loadLangFile '%s'\n", file);
+  return 1;
+}
+
+static uint16_t loadLevelShapes(EMCInterpreter *interp, EMCState *state) {
+  const char *file0 = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  const char *file1 = EMCStateGetDataString(state, EMCStateStackVal(state, 1));
+  printf("loadLevelShapes '%s' '%s'\n", file0, file1);
+  return 1;
+}
+
+static uint16_t closeLevelShapeFile(EMCInterpreter *interp, EMCState *state) {
+  printf("closeLevelShapeFile\n");
+  return 1;
+}
+
+static uint16_t assignLevelDecorationShape(EMCInterpreter *interp,
+                                           EMCState *state) {
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  printf("assignLevelDecorationShape %X\n", p0);
+  return 1;
+}
+
+static uint16_t resetBlockShapeAssignment(EMCInterpreter *interp,
+                                          EMCState *state) {
+  printf("resetBlockShapeAssignment\n");
+  return 1;
+}
+
 static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {
   int16_t track = EMCStateStackVal(state, 0);
   printf("playDialogueTalkText track=%x\n", track);
@@ -247,8 +340,14 @@ static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
   printf("savePage5\n");
   return 0;
 }
+
 static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
   printf("prepareSpecialScene\n");
+  return 0;
+}
+
+static uint16_t assignCustomSfx(EMCInterpreter *interp, EMCState *state) {
+  printf("assignCustomSfx\n");
   return 0;
 }
 
@@ -273,10 +372,10 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {setGameFlag, "setGameFlag"},
     {testGameFlag, "testGameFlag"},
-    {NULL},
+    {loadLevelGraphics, "loadLevelGraphics"},
     // 0X0A
-    {NULL},
-    {NULL},
+    {loadBlockProperties, "loadBlockProperties"},
+    {loadMonsterShapes, "loadMonsterShapes"},
     {NULL},
     {NULL},
     {NULL},
@@ -288,10 +387,10 @@ static ScriptFunDesc functions[] = {
     {getItemParam, "getItemParam"},
     {NULL},
     {NULL},
+    {loadLevelShapes, "loadLevelShapes"},
+    {closeLevelShapeFile, "closeLevelShapeFile"},
     {NULL},
-    {NULL},
-    {NULL},
-    {NULL},
+    {loadDoorShapes, "loadDoorShapes"},
     {NULL},
     // 0X1A
     {playAnimationPart, "playAnimationPart"},
@@ -327,8 +426,8 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
-    {NULL},
+    {assignLevelDecorationShape, "assignLevelDecorationShape"},
+    {resetBlockShapeAssignment, "resetBlockShapeAssignment"},
     {copyRegion, "copyRegion"},
     {NULL},
     {fadeClearSceneWindow, "fadeClearSceneWindow"},
@@ -338,7 +437,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {loadMonsterProperties, "loadMonsterProperties"},
 
     // 0X40
     {NULL},
@@ -366,7 +465,7 @@ static ScriptFunDesc functions[] = {
     {getItemInHand, "getItemInHand"},
     {NULL},
     {NULL},
-    {NULL},
+    {loadLangFile, "loadLangFile"},
     {playSoundEffect, "playSoundEffect"},
     {NULL},
     {stopTimScript, "stopTimScript"},
@@ -391,7 +490,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     // 0X6A
     {NULL},
-    {NULL},
+    {setPaletteBrightness, "setPaletteBrightness"},
     {NULL},
     {NULL},
     {NULL},
@@ -440,7 +539,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {prepareSpecialScene, "prepareSpecialScene"},
     {NULL},
-    {NULL},
+    {assignCustomSfx, "assignCustomSfx"},
     {NULL},
     {NULL},
     {NULL},
