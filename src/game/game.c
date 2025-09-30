@@ -161,6 +161,24 @@ static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
       MazeHandleFromBuffer(&gameCtx->level->mazHandle, f.buffer, f.bufferSize));
 }
 
+static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
+                                    const char *datFile) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadLevelShapes '%s' '%s'\n", shpFile, datFile);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, shpFile));
+    assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
+                               f.bufferSize));
+  }
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, datFile));
+    assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
+                               f.bufferSize));
+  }
+}
+
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
   assert(GameEnvironmentLoadChapter(1));
@@ -169,13 +187,9 @@ int cmdGame(int argc, char *argv[]) {
            "inf-file\n");
     return 0;
   }
-  const char *mazFile = argv[0];
   const char *vcnFile = argv[1];
   const char *vmpFile = argv[2];
   const char *wllFile = argv[3];
-
-  const char *datFile = argv[4];
-  const char *shpFile = argv[5];
   const char *infFile = argv[6];
 
   GameContext gameCtx = {0};
@@ -243,42 +257,6 @@ int cmdGame(int argc, char *argv[]) {
   {
     size_t fileSize = 0;
     size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(datFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!DatHandleFromBuffer(&levelCtx.datHandle, buffer, fileSize)) {
-      printf("DatHandleFromBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(shpFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!SHPHandleFromBuffer(&levelCtx.shpHandle, buffer, fileSize)) {
-      printf("SHPHandleFromBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
     uint8_t *buffer = readBinaryFile("LEVEL1.INI", &fileSize, &readSize);
     if (!buffer) {
       return 1;
@@ -328,6 +306,9 @@ int cmdGame(int argc, char *argv[]) {
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLangFile =
       callbackLoadLangFile;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadCMZ = callbackLoadCMZ;
+
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLevelShapes =
+      callbackLoadLevelShapes;
   gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);

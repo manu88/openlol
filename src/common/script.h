@@ -158,6 +158,9 @@ typedef struct _EMCInterpreterCallbacks {
                                                const char *file);
   void (*EMCInterpreterCallbacks_LoadCMZ)(EMCInterpreter *interp,
                                           const char *file);
+  void (*EMCInterpreterCallbacks_LoadLevelShapes)(EMCInterpreter *interp,
+                                                  const char *shpFile,
+                                                  const char *datFile);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

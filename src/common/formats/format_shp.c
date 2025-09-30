@@ -1,13 +1,12 @@
 #include "format_shp.h"
 #include "format_lcw.h"
-#include "renderer.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-void SHPHandleRelease(SHPHandle *handle) { free(handle->originalBuffer); }
+void SHPHandleRelease(SHPHandle *handle) {}
 
 int SHPHandleFromBuffer(SHPHandle *handle, uint8_t *buffer, size_t size) {
   handle->originalBuffer = buffer;

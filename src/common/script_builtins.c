@@ -307,9 +307,15 @@ static uint16_t loadLangFile(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t loadLevelShapes(EMCInterpreter *interp, EMCState *state) {
-  const char *file0 = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
-  const char *file1 = EMCStateGetDataString(state, EMCStateStackVal(state, 1));
-  printf("loadLevelShapes '%s' '%s'\n", file0, file1);
+  const char *shpFile =
+      EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  const char *datFile =
+      EMCStateGetDataString(state, EMCStateStackVal(state, 1));
+  if (interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes) {
+    interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes(interp, shpFile,
+                                                              datFile);
+  }
+  printf("loadLevelShapes '%s' '%s'\n", shpFile, datFile);
   return 1;
 }
 
