@@ -73,8 +73,11 @@ static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode) {
 
   if (funcCode >= getNumBuiltinFunctions()) {
     EMCDisassemblerEmitLine(disasm, "%s 0X%X", MNEMONIC_CALL, funcCode);
+    printf("func %X is outside builtins (size=%x)\n", funcCode,
+           getNumBuiltinFunctions());
     return;
   }
+  assert(getBuiltinFunctions()[funcCode].name);
   EMCDisassemblerEmitLine(disasm, "%s %s", MNEMONIC_CALL,
                           getBuiltinFunctions()[funcCode].name);
 }

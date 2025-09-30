@@ -5,7 +5,6 @@
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
-#include "bytes.h"
 #include "console.h"
 #include "formats/format_cmz.h"
 #include "formats/format_cps.h"
@@ -195,7 +194,6 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
     assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
                                   f.bufferSize));
   }
-  // files: VCF VCN VMP
 }
 
 static void installCallbacks(EMCInterpreter *interp) {

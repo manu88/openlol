@@ -361,7 +361,7 @@ static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
                                           EMCState *state) {
-  int16_t monsterType = EMCStateStackVal(state, 0);
+  uint16_t monsterType = EMCStateStackVal(state, 0);
   printf("checkMonsterTypeHostility monsterType=%x\n", monsterType);
   return 0;
 }
@@ -374,6 +374,19 @@ static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
 static uint16_t restorePage5(EMCInterpreter *interp, EMCState *state) {
   printf("restorePage5\n");
   return 0;
+}
+
+static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
+  printf("moveParty\n");
+  return 1;
+}
+
+static uint16_t loadNewLevel(EMCInterpreter *interp, EMCState *state) {
+  uint16_t currentBlock = EMCStateStackVal(state, 0);
+  uint16_t currentDir = EMCStateStackVal(state, 1);
+  printf("loadNewLevel block %X dir %X\n", currentBlock, currentDir);
+  assert(0);
+  return 1;
 }
 
 static uint16_t checkInventoryFull(EMCInterpreter *interp, EMCState *state) {
@@ -412,7 +425,7 @@ static ScriptFunDesc functions[] = {
     {getWallType, "getWallType"},
     {drawScene, "drawScene"},
     {rollDice, "rollDice"},
-    {NULL},
+    {moveParty, "moveParty"},
     {NULL},
     {NULL},
     {setGameFlag, "setGameFlag"},
@@ -479,7 +492,7 @@ static ScriptFunDesc functions[] = {
     // 0X3A
     {fadeSequencePalette, "fadeSequencePalette"},
     {NULL},
-    {NULL},
+    {loadNewLevel, "loadNewLevel"},
     {NULL},
     {NULL},
     {loadMonsterProperties, "loadMonsterProperties"},
