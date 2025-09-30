@@ -152,6 +152,15 @@ static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
   }
 }
 
+static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadCMZ '%s'\n", file);
+  GameFile f = {0};
+  assert(GameEnvironmentGetFile(&f, file));
+  assert(
+      MazeHandleFromBuffer(&gameCtx->level->mazHandle, f.buffer, f.bufferSize));
+}
+
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
   assert(GameEnvironmentLoadChapter(1));
@@ -208,26 +217,6 @@ int cmdGame(int argc, char *argv[]) {
 
     if (!VMPHandleFromLCWBuffer(&levelCtx.vmpHandle, buffer, fileSize)) {
       printf("VMPDataFromLCWBuffer error\n");
-      free(buffer);
-      return 1;
-    }
-    free(buffer);
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(mazFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!MazeHandleFromBuffer(&levelCtx.mazHandle, buffer, fileSize)) {
-      printf("MazeHandleFromBuffer error\n");
       free(buffer);
       return 1;
     }
@@ -338,6 +327,7 @@ int cmdGame(int argc, char *argv[]) {
       callbackSetGlobalVar;
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLangFile =
       callbackLoadLangFile;
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadCMZ = callbackLoadCMZ;
   gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);

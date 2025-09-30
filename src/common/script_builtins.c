@@ -235,7 +235,9 @@ static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t loadBlockProperties(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
-  printf("loadBlockProperties '%s'\n", file);
+  if (interp->callbacks.EMCInterpreterCallbacks_LoadCMZ) {
+    interp->callbacks.EMCInterpreterCallbacks_LoadCMZ(interp, file);
+  }
   return 1;
 }
 
