@@ -250,15 +250,19 @@ static uint16_t loadMonsterShapes(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
-  int16_t p0 = EMCStateStackVal(state, 0);
+  const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  // files: VCF VCN VMP
+  if (interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics) {
+    interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);
+  }
+#if 0
   int16_t p1 = EMCStateStackVal(state, 0);
   int16_t p2 = EMCStateStackVal(state, 0);
   int16_t p3 = EMCStateStackVal(state, 0);
   int16_t p4 = EMCStateStackVal(state, 0);
   int16_t p5 = EMCStateStackVal(state, 0);
-  printf("loadLevelGraphics '%s' %X %X %X %X %X\n",
-         EMCStateGetDataString(state, p0), p1, p2, p3, p4, p5);
-  // files: VCF VCN VMP
+  printf("loadLevelGraphics '%s' %X %X %X %X %X\n", file, p1, p2, p3, p4, p5);
+#endif
   return 1;
 }
 

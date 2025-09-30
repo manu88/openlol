@@ -14,5 +14,7 @@ void GameEnvironmentRelease(void);
 int GameEnvironmentLoadChapter(uint8_t index);
 
 int GameEnvironmentGetFile(GameFile *file, const char *name);
+
+int GameEnvironmentGetFileWithExt(GameFile *file, const char *name, const char* ext);
 int GameEnvironmentGetLangFile(GameFile *file, const char *name);
 

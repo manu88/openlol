@@ -179,6 +179,25 @@ static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
   }
 }
 
+static void callbackLoadLevelGraphics(EMCInterpreter *interp,
+                                      const char *file) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadLevelGraphics '%s'\n", file);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFileWithExt(&f, file, "VCN"));
+    assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
+                                  f.bufferSize));
+  }
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFileWithExt(&f, file, "VMP"));
+    assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
+                                  f.bufferSize));
+  }
+  // files: VCF VCN VMP
+}
+
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
   assert(GameEnvironmentLoadChapter(1));
@@ -187,8 +206,7 @@ int cmdGame(int argc, char *argv[]) {
            "inf-file\n");
     return 0;
   }
-  const char *vcnFile = argv[1];
-  const char *vmpFile = argv[2];
+
   const char *wllFile = argv[3];
   const char *infFile = argv[6];
 
@@ -198,44 +216,6 @@ int cmdGame(int argc, char *argv[]) {
   }
 
   LevelContext levelCtx = {0};
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(vcnFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!VCNHandleFromLCWBuffer(&levelCtx.vcnHandle, buffer, fileSize)) {
-      printf("VCNDataFromLCWBuffer error\n");
-      return 1;
-    }
-  }
-  {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(vmpFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!VMPHandleFromLCWBuffer(&levelCtx.vmpHandle, buffer, fileSize)) {
-      printf("VMPDataFromLCWBuffer error\n");
-      free(buffer);
-      return 1;
-    }
-    free(buffer);
-  }
   {
     size_t fileSize = 0;
     size_t readSize = 0;
@@ -309,6 +289,9 @@ int cmdGame(int argc, char *argv[]) {
 
   gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLevelShapes =
       callbackLoadLevelShapes;
+
+  gameCtx.interp.callbacks.EMCInterpreterCallbacks_LoadLevelGraphics =
+      callbackLoadLevelGraphics;
   gameCtx.interp.callbackCtx = &gameCtx;
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);

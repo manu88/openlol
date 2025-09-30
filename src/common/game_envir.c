@@ -77,15 +77,23 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
   return 0;
 }
 
-int GameEnvironmentGetLangFile(GameFile *file, const char *name) {
+int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,
+                                  const char *ext) {
   assert(file);
   assert(name);
-  const size_t fullNameSize = strlen(name) + 5;
+  assert(ext);
+  const size_t fullNameSize = strlen(name) + sizeof(ext) + 2; // dot and null
   char *fullName = malloc(fullNameSize);
   assert(fullName);
-  assert(snprintf(fullName, fullNameSize, "%s.%s", name,
-                  LanguageGetExtension(_envir.lang)) < fullNameSize);
+  assert(snprintf(fullName, fullNameSize, "%s.%s", name, ext) < fullNameSize);
   int ret = GameEnvironmentGetFile(file, fullName);
   free(fullName);
   return ret;
+}
+
+int GameEnvironmentGetLangFile(GameFile *file, const char *name) {
+  assert(file);
+  assert(name);
+  return GameEnvironmentGetFileWithExt(file, name,
+                                       LanguageGetExtension(_envir.lang));
 }
