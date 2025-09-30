@@ -10,10 +10,7 @@
 // https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.c
 
 void INFScriptInit(INFScript *script) { memset(script, 0, sizeof(INFScript)); }
-void INFScriptRelease(INFScript *script) {
-  free(script->originalBuffer);
-  free(script->segments);
-}
+void INFScriptRelease(INFScript *script) { free(script->segments); }
 
 static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
   const uint16_t *b = (const uint16_t *)chunks[kEmc2Ordr]._data;

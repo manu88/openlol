@@ -142,7 +142,7 @@ static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackLoadLangFile '%s'\n", file);
   GameFile langFile = {0};
-  assert(GameEnvironmentGetLangFile(&langFile, "LEVEL01"));
+  assert(GameEnvironmentGetLangFile(&langFile, file));
   if (!langFile.buffer) {
     return;
   }
@@ -214,15 +214,23 @@ static void installCallbacks(EMCInterpreter *interp) {
 
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
-  assert(GameEnvironmentLoadChapter(1));
-  if (argc < 3) {
-    printf("game wall-file ini-file inf-file\n");
+
+  if (argc < 2) {
+    printf("game chapterID levelID\n");
     return 0;
   }
 
-  const char *iniFile = argv[0];
-  const char *infFile = argv[1];
-  const char *wllFile = argv[2];
+  int chapterId = atoi(argv[0]);
+  int levelId = atoi(argv[1]);
+  if (chapterId < 1) {
+    return 1;
+  }
+  if (levelId < 1) {
+    return 1;
+  }
+  printf("Loading chapter %i level %i\n", chapterId, levelId);
+
+  assert(GameEnvironmentLoadChapter(chapterId));
 
   GameContext gameCtx = {0};
   if (!GameInit(&gameCtx)) {
@@ -231,58 +239,25 @@ int cmdGame(int argc, char *argv[]) {
 
   LevelContext levelCtx = {0};
   {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(wllFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-
-    if (!WllHandleFromBuffer(&levelCtx.wllHandle, buffer, fileSize)) {
-      printf("WllHandleFromBuffer error\n");
-      return 1;
-    }
+    GameFile f = {0};
+    char wllFile[12];
+    snprintf(wllFile, 12, "LEVEL%i.WLL", levelId);
+    assert(GameEnvironmentGetFile(&f, wllFile));
+    assert(WllHandleFromBuffer(&levelCtx.wllHandle, f.buffer, f.bufferSize));
   }
   {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(iniFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-    INFScriptInit(&gameCtx.iniScript);
-    if (!INFScriptFromBuffer(&gameCtx.iniScript, buffer, fileSize)) {
-      printf("INFScriptFromBuffer error\n");
-      return 1;
-    }
+    GameFile f = {0};
+    char iniFile[12];
+    snprintf(iniFile, 12, "LEVEL%i.INI", levelId);
+    assert(GameEnvironmentGetFile(&f, iniFile));
+    assert(INFScriptFromBuffer(&gameCtx.iniScript, f.buffer, f.bufferSize));
   }
   {
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(infFile, &fileSize, &readSize);
-    if (!buffer) {
-      return 1;
-    }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    assert(readSize == fileSize);
-    INFScriptInit(&gameCtx.script);
-    if (!INFScriptFromBuffer(&gameCtx.script, buffer, fileSize)) {
-      printf("INFScriptFromBuffer error\n");
-      return 1;
-    }
+    GameFile f = {0};
+    char infFile[12];
+    snprintf(infFile, 12, "LEVEL%i.INF", levelId);
+    assert(GameEnvironmentGetFile(&f, infFile));
+    assert(INFScriptFromBuffer(&gameCtx.script, f.buffer, f.bufferSize));
   }
 
   gameCtx.level = &levelCtx;

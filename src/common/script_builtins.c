@@ -14,8 +14,10 @@ static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
-  printf("rollDice\n");
-  return 0;
+  int16_t times = EMCStateStackVal(state, 0);
+  int16_t max = EMCStateStackVal(state, 1);
+  printf("rollDice times=%i max=%i\n", times, max);
+  return 1;
 }
 static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
   printf("enableSysTimer\n");
@@ -44,8 +46,19 @@ static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 
+static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {
+  printf("createLevelItem\n");
+  return 0;
+}
+
 static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
   printf("playAnimationPart\n");
+  return 0;
+}
+
+static uint16_t setNextFunc(EMCInterpreter *interp, EMCState *state) {
+  uint16_t p = EMCStateStackVal(state, 0);
+  printf("setNextFunc %x\n", p);
   return 0;
 }
 
@@ -352,9 +365,25 @@ static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
   printf("checkMonsterTypeHostility monsterType=%x\n", monsterType);
   return 0;
 }
+
 static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
   printf("savePage5\n");
   return 0;
+}
+
+static uint16_t restorePage5(EMCInterpreter *interp, EMCState *state) {
+  printf("restorePage5\n");
+  return 0;
+}
+
+static uint16_t checkInventoryFull(EMCInterpreter *interp, EMCState *state) {
+  printf("checkInventoryFull\n");
+  return 1;
+}
+
+static uint16_t createHandItem(EMCInterpreter *interp, EMCState *state) {
+  printf("createHandItem\n");
+  return 1;
 }
 
 static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
@@ -399,7 +428,7 @@ static ScriptFunDesc functions[] = {
 
     // 0X10
     {NULL},
-    {NULL},
+    {createLevelItem, "createLevelItem"},
     {getItemParam, "getItemParam"},
     {NULL},
     {NULL},
@@ -465,7 +494,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {createHandItem, "createHandItem"},
     // 0X4A
     {NULL},
     {NULL},
@@ -517,7 +546,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {checkInventoryFull, "checkInventoryFull"},
     {NULL},
     {NULL},
     {NULL},
@@ -526,7 +555,7 @@ static ScriptFunDesc functions[] = {
     // 0X7A
     {playDialogueTalkText, "playDialogueTalkText"},
     {checkMonsterTypeHostility, "checkMonsterTypeHostility"},
-    {NULL},
+    {setNextFunc, "setNextFunc"},
     {NULL},
     {NULL},
     {NULL},
@@ -544,7 +573,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     // 0X8A
     {savePage5, "savePage5"},
-    {NULL},
+    {restorePage5, "restorePage5"},
     {NULL},
     {NULL},
     {NULL},
