@@ -427,12 +427,14 @@ int EMCStateSetOffset(EMCState *script, uint16_t offset) {
 int EMCStateStart(EMCState *state, int function) {
   assert(state->dataPtr);
   assert(function >= 0);
-  if (function >= (int)state->dataPtr->ordrSize) {
-    printf("Function %i >= %i\n", function, (int)state->dataPtr->ordrSize);
+  if (function >= (int)INFScriptGetNumFunctions(state->dataPtr)) {
+    printf("Function %i >= %i\n", function,
+           INFScriptGetNumFunctions(state->dataPtr));
     return 0;
   }
 
-  uint16_t functionOffset = swap_uint16(state->dataPtr->ordr[function]);
+  uint16_t functionOffset =
+      INFScriptGetFunctionOffset(state->dataPtr, function);
   printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
   if (functionOffset == 0xFFFF) {
     printf("no such function\n");
