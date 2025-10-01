@@ -3,10 +3,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void EMCDisassemblerInit(EMCDisassembler *disassembler) {
   disassembler->disasmBufferSize = 512;
   disassembler->disasmBuffer = malloc(disassembler->disasmBufferSize);
+  memset(disassembler->disasmBuffer, 0, sizeof(disassembler->disasmBufferSize));
   disassembler->disasmBufferIndex = 0;
 }
 
