@@ -94,19 +94,11 @@ typedef enum {
 #define MNEMONIC_EQUAL (const char *)"EQUAL"
 #define MNEMONIC_NOT_EQUAL (const char *)"NEQUAL"
 
-typedef struct {
-  uint8_t *text;
-  uint16_t *data;
-  uint32_t ordrSize;
-  uint16_t *ordr;
-  uint32_t dataSize;
-} EMCData;
-
 typedef struct _EMCState {
   enum { kStackSize = 100, kStackLastEntry = kStackSize - 1 };
 
   const uint16_t *ip;
-  const EMCData *dataPtr;
+  const INFScript *dataPtr;
   int16_t retValue;
   uint16_t bp;
   uint16_t sp;
@@ -168,7 +160,7 @@ typedef struct _EMCInterpreterCallbacks {
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
-  EMCData *_scriptData;
+  INFScript *_scriptData;
   EMCDisassembler *disassembler;
 
   EMCInterpreterCallbacks callbacks;
@@ -176,9 +168,8 @@ typedef struct _EMCInterpreter {
 
 } EMCInterpreter;
 
-int EMCDataLoad(EMCData *data, const INFScript *infScript);
-void EMCInterpreterUnload(EMCInterpreter *interp, EMCData *data);
-void EMCStateInit(EMCState *scriptState, const EMCData *data);
+void EMCInterpreterUnload(EMCInterpreter *interp);
+void EMCStateInit(EMCState *scriptState, const INFScript *script);
 int EMCStateSetOffset(EMCState *script, uint16_t offset);
 int EMCStateStart(EMCState *script, int function);
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script);

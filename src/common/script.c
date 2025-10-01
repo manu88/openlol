@@ -16,20 +16,11 @@ const char *EMCStateGetDataString(const EMCState *state, int16_t index) {
   return (char *)(state->dataPtr->text + strIndex);
 }
 
-int EMCDataLoad(EMCData *data, const INFScript *infScript) {
-  data->text = infScript->chunks[kText]._data;
-  data->ordr = (uint16_t *)infScript->chunks[kEmc2Ordr]._data;
-  data->ordrSize = infScript->chunks[kEmc2Ordr]._size / 2;
-  data->data = (uint16_t *)infScript->chunks[kData]._data;
-  data->dataSize = infScript->chunks[kData]._size;
-  return 0;
-}
+void EMCInterpreterUnload(EMCInterpreter *interp) {}
 
-void EMCInterpreterUnload(EMCInterpreter *interp, EMCData *data) {}
-
-void EMCStateInit(EMCState *scriptState, const EMCData *data) {
+void EMCStateInit(EMCState *scriptState, const INFScript *script) {
   memset(scriptState, 0, sizeof(EMCState));
-  scriptState->dataPtr = data;
+  scriptState->dataPtr = script;
   scriptState->ip = NULL;
   scriptState->stack[kStackLastEntry] = 0;
   scriptState->bp = kStackSize + 1;
