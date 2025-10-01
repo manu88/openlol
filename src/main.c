@@ -179,13 +179,17 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   EMCDisassembler disassembler = {0};
   EMCDisassemblerInit(&disassembler);
   interp.disassembler = &disassembler;
-
+  disassembler.showDisamComment = 1;
   EMCState state = {0};
   EMCStateInit(&state, &script);
+  EMCStateSetOffset(&state, 0);
+  if (offset >= 0) {
+    EMCStateStart(&state, offset);
+  }
 
-  EMCStateSetOffset(&state, offset);
   int n = 0;
 
+  printf("using offset %i\n", offset);
   while (EMCInterpreterIsValid(&interp, &state)) {
     if (EMCInterpreterRun(&interp, &state) == 0) {
       printf("EMCInterpreterRun returned 0\n");
@@ -264,11 +268,7 @@ static int cmdScript(int argc, char *argv[]) {
   } else if (strcmp(argv[0], "offsets") == 0) {
     return cmdScriptOffsets(argv[1]);
   } else if (strcmp(argv[0], "disasm") == 0) {
-    if (argc < 3) {
-      printf("missing functionid\n");
-      return 1;
-    }
-    return cmdScriptDisasm(argv[1], atoi(argv[2]));
+    return cmdScriptDisasm(argv[1], argc >= 3 ? atoi(argv[2]) : -1);
   }
   usageScript();
   return 1;

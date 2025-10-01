@@ -15,5 +15,5 @@ typedef struct {
 
 void EMCDisassemblerInit(EMCDisassembler *disassembler);
 void EMCDisassemblerRelease(EMCDisassembler *disassembler);
-void EMCDisassemblerEmitLine(EMCDisassembler *disasm, const char *fmt, ...)
-    PRINTFLIKE(2, 3);
+void EMCDisassemblerEmitLine(EMCDisassembler *disasm, uint32_t instOffset,
+                             const char *fmt, ...) PRINTFLIKE(3, 4);

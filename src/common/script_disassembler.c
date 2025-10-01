@@ -16,7 +16,8 @@ void EMCDisassemblerRelease(EMCDisassembler *disassembler) {
   free(disassembler->disasmBuffer);
 }
 
-void EMCDisassemblerEmitLine(EMCDisassembler *disasm, const char *fmt, ...) {
+void EMCDisassemblerEmitLine(EMCDisassembler *disasm, uint32_t instOffset,
+                             const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   size_t bSize = disasm->disasmBufferSize - disasm->disasmBufferIndex;
@@ -40,7 +41,7 @@ void EMCDisassemblerEmitLine(EMCDisassembler *disasm, const char *fmt, ...) {
   if (disasm->showDisamComment) {
     bSize = disasm->disasmBufferSize - writtenSize;
     writtenSize = snprintf(disasm->disasmBuffer + disasm->disasmBufferIndex,
-                           bSize, "; 0X%04X\n", 1);
+                           bSize, "  ; 0X%04X\n", instOffset);
 
     if (writtenSize > bSize) {
       printf("no more size to write line, writtenSize=%zu, got bSize=%zu\n",
