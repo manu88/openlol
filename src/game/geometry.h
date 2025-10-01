@@ -3,8 +3,8 @@
 #include <stdint.h>
 
 typedef struct {
-  int x;
-  int y;
+  uint16_t x;
+  uint16_t y;
 } Point;
 
 typedef struct {
