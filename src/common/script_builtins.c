@@ -19,10 +19,29 @@ static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
   printf("rollDice times=%i max=%i\n", times, max);
   return 1;
 }
+
 static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
   printf("enableSysTimer\n");
   return 0;
 }
+
+static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
+  printf("initDialogueSequence\n");
+  return 0;
+}
+
+static uint16_t restoreAfterDialogueSequence(EMCInterpreter *interp,
+                                             EMCState *state) {
+  printf("restoreAfterDialogueSequence\n");
+  return 0;
+}
+
+static uint16_t resetPortraitsAndDisableSysTimer(EMCInterpreter *interp,
+                                                 EMCState *state) {
+  printf("enableSysTimer\n");
+  return 0;
+}
+
 static uint16_t setGameFlag(EMCInterpreter *interp, EMCState *state) {
   printf("setGameFlag\n");
   return 0;
@@ -311,6 +330,34 @@ static uint16_t loadMonsterProperties(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t initAnimStruct(EMCInterpreter *interp, EMCState *state) {
+  const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  uint16_t p3 = EMCStateStackVal(state, 3);
+  uint16_t p4 = EMCStateStackVal(state, 4);
+  uint16_t p5 = EMCStateStackVal(state, 5);
+  printf("initAnimStruct '%s' %X %X %X %X %X\n", file, p1, p2, p3, p4, p5);
+  return 1;
+}
+
+static uint16_t disableControls(EMCInterpreter *interp, EMCState *state) {
+  uint16_t mode = EMCStateStackVal(state, 0);
+  printf("disableControls %X\n", mode);
+  return 1;
+}
+
+static uint16_t enableControls(EMCInterpreter *interp, EMCState *state) {
+  printf("enableControls\n");
+  return 1;
+}
+
+static uint16_t freeAnimStruct(EMCInterpreter *interp, EMCState *state) {
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  printf("freeAnimStruct %X\n", p0);
+  return 1;
+}
+
 static uint16_t loadDoorShapes(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
   uint16_t p1 = EMCStateStackVal(state, 1);
@@ -387,9 +434,11 @@ static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t loadNewLevel(EMCInterpreter *interp, EMCState *state) {
-  uint16_t currentBlock = EMCStateStackVal(state, 0);
-  uint16_t currentDir = EMCStateStackVal(state, 1);
-  printf("loadNewLevel block %X dir %X\n", currentBlock, currentDir);
+  uint16_t level = EMCStateStackVal(state, 0);
+  uint16_t currentBlock = EMCStateStackVal(state, 1);
+  uint16_t currentDir = EMCStateStackVal(state, 2);
+  printf("loadNewLevel level %i block %X dir %X\n", level, currentBlock,
+         currentDir);
   assert(0);
   return 1;
 }
@@ -464,10 +513,10 @@ static ScriptFunDesc functions[] = {
     {closeLevelShapeFile, "closeLevelShapeFile"},
     {NULL},
     {loadDoorShapes, "loadDoorShapes"},
-    {NULL},
+    {initAnimStruct, "initAnimStruct"},
     // 0X1A
     {playAnimationPart, "playAnimationPart"},
-    {NULL},
+    {freeAnimStruct, "freeAnimStruct"},
     {getDirection, "getDirection"},
     {NULL},
 
@@ -602,8 +651,8 @@ static ScriptFunDesc functions[] = {
     // 0X8A
     {savePage5, "savePage5"},
     {restorePage5, "restorePage5"},
-    {NULL},
-    {NULL},
+    {initDialogueSequence, "initDialogueSequence"},
+    {restoreAfterDialogueSequence, "restoreAfterDialogueSequence"},
     {NULL},
     {NULL},
 
@@ -618,15 +667,39 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    // 0X9B
+
+    // 0X9A
+    {resetPortraitsAndDisableSysTimer, "resetPortraitsAndDisableSysTimer"},
     {enableSysTimer, "enableSysTimer"},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+
+    // A0
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
+    {NULL},
     {NULL},
     {NULL},
     {NULL},
     {NULL},
     {NULL},
 
-    //
+    // B0
+    {NULL},
+    {NULL},
+    {NULL},
+    {disableControls, "disableControls"},
+    {enableControls, "enableControls"},
 };
 
 static const size_t numFunctions = sizeof(functions) / sizeof(ScriptFunDesc);
