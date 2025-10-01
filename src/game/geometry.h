@@ -39,3 +39,4 @@ uint16_t BlockCalcNewPosition(uint16_t curBlock, uint16_t direction);
 
 void GetRealCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut);
 void GetGameCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut);
+void GetGameCoordsFromBlock(uint16_t block, uint16_t *xOut, uint16_t *yOut);

@@ -5,8 +5,7 @@
 #include "renderer.h"
 #include <stdint.h>
 
-static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                          int yOff);
+static void GameRenderMap(GameContext *gameCtx, int xOff, int yOff);
 static void GameRenderScene(GameContext *gameCtx);
 
 static void renderCPS(SDL_Renderer *renderer, const uint8_t *imgData,
@@ -49,9 +48,8 @@ static void renderBackground(GameContext *gameCtx) {
   SDL_RenderFillRect(gameCtx->renderer, &r);
 }
 void GameRenderFrame(GameContext *gameCtx) {
-  LevelContext *ctx = gameCtx->level;
   renderBackground(gameCtx);
-  GameRenderMap(gameCtx->renderer, ctx, 640, 350);
+  GameRenderMap(gameCtx, 640, 350);
   GameRenderScene(gameCtx);
 }
 
@@ -192,19 +190,19 @@ static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
   }
 }
 
-static void computeViewConeCells(LevelContext *ctx, int x, int y) {
+static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
-    Point p = PointGo(&ctx->partyPos, ctx->orientation,
+    Point p = PointGo(&gameCtx->partyPos, gameCtx->orientation,
                       viewConeCell[i].frontDist, viewConeCell[i].leftDist);
     if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
-      ctx->viewConeEntries[i].coords = p;
-      ctx->viewConeEntries[i].valid = 1;
+      gameCtx->level->viewConeEntries[i].coords = p;
+      gameCtx->level->viewConeEntries[i].valid = 1;
     }
   }
 }
 
-static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
-                          int yOff) {
+static void GameRenderMap(GameContext *gameCtx, int xOff, int yOff) {
+  SDL_Renderer *renderer = gameCtx->renderer;
   const int cellSize = 12;
   SDL_Rect mapRect;
   mapRect.w = 32 * cellSize;
@@ -215,7 +213,8 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
 
   for (int x = 0; x < 32; x++) {
     for (int y = 0; y < 32; y++) {
-      MazeBlock block = ctx->mazHandle.maze->wallMappingIndices[y * 32 + x];
+      MazeBlock block =
+          gameCtx->level->mazHandle.maze->wallMappingIndices[y * 32 + x];
       SDL_Rect cellR;
       cellR.w = cellSize - 2;
       cellR.h = cellSize - 2;
@@ -238,7 +237,7 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
         SDL_RenderDrawLine(renderer, cellR.x + cellR.w, cellR.y,
                            cellR.x + cellR.w, cellR.y + cellR.h);
       }
-      if (x == ctx->partyPos.x && y == ctx->partyPos.y) {
+      if (x == gameCtx->partyPos.x && y == gameCtx->partyPos.y) {
         SDL_Rect posR;
         posR.w = cellSize - 12;
         posR.h = cellSize - 12;
@@ -248,7 +247,7 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
         SDL_RenderFillRect(renderer, &posR);
         int centerX = posR.x + posR.w / 2;
         int centerY = posR.y + posR.h / 2;
-        switch (ctx->orientation) {
+        switch (gameCtx->orientation) {
         case North:
           SDL_RenderDrawLine(renderer, centerX, centerY, centerX,
                              centerY - cellSize / 2);
@@ -270,7 +269,7 @@ static void GameRenderMap(SDL_Renderer *renderer, LevelContext *ctx, int xOff,
           break;
         }
       }
-      computeViewConeCells(ctx, x, y);
+      computeViewConeCells(gameCtx, x, y);
     } // y loop
   } // x loop
 }
@@ -301,7 +300,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -314,7 +313,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -326,7 +325,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -338,7 +337,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -350,7 +349,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, West)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -362,7 +361,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (gEntry->valid) {
     int index = gEntry->coords.y * 32 + gEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, West)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -374,7 +373,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -386,7 +385,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -399,7 +398,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (dEntry->valid) {
     int index = dEntry->coords.y * 32 + dEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -414,7 +413,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (eEntry->valid) {
     int index = eEntry->coords.y * 32 + eEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -426,7 +425,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -438,7 +437,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (hEntry->valid) {
     int index = hEntry->coords.y * 32 + hEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -450,7 +449,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -462,7 +461,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, West)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -474,7 +473,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (lEntry->valid) {
     int index = lEntry->coords.y * 32 + lEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, West)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -486,7 +485,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -498,7 +497,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (jEntry->valid) {
     int index = jEntry->coords.y * 32 + jEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -512,7 +511,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -524,7 +523,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -538,7 +537,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, West)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -552,7 +551,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -567,7 +566,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -584,7 +583,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (nEntry->valid) {
     int index = nEntry->coords.y * 32 + nEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, South)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -608,7 +607,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (pEntry->valid) {
     int index = pEntry->coords.y * 32 + pEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, East)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
@@ -623,7 +622,7 @@ static void GameRenderScene(GameContext *gameCtx) {
   if (qEntry->valid) {
     int index = qEntry->coords.y * 32 + qEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi = block->face[absOrientation(level->orientation, West)];
+    uint8_t wmi = block->face[absOrientation(gameCtx->orientation, West)];
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {

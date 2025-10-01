@@ -157,6 +157,10 @@ typedef struct _EMCInterpreterCallbacks {
   // files: VCF VCN VMP
   void (*EMCInterpreterCallbacks_LoadLevelGraphics)(EMCInterpreter *interp,
                                                     const char *file);
+  void (*EMCInterpreterCallbacks_LoadLevel)(EMCInterpreter *interp,
+                                            uint16_t levelNum,
+                                            uint16_t startBlock,
+                                            uint16_t startDir);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

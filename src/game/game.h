@@ -30,14 +30,14 @@ typedef struct {
   SHPHandle shpHandle;
   LangHandle levelLang;
 
-  uint16_t currentBock;
-  Point partyPos;
-  Orientation orientation;
-
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 } LevelContext;
 
 typedef struct _GameContext {
+
+  uint16_t currentBock;
+  Point partyPos;
+  Orientation orientation;
 
   LevelContext *level;
   SDL_Renderer *renderer;

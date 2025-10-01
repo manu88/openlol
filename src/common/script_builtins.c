@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   printf("getWallType\n");
@@ -280,25 +281,55 @@ static uint16_t loadBlockProperties(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t loadMonsterShapes(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
-  int16_t p1 = EMCStateStackVal(state, 0);
-  int16_t p2 = EMCStateStackVal(state, 0);
+  int16_t p1 = EMCStateStackVal(state, 1);
+  int16_t p2 = EMCStateStackVal(state, 2);
   printf("loadMonsterShapes '%s' %X %X\n", file, p1, p2);
+  return 1;
+}
+
+static uint16_t setSequenceButtons(EMCInterpreter *interp, EMCState *state) {
+  int16_t x = EMCStateStackVal(state, 0);
+  int16_t y = EMCStateStackVal(state, 1);
+  int16_t w = EMCStateStackVal(state, 2);
+  int16_t h = EMCStateStackVal(state, 3);
+  int16_t enableFlags = EMCStateStackVal(state, 4);
+  printf("setSequenceButtons x=%i y=%i w=%i h=%i enableFlags=%i\n", x, y, w, h,
+         enableFlags);
+  return 1;
+}
+
+static uint16_t setSpecialSceneButtons(EMCInterpreter *interp,
+                                       EMCState *state) {
+  int16_t x = EMCStateStackVal(state, 0);
+  int16_t y = EMCStateStackVal(state, 1);
+  int16_t w = EMCStateStackVal(state, 2);
+  int16_t h = EMCStateStackVal(state, 3);
+  int16_t enableFlags = EMCStateStackVal(state, 4);
+  printf("setSpecialSceneButtons x=%i y=%i w=%i h=%i enableFlags=%i\n", x, y, w,
+         h, enableFlags);
   return 1;
 }
 
 static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+  uint16_t specialColor = EMCStateStackVal(state, 1);
+  uint16_t weight = EMCStateStackVal(state, 2);
+  uint16_t vcnLen = EMCStateStackVal(state, 3);
+  uint16_t vmpLen = EMCStateStackVal(state, 4);
+  uint16_t p5 = EMCStateStackVal(state, 5);
+  const char *paletteFile = NULL;
+  if (p5 != 0XFFFF) {
+    paletteFile = EMCStateGetDataString(state, p5);
+  }
+
+  printf("loadLevelGraphics '%s' %X %X %X %X %X %s\n", file, specialColor,
+         weight, vcnLen, vmpLen, p5, paletteFile);
   // files: VCF VCN VMP
   if (interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics) {
     interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);
   }
 #if 0
-  int16_t p1 = EMCStateStackVal(state, 0);
-  int16_t p2 = EMCStateStackVal(state, 0);
-  int16_t p3 = EMCStateStackVal(state, 0);
-  int16_t p4 = EMCStateStackVal(state, 0);
-  int16_t p5 = EMCStateStackVal(state, 0);
-  printf("loadLevelGraphics '%s' %X %X %X %X %X\n", file, p1, p2, p3, p4, p5);
+
 #endif
   return 1;
 }
@@ -435,11 +466,12 @@ static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t loadNewLevel(EMCInterpreter *interp, EMCState *state) {
   uint16_t level = EMCStateStackVal(state, 0);
-  uint16_t currentBlock = EMCStateStackVal(state, 1);
-  uint16_t currentDir = EMCStateStackVal(state, 2);
-  printf("loadNewLevel level %i block %X dir %X\n", level, currentBlock,
-         currentDir);
-  assert(0);
+  uint16_t startBlock = EMCStateStackVal(state, 1);
+  uint16_t startDir = EMCStateStackVal(state, 2);
+  if (interp->callbacks.EMCInterpreterCallbacks_LoadLevel) {
+    interp->callbacks.EMCInterpreterCallbacks_LoadLevel(interp, level,
+                                                        startBlock, startDir);
+  }
   return 1;
 }
 
@@ -519,9 +551,8 @@ static ScriptFunDesc functions[] = {
     {freeAnimStruct, "freeAnimStruct"},
     {getDirection, "getDirection"},
     {NULL},
-
     {NULL},
-    {NULL},
+    {setSequenceButtons, "setSequenceButtons"},
 
     // 0X20
     {NULL},
@@ -653,7 +684,7 @@ static ScriptFunDesc functions[] = {
     {restorePage5, "restorePage5"},
     {initDialogueSequence, "initDialogueSequence"},
     {restoreAfterDialogueSequence, "restoreAfterDialogueSequence"},
-    {NULL},
+    {setSpecialSceneButtons, "setSpecialSceneButtons"},
     {NULL},
 
     // 0X90

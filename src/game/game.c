@@ -36,12 +36,16 @@
 
 static int GameRun(GameContext *gameCtx);
 static int GameInit(GameContext *gameCtx);
+static int loadLevel(GameContext *ctx, int level, uint16_t startBlock,
+                     uint16_t startDir);
+static int runLevelInitScript(GameContext *gameCtx);
+static int runINIScript(GameContext *gameCtx);
 
 static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
-  printf("callbacksGetDirection will return %X\n", ctx->level->orientation);
-  return ctx->level->orientation;
+  printf("callbacksGetDirection will return %X\n", ctx->orientation);
+  return ctx->orientation;
 }
 
 static char dialOrMsgBuffer[1024];
@@ -82,9 +86,9 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   printf("callbacks GetGlobalVar id=%i\n", id);
   switch (id) {
   case EMCGlobalVarID_CurrentBlock:
-    return ctx->level->currentBock;
+    return ctx->currentBock;
   case EMCGlobalVarID_CurrentDir:
-    return ctx->level->orientation;
+    return ctx->orientation;
   case EMCGlobalVarID_CurrentLevel:
   case EMCGlobalVarID_ItemInHand:
   case EMCGlobalVarID_Brightness:
@@ -111,12 +115,10 @@ static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
 
   switch (id) {
   case EMCGlobalVarID_CurrentBlock: {
-    ctx->level->currentBock = b;
-    uint16_t x = 0;
-    uint16_t y = 0;
-    BlockGetCoordinates(&x, &y, b, 0x80, 0x80);
-    GetRealCoords(x, y, &ctx->level->partyPos.x, &ctx->level->partyPos.y);
-    printf("set current block to %X\n", ctx->level->currentBock);
+    ctx->currentBock = b;
+    printf("set current block to %X\n", ctx->currentBock);
+    GetGameCoordsFromBlock(ctx->currentBock, &ctx->partyPos.x,
+                           &ctx->partyPos.y);
     break;
   }
   case EMCGlobalVarID_CurrentDir:
@@ -135,6 +137,7 @@ static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   case EMCGlobalVarID_SpeechVolume:
   case EMCGlobalVarID_AbortTIMFlag:
     break;
+    assert(0);
   }
   return 1;
 }
@@ -180,6 +183,13 @@ static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
   }
 }
 
+static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
+                              uint16_t startBlock, uint16_t startDir) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadLevel %i %X %X\n", levelNum, startBlock, startDir);
+  loadLevel(gameCtx, levelNum, startBlock, startDir);
+}
+
 static void callbackLoadLevelGraphics(EMCInterpreter *interp,
                                       const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -210,6 +220,43 @@ static void installCallbacks(EMCInterpreter *interp) {
       callbackLoadLevelShapes;
   interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics =
       callbackLoadLevelGraphics;
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevel = callbackLoadLevel;
+}
+
+static int loadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
+                     uint16_t startDir) {
+
+  GetGameCoordsFromBlock(startBlock, &ctx->partyPos.x, &ctx->partyPos.y);
+  ctx->orientation = startDir;
+
+  {
+    GameFile f = {0};
+    char wllFile[12];
+    snprintf(wllFile, 12, "LEVEL%i.WLL", levelNum);
+    assert(GameEnvironmentGetFile(&f, wllFile));
+    assert(WllHandleFromBuffer(&ctx->level->wllHandle, f.buffer, f.bufferSize));
+  }
+  {
+    GameFile f = {0};
+    char iniFile[12];
+    snprintf(iniFile, 12, "LEVEL%i.INI", levelNum);
+    assert(GameEnvironmentGetFile(&f, iniFile));
+    assert(INFScriptFromBuffer(&ctx->iniScript, f.buffer, f.bufferSize));
+  }
+  {
+    GameFile f = {0};
+    char infFile[12];
+    snprintf(infFile, 12, "LEVEL%i.INF", levelNum);
+    assert(GameEnvironmentGetFile(&f, infFile));
+    assert(INFScriptFromBuffer(&ctx->script, f.buffer, f.bufferSize));
+  }
+
+  printf("START runINIScript\n");
+  runINIScript(ctx);
+  printf("DONE runINIScript\n");
+  runLevelInitScript(ctx);
+
+  return 1;
 }
 
 int cmdGame(int argc, char *argv[]) {
@@ -237,32 +284,13 @@ int cmdGame(int argc, char *argv[]) {
     return 1;
   }
 
-  LevelContext levelCtx = {0};
-  {
-    GameFile f = {0};
-    char wllFile[12];
-    snprintf(wllFile, 12, "LEVEL%i.WLL", levelId);
-    assert(GameEnvironmentGetFile(&f, wllFile));
-    assert(WllHandleFromBuffer(&levelCtx.wllHandle, f.buffer, f.bufferSize));
-  }
-  {
-    GameFile f = {0};
-    char iniFile[12];
-    snprintf(iniFile, 12, "LEVEL%i.INI", levelId);
-    assert(GameEnvironmentGetFile(&f, iniFile));
-    assert(INFScriptFromBuffer(&gameCtx.iniScript, f.buffer, f.bufferSize));
-  }
-  {
-    GameFile f = {0};
-    char infFile[12];
-    snprintf(infFile, 12, "LEVEL%i.INF", levelId);
-    assert(GameEnvironmentGetFile(&f, infFile));
-    assert(INFScriptFromBuffer(&gameCtx.script, f.buffer, f.bufferSize));
-  }
-
-  gameCtx.level = &levelCtx;
   installCallbacks(&gameCtx.interp);
   gameCtx.interp.callbackCtx = &gameCtx;
+
+  LevelContext levelCtx = {0};
+  gameCtx.level = &levelCtx;
+  loadLevel(&gameCtx, levelId, 0X24D, North);
+
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);
@@ -280,14 +308,13 @@ void LevelContextRelease(LevelContext *levelCtx) {
 }
 
 static void clickOnFrontWall(GameContext *gameCtx) {
-  uint16_t nextBlock = BlockCalcNewPosition(gameCtx->level->currentBock,
-                                            gameCtx->level->orientation);
+  uint16_t nextBlock =
+      BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
 
   runScript(gameCtx, nextBlock);
 }
 
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
-  LevelContext *ctx = gameCtx->level;
   int shouldUpdate = 1;
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
@@ -298,89 +325,89 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   case SDLK_z:
     // go front
     shouldUpdate = 1;
-    switch (ctx->orientation) {
+    switch (gameCtx->orientation) {
     case North:
-      ctx->partyPos.y -= 1;
+      gameCtx->partyPos.y -= 1;
       break;
     case East:
-      ctx->partyPos.x += 1;
+      gameCtx->partyPos.x += 1;
       break;
     case South:
-      ctx->partyPos.y += 1;
+      gameCtx->partyPos.y += 1;
       break;
     case West:
-      ctx->partyPos.x -= 1;
+      gameCtx->partyPos.x -= 1;
       break;
     }
     break;
   case SDLK_s:
     // go back
     shouldUpdate = 1;
-    switch (ctx->orientation) {
+    switch (gameCtx->orientation) {
     case North:
-      ctx->partyPos.y += 1;
+      gameCtx->partyPos.y += 1;
       break;
     case East:
-      ctx->partyPos.x -= 1;
+      gameCtx->partyPos.x -= 1;
       break;
     case South:
-      ctx->partyPos.y -= 1;
+      gameCtx->partyPos.y -= 1;
       break;
     case West:
-      ctx->partyPos.x += 1;
+      gameCtx->partyPos.x += 1;
       break;
     }
     break;
   case SDLK_q:
     // go left
     shouldUpdate = 1;
-    switch (ctx->orientation) {
+    switch (gameCtx->orientation) {
     case North:
-      ctx->partyPos.x -= 1;
+      gameCtx->partyPos.x -= 1;
       break;
     case East:
-      ctx->partyPos.y -= 1;
+      gameCtx->partyPos.y -= 1;
       break;
     case South:
-      ctx->partyPos.x += 1;
+      gameCtx->partyPos.x += 1;
       break;
     case West:
-      ctx->partyPos.y += 1;
+      gameCtx->partyPos.y += 1;
       break;
     }
     break;
   case SDLK_d:
     // go right
     shouldUpdate = 1;
-    switch (ctx->orientation) {
+    switch (gameCtx->orientation) {
     case North:
-      ctx->partyPos.x += 1;
+      gameCtx->partyPos.x += 1;
       break;
     case East:
-      ctx->partyPos.y += 1;
+      gameCtx->partyPos.y += 1;
       break;
     case South:
-      ctx->partyPos.x -= 1;
+      gameCtx->partyPos.x -= 1;
       break;
     case West:
-      ctx->partyPos.y -= 1;
+      gameCtx->partyPos.y -= 1;
       break;
     }
     break;
   case SDLK_a:
     // turn anti-clockwise
     shouldUpdate = 1;
-    ctx->orientation -= 1;
-    if ((int)ctx->orientation < 0) {
-      ctx->orientation = West;
+    gameCtx->orientation -= 1;
+    if ((int)gameCtx->orientation < 0) {
+      gameCtx->orientation = West;
     }
     break;
   case SDLK_e:
     // turn clockwise
     shouldUpdate = 1;
-    ctx->orientation += 1;
-    if (ctx->orientation > West) {
-      ctx->orientation = North;
+    gameCtx->orientation += 1;
+    if (gameCtx->orientation > West) {
+      gameCtx->orientation = North;
     }
     break;
   case SDLK_SPACE:
@@ -475,21 +502,22 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
 
   uint16_t gameX = 0;
   uint16_t gameY = 0;
-  GetGameCoords(ctx->partyPos.x, ctx->partyPos.y, &gameX, &gameY);
+  GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
   snprintf(textStatsBuffer, sizeof(textStatsBuffer),
-           "pose x=%i (%X) y=%i (%X) o=%i %c", ctx->partyPos.x, gameX,
-           ctx->partyPos.y, gameY, ctx->orientation,
-           ctx->orientation == North ? 'N'
-                                     : (ctx->orientation == South  ? 'S'
-                                        : ctx->orientation == East ? 'E'
-                                                                   : 'W'));
+           "pose x=%i (%X) y=%i (%X) o=%i %c", gameCtx->partyPos.x, gameX,
+           gameCtx->partyPos.y, gameY, gameCtx->orientation,
+           gameCtx->orientation == North
+               ? 'N'
+               : (gameCtx->orientation == South  ? 'S'
+                  : gameCtx->orientation == East ? 'E'
+                                                 : 'W'));
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
-  gameCtx->level->currentBock = BlockFromCoords(gameX, gameY);
+  gameCtx->currentBock = BlockFromCoords(gameX, gameY);
   snprintf(textStatsBuffer, sizeof(textStatsBuffer),
-           "block: %X  newblockpos: %X", gameCtx->level->currentBock,
-           BlockCalcNewPosition(gameCtx->level->currentBock, ctx->orientation));
+           "block: %X  newblockpos: %X", gameCtx->currentBock,
+           BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation));
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
@@ -529,7 +557,7 @@ int runScript(GameContext *gameCtx, int function) {
     }
   }
 
-  state.regs[5] = gameCtx->level->currentBock;
+  state.regs[5] = gameCtx->currentBock;
   while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
     if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
       printf("EMCInterpreterRun returned 0\n");
@@ -540,17 +568,10 @@ int runScript(GameContext *gameCtx, int function) {
 
 static int GameRun(GameContext *gameCtx) {
   LevelContext *ctx = gameCtx->level;
-  ctx->partyPos.x = 13;
-  ctx->partyPos.y = 18;
-  ctx->orientation = North;
 
   int quit = 0;
   int shouldUpdate = 1;
 
-  printf("START runINIScript\n");
-  runINIScript(gameCtx);
-  printf("DONE runINIScript\n");
-  runLevelInitScript(gameCtx);
   // Event loop
   while (!quit) {
     SDL_Event e;
