@@ -140,13 +140,16 @@ static void usageScript(void) {
 }
 
 static int cmdScriptOffsets(const char *filepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
 
   INFScript script = {0};
-  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+  if (!INFScriptFromBuffer(&script, iffData, dataSize)) {
     printf("INFScriptFromBuffer error\n");
+    if (freeBuffer) {
+      free(iffData);
+    }
     return 1;
   }
   EMCData dat = {0};
@@ -156,16 +159,19 @@ static int cmdScriptOffsets(const char *filepath) {
       printf("%i %X\n", i, swap_uint16(dat.ordr[i]));
     }
   }
+  if (freeBuffer) {
+    free(iffData);
+  }
   return 0;
 }
 
 static int cmdScriptDisasm(const char *filepath, int offset) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
 
   INFScript script = {0};
-  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+  if (!INFScriptFromBuffer(&script, iffData, dataSize)) {
     printf("INFScriptFromBuffer error\n");
     return 1;
   }
@@ -191,21 +197,28 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
       break;
     }
   }
-  printf("Exec'ed %i instructions\n", n);
+
   INFScriptRelease(&script);
   printf("%s\n", disassembler.disasmBuffer);
   EMCDisassemblerRelease(&disassembler);
+  printf("Exec'ed %i / %i instructions\n", n, script.dataSize);
+  if (freeBuffer) {
+    free(iffData);
+  }
   return 0;
 }
 
 static int cmdScriptTest(const char *filepath, int functionId) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *iffData = readBinaryFile(filepath, &fileSize, &readSize);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
 
   INFScript script = {0};
-  if (!INFScriptFromBuffer(&script, iffData, readSize)) {
+  if (!INFScriptFromBuffer(&script, iffData, dataSize)) {
     printf("INFScriptFromBuffer error\n");
+    if (freeBuffer) {
+      free(iffData);
+    }
     return 1;
   }
 
@@ -235,6 +248,9 @@ static int cmdScriptTest(const char *filepath, int functionId) {
   }
   printf("Exec'ed %i instructions\n", n);
   INFScriptRelease(&script);
+  if (freeBuffer) {
+    free(iffData);
+  }
   return 0;
 }
 
