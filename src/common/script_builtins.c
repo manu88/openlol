@@ -124,6 +124,11 @@ static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 
+static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
+  printf("initMonster\n");
+  return 1;
+}
+
 static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
   uint16_t how = EMCStateStackVal(state, 0);
   uint16_t a = EMCStateStackVal(state, 1);
@@ -404,6 +409,16 @@ static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
   return 0;
 }
 
+static uint16_t makeItem(EMCInterpreter *interp, EMCState *state) {
+  printf("makeItem\n");
+  return 0;
+}
+
+static uint16_t giveItemToMonster(EMCInterpreter *interp, EMCState *state) {
+  printf("giveItemToMonster\n");
+  return 0;
+}
+
 static uint16_t assignCustomSfx(EMCInterpreter *interp, EMCState *state) {
   printf("assignCustomSfx\n");
   return 0;
@@ -437,7 +452,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {makeItem, "makeItem"},
 
     // 0X10
     {NULL},
@@ -487,7 +502,7 @@ static ScriptFunDesc functions[] = {
     {assignLevelDecorationShape, "assignLevelDecorationShape"},
     {resetBlockShapeAssignment, "resetBlockShapeAssignment"},
     {copyRegion, "copyRegion"},
-    {NULL},
+    {initMonster, "initMonster"},
     {fadeClearSceneWindow, "fadeClearSceneWindow"},
     // 0X3A
     {fadeSequencePalette, "fadeSequencePalette"},
@@ -522,7 +537,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {getItemInHand, "getItemInHand"},
     {NULL},
-    {NULL},
+    {giveItemToMonster, "giveItemToMonster"},
     {loadLangFile, "loadLangFile"},
     {playSoundEffect, "playSoundEffect"},
     {NULL},
