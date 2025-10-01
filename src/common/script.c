@@ -443,12 +443,11 @@ int EMCStateStart(EMCState *state, int function) {
     printf("%X >= %X\n", functionOffset, (int)state->dataPtr->dataSize / 2);
     return 0;
   }
-  state->endedReached = 0;
   return EMCStateSetOffset(state, functionOffset);
 }
 
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state) {
-  if (!state->ip || !state->dataPtr || state->endedReached)
+  if (!state->ip || !state->dataPtr)
     return 0;
   return 1;
 }
@@ -463,7 +462,7 @@ int EMCInterpreterRun(EMCInterpreter *interp, EMCState *state) {
   if ((int32_t)instOffset < 0 || instOffset >= state->dataPtr->dataSize) {
     printf("Attempt to execute out of bounds: 0x%.08X out of 0x%.08X\n",
            instOffset, state->dataPtr->dataSize);
-    state->endedReached = 1;
+    state->ip = NULL;
     return 0;
   }
   int16_t code = swap_uint16(*state->ip++);

@@ -37,3 +37,7 @@ void INFScriptInit(INFScript *script);
 void INFScriptRelease(INFScript *script);
 
 int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize);
+
+// returns -1 if no  offset exists for functionNum
+int INFScriptGetFunctionOffset(const INFScript *script, uint16_t functionNum);
+int INFScriptGetNumFunctions(const INFScript *script);
