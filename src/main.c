@@ -189,15 +189,11 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
 
   int n = 0;
 
-  printf("using offset %i\n", offset);
   while (EMCInterpreterIsValid(&interp, &state)) {
     if (EMCInterpreterRun(&interp, &state) == 0) {
       printf("EMCInterpreterRun returned 0\n");
     }
     n++;
-    if (n > 80) {
-      break;
-    }
   }
 
   INFScriptRelease(&script);

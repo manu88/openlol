@@ -104,6 +104,8 @@ typedef struct _EMCState {
   uint16_t sp;
   int16_t regs[30];          // VM registers
   int16_t stack[kStackSize]; // VM stack
+
+  uint8_t endedReached;
 } EMCState;
 
 static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {
@@ -172,5 +174,5 @@ void EMCInterpreterUnload(EMCInterpreter *interp);
 void EMCStateInit(EMCState *scriptState, const INFScript *script);
 int EMCStateSetOffset(EMCState *script, uint16_t offset);
 int EMCStateStart(EMCState *script, int function);
-int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script);
-int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script);
+int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state);
+int EMCInterpreterRun(EMCInterpreter *interp, EMCState *state);
