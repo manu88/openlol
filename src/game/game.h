@@ -30,6 +30,7 @@ typedef struct {
   SHPHandle shpHandle;
   LangHandle levelLang;
 
+  uint16_t currentBock;
   Point partyPos;
   Orientation orientation;
 

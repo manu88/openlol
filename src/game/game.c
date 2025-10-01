@@ -82,7 +82,7 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   printf("callbacks GetGlobalVar id=%i\n", id);
   switch (id) {
   case EMCGlobalVarID_CurrentBlock:
-    return 1;
+    return ctx->level->currentBock;
   case EMCGlobalVarID_CurrentDir:
     return ctx->level->orientation;
   case EMCGlobalVarID_CurrentLevel:
@@ -106,15 +106,17 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
 
 static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
                                      uint16_t a, uint16_t b) {
+  GameContext *ctx = (GameContext *)interp->callbackCtx;
   printf("callbacks SetGlobalVar id=%i %i %i\n", id, a, b);
+
   switch (id) {
   case EMCGlobalVarID_CurrentBlock: {
+    ctx->level->currentBock = b;
     uint16_t x = 0;
     uint16_t y = 0;
     BlockGetCoordinates(&x, &y, b, 0x80, 0x80);
-    uint16_t xx = b & 0x1F;
-    uint16_t yx = b >> 5;
-    printf("x=%x y=%x\n", xx, yx);
+    GetRealCoords(x, y, &ctx->level->partyPos.x, &ctx->level->partyPos.y);
+    printf("set current block to %X\n", ctx->level->currentBock);
     break;
   }
   case EMCGlobalVarID_CurrentDir:
@@ -474,10 +476,10 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
-  uint16_t block = BlockFromCoords(gameX, gameY);
+  gameCtx->level->currentBock = BlockFromCoords(gameX, gameY);
   snprintf(textStatsBuffer, sizeof(textStatsBuffer),
-           "block: %X  newblockpos: %X", block,
-           BlockCalcNewPosition(block, ctx->orientation));
+           "block: %X  newblockpos: %X", gameCtx->level->currentBock,
+           BlockCalcNewPosition(gameCtx->level->currentBock, ctx->orientation));
   renderStatLine(gameCtx, textStatsBuffer, statsPosX, statsPosY);
 
   statsPosY += 20;
@@ -520,6 +522,7 @@ int runScript(GameContext *gameCtx, int function) {
     }
   }
 
+  state.regs[5] = gameCtx->level->currentBock;
   while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
     if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
       printf("EMCInterpreterRun returned 0\n");
