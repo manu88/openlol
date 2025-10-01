@@ -165,7 +165,7 @@ static int cmdScriptOffsets(const char *filepath) {
   return 0;
 }
 
-static int cmdScriptDisasm(const char *filepath, int offset) {
+static int cmdScriptDisasm(const char *filepath, int functionNum) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -184,8 +184,8 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   EMCState state = {0};
   EMCStateInit(&state, &script);
   EMCStateSetOffset(&state, 0);
-  if (offset >= 0) {
-    EMCStateStart(&state, offset);
+  if (functionNum >= 0) {
+    EMCStateStart(&state, functionNum);
   }
 
   int n = 0;
@@ -207,7 +207,7 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   return 0;
 }
 
-static int cmdScriptTest(const char *filepath, int functionId) {
+static int cmdScriptTest(const char *filepath, int functionNum) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -224,8 +224,8 @@ static int cmdScriptTest(const char *filepath, int functionId) {
   EMCInterpreter interp = {0};
   EMCState state = {0};
   EMCStateInit(&state, &script);
-  EMCStateSetOffset(&state, functionId);
-  if (!EMCStateStart(&state, functionId)) {
+  EMCStateSetOffset(&state, functionNum);
+  if (!EMCStateStart(&state, functionNum)) {
     printf("EMCInterpreterStart: invalid\n");
   }
   int n = 0;
@@ -235,7 +235,7 @@ static int cmdScriptTest(const char *filepath, int functionId) {
   state.regs[2] = 0;  // item
   state.regs[3] = 0;
   state.regs[4] = 0;
-  state.regs[5] = functionId;
+  state.regs[5] = functionNum;
 
   while (EMCInterpreterIsValid(&interp, &state)) {
     if (EMCInterpreterRun(&interp, &state) == 0) {
