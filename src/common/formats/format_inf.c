@@ -78,7 +78,7 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
 
   script->text = script->chunks[kText]._data;
   script->ordr = (uint16_t *)script->chunks[kEmc2Ordr]._data;
-  script->ordrSize = script->chunks[kEmc2Ordr]._size / 2;
+  script->ordrSize = script->chunks[kEmc2Ordr]._size;
   script->data = (uint16_t *)script->chunks[kData]._data;
   script->dataSize = script->chunks[kData]._size;
 
