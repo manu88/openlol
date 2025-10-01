@@ -279,6 +279,13 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
+static void clickOnFrontWall(GameContext *gameCtx) {
+  uint16_t nextBlock = BlockCalcNewPosition(gameCtx->level->currentBock,
+                                            gameCtx->level->orientation);
+
+  runScript(gameCtx, nextBlock);
+}
+
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   LevelContext *ctx = gameCtx->level;
   int shouldUpdate = 1;
@@ -375,6 +382,9 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     if (ctx->orientation > West) {
       ctx->orientation = North;
     }
+    break;
+  case SDLK_SPACE:
+    clickOnFrontWall(gameCtx);
     break;
   default:
     break;
@@ -515,6 +525,7 @@ int runScript(GameContext *gameCtx, int function) {
   if (function > 0) {
     if (!EMCStateStart(&state, function)) {
       printf("EMCInterpreterStart: invalid\n");
+      return 0;
     }
   }
 
