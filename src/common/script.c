@@ -32,30 +32,31 @@ int EMCStateSetOffset(EMCState *script, uint16_t offset) {
   return 1;
 }
 
-int EMCStateStart(EMCState *script, int function) {
-  assert(script->dataPtr);
+int EMCStateStart(EMCState *state, int function) {
+  assert(state->dataPtr);
   assert(function >= 0);
-  if (function >= (int)script->dataPtr->ordrSize) {
-    printf("Function %i >= %i\n", function, (int)script->dataPtr->ordrSize);
+  if (function >= (int)state->dataPtr->ordrSize) {
+    printf("Function %i >= %i\n", function, (int)state->dataPtr->ordrSize);
     return 0;
   }
 
-  uint16_t functionOffset = swap_uint16(script->dataPtr->ordr[function]);
+  uint16_t functionOffset = swap_uint16(state->dataPtr->ordr[function]);
   printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
   if (functionOffset == 0xFFFF) {
     printf("no such function\n");
     return 0;
   }
   functionOffset++;
-  if (functionOffset >= (int)script->dataPtr->dataSize / 2) {
-    printf("%X >= %X\n", functionOffset, (int)script->dataPtr->dataSize / 2);
+  if (functionOffset >= (int)state->dataPtr->dataSize / 2) {
+    printf("%X >= %X\n", functionOffset, (int)state->dataPtr->dataSize / 2);
     return 0;
   }
-  return EMCStateSetOffset(script, functionOffset);
+  state->endedReached = 0;
+  return EMCStateSetOffset(state, functionOffset);
 }
 
-int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *script) {
-  if (!script->ip || !script->dataPtr)
+int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state) {
+  if (!state->ip || !state->dataPtr || state->endedReached)
     return 0;
   return 1;
 }
@@ -452,20 +453,20 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
   }
 }
 
-int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script) {
-  if (!script->ip) {
+int EMCInterpreterRun(EMCInterpreter *interp, EMCState *state) {
+  if (!state->ip) {
     return 0;
   }
 
-  const uint32_t instOffset =
-      (uint32_t)((const uint8_t *)script->ip -
-                 (const uint8_t *)script->dataPtr->data);
-  if ((int32_t)instOffset < 0 || instOffset >= script->dataPtr->dataSize) {
+  const uint32_t instOffset = (uint32_t)((const uint8_t *)state->ip -
+                                         (const uint8_t *)state->dataPtr->data);
+  if ((int32_t)instOffset < 0 || instOffset >= state->dataPtr->dataSize) {
     printf("Attempt to execute out of bounds: 0x%.08X out of 0x%.08X\n",
-           instOffset, script->dataPtr->dataSize);
-    assert(0);
+           instOffset, state->dataPtr->dataSize);
+    state->endedReached = 1;
+    return 0;
   }
-  int16_t code = swap_uint16(*script->ip++);
+  int16_t code = swap_uint16(*state->ip++);
   int16_t opcode = (code >> 8) & 0x1F;
 
   int16_t parameter = 0;
@@ -475,13 +476,13 @@ int EMCInterpreterRun(EMCInterpreter *interp, EMCState *script) {
   } else if (code & 0x4000) {
     parameter = (int8_t)(code);
   } else if (code & 0x2000) {
-    parameter = swap_uint16(*script->ip++);
+    parameter = swap_uint16(*state->ip++);
   }
 
   if (opcode > 18) {
     printf("Unknown script opcode: %d at offset 0x%.08X\n", opcode, instOffset);
   } else {
-    execOpCode(interp, script, opcode, parameter, instOffset);
+    execOpCode(interp, state, opcode, parameter, instOffset);
   }
-  return script->ip != NULL;
+  return state->ip != NULL;
 }
