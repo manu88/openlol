@@ -492,10 +492,8 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
 }
 
 static int runINIScript(GameContext *gameCtx) {
-  EMCData dat = {0};
-  EMCDataLoad(&dat, &gameCtx->iniScript);
   EMCState iniState = {0};
-  EMCStateInit(&iniState, &dat);
+  EMCStateInit(&iniState, &gameCtx->iniScript);
   EMCStateSetOffset(&iniState, 0);
   EMCStateStart(&iniState, 0);
   while (EMCInterpreterIsValid(&gameCtx->interp, &iniState)) {
@@ -511,10 +509,8 @@ static int runLevelInitScript(GameContext *gameCtx) {
 }
 
 int runScript(GameContext *gameCtx, int function) {
-  EMCData dat = {0};
-  EMCDataLoad(&dat, &gameCtx->script);
   EMCState state = {0};
-  EMCStateInit(&state, &dat);
+  EMCStateInit(&state, &gameCtx->script);
   EMCStateSetOffset(&state, 0);
   if (function > 0) {
     if (!EMCStateStart(&state, function)) {

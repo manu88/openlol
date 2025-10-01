@@ -152,11 +152,10 @@ static int cmdScriptOffsets(const char *filepath) {
     }
     return 1;
   }
-  EMCData dat = {0};
-  EMCDataLoad(&dat, &script);
-  for (int i = 0; i < dat.ordrSize; i++) {
-    if (dat.ordr[i] != 0XFFFF) {
-      printf("%i %X\n", i, swap_uint16(dat.ordr[i]));
+
+  for (int i = 0; i < script.ordrSize; i++) {
+    if (script.ordr[i] != 0XFFFF) {
+      printf("%i %X\n", i, swap_uint16(script.ordr[i]));
     }
   }
   if (freeBuffer) {
@@ -180,10 +179,9 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   EMCDisassembler disassembler = {0};
   EMCDisassemblerInit(&disassembler);
   interp.disassembler = &disassembler;
-  EMCData dat = {0};
-  EMCDataLoad(&dat, &script);
+
   EMCState state = {0};
-  EMCStateInit(&state, &dat);
+  EMCStateInit(&state, &script);
 
   EMCStateSetOffset(&state, offset);
   int n = 0;
@@ -223,10 +221,8 @@ static int cmdScriptTest(const char *filepath, int functionId) {
   }
 
   EMCInterpreter interp = {0};
-  EMCData dat = {0};
-  EMCDataLoad(&dat, &script);
   EMCState state = {0};
-  EMCStateInit(&state, &dat);
+  EMCStateInit(&state, &script);
   EMCStateSetOffset(&state, functionId);
   if (!EMCStateStart(&state, functionId)) {
     printf("EMCInterpreterStart: invalid\n");

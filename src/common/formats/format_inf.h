@@ -25,14 +25,15 @@ typedef struct {
 typedef struct {
   ScriptChunk chunks[kCountChunkTypes];
 
-  uint8_t *originalBuffer;
-  size_t originalBufferSize;
-  ScriptSegment *segments;
-  size_t segmentsNum;
+  uint8_t *text;
+  uint16_t *data;
+  uint32_t ordrSize;
+  uint16_t *ordr;
+  uint32_t dataSize;
+
 } INFScript;
 
 void INFScriptInit(INFScript *script);
 void INFScriptRelease(INFScript *script);
 
-// buffer will be owned and 'free'd by INFScriptRelease
 int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize);

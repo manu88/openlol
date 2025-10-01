@@ -10,50 +10,10 @@
 // https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.c
 
 void INFScriptInit(INFScript *script) { memset(script, 0, sizeof(INFScript)); }
-void INFScriptRelease(INFScript *script) { free(script->segments); }
-
-static uint16_t getNextOffset(uint16_t offset, const ScriptChunk *chunks) {
-  const uint16_t *b = (const uint16_t *)chunks[kEmc2Ordr]._data;
-  uint16_t minOffset = 0XFFFF;
-  for (int i = 0; i < chunks[kEmc2Ordr]._size; i++) {
-    if (b[i] == 0XFFFF) {
-      continue;
-    }
-    uint16_t v = swap_uint16(b[i]);
-    if (v > offset && v < minOffset) {
-      minOffset = v;
-    }
-  }
-  return minOffset;
-}
-
-static int createSegments(INFScript *script) {
-  if (script->segments == NULL) {
-    script->segments = malloc(128 * sizeof(ScriptSegment));
-    int offsetsIndex = 0;
-    const uint16_t *b = (const uint16_t *)script->chunks[kEmc2Ordr]._data;
-    for (int i = 0; i < script->chunks[kEmc2Ordr]._size; i++) {
-      if (b[i] != 0XFFFF) {
-        uint16_t offset = swap_uint16(b[i]);
-        assert(offsetsIndex < 128);
-        script->segments[offsetsIndex++].start = offset;
-      }
-    }
-    script->segmentsNum = offsetsIndex;
-    // FIXME: do this with one loop
-    for (int i = 0; i < script->segmentsNum; i++) {
-      uint16_t nextOffset =
-          getNextOffset(script->segments[i].start, script->chunks);
-      script->segments[i].end = nextOffset;
-    }
-  }
-  return 1;
-}
+void INFScriptRelease(INFScript *script) {}
 
 int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
   assert(buffer);
-  script->originalBuffer = buffer;
-  script->originalBufferSize = bufferSize;
 
   uint8_t chunkName[sizeof("EMC2ORDR") + 1];
 
@@ -115,5 +75,12 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       }
     }
   }
-  return createSegments(script);
+
+  script->text = script->chunks[kText]._data;
+  script->ordr = (uint16_t *)script->chunks[kEmc2Ordr]._data;
+  script->ordrSize = script->chunks[kEmc2Ordr]._size / 2;
+  script->data = (uint16_t *)script->chunks[kData]._data;
+  script->dataSize = script->chunks[kData]._size;
+
+  return 1; // createSegments(script);
 }
