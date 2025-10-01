@@ -153,9 +153,10 @@ static int cmdScriptOffsets(const char *filepath) {
     return 1;
   }
 
-  for (int i = 0; i < script.ordrSize; i++) {
-    if (script.ordr[i] != 0XFFFF) {
-      printf("%i %X\n", i, swap_uint16(script.ordr[i]));
+  for (int i = 0; i < INFScriptGetNumFunctions(&script); i++) {
+    int offset = INFScriptGetFunctionOffset(&script, i);
+    if (offset != -1) {
+      printf("%i %X\n", i, offset);
     }
   }
   if (freeBuffer) {

@@ -84,3 +84,15 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
 
   return 1; // createSegments(script);
 }
+
+int INFScriptGetNumFunctions(const INFScript *script) {
+  return script->ordrSize;
+}
+
+int INFScriptGetFunctionOffset(const INFScript *script, uint16_t functionNum) {
+  assert(functionNum < INFScriptGetNumFunctions(script));
+  if (script->ordr[functionNum] != 0XFFFF) {
+    return swap_uint16(script->ordr[functionNum]);
+  }
+  return -1;
+}
