@@ -494,8 +494,8 @@ static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
 static int runINIScript(GameContext *gameCtx) {
   EMCState iniState = {0};
   EMCStateInit(&iniState, &gameCtx->iniScript);
-  EMCStateSetOffset(&iniState, 0);
-  EMCStateStart(&iniState, 0);
+  EMCStateSetOffset(&iniState, 2);
+
   while (EMCInterpreterIsValid(&gameCtx->interp, &iniState)) {
     if (EMCInterpreterRun(&gameCtx->interp, &iniState) == 0) {
       printf("EMCInterpreterRun returned 0\n");
@@ -511,12 +511,12 @@ static int runLevelInitScript(GameContext *gameCtx) {
 int runScript(GameContext *gameCtx, int function) {
   EMCState state = {0};
   EMCStateInit(&state, &gameCtx->script);
-  EMCStateSetOffset(&state, 0);
-  if (function > 0) {
-    if (!EMCStateStart(&state, function)) {
-      printf("EMCInterpreterStart: invalid\n");
-    }
+
+  int offset = INFScriptGetFunctionOffset(&gameCtx->script, function);
+  if (offset == -1) {
+    return 0;
   }
+  EMCStateSetOffset(&state, offset);
 
   state.regs[5] = gameCtx->level->currentBock;
   while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {

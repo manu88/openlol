@@ -160,7 +160,6 @@ typedef struct _EMCInterpreterCallbacks {
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
-  INFScript *_scriptData;
   EMCDisassembler *disassembler;
 
   EMCInterpreterCallbacks callbacks;
@@ -172,6 +171,5 @@ void EMCInterpreterUnload(EMCInterpreter *interp);
 void EMCStateInit(EMCState *scriptState, const INFScript *script);
 int EMCStateGetFunctionOffset(const EMCState *script, uint16_t functionNum);
 int EMCStateSetOffset(EMCState *script, uint16_t offset);
-int EMCStateStart(EMCState *script, int function);
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state);
 int EMCInterpreterRun(EMCInterpreter *interp, EMCState *state);

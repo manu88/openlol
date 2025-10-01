@@ -26,7 +26,10 @@ static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode,
            getNumBuiltinFunctions());
     return;
   }
-  assert(getBuiltinFunctions()[funcCode].name);
+  if (strlen(getBuiltinFunctions()[funcCode].name) == 0) {
+    printf("no name defined for function %X\n", funcCode);
+    assert(0);
+  }
   EMCDisassemblerEmitLine(disasm, instOffset, "%s %s", MNEMONIC_CALL,
                           getBuiltinFunctions()[funcCode].name);
 }
@@ -104,7 +107,14 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_PUSH_ARG, parameter);
     } else {
-      script->stack[--script->sp] = script->stack[(parameter - 1) + script->bp];
+      int stackPos = parameter - 1 + script->bp;
+      if (stackPos < 0) {
+        printf("stackPos<0: %i\n", stackPos);
+      } else if (stackPos >= kStackSize) {
+        printf("stackPos>=%i: %i %i\n", kStackSize, stackPos, parameter);
+      }
+      assert(stackPos >= 0 && stackPos < kStackSize);
+      script->stack[--script->sp] = script->stack[stackPos];
     }
     return;
   case OP_POP_RETURN_OR_LOCATION:
@@ -422,28 +432,6 @@ void EMCStateInit(EMCState *scriptState, const INFScript *script) {
 int EMCStateSetOffset(EMCState *script, uint16_t offset) {
   script->ip = &script->dataPtr->data[offset];
   return 1;
-}
-
-int EMCStateStart(EMCState *state, int function) {
-  assert(state->dataPtr);
-  assert(function >= 0);
-  if (function >= (int)state->dataPtr->ordrSize) {
-    printf("Function %i >= %i\n", function, (int)state->dataPtr->ordrSize);
-    return 0;
-  }
-
-  uint16_t functionOffset = swap_uint16(state->dataPtr->ordr[function]);
-  printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
-  if (functionOffset == 0xFFFF) {
-    printf("no such function\n");
-    return 0;
-  }
-  functionOffset++;
-  if (functionOffset >= (int)state->dataPtr->dataSize / 2) {
-    printf("%X >= %X\n", functionOffset, (int)state->dataPtr->dataSize / 2);
-    return 0;
-  }
-  return EMCStateSetOffset(state, functionOffset);
 }
 
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state) {

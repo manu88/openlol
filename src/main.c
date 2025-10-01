@@ -152,10 +152,9 @@ static int cmdScriptOffsets(const char *filepath) {
     }
     return 1;
   }
-
   for (int i = 0; i < INFScriptGetNumFunctions(&script); i++) {
     int offset = INFScriptGetFunctionOffset(&script, i);
-    if (offset != -1) {
+    if (1) { // offset != -1) {
       printf("%i %X\n", i, offset);
     }
   }
@@ -165,7 +164,7 @@ static int cmdScriptOffsets(const char *filepath) {
   return 0;
 }
 
-static int cmdScriptDisasm(const char *filepath, int offset) {
+static int cmdScriptDisasm(const char *filepath, int functionNum) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -173,9 +172,30 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   INFScript script = {0};
   if (!INFScriptFromBuffer(&script, iffData, dataSize)) {
     printf("INFScriptFromBuffer error\n");
+    if (freeBuffer) {
+      free(iffData);
+    }
     return 1;
   }
-
+  int offset = 0;
+  if (functionNum != -1) {
+    if (functionNum >= INFScriptGetNumFunctions(&script)) {
+      printf("invalid functionNum %i >= %i\n", functionNum,
+             INFScriptGetNumFunctions(&script));
+      if (freeBuffer) {
+        free(iffData);
+      }
+      return 1;
+    }
+    offset = INFScriptGetFunctionOffset(&script, functionNum);
+    if (offset == -1) {
+      printf("No function %i in script\n", functionNum);
+      if (freeBuffer) {
+        free(iffData);
+      }
+      return 1;
+    }
+  }
   EMCInterpreter interp = {0};
   EMCDisassembler disassembler = {0};
   EMCDisassemblerInit(&disassembler);
@@ -183,10 +203,7 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   disassembler.showDisamComment = 1;
   EMCState state = {0};
   EMCStateInit(&state, &script);
-  EMCStateSetOffset(&state, 0);
-  if (offset >= 0) {
-    EMCStateStart(&state, offset);
-  }
+  EMCStateSetOffset(&state, offset);
 
   int n = 0;
 
@@ -207,7 +224,7 @@ static int cmdScriptDisasm(const char *filepath, int offset) {
   return 0;
 }
 
-static int cmdScriptTest(const char *filepath, int functionId) {
+static int cmdScriptTest(const char *filepath, int functionNum) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -221,21 +238,39 @@ static int cmdScriptTest(const char *filepath, int functionId) {
     return 1;
   }
 
+  int offset = 0;
+  if (functionNum != -1) {
+    if (functionNum >= INFScriptGetNumFunctions(&script)) {
+      printf("invalid functionNum %i >= %i\n", functionNum,
+             INFScriptGetNumFunctions(&script));
+      if (freeBuffer) {
+        free(iffData);
+      }
+      return 1;
+    }
+    offset = INFScriptGetFunctionOffset(&script, functionNum);
+    if (offset == -1) {
+      printf("No function %i in script\n", functionNum);
+      if (freeBuffer) {
+        free(iffData);
+      }
+      return 1;
+    }
+  }
   EMCInterpreter interp = {0};
   EMCState state = {0};
+
   EMCStateInit(&state, &script);
-  EMCStateSetOffset(&state, functionId);
-  if (!EMCStateStart(&state, functionId)) {
-    printf("EMCInterpreterStart: invalid\n");
-  }
-  int n = 0;
+  EMCStateSetOffset(&state, offset + 1);
 
   state.regs[0] = -1; // flags
   state.regs[1] = -1; // charnum
   state.regs[2] = 0;  // item
   state.regs[3] = 0;
   state.regs[4] = 0;
-  state.regs[5] = functionId;
+  state.regs[5] = functionNum;
+
+  int n = 0;
 
   while (EMCInterpreterIsValid(&interp, &state)) {
     if (EMCInterpreterRun(&interp, &state) == 0) {
@@ -257,11 +292,7 @@ static int cmdScript(int argc, char *argv[]) {
     return 1;
   }
   if (strcmp(argv[0], "test") == 0) {
-    if (argc < 3) {
-      printf("missing functionid\n");
-      return 1;
-    }
-    return cmdScriptTest(argv[1], atoi(argv[2]));
+    return cmdScriptTest(argv[1], argc >= 3 ? atoi(argv[2]) : -1);
   } else if (strcmp(argv[0], "offsets") == 0) {
     return cmdScriptOffsets(argv[1]);
   } else if (strcmp(argv[0], "disasm") == 0) {
