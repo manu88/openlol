@@ -16,51 +16,6 @@ const char *EMCStateGetDataString(const EMCState *state, int16_t index) {
   return (char *)(state->dataPtr->text + strIndex);
 }
 
-void EMCInterpreterUnload(EMCInterpreter *interp) {}
-
-void EMCStateInit(EMCState *scriptState, const INFScript *script) {
-  memset(scriptState, 0, sizeof(EMCState));
-  scriptState->dataPtr = script;
-  scriptState->ip = NULL;
-  scriptState->stack[kStackLastEntry] = 0;
-  scriptState->bp = kStackSize + 1;
-  scriptState->sp = kStackLastEntry;
-}
-
-int EMCStateSetOffset(EMCState *script, uint16_t offset) {
-  script->ip = &script->dataPtr->data[offset];
-  return 1;
-}
-
-int EMCStateStart(EMCState *state, int function) {
-  assert(state->dataPtr);
-  assert(function >= 0);
-  if (function >= (int)state->dataPtr->ordrSize) {
-    printf("Function %i >= %i\n", function, (int)state->dataPtr->ordrSize);
-    return 0;
-  }
-
-  uint16_t functionOffset = swap_uint16(state->dataPtr->ordr[function]);
-  printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
-  if (functionOffset == 0xFFFF) {
-    printf("no such function\n");
-    return 0;
-  }
-  functionOffset++;
-  if (functionOffset >= (int)state->dataPtr->dataSize / 2) {
-    printf("%X >= %X\n", functionOffset, (int)state->dataPtr->dataSize / 2);
-    return 0;
-  }
-  state->endedReached = 0;
-  return EMCStateSetOffset(state, functionOffset);
-}
-
-int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state) {
-  if (!state->ip || !state->dataPtr || state->endedReached)
-    return 0;
-  return 1;
-}
-
 static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode,
                                  uint32_t instOffset) {
 
@@ -451,6 +406,51 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
     }
     return;
   }
+}
+
+void EMCInterpreterUnload(EMCInterpreter *interp) {}
+
+void EMCStateInit(EMCState *scriptState, const INFScript *script) {
+  memset(scriptState, 0, sizeof(EMCState));
+  scriptState->dataPtr = script;
+  scriptState->ip = NULL;
+  scriptState->stack[kStackLastEntry] = 0;
+  scriptState->bp = kStackSize + 1;
+  scriptState->sp = kStackLastEntry;
+}
+
+int EMCStateSetOffset(EMCState *script, uint16_t offset) {
+  script->ip = &script->dataPtr->data[offset];
+  return 1;
+}
+
+int EMCStateStart(EMCState *state, int function) {
+  assert(state->dataPtr);
+  assert(function >= 0);
+  if (function >= (int)state->dataPtr->ordrSize) {
+    printf("Function %i >= %i\n", function, (int)state->dataPtr->ordrSize);
+    return 0;
+  }
+
+  uint16_t functionOffset = swap_uint16(state->dataPtr->ordr[function]);
+  printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
+  if (functionOffset == 0xFFFF) {
+    printf("no such function\n");
+    return 0;
+  }
+  functionOffset++;
+  if (functionOffset >= (int)state->dataPtr->dataSize / 2) {
+    printf("%X >= %X\n", functionOffset, (int)state->dataPtr->dataSize / 2);
+    return 0;
+  }
+  state->endedReached = 0;
+  return EMCStateSetOffset(state, functionOffset);
+}
+
+int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state) {
+  if (!state->ip || !state->dataPtr || state->endedReached)
+    return 0;
+  return 1;
 }
 
 int EMCInterpreterRun(EMCInterpreter *interp, EMCState *state) {
