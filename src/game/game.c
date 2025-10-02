@@ -49,7 +49,6 @@ static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   return ctx->orientation;
 }
 
-static char dialOrMsgBuffer[1024];
 static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
                                  int16_t mode, uint16_t strId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
@@ -63,7 +62,6 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
 
   LangHandleGetString(&ctx->level->levelLang, realStringId,
                       ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
-  printf("DIAL: '%s'\n", dialOrMsgBuffer);
   ctx->dialogText = ctx->dialogTextBuffer;
 }
 
@@ -507,7 +505,7 @@ static void renderDialog(GameContext *gameCtx) {
 }
 static char textStatsBuffer[512];
 
-static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
+static void renderTextStats(GameContext *gameCtx) {
   int statsPosX = 20;
   int statsPosY = 400;
 
@@ -603,7 +601,7 @@ static int GameRun(GameContext *gameCtx) {
       SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
       SDL_RenderClear(gameCtx->renderer);
       GameRenderFrame(gameCtx);
-      renderTextStats(gameCtx, ctx);
+      renderTextStats(gameCtx);
       renderDialog(gameCtx);
       SDL_RenderPresent(gameCtx->renderer);
       shouldUpdate = 0;
