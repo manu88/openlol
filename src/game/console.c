@@ -1,5 +1,6 @@
 #include "console.h"
 #include "game.h"
+#include "game_ctx.h"
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
@@ -13,7 +14,7 @@ static void doExec(GameContext *gameCtx, int argc, char *argv[]) {
   if (strcmp(argv[0], "exec") == 0) {
     int function = atoi(argv[1]);
     printf("script exec function %i\n", function);
-    runScript(gameCtx, function);
+    GameContextRunScript(gameCtx, function);
   }
 }
 

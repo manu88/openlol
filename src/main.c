@@ -20,7 +20,6 @@
 #include "tests.h"
 #include "tim_animator.h"
 #include "tim_interpreter.h"
-#include <_string.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

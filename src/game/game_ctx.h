@@ -60,3 +60,8 @@ typedef struct _GameContext {
 
 void GameContextRelease(GameContext *gameCtx);
 int GameContextInit(GameContext *gameCtx);
+
+int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
+                         uint16_t startDir);
+int GameContextRunLevelInitScript(GameContext *gameCtx);
+int GameContextRunScript(GameContext *gameCtx, int function);

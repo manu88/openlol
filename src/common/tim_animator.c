@@ -8,7 +8,6 @@
 #include "formats/format_wsa.h"
 #include "renderer.h"
 #include "tim_interpreter.h"
-#include <_string.h>
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

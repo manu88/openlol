@@ -6,24 +6,13 @@
 #include "SDL_render.h"
 #include "SDL_surface.h"
 #include "console.h"
-#include "formats/format_cmz.h"
-#include "formats/format_cps.h"
-#include "formats/format_dat.h"
-#include "formats/format_inf.h"
-#include "formats/format_lang.h"
-#include "formats/format_shp.h"
-#include "formats/format_vcn.h"
-#include "formats/format_vmp.h"
-#include "formats/format_wll.h"
 #include "game_envir.h"
 #include "geometry.h"
-#include "pak_file.h"
 #include "render.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <_string.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -32,10 +21,6 @@
 #include <string.h>
 
 static int GameRun(GameContext *gameCtx);
-static int loadLevel(GameContext *ctx, int level, uint16_t startBlock,
-                     uint16_t startDir);
-static int runLevelInitScript(GameContext *gameCtx);
-static int runINIScript(GameContext *gameCtx);
 
 static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
@@ -182,7 +167,7 @@ static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
                               uint16_t startBlock, uint16_t startDir) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackLoadLevel %i %X %X\n", levelNum, startBlock, startDir);
-  loadLevel(gameCtx, levelNum, startBlock, startDir);
+  GameContextLoadLevel(gameCtx, levelNum, startBlock, startDir);
 }
 
 static void callbackLoadLevelGraphics(EMCInterpreter *interp,
@@ -218,43 +203,6 @@ static void installCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_LoadLevel = callbackLoadLevel;
 }
 
-static int loadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
-                     uint16_t startDir) {
-
-  GetGameCoordsFromBlock(startBlock, &ctx->partyPos.x, &ctx->partyPos.y);
-  ctx->orientation = startDir;
-  ctx->dialogText = NULL;
-
-  {
-    GameFile f = {0};
-    char wllFile[12];
-    snprintf(wllFile, 12, "LEVEL%i.WLL", levelNum);
-    assert(GameEnvironmentGetFile(&f, wllFile));
-    assert(WllHandleFromBuffer(&ctx->level->wllHandle, f.buffer, f.bufferSize));
-  }
-  {
-    GameFile f = {0};
-    char iniFile[12];
-    snprintf(iniFile, 12, "LEVEL%i.INI", levelNum);
-    assert(GameEnvironmentGetFile(&f, iniFile));
-    assert(INFScriptFromBuffer(&ctx->iniScript, f.buffer, f.bufferSize));
-  }
-  {
-    GameFile f = {0};
-    char infFile[12];
-    snprintf(infFile, 12, "LEVEL%i.INF", levelNum);
-    assert(GameEnvironmentGetFile(&f, infFile));
-    assert(INFScriptFromBuffer(&ctx->script, f.buffer, f.bufferSize));
-  }
-
-  printf("START runINIScript\n");
-  runINIScript(ctx);
-  printf("DONE runINIScript\n");
-  runLevelInitScript(ctx);
-
-  return 1;
-}
-
 int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit("data"));
 
@@ -285,7 +233,7 @@ int cmdGame(int argc, char *argv[]) {
 
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
-  loadLevel(&gameCtx, levelId, 0X24D, North);
+  GameContextLoadLevel(&gameCtx, levelId, 0X24D, North);
 
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
@@ -307,7 +255,7 @@ static void clickOnFrontWall(GameContext *gameCtx) {
   uint16_t nextBlock =
       BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
 
-  runScript(gameCtx, nextBlock);
+  GameContextRunScript(gameCtx, nextBlock);
 }
 
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
@@ -469,43 +417,6 @@ static void renderTextStats(GameContext *gameCtx) {
 
   statsPosY += 20;
   renderStatLine(gameCtx, gameCtx->cmdBuffer, statsPosX, statsPosY);
-}
-
-static int runINIScript(GameContext *gameCtx) {
-  EMCState iniState = {0};
-  EMCStateInit(&iniState, &gameCtx->iniScript);
-  EMCStateSetOffset(&iniState, 0);
-  EMCStateStart(&iniState, 0);
-  while (EMCInterpreterIsValid(&gameCtx->interp, &iniState)) {
-    if (EMCInterpreterRun(&gameCtx->interp, &iniState) == 0) {
-      printf("EMCInterpreterRun returned 0\n");
-    }
-  }
-  return 1;
-}
-
-static int runLevelInitScript(GameContext *gameCtx) {
-  return runScript(gameCtx, -1);
-}
-
-int runScript(GameContext *gameCtx, int function) {
-  EMCState state = {0};
-  EMCStateInit(&state, &gameCtx->script);
-  EMCStateSetOffset(&state, 0);
-  if (function > 0) {
-    if (!EMCStateStart(&state, function)) {
-      printf("EMCInterpreterStart: invalid\n");
-      return 0;
-    }
-  }
-
-  state.regs[5] = gameCtx->currentBock;
-  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
-    if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
-      printf("EMCInterpreterRun returned 0\n");
-    }
-  }
-  return 1;
 }
 
 static int GameRun(GameContext *gameCtx) {
