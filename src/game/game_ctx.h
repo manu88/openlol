@@ -28,7 +28,6 @@ typedef struct {
   SHPHandle shpHandle;
   LangHandle levelLang;
 
-  ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 } LevelContext;
 
 typedef struct _GameContext {
@@ -40,6 +39,7 @@ typedef struct _GameContext {
   LevelContext *level;
   SDL_Renderer *renderer;
   SDL_Window *window;
+  ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 
   CPSImage playField;
   SDL_Surface *textSurface;

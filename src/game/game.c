@@ -183,8 +183,6 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
 }
 
 static void GameRender(GameContext *gameCtx) {
-  memset(gameCtx->level->viewConeEntries, 0,
-         sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   SDL_RenderClear(gameCtx->renderer);
   GameRenderFrame(gameCtx);

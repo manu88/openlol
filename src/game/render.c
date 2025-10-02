@@ -191,12 +191,14 @@ static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
 }
 
 static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
+  memset(gameCtx->viewConeEntries, 0,
+         sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
     Point p = PointGo(&gameCtx->partyPos, gameCtx->orientation,
                       viewConeCell[i].frontDist, viewConeCell[i].leftDist);
     if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
-      gameCtx->level->viewConeEntries[i].coords = p;
-      gameCtx->level->viewConeEntries[i].valid = 1;
+      gameCtx->viewConeEntries[i].coords = p;
+      gameCtx->viewConeEntries[i].valid = 1;
     }
   }
 }
@@ -279,23 +281,23 @@ static void GameRenderScene(GameContext *gameCtx) {
   LevelContext *level = gameCtx->level;
   drawBackground(renderer, &level->vcnHandle, &level->vmpHandle);
 
-  const ViewConeEntry *aEntry = level->viewConeEntries + CELL_A;
-  const ViewConeEntry *bEntry = level->viewConeEntries + CELL_B;
-  const ViewConeEntry *cEntry = level->viewConeEntries + CELL_C;
-  const ViewConeEntry *dEntry = level->viewConeEntries + CELL_D;
-  const ViewConeEntry *eEntry = level->viewConeEntries + CELL_E;
-  const ViewConeEntry *fEntry = level->viewConeEntries + CELL_F;
-  const ViewConeEntry *gEntry = level->viewConeEntries + CELL_G;
-  const ViewConeEntry *hEntry = level->viewConeEntries + CELL_H;
-  const ViewConeEntry *iEntry = level->viewConeEntries + CELL_I;
-  const ViewConeEntry *jEntry = level->viewConeEntries + CELL_J;
-  const ViewConeEntry *kEntry = level->viewConeEntries + CELL_K;
-  const ViewConeEntry *lEntry = level->viewConeEntries + CELL_L;
-  const ViewConeEntry *mEntry = level->viewConeEntries + CELL_M;
-  const ViewConeEntry *nEntry = level->viewConeEntries + CELL_N;
-  const ViewConeEntry *oEntry = level->viewConeEntries + CELL_O;
-  const ViewConeEntry *pEntry = level->viewConeEntries + CELL_P;
-  const ViewConeEntry *qEntry = level->viewConeEntries + CELL_Q;
+  const ViewConeEntry *aEntry = gameCtx->viewConeEntries + CELL_A;
+  const ViewConeEntry *bEntry = gameCtx->viewConeEntries + CELL_B;
+  const ViewConeEntry *cEntry = gameCtx->viewConeEntries + CELL_C;
+  const ViewConeEntry *dEntry = gameCtx->viewConeEntries + CELL_D;
+  const ViewConeEntry *eEntry = gameCtx->viewConeEntries + CELL_E;
+  const ViewConeEntry *fEntry = gameCtx->viewConeEntries + CELL_F;
+  const ViewConeEntry *gEntry = gameCtx->viewConeEntries + CELL_G;
+  const ViewConeEntry *hEntry = gameCtx->viewConeEntries + CELL_H;
+  const ViewConeEntry *iEntry = gameCtx->viewConeEntries + CELL_I;
+  const ViewConeEntry *jEntry = gameCtx->viewConeEntries + CELL_J;
+  const ViewConeEntry *kEntry = gameCtx->viewConeEntries + CELL_K;
+  const ViewConeEntry *lEntry = gameCtx->viewConeEntries + CELL_L;
+  const ViewConeEntry *mEntry = gameCtx->viewConeEntries + CELL_M;
+  const ViewConeEntry *nEntry = gameCtx->viewConeEntries + CELL_N;
+  const ViewConeEntry *oEntry = gameCtx->viewConeEntries + CELL_O;
+  const ViewConeEntry *pEntry = gameCtx->viewConeEntries + CELL_P;
+  const ViewConeEntry *qEntry = gameCtx->viewConeEntries + CELL_Q;
 
   if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
