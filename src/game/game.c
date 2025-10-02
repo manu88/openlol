@@ -182,9 +182,18 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   return shouldUpdate;
 }
 
-static int GameRun(GameContext *gameCtx) {
-  LevelContext *ctx = gameCtx->level;
+static void GameRender(GameContext *gameCtx) {
+  memset(gameCtx->level->viewConeEntries, 0,
+         sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
+  SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
+  SDL_RenderClear(gameCtx->renderer);
+  GameRenderFrame(gameCtx);
+  renderTextStats(gameCtx);
+  renderDialog(gameCtx);
+  SDL_RenderPresent(gameCtx->renderer);
+}
 
+static int GameRun(GameContext *gameCtx) {
   int quit = 0;
   int shouldUpdate = 1;
 
@@ -203,14 +212,7 @@ static int GameRun(GameContext *gameCtx) {
       }
     }
     if (shouldUpdate) {
-      memset(ctx->viewConeEntries, 0,
-             sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
-      SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
-      SDL_RenderClear(gameCtx->renderer);
-      GameRenderFrame(gameCtx);
-      renderTextStats(gameCtx);
-      renderDialog(gameCtx);
-      SDL_RenderPresent(gameCtx->renderer);
+      GameRender(gameCtx);
       shouldUpdate = 0;
     }
   }
