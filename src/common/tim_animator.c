@@ -15,9 +15,6 @@
 #include <string.h>
 #include <xlocale/_stdio.h>
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
-
 #define ANIM_WIDTH 300
 #define ANIM_HEIGHT 200
 
@@ -31,9 +28,9 @@ static int initSDLStuff(TIMAnimator *animator) {
            TTF_GetError());
     return 0;
   }
-  animator->window = SDL_CreateWindow("TIM animator", SDL_WINDOWPOS_UNDEFINED,
-                                      SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                                      SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+  animator->window =
+      SDL_CreateWindow("TIM animator", SDL_WINDOWPOS_UNDEFINED,
+                       SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
   if (animator->window == NULL) {
     return 0;
   }
