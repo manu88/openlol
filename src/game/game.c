@@ -34,6 +34,8 @@
 #define SCREEN_WIDTH 1000
 #define SCREEN_HEIGHT 800
 
+#define DIALOG_BUFFER_SIZE (size_t)1024
+
 static int GameRun(GameContext *gameCtx);
 static int loadLevel(GameContext *ctx, int level, uint16_t startBlock,
                      uint16_t startDir);
@@ -59,9 +61,10 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   int realStringId = LangGetString(strId, &useLevelFile);
   printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
 
-  LangHandleGetString(&ctx->level->levelLang, realStringId, dialOrMsgBuffer,
-                      sizeof(dialOrMsgBuffer));
+  LangHandleGetString(&ctx->level->levelLang, realStringId,
+                      ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   printf("DIAL: '%s'\n", dialOrMsgBuffer);
+  ctx->dialogText = ctx->dialogTextBuffer;
 }
 
 static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
@@ -73,9 +76,9 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
   uint8_t useLevelFile = 0;
   int realStringId = LangGetString(strId, &useLevelFile);
   printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
-  LangHandleGetString(&ctx->level->levelLang, realStringId, dialOrMsgBuffer,
-                      sizeof(dialOrMsgBuffer));
-  printf("MSG: '%s'\n", dialOrMsgBuffer);
+  LangHandleGetString(&ctx->level->levelLang, realStringId,
+                      ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
+  ctx->dialogText = ctx->dialogTextBuffer;
 }
 
 static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
@@ -227,6 +230,7 @@ static int loadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
 
   GetGameCoordsFromBlock(startBlock, &ctx->partyPos.x, &ctx->partyPos.y);
   ctx->orientation = startDir;
+  ctx->dialogText = NULL;
 
   {
     GameFile f = {0};
@@ -472,6 +476,9 @@ int GameInitContext(GameContext *gameCtx) {
            SDL_GetError());
     return 1;
   }
+
+  gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
+  assert(gameCtx->dialogTextBuffer);
   setupConsole(gameCtx);
   snprintf(gameCtx->cmdBuffer, 1024, "> ");
   return 1;
@@ -493,6 +500,11 @@ static void renderStatLine(GameContext *gameCtx, const char *line, int x,
   SDL_FreeSurface(gameCtx->textSurface);
 }
 
+static void renderDialog(GameContext *gameCtx) {
+  if (gameCtx->dialogText) {
+    renderStatLine(gameCtx, gameCtx->dialogText, 30, 250);
+  }
+}
 static char textStatsBuffer[512];
 
 static void renderTextStats(GameContext *gameCtx, LevelContext *ctx) {
@@ -592,6 +604,7 @@ static int GameRun(GameContext *gameCtx) {
       SDL_RenderClear(gameCtx->renderer);
       GameRenderFrame(gameCtx);
       renderTextStats(gameCtx, ctx);
+      renderDialog(gameCtx);
       SDL_RenderPresent(gameCtx->renderer);
       shouldUpdate = 0;
     }
@@ -610,4 +623,5 @@ void GameContextRelease(GameContext *gameCtx) {
   PAKFileRelease(&gameCtx->generalPak);
   CPSImageRelease(&gameCtx->playField);
   INFScriptRelease(&gameCtx->script);
+  free(gameCtx->dialogTextBuffer);
 }

@@ -53,6 +53,8 @@ typedef struct _GameContext {
   INFScript iniScript;
   EMCInterpreter interp;
 
+  char *dialogTextBuffer;
+  char *dialogText; // will either be NULL or pointing to dialogTextBuffer
   // dev/debug things
   int consoleHasFocus;
   char *cmdBuffer;
