@@ -1,6 +1,5 @@
 #include "render.h"
 #include "SDL_render.h"
-#include "game.h"
 #include "geometry.h"
 #include "renderer.h"
 #include <stdint.h>
@@ -47,6 +46,7 @@ static void renderBackground(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 255);
   SDL_RenderFillRect(gameCtx->renderer, &r);
 }
+
 void GameRenderFrame(GameContext *gameCtx) {
   renderBackground(gameCtx);
   GameRenderMap(gameCtx, 640, 350);
