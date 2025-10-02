@@ -59,6 +59,7 @@ typedef struct _GameContext {
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
+int GameInitContext(GameContext *gameCtx);
 void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);
 int runScript(GameContext *gameCtx, int function);

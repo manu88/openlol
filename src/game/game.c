@@ -35,7 +35,6 @@
 #define SCREEN_HEIGHT 800
 
 static int GameRun(GameContext *gameCtx);
-static int GameInit(GameContext *gameCtx);
 static int loadLevel(GameContext *ctx, int level, uint16_t startBlock,
                      uint16_t startDir);
 static int runLevelInitScript(GameContext *gameCtx);
@@ -280,7 +279,7 @@ int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentLoadChapter(chapterId));
 
   GameContext gameCtx = {0};
-  if (!GameInit(&gameCtx)) {
+  if (!GameInitContext(&gameCtx)) {
     return 1;
   }
 
@@ -419,7 +418,7 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   return shouldUpdate;
 }
 
-static int GameInit(GameContext *gameCtx) {
+int GameInitContext(GameContext *gameCtx) {
   PAKFileInit(&gameCtx->generalPak);
   if (PAKFileRead(&gameCtx->generalPak, "data/GENERAL.PAK") == 0) {
     printf("unable to read 'data/GENERAL.PAK' file\n");
