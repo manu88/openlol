@@ -276,7 +276,7 @@ int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentLoadChapter(chapterId));
 
   GameContext gameCtx = {0};
-  if (!GameInitContext(&gameCtx)) {
+  if (!GameContextInit(&gameCtx)) {
     return 1;
   }
 

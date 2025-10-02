@@ -59,4 +59,4 @@ typedef struct _GameContext {
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
-int GameInitContext(GameContext *gameCtx);
+int GameContextInit(GameContext *gameCtx);

@@ -2,7 +2,7 @@
 #include "console.h"
 #include <assert.h>
 
-int GameInitContext(GameContext *gameCtx) {
+int GameContextInit(GameContext *gameCtx) {
   PAKFileInit(&gameCtx->generalPak);
   if (PAKFileRead(&gameCtx->generalPak, "data/GENERAL.PAK") == 0) {
     printf("unable to read 'data/GENERAL.PAK' file\n");
