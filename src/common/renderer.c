@@ -156,6 +156,106 @@ void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
   }
 }
 
+void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
+              int xOff, int yOff) {
+  if (c >= font->numGlyphs) {
+    assert(0);
+    return;
+  }
+
+  if (!font->bitmapOffsets[c]) {
+    return;
+  }
+  const uint8_t *src = font->buffer + font->bitmapOffsets[c];
+  const uint8_t charWidth = font->widthTable[c];
+
+  if (!charWidth)
+    return;
+
+  uint8_t charH1 = font->heightTable[c * 2 + 0];
+  uint8_t charH2 = font->heightTable[c * 2 + 1];
+  uint8_t charH0 = font->maxHeight - (charH1 + charH2);
+
+  int x = xOff;
+  int y = yOff;
+  while (charH1--) {
+    uint8_t col = 1; //_colorMap[0];
+    for (int i = 0; i < charWidth; ++i) {
+      if (col != 0) {
+        SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
+        SDL_Rect r = {x, y, 1, 1};
+        SDL_RenderFillRect(renderer, &r);
+      }
+      x++;
+    }
+    x = xOff;
+    y += 1;
+  }
+
+  while (charH2--) {
+    uint8_t b = 0;
+    for (int i = 0; i < charWidth; ++i) {
+      uint8_t col;
+      if (i & 1) {
+        col = b >> 4; //_colorMap[b >> 4];
+      } else {
+        b = *src++;
+        col = b & 0XF; //_colorMap[b & 0xF];
+      }
+      if (col != 0) {
+        SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
+        SDL_Rect r = {x, y, 1, 1};
+        SDL_RenderFillRect(renderer, &r);
+      }
+      x += 1;
+    }
+    y += 1;
+    x = xOff;
+  }
+
+  while (charH0--) {
+    uint8_t col = 100; //_colorMap[0];
+    for (int i = 0; i < charWidth; ++i) {
+      if (col != 0) {
+        SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
+        SDL_Rect r = {x, y, 1, 1};
+        SDL_RenderFillRect(renderer, &r);
+      }
+      x += 1;
+    }
+    y += 1;
+    x = xOff;
+  }
+}
+
+void FNTToPng(const FNTHandle *font, const char *savePngPath, int charNum) {
+  const int imgWidth = 400;
+  const int imgHeight = 300;
+  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Surface *surface =
+      SDL_CreateRGBSurface(0, imgWidth, imgHeight, 32, 0, 0, 0, 0);
+  SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+
+  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
+  SDL_RenderClear(renderer);
+
+  int x = 10;
+  int y = 10;
+  for (int i = 0; i < font->numGlyphs; i++) {
+    if (i % 32 == 0) {
+      y += 10;
+      x = 10;
+    }
+    drawChar(renderer, font, i, x, y);
+    x += 10;
+  }
+
+  SDL_RenderPresent(renderer);
+  IMG_SavePNG(surface, savePngPath);
+
+  SDL_DestroyRenderer(renderer);
+}
+
 #define BLOCK_SIZE (int)8
 
 void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {

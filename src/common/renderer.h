@@ -1,9 +1,10 @@
 #pragma once
 #include "formats/format_cps.h"
+#include "formats/format_fnt.h"
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
-#include "game.h"
+#include "game_ctx.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -58,6 +59,7 @@ void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
 void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
+void FNTToPng(const FNTHandle *handle, const char *savePngPath, int charNum);
 
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
                    const uint8_t *palette);
