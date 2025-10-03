@@ -3,3 +3,4 @@
 
 void renderTextStats(GameContext *gameCtx);
 void renderDialog(GameContext *gameCtx);
+void renderText(GameContext *gameCtx, int xOff, int yOff, const char *text);

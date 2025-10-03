@@ -158,7 +158,7 @@ void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
 
 static uint8_t colorMap[] = {
     0,
-    100,
+    255,
 
 };
 

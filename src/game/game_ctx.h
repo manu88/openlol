@@ -8,6 +8,7 @@
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
+#include "formats/format_fnt.h"
 #include "formats/format_wll.h"
 #include "geometry.h"
 #include "pak_file.h"
@@ -56,6 +57,8 @@ typedef struct _GameContext {
   // dev/debug things
   int consoleHasFocus;
   char *cmdBuffer;
+
+  FNTHandle defaultFont;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

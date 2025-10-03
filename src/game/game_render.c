@@ -1,4 +1,7 @@
 #include "game_render.h"
+#include "renderer.h"
+#include <stdint.h>
+#include <string.h>
 
 static void renderStatLine(GameContext *gameCtx, const char *line, int x,
                            int y) {
@@ -14,6 +17,19 @@ static void renderStatLine(GameContext *gameCtx, const char *line, int x,
   SDL_RenderCopy(gameCtx->renderer, gameCtx->textTexture, NULL, &dstrect);
   SDL_DestroyTexture(gameCtx->textTexture);
   SDL_FreeSurface(gameCtx->textSurface);
+}
+
+void renderText(GameContext *gameCtx, int xOff, int yOff, const char *text) {
+  if (!text) {
+    return;
+  }
+  int x = xOff;
+  int y = yOff;
+  for (int i = 0; i < strlen(text); i++) {
+
+    drawChar(gameCtx->renderer, &gameCtx->defaultFont, text[i], x, y);
+    x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
+  }
 }
 
 void renderDialog(GameContext *gameCtx) {

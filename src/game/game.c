@@ -188,6 +188,8 @@ static void GameRender(GameContext *gameCtx) {
   GameRenderFrame(gameCtx);
   renderTextStats(gameCtx);
   renderDialog(gameCtx);
+  renderText(gameCtx, DIALOG_BOX_X, DIALOG_BOX_Y,
+             "hello world, this is a long text that should be wrapped");
   SDL_RenderPresent(gameCtx->renderer);
 }
 

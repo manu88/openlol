@@ -60,6 +60,8 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
 void FNTToPng(const FNTHandle *handle, const char *savePngPath);
+void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
+              int xOff, int yOff);
 
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
                    const uint8_t *palette);

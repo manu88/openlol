@@ -60,6 +60,17 @@ int GameContextInit(GameContext *gameCtx) {
     return 1;
   }
 
+  {
+    int index = PakFileGetEntryIndex(&gameCtx->generalPak, "FONT6P.FNT");
+    if (index == -1) {
+      printf("unable to get 'FONT6P.FNT' file from general pak\n");
+      assert(0);
+    }
+    uint8_t *font6PData = PakFileGetEntryData(&gameCtx->generalPak, index);
+    FNTHandleFromBuffer(&gameCtx->defaultFont, font6PData,
+                        gameCtx->generalPak.entries[index].fileSize);
+  }
+
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
   setupConsole(gameCtx);

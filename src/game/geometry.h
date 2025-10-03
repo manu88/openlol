@@ -2,6 +2,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define MAZE_COORDS_X (int)112
+#define MAZE_COORDS_Y (int)0
+#define MAZE_COORDS_W (int)174
+#define MAZE_COORDS_H (int)120
+
+#define DIALOG_BOX_X 90
+#define DIALOG_BOX_Y 126
+
 typedef struct {
   uint16_t x;
   uint16_t y;
@@ -26,11 +34,6 @@ Point PointGoLeft(const Point *pos, Orientation orientation, int distance);
 Point PointGoRight(const Point *pos, Orientation orientation, int distance);
 Point PointGo(const Point *pos, Orientation orientation, int frontDist,
               int leftDist);
-
-#define MAZE_COORDS_X (int)112
-#define MAZE_COORDS_Y (int)0
-#define MAZE_COORDS_W (int)174
-#define MAZE_COORDS_H (int)120
 
 void BlockGetCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
                          uint16_t yOffs);
