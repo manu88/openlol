@@ -8,7 +8,6 @@
 static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
-  printf("callbacksGetDirection will return %X\n", ctx->orientation);
   return ctx->orientation;
 }
 

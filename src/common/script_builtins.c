@@ -200,24 +200,26 @@ static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
   printf("moveMonster\n");
   return 0;
 }
+
 static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
-  int16_t p0 = EMCStateStackVal(state, 0);
-  const char *str = EMCStateGetDataString(state, p0);
-  printf("loadTimScript %x :'%s'.TIM\n", p0, str);
-  return 0;
+  uint16_t scriptId = EMCStateStackVal(state, 0);
+  uint16_t stringId = EMCStateStackVal(state, 1);
+  const char *str = EMCStateGetDataString(state, stringId);
+  printf("loadTimScript %x :'%s'.TIM\n", scriptId, str);
+  return 1;
 }
 
 static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
-  int16_t p0 = EMCStateStackVal(state, 0);
-  int16_t p1 = EMCStateStackVal(state, 0);
+  int16_t scriptId = EMCStateStackVal(state, 0);
+  int16_t loop = EMCStateStackVal(state, 1);
 
-  const char *name = EMCStateGetDataString(state, p0);
-  printf("runTimScript %X %X '%s'\n", p0, p1, name);
-  return 0;
+  printf("runTimScript scriptId=%X loop=%X\n", scriptId, loop);
+  return 1;
 }
 static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
-  printf("releaseTimScript\n");
-  return 0;
+  int16_t scriptId = EMCStateStackVal(state, 0);
+  printf("releaseTimScript script=%X\n", scriptId);
+  return 1;
 }
 static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
   printf("getItemInHand\n");
