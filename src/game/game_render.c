@@ -19,22 +19,28 @@ static void renderStatLine(GameContext *gameCtx, const char *line, int x,
   SDL_FreeSurface(gameCtx->textSurface);
 }
 
-void renderText(GameContext *gameCtx, int xOff, int yOff, const char *text) {
+void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
+                const char *text) {
   if (!text) {
     return;
   }
   int x = xOff;
   int y = yOff;
-  for (int i = 0; i < strlen(text); i++) {
+  for (int i = 0; i < strlen(text) - 1; i++) {
 
     drawChar(gameCtx->renderer, &gameCtx->defaultFont, text[i], x, y);
     x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
+    if (x - xOff >= width) {
+      x = xOff;
+      y += gameCtx->defaultFont.maxHeight + 2;
+    }
   }
 }
 
 void renderDialog(GameContext *gameCtx) {
   if (gameCtx->dialogText) {
-    renderStatLine(gameCtx, gameCtx->dialogText, 30, 250);
+    renderText(gameCtx, DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W,
+               gameCtx->dialogText);
   }
 }
 

@@ -9,6 +9,7 @@
 
 #define DIALOG_BOX_X 90
 #define DIALOG_BOX_Y 126
+#define DIALOG_BOX_W 200
 
 typedef struct {
   uint16_t x;
