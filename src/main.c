@@ -634,7 +634,7 @@ static int cmdSAV(int argc, char *argv[]) {
   return 1;
 }
 
-static int cmdFNTExtract(const char *filepath, int charNum) {
+static int cmdFNTExtract(const char *filepath) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -661,7 +661,7 @@ static int cmdFNTExtract(const char *filepath, int charNum) {
     return 1;
   }
   printf("Write FNT image '%s'\n", outFilePath);
-  FNTToPng(&handle, outFilePath, charNum);
+  FNTToPng(&handle, outFilePath);
   if (freeBuffer) {
     free(buffer);
   }
@@ -669,54 +669,15 @@ static int cmdFNTExtract(const char *filepath, int charNum) {
   return 0;
 }
 
-static int cmdFNTShow(const char *filepath, int charNum) {
-  size_t dataSize = 0;
-  int freeBuffer = 0;
-  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
-  if (!buffer) {
-    printf("Error while getting data for '%s'\n", filepath);
-    return 1;
-  }
-
-  FNTHandle handle = {0};
-  if (!FNTHandleFromBuffer(&handle, buffer, dataSize)) {
-    if (freeBuffer) {
-      free(buffer);
-    }
-    return 1;
-  }
-  printf("font has %i chars, max w.=%i max h.=%i\n", handle.numGlyphs,
-         handle.maxWidth, handle.maxHeight);
-
-  uint16_t dataOff = handle.bitmapOffsets[charNum];
-  printf("Data offset %x w=%i h=%i yOff=%i\n", dataOff,
-         handle.widthTable[charNum], FNTHandleGetCharHeight(&handle, charNum),
-         FNTHandleGetYOffset(&handle, charNum));
-#if 0         
-  for (int i = 0; i < handle.numGlyphs; i++) {
-    printf("%i w=%i h=%i yOff=%i\n", i, handle.widthTable[i],
-           FNTHandleGetCharHeight(&handle, i), FNTHandleGetYOffset(&handle, i));
-  }
-#endif
-  if (freeBuffer) {
-    free(buffer);
-  }
-  return 0;
-}
-
-static void usageFNT(void) {
-  printf("fnt subcommands: show|extract file charNum\n");
-}
+static void usageFNT(void) { printf("fnt subcommands: render file charNum\n"); }
 
 static int cmdFNT(int argc, char *argv[]) {
   if (argc < 3) {
     usageFNT();
     return 1;
   }
-  if (strcmp(argv[0], "show") == 0) {
-    return cmdFNTShow(argv[1], atoi(argv[2]));
-  } else if (strcmp(argv[0], "extract") == 0) {
-    return cmdFNTExtract(argv[1], atoi(argv[2]));
+  if (strcmp(argv[0], "render") == 0) {
+    return cmdFNTExtract(argv[1]);
   }
   usageFNT();
   return 1;

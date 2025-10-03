@@ -59,7 +59,7 @@ void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
 void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
-void FNTToPng(const FNTHandle *handle, const char *savePngPath, int charNum);
+void FNTToPng(const FNTHandle *handle, const char *savePngPath);
 
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
                    const uint8_t *palette);

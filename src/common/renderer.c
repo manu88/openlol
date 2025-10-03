@@ -156,6 +156,21 @@ void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
   }
 }
 
+static uint8_t colorMap[] = {
+    0,
+    100,
+
+};
+
+static uint8_t getColor(uint8_t p) {
+  if (p >= sizeof(colorMap)) {
+    printf("colormap missing index %i\n", p);
+    assert(0);
+  }
+
+  return colorMap[p];
+}
+
 void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
               int xOff, int yOff) {
   if (c >= font->numGlyphs) {
@@ -179,7 +194,7 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
   int x = xOff;
   int y = yOff;
   while (charH1--) {
-    uint8_t col = 1; //_colorMap[0];
+    uint8_t col = getColor(0);
     for (int i = 0; i < charWidth; ++i) {
       if (col != 0) {
         SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
@@ -197,10 +212,10 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
     for (int i = 0; i < charWidth; ++i) {
       uint8_t col;
       if (i & 1) {
-        col = b >> 4; //_colorMap[b >> 4];
+        col = getColor(b >> 4);
       } else {
         b = *src++;
-        col = b & 0XF; //_colorMap[b & 0xF];
+        col = getColor(b & 0xF);
       }
       if (col != 0) {
         SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
@@ -214,7 +229,7 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
   }
 
   while (charH0--) {
-    uint8_t col = 100; //_colorMap[0];
+    uint8_t col = getColor(0);
     for (int i = 0; i < charWidth; ++i) {
       if (col != 0) {
         SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
@@ -228,9 +243,9 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
   }
 }
 
-void FNTToPng(const FNTHandle *font, const char *savePngPath, int charNum) {
-  const int imgWidth = 400;
-  const int imgHeight = 300;
+void FNTToPng(const FNTHandle *font, const char *savePngPath) {
+  const int imgWidth = 250;
+  const int imgHeight = 150;
   SDL_Init(SDL_INIT_VIDEO);
   SDL_Surface *surface =
       SDL_CreateRGBSurface(0, imgWidth, imgHeight, 32, 0, 0, 0, 0);
@@ -247,7 +262,7 @@ void FNTToPng(const FNTHandle *font, const char *savePngPath, int charNum) {
       x = 10;
     }
     drawChar(renderer, font, i, x, y);
-    x += 10;
+    x += font->widthTable[i];
   }
 
   SDL_RenderPresent(renderer);
