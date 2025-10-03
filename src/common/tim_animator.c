@@ -108,7 +108,7 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   size_t fileSize = 0;
   size_t readSize = 0;
   char filePath[16] = "";
-  snprintf(filePath, sizeof(filePath), "%s.wsa", wsaFile);
+  snprintf(filePath, sizeof(filePath), "%s.WSA", wsaFile);
   uint8_t *buffer = readBinaryFile(filePath, &fileSize, &readSize);
   if (!buffer) {
     perror("malloc error");

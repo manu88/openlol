@@ -33,6 +33,7 @@ typedef struct {
 
 } LevelContext;
 
+#define NUM_TIM_ANIMATIONS 4
 typedef struct _GameContext {
 
   uint16_t currentBock;
@@ -63,7 +64,8 @@ typedef struct _GameContext {
   FNTHandle defaultFont;
   uint8_t gameFlags[100];
 
-  TIMAnimator *_timAnimator;
+  TIMHandle tim[NUM_TIM_ANIMATIONS];
+  TIMAnimator _timAnimator;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

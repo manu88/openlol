@@ -849,8 +849,6 @@ static int cmdShowTim(const char *filepath) {
     TIMInterpreterUpdate(&interp);
   }
 
-  // TimeHandleTest(&handle);
-  TIMHandleRelease(&handle);
   return 0;
 }
 
@@ -877,7 +875,6 @@ static int cmdAnimateTim(const char *filepath, const char *langFilepath) {
     uint8_t *buffer = readBinaryFile(langFilepath, &fileSize, &readSize);
     if (!buffer) {
       perror("malloc error");
-      TIMHandleRelease(&handle);
       return 1;
     }
     LangHandleFromBuffer(&lang, buffer, readSize);
@@ -888,7 +885,6 @@ static int cmdAnimateTim(const char *filepath, const char *langFilepath) {
   }
 
   TIMAnimatorRelease(&animator);
-  TIMHandleRelease(&handle);
   if (lang.originalBuffer) {
     LangHandleRelease(&lang);
   }

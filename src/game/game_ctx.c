@@ -72,10 +72,12 @@ int GameContextInit(GameContext *gameCtx) {
     }
   }
 
+  TIMAnimatorInit(&gameCtx->_timAnimator);
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
   setupConsole(gameCtx);
   snprintf(gameCtx->cmdBuffer, 1024, "> ");
+
   return 1;
 }
 

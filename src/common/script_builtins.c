@@ -221,6 +221,13 @@ static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
   }
   return 1;
 }
+
+static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
+  int16_t scriptId = EMCStateStackVal(state, 0);
+  printf("stopTimScript scriptId=%X\n", scriptId);
+  return 0;
+}
+
 static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
   if (interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript) {
@@ -235,11 +242,6 @@ static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
   printf("playSoundEffect\n");
-  return 0;
-}
-static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
-  int16_t scriptId = EMCStateStackVal(state, 0);
-  printf("stopTimScript scriptId=%X\n", scriptId);
   return 0;
 }
 

@@ -9,11 +9,6 @@
 #include <string.h>
 
 void TIMHandleInit(TIMHandle *handle) { memset(handle, 0, sizeof(TIMHandle)); }
-void TIMHandleRelease(TIMHandle *handle) {
-  if (handle->originalBuffer) {
-    free(handle->originalBuffer);
-  }
-}
 
 int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
                         size_t bufferSize) {

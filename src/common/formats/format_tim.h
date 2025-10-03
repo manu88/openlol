@@ -25,11 +25,10 @@ typedef struct {
   TimFunction functions[TIM_NUM_FUNCTIONS];
   int numFunctions;
 
-  uint8_t *originalBuffer;
 } TIMHandle;
 
 void TIMHandleInit(TIMHandle *handle);
-void TIMHandleRelease(TIMHandle *handle);
+
 int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
 
