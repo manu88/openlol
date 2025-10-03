@@ -205,20 +205,28 @@ static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
   uint16_t scriptId = EMCStateStackVal(state, 0);
   uint16_t stringId = EMCStateStackVal(state, 1);
   const char *str = EMCStateGetDataString(state, stringId);
-  printf("loadTimScript %x :'%s'.TIM\n", scriptId, str);
+  if (interp->callbacks.EMCInterpreterCallbacks_LoadTimScript) {
+    interp->callbacks.EMCInterpreterCallbacks_LoadTimScript(interp, scriptId,
+                                                            str);
+  }
   return 1;
 }
 
 static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
   int16_t loop = EMCStateStackVal(state, 1);
-
-  printf("runTimScript scriptId=%X loop=%X\n", scriptId, loop);
+  if (interp->callbacks.EMCInterpreterCallbacks_RunTimScript) {
+    interp->callbacks.EMCInterpreterCallbacks_RunTimScript(interp, scriptId,
+                                                           loop);
+  }
   return 1;
 }
 static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
-  printf("releaseTimScript script=%X\n", scriptId);
+  if (interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript) {
+    interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript(interp,
+                                                               scriptId);
+  }
   return 1;
 }
 static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {

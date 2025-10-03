@@ -13,6 +13,7 @@
 #include "geometry.h"
 #include "pak_file.h"
 #include "script.h"
+#include "tim_animator.h"
 #include <SDL2/SDL_ttf.h>
 #include <stdint.h>
 
@@ -61,6 +62,8 @@ typedef struct _GameContext {
 
   FNTHandle defaultFont;
   uint8_t gameFlags[100];
+
+  TIMAnimator *_timAnimator;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

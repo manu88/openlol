@@ -2,6 +2,7 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "script.h"
+#include <_static_assert.h>
 #include <assert.h>
 #include <stdint.h>
 
@@ -187,6 +188,19 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
   }
 }
 
+static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
+                                  const char *file) {
+  printf("callbackLoadTimScript %x :'%s'.TIM\n", scriptId, file);
+}
+static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
+                                 uint16_t loop) {
+  printf("callbackRunTimScript scriptId=%X loop=%X\n", scriptId, loop);
+}
+static void callbackReleaseTimScript(EMCInterpreter *interp,
+                                     uint16_t scriptId) {
+  printf("callbackReleaseTimScript script=%X\n", scriptId);
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -202,4 +216,9 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_LoadLevel = callbackLoadLevel;
   interp->callbacks.EMCInterpreterCallbacks_SetGameFlag = callbackSetGameFlag;
   interp->callbacks.EMCInterpreterCallbacks_TestGameFlag = callbackTestGameFlag;
+  interp->callbacks.EMCInterpreterCallbacks_LoadTimScript =
+      callbackLoadTimScript;
+  interp->callbacks.EMCInterpreterCallbacks_RunTimScript = callbackRunTimScript;
+  interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript =
+      callbackReleaseTimScript;
 }

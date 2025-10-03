@@ -166,6 +166,15 @@ typedef struct _EMCInterpreterCallbacks {
                                                    uint16_t flag);
   void (*EMCInterpreterCallbacks_SetGameFlag)(EMCInterpreter *interp,
                                               uint16_t flag, uint16_t val);
+
+  void (*EMCInterpreterCallbacks_LoadTimScript)(EMCInterpreter *interp,
+                                                uint16_t scriptId,
+                                                const char *file);
+  void (*EMCInterpreterCallbacks_RunTimScript)(EMCInterpreter *interp,
+                                               uint16_t scriptId,
+                                               uint16_t loop);
+  void (*EMCInterpreterCallbacks_ReleaseTimScript)(EMCInterpreter *interp,
+                                                   uint16_t scriptId);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
