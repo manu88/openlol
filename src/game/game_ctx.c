@@ -12,15 +12,15 @@ int GameContextInit(GameContext *gameCtx) {
     return 0;
   }
 
-  int index = PakFileGetEntryIndex(&gameCtx->generalPak, "PLAYFLD.CPS");
-  if (index == -1) {
-    printf("unable to get 'PLAYFLD.CPS' file from general pak\n");
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, "PLAYFLD.CPS"));
+
+    if (CPSImageFromFile(&gameCtx->playField, f.buffer, f.bufferSize) == 0) {
+      printf("unable to get playFieldData\n");
+    }
   }
-  uint8_t *playFieldData = PakFileGetEntryData(&gameCtx->generalPak, index);
-  if (CPSImageFromFile(&gameCtx->playField, playFieldData,
-                       gameCtx->generalPak.entries[index].fileSize) == 0) {
-    printf("unable to get playFieldData\n");
-  }
+
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
@@ -61,14 +61,13 @@ int GameContextInit(GameContext *gameCtx) {
   }
 
   {
-    int index = PakFileGetEntryIndex(&gameCtx->generalPak, "FONT6P.FNT");
-    if (index == -1) {
-      printf("unable to get 'FONT6P.FNT' file from general pak\n");
-      assert(0);
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, "FONT6P.FNT"));
+
+    if (FNTHandleFromBuffer(&gameCtx->defaultFont, f.buffer, f.bufferSize) ==
+        0) {
+      printf("unable to get FONT6P.FNT data\n");
     }
-    uint8_t *font6PData = PakFileGetEntryData(&gameCtx->generalPak, index);
-    FNTHandleFromBuffer(&gameCtx->defaultFont, font6PData,
-                        gameCtx->generalPak.entries[index].fileSize);
   }
 
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);

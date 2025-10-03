@@ -12,9 +12,12 @@ typedef struct {
   const char *dataDir;
   Language lang;
   PAKFile *pakChapter;
+  PAKFile pakGeneral;
 } GameEnvironment;
 
 static GameEnvironment _envir;
+
+static const char generalPakName[] = "GENERAL.PAK";
 
 int GameEnvironmentInit(const char *dataDir) {
   assert(dataDir);
@@ -23,6 +26,16 @@ int GameEnvironmentInit(const char *dataDir) {
   _envir.lang = Language_FR;
   printf("GameEnvironmentInit dataDir='%s' lang=%s\n", dataDir,
          LanguageGetExtension(_envir.lang));
+
+  PAKFileInit(&_envir.pakGeneral);
+
+  size_t s = strlen(_envir.dataDir) + 2 + strlen(generalPakName);
+  char *generalPath = malloc(s);
+  assert(generalPath);
+  snprintf(generalPath, s, "%s/%s", _envir.dataDir, generalPakName);
+  printf("open general Pak at '%s'\n", generalPath);
+  assert(PAKFileRead(&_envir.pakGeneral, generalPath));
+  free(generalPath);
   return 1;
 }
 
@@ -54,6 +67,23 @@ void GameEnvironmentRelease(void) {
     PAKFileRelease(_envir.pakChapter);
     free(_envir.pakChapter);
   }
+  PAKFileRelease(&_envir.pakGeneral);
+}
+
+int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {
+  int index = PakFileGetEntryIndex(&_envir.pakGeneral, name);
+  if (index == -1) {
+    printf("GameEnvironmentGetFile no such file '%s' in %s\n", name,
+           generalPakName);
+    return 0;
+  }
+  size_t size = _envir.pakGeneral.entries[index].fileSize;
+  if (size) {
+    file->buffer = PakFileGetEntryData(&_envir.pakGeneral, index);
+    file->bufferSize = _envir.pakGeneral.entries[index].fileSize;
+    return 1;
+  }
+  return 0;
 }
 
 int GameEnvironmentGetFile(GameFile *file, const char *name) {
