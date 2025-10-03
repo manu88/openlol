@@ -7,7 +7,7 @@
 
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   printf("getWallType\n");
-  return 0;
+  return 1;
 }
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);

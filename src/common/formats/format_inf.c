@@ -28,28 +28,23 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
     if (strcmp((char *)chunkName, "FORM") == 0) {
       // looks like 'FORM' is the beginning of the file.
       // size if the whole file size
-      script->chunks[kForm]._size = swap_uint32(*(uint32_t *)buff);
       buff += 4;
       readSize += 4;
-      // printf("Got a FORM chunk size %u\n", chunks[kForm]._size);
     } else if (strcmp((char *)chunkName, "TEXT") == 0) {
       uint32_t textSize = swap_uint32(*(uint32_t *)buff);
       textSize += textSize % 2 != 0 ? 1 : 0;
+      script->textSize = textSize;
       buff += 4;
       readSize += 4;
-      // printf("Got a TEXT chunk size %u\n", textSize);
-      script->chunks[kText]._data = buff;
-      script->chunks[kText]._size = swap_uint32(*(uint32_t *)buff) >> 1;
-      script->chunks[kText]._additional =
-          script->chunks[kText]._data + (script->chunks[kText]._size << 1);
+      script->text = buff;
       buff += textSize;
       readSize += textSize;
     } else if (strcmp((char *)chunkName, "DATA") == 0) {
       uint32_t dataSize = swap_uint32(*(uint32_t *)buff);
       buff += 4;
       readSize += 4;
-      script->chunks[kData]._size = dataSize;
-      script->chunks[kData]._data = buff;
+      script->dataSize = dataSize;
+      script->data = (uint16_t *)buff;
       // printf("Got a DATA chunk size %u\n", dataSize);
       //  mostly it will be the end of the file because all files should end
       //  with a 'DATA' chunk
@@ -62,10 +57,11 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       readSize += 4;
       if (strcmp((char *)chunkName, "EMC2ORDR") == 0) {
         uint32_t chunkSize = swap_uint32(*(uint32_t *)buff);
-        script->chunks[kEmc2Ordr]._size = chunkSize / 2;
+        script->ordrSize = chunkSize / 2;
         buff += 4;
         readSize += 4;
-        script->chunks[kEmc2Ordr]._data = buff;
+        script->ordr = (uint16_t *)buff;
+
         // printf("Got a EMC2ORDR chunk size %u\n", chunkSize);
         buff += chunkSize;
         readSize += chunkSize;
@@ -76,13 +72,19 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
     }
   }
 
-  script->text = script->chunks[kText]._data;
-  script->ordr = (uint16_t *)script->chunks[kEmc2Ordr]._data;
-  script->ordrSize = script->chunks[kEmc2Ordr]._size;
-  script->data = (uint16_t *)script->chunks[kData]._data;
-  script->dataSize = script->chunks[kData]._size;
-
-  return 1; // createSegments(script);
+  if (script->textSize > 0) {
+    assert(script->text);
+    int i = 0;
+    for (; i < script->textSize / 2; i++) {
+      uint16_t *b = (uint16_t *)script->text;
+      uint16_t offset = swap_uint16(b[i]);
+      if (offset >= script->textSize) {
+        break;
+      }
+    }
+    script->numTextStrings = i;
+  }
+  return 1;
 }
 
 int INFScriptGetNumFunctions(const INFScript *script) {
@@ -95,4 +97,13 @@ int INFScriptGetFunctionOffset(const INFScript *script, uint16_t functionNum) {
     return swap_uint16(script->ordr[functionNum]);
   }
   return -1;
+}
+
+const char *INFScriptGetDataString(const INFScript *script, int16_t index) {
+  assert(index <= script->numTextStrings);
+  if (script->textSize == 0) {
+    return NULL;
+  }
+  uint16_t offset = swap_uint16(((uint16_t *)script->text)[index]);
+  return (const char *)script->text + offset;
 }

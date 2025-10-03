@@ -136,7 +136,32 @@ static int cmdVMP(int argc, char *argv[]) {
 }
 
 static void usageScript(void) {
-  printf("script subcommands: test|offsets|disasm [filepath]\n");
+  printf("script subcommands: strings|test|offsets|disasm [filepath]\n");
+}
+
+static int cmdScriptStrings(const char *filepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
+
+  INFScript script = {0};
+  if (!INFScriptFromBuffer(&script, iffData, dataSize)) {
+    printf("INFScriptFromBuffer error\n");
+    if (freeBuffer) {
+      free(iffData);
+    }
+    return 1;
+  }
+
+  printf("got %i strings\n", script.numTextStrings);
+  for (int i = 0; i < script.numTextStrings; i++) {
+    printf("%i '%s'\n", i, INFScriptGetDataString(&script, i));
+  }
+
+  if (freeBuffer) {
+    free(iffData);
+  }
+  return 0;
 }
 
 static int cmdScriptOffsets(const char *filepath) {
@@ -266,6 +291,8 @@ static int cmdScript(int argc, char *argv[]) {
     return cmdScriptOffsets(argv[1]);
   } else if (strcmp(argv[0], "disasm") == 0) {
     return cmdScriptDisasm(argv[1], argc >= 3 ? atoi(argv[2]) : -1);
+  } else if (strcmp(argv[0], "strings") == 0) {
+    return cmdScriptStrings(argv[1]);
   }
   usageScript();
   return 1;

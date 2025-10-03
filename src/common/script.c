@@ -11,9 +11,7 @@
 #include <string.h>
 
 const char *EMCStateGetDataString(const EMCState *state, int16_t index) {
-  uint32_t strIndex = swap_uint16(((uint16_t *)state->dataPtr->text)[index]);
-
-  return (char *)(state->dataPtr->text + strIndex);
+  return INFScriptGetDataString(state->dataPtr, index);
 }
 
 static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode,
