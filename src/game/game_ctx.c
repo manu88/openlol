@@ -2,10 +2,12 @@
 #include "console.h"
 #include "game_envir.h"
 #include <assert.h>
+#include <string.h>
 
 static int runINIScript(GameContext *gameCtx);
 
 int GameContextInit(GameContext *gameCtx) {
+  memset(gameCtx, 0, sizeof(GameContext));
   PAKFileInit(&gameCtx->generalPak);
   if (PAKFileRead(&gameCtx->generalPak, "data/GENERAL.PAK") == 0) {
     printf("unable to read 'data/GENERAL.PAK' file\n");
@@ -161,4 +163,19 @@ int GameContextRunScript(GameContext *gameCtx, int function) {
     }
   }
   return 1;
+}
+
+uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag) {
+  assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
+  return ((gameCtx->gameFlags[flag >> 3] >> (flag & 7)) & 1);
+}
+
+void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag, uint16_t val) {
+  assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
+  gameCtx->gameFlags[flag >> 3] |= (1 << (flag & 7));
+}
+
+void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag) {
+  assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
+  gameCtx->gameFlags[flag >> 3] &= ~(1 << (flag & 7));
 }

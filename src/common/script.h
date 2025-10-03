@@ -161,6 +161,11 @@ typedef struct _EMCInterpreterCallbacks {
                                             uint16_t levelNum,
                                             uint16_t startBlock,
                                             uint16_t startDir);
+
+  uint16_t (*EMCInterpreterCallbacks_TestGameFlag)(EMCInterpreter *interp,
+                                                   uint16_t flag);
+  void (*EMCInterpreterCallbacks_SetGameFlag)(EMCInterpreter *interp,
+                                              uint16_t flag, uint16_t val);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

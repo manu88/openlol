@@ -44,21 +44,20 @@ static uint16_t resetPortraitsAndDisableSysTimer(EMCInterpreter *interp,
 }
 
 static uint16_t setGameFlag(EMCInterpreter *interp, EMCState *state) {
-  printf("setGameFlag\n");
-  return 0;
+  uint16_t flag = EMCStateStackVal(state, 0);
+  uint16_t val = EMCStateStackVal(state, 1);
+  if (interp->callbacks.EMCInterpreterCallbacks_SetGameFlag) {
+    interp->callbacks.EMCInterpreterCallbacks_SetGameFlag(interp, flag, val);
+  }
+  return 1;
 }
 
-static uint8_t _flagsTable[100];
-
-static uint16_t queryGameFlag(uint16_t flag) {
-  return ((_flagsTable[flag >> 3] >> (flag & 7)) & 1);
-}
 static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
   uint16_t p = EMCStateStackVal(state, 0);
-
-  printf("testGameFlag %X\n", p);
-  assert((p >> 3) >= 0 && (p >> 3) <= 100);
-  return queryGameFlag(p);
+  if (interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p)) {
+    return interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p);
+  }
+  return 0;
 }
 
 static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {

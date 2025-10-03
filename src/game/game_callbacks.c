@@ -1,7 +1,9 @@
 #include "game_callbacks.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "script.h"
 #include <assert.h>
+#include <stdint.h>
 
 static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
@@ -151,6 +153,23 @@ static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
   GameContextLoadLevel(gameCtx, levelNum, startBlock, startDir);
 }
 
+static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
+                                uint16_t val) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackGameFlag Set %X %X\n", flag, val);
+  if (val) {
+    GameContextSetGameFlag(gameCtx, flag, val);
+  } else {
+    GameContextResetGameFlag(gameCtx, flag);
+  }
+}
+
+static uint16_t callbackTestGameFlag(EMCInterpreter *interp, uint16_t flag) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackGameFlag Test %X\n", flag);
+  return GameContextGetGameFlag(gameCtx, flag);
+}
+
 static void callbackLoadLevelGraphics(EMCInterpreter *interp,
                                       const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -182,4 +201,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics =
       callbackLoadLevelGraphics;
   interp->callbacks.EMCInterpreterCallbacks_LoadLevel = callbackLoadLevel;
+  interp->callbacks.EMCInterpreterCallbacks_SetGameFlag = callbackSetGameFlag;
+  interp->callbacks.EMCInterpreterCallbacks_TestGameFlag = callbackTestGameFlag;
 }
