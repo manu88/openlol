@@ -327,7 +327,6 @@ static void mainLoop(TIMAnimator *animator) {
       }
     }
     if (stepNext) {
-
       if (TIMInterpreterIsRunning(&animator->_interpreter)) {
         timeToWait = TIMInterpreterUpdate(&animator->_interpreter) * 10;
       } else {

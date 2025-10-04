@@ -12,6 +12,7 @@
 #include "render.h"
 #include "script.h"
 #include "script_builtins.h"
+#include "tim_interpreter.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
