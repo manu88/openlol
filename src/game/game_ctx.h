@@ -14,11 +14,10 @@
 #include "pak_file.h"
 #include "script.h"
 #include "tim_game_animator.h"
-#include <SDL2/SDL_ttf.h>
 #include <stdint.h>
 
-#define SCREEN_WIDTH 1000
-#define SCREEN_HEIGHT 800
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
 
 #define DIALOG_BUFFER_SIZE (size_t)1024
 
@@ -52,7 +51,6 @@ typedef struct _GameContext {
   CPSImage playField;
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;
-  TTF_Font *font;
   PAKFile generalPak;
 
   INFScript script;
@@ -63,9 +61,6 @@ typedef struct _GameContext {
 
   char *dialogTextBuffer;
   char *dialogText; // will either be NULL or pointing to dialogTextBuffer
-  // dev/debug things
-  int consoleHasFocus;
-  char *cmdBuffer;
 
   FNTHandle defaultFont;
   uint8_t gameFlags[100];

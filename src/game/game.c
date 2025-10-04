@@ -3,7 +3,6 @@
 #include "SDL_keyboard.h"
 #include "SDL_keycode.h"
 #include "SDL_render.h"
-#include "console.h"
 #include "dbg_server.h"
 #include "game_callbacks.h"
 #include "game_ctx.h"
@@ -82,11 +81,6 @@ static void clickOnFrontWall(GameContext *gameCtx) {
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   int shouldUpdate = 1;
   switch (e->key.keysym.sym) {
-  case SDLK_ESCAPE:
-    gameCtx->consoleHasFocus = 1;
-    printf("set console focus\n");
-    SDL_StartTextInput();
-    break;
   case SDLK_z:
     // go front
     shouldUpdate = 1;
@@ -201,9 +195,7 @@ static void GameRender(GameContext *gameCtx) {
   }
 
   renderDialog(gameCtx);
-
-  renderTextStats(gameCtx);
-  GameRenderMap(gameCtx, 640, 350);
+  // GameRenderMap(gameCtx, 640, 350);
   SDL_RenderPresent(gameCtx->renderer);
 }
 
@@ -227,11 +219,13 @@ static int GameRun(GameContext *gameCtx) {
     if (e.type == SDL_QUIT) {
       quit = 1;
     }
-    if (gameCtx->consoleHasFocus) {
-      shouldUpdate = processConsoleInputs(gameCtx, &e);
-    } else if (gameCtx->state == GameState_PlayGame) {
+    if (gameCtx->state == GameState_PlayGame) {
       if (e.type == SDL_KEYDOWN) {
         shouldUpdate = processGameInputs(gameCtx, &e);
+        uint16_t gameX = 0;
+        uint16_t gameY = 0;
+        GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
+        gameCtx->currentBock = BlockFromCoords(gameX, gameY);
       }
     } else if (gameCtx->state == GameState_TimAnimation) {
       if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
