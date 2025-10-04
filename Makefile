@@ -2,7 +2,7 @@ CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags sdl2_image` `pkg-con
 
 LDFLAGS=  `pkg-config --libs sdl2_image` `pkg-config --libs sdl2_ttf`
 
-SOURCES=$(wildcard src/*.c) $(wildcard src/common/*.c) $(wildcard src/common/formats/*.c) $(wildcard src/game/*.c)
+SOURCES=$(wildcard src/*.c) $(wildcard src/common/*.c) $(wildcard src/common/formats/*.c) $(wildcard src/game/*.c) $(wildcard src/dbg/*.c)
 
 OBJECTS=$(filter %.o,$(SOURCES:.c=.o))
 

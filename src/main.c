@@ -1,5 +1,6 @@
 
 #include "bytes.h"
+#include "dbg/debugger.h"
 #include "formats/format_cmz.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
@@ -982,6 +983,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdSAV(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "fnt") == 0) {
     return cmdFNT(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "dbg") == 0) {
+    return cmdDbg(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);

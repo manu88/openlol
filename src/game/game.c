@@ -4,6 +4,7 @@
 #include "SDL_keycode.h"
 #include "SDL_render.h"
 #include "console.h"
+#include "dbg_server.h"
 #include "game_callbacks.h"
 #include "game_ctx.h"
 #include "game_envir.h"
@@ -12,7 +13,6 @@
 #include "render.h"
 #include "script.h"
 #include "script_builtins.h"
-#include "tim_interpreter.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <assert.h>
@@ -213,7 +213,7 @@ static int GameRun(GameContext *gameCtx) {
 
   // Event loop
   while (!quit) {
-
+    DBGServerUpdate();
     while (gameCtx->state == GameState_PlayGame &&
            EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
       if (EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState) == 0) {

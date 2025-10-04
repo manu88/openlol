@@ -1,5 +1,6 @@
 #include "game_ctx.h"
 #include "console.h"
+#include "dbg_server.h"
 #include "game_envir.h"
 #include "tim_game_animator.h"
 #include <assert.h>
@@ -78,6 +79,8 @@ int GameContextInit(GameContext *gameCtx) {
   assert(gameCtx->dialogTextBuffer);
   setupConsole(gameCtx);
   snprintf(gameCtx->cmdBuffer, 1024, "> ");
+
+  DBGServerInit();
 
   return 1;
 }
