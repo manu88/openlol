@@ -180,6 +180,8 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
     assert(GameEnvironmentGetFileWithExt(&f, file, "VCN"));
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
+
+    gameCtx->timAnimator.defaultPalette = gameCtx->level->vcnHandle.palette;
   }
   {
     GameFile f = {0};

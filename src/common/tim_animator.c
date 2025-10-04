@@ -137,7 +137,7 @@ static void callbackWSARelease(TIMInterpreter *interp, int index) {
 
 static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
                            size_t dataSize, const uint8_t *paletteBuffer, int w,
-                           int h, int doXOR) {
+                           int h) {
   assert(animator->pixBuf);
   void *data;
   int pitch;
@@ -173,12 +173,13 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
   printf("TIMAnimator: callbackWSADisplayFrame frameIndex=%i fram=%i\n",
          frameIndex, frame);
 
-  WSAHandleGetFrame(&animator->wsa, frame, animator->wsaFrameBuffer, 1);
+  WSAHandleGetFrame(&animator->wsa, frame, animator->wsaFrameBuffer,
+                    animator->wsaFlags & WSA_XOR);
   assert(animator->wsaFrameBuffer);
   size_t fullSize = animator->wsa.header.width * animator->wsa.header.height;
   renderWSAFrame(animator, animator->wsaFrameBuffer, fullSize,
                  animator->wsa.header.palette, animator->wsa.header.width,
-                 animator->wsa.header.height, animator->wsaFlags & WSA_XOR);
+                 animator->wsa.header.height);
 }
 
 static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId,

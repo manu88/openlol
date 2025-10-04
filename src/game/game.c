@@ -194,7 +194,9 @@ static void GameRender(GameContext *gameCtx) {
     GameRenderScene(gameCtx);
     break;
   case GameState_TimAnimation:
-    GameTimAnimatorRender(&gameCtx->timAnimator);
+    if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
+      GameContextSetState(gameCtx, GameState_PlayGame);
+    }
     break;
   }
 
@@ -211,8 +213,17 @@ static int GameRun(GameContext *gameCtx) {
 
   // Event loop
   while (!quit) {
+
+    while (gameCtx->state == GameState_PlayGame &&
+           EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
+      if (EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState) == 0) {
+        printf("EMCInterpreterRun returned 0\n");
+      }
+      shouldUpdate = 1;
+    }
+
     SDL_Event e;
-    SDL_WaitEventTimeout(&e, 200);
+    SDL_WaitEventTimeout(&e, 20);
     if (e.type == SDL_QUIT) {
       quit = 1;
     }

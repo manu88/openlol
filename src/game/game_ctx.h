@@ -13,7 +13,6 @@
 #include "geometry.h"
 #include "pak_file.h"
 #include "script.h"
-#include "tim_animator.h"
 #include "tim_game_animator.h"
 #include <SDL2/SDL_ttf.h>
 #include <stdint.h>
@@ -58,7 +57,9 @@ typedef struct _GameContext {
 
   INFScript script;
   INFScript iniScript;
+
   EMCInterpreter interp;
+  EMCState interpState;
 
   char *dialogTextBuffer;
   char *dialogText; // will either be NULL or pointing to dialogTextBuffer

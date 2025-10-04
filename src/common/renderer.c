@@ -174,8 +174,7 @@ static uint8_t getColor(uint8_t p) {
 void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
               int xOff, int yOff) {
   if (c >= font->numGlyphs) {
-    printf("char %x %c not in font\n", c, c);
-    c = 0;
+    return;
   }
 
   if (!font->bitmapOffsets[c]) {

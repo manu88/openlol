@@ -1,26 +1,37 @@
 #pragma once
 
+#include "SDL_render.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
 #include "tim_interpreter.h"
+#include <SDL2/SDL.h>
 #include <stdint.h>
 
 #define NUM_TIM_ANIMATIONS 4
 
 typedef struct {
+  SDL_Renderer *renderer;
   TIMInterpreter timInterpreter;
   uint16_t currentTimScriptId;
 
   WSAHandle wsa;
+  int wsaFlags;
+  int wsaX;
+  int wsaY;
 
   TIMHandle tim[NUM_TIM_ANIMATIONS];
+
+  uint8_t *wsaFrameBuffer;
+  SDL_Texture *pixBuf;
+
+  uint8_t *defaultPalette;
 } GameTimAnimator;
 
-void GameTimAnimatorInit(GameTimAnimator *animator);
-
+void GameTimAnimatorInit(GameTimAnimator *animator, SDL_Renderer *renderer);
+void GameTimAnimatorRelease(GameTimAnimator *animator);
 void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
                             const char *file);
 void GameTimAnimatorRunTim(GameTimAnimator *animator, uint16_t scriptId);
 void GameTimAnimatorReleaseTim(GameTimAnimator *animator, uint16_t scriptId);
 
-void GameTimAnimatorRender(GameTimAnimator *animator);
+int GameTimAnimatorRender(GameTimAnimator *animator);

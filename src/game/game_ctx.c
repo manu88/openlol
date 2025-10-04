@@ -73,7 +73,7 @@ int GameContextInit(GameContext *gameCtx) {
     }
   }
 
-  GameTimAnimatorInit(&gameCtx->timAnimator);
+  GameTimAnimatorInit(&gameCtx->timAnimator, gameCtx->renderer);
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
   setupConsole(gameCtx);
@@ -149,20 +149,12 @@ int GameContextRunLevelInitScript(GameContext *gameCtx) {
 }
 
 int GameContextRunScript(GameContext *gameCtx, int function) {
-  EMCState state = {0};
-  EMCStateInit(&state, &gameCtx->script);
-  EMCStateSetOffset(&state, 0);
+  EMCStateInit(&gameCtx->interpState, &gameCtx->script);
+  EMCStateSetOffset(&gameCtx->interpState, 0);
   if (function > 0) {
-    if (!EMCStateStart(&state, function)) {
+    if (!EMCStateStart(&gameCtx->interpState, function)) {
       printf("EMCInterpreterStart: invalid\n");
       return 0;
-    }
-  }
-
-  state.regs[5] = gameCtx->currentBock;
-  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
-    if (EMCInterpreterRun(&gameCtx->interp, &state) == 0) {
-      printf("EMCInterpreterRun returned 0\n");
     }
   }
   return 1;
