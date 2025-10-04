@@ -70,41 +70,30 @@ void GameEnvironmentRelease(void) {
   PAKFileRelease(&_envir.pakGeneral);
 }
 
-int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {
-  int index = PakFileGetEntryIndex(&_envir.pakGeneral, name);
+static int getFile(PAKFile *pak, GameFile *file, const char *name) {
+  int index = PakFileGetEntryIndex(pak, name);
   if (index == -1) {
     printf("GameEnvironmentGetFile no such file '%s' in %s\n", name,
            generalPakName);
     return 0;
   }
-  size_t size = _envir.pakGeneral.entries[index].fileSize;
+  size_t size = pak->entries[index].fileSize;
   if (size) {
-    file->buffer = PakFileGetEntryData(&_envir.pakGeneral, index);
-    file->bufferSize = _envir.pakGeneral.entries[index].fileSize;
+    file->buffer = PakFileGetEntryData(pak, index);
+    file->bufferSize = pak->entries[index].fileSize;
     return 1;
   }
   return 0;
 }
 
+int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {
+  return getFile(&_envir.pakGeneral, file, name);
+}
+
 int GameEnvironmentGetFile(GameFile *file, const char *name) {
   assert(file);
   assert(name);
-  printf("GameEnvironmentGetFile: '%s'\n", name);
-  if (_envir.pakChapter == NULL) {
-    return 0;
-  }
-  int index = PakFileGetEntryIndex(_envir.pakChapter, name);
-  if (index == -1) {
-    printf("GameEnvironmentGetFile no such file '%s'\n", name);
-    return 0;
-  }
-  size_t size = _envir.pakChapter->entries[index].fileSize;
-  if (size) {
-    file->buffer = PakFileGetEntryData(_envir.pakChapter, index);
-    file->bufferSize = _envir.pakChapter->entries[index].fileSize;
-    return 1;
-  }
-  return 0;
+  return getFile(_envir.pakChapter, file, name);
 }
 
 int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,
