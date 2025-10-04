@@ -193,21 +193,19 @@ static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                   const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackLoadTimScript %x :'%s'.TIM\n", scriptId, file);
-  GameFile f = {0};
-  assert(GameEnvironmentGetFileWithExt(&f, file, "TIM"));
-  assert(TIMHandleFromBuffer(&gameCtx->tim[scriptId], f.buffer, f.bufferSize));
+  GameTimAnimatorLoadTim(&gameCtx->timAnimator, scriptId, file);
 }
 
 static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                  uint16_t loop) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackRunTimScript scriptId=%X loop=%X\n", scriptId, loop);
-  if (!gameCtx->tim[scriptId].avtl) {
+  if (!gameCtx->timAnimator.tim[scriptId].avtl) {
     printf("NO TIM loaded\n");
     return;
   }
-
-  TIMAnimatorRunAnim(&gameCtx->_timAnimator, &gameCtx->tim[scriptId]);
+  GameContextSetState(gameCtx, GameState_TimAnimation);
+  GameTimAnimatorRunTim(&gameCtx->timAnimator, scriptId);
 }
 
 static void callbackReleaseTimScript(EMCInterpreter *interp,
@@ -215,7 +213,7 @@ static void callbackReleaseTimScript(EMCInterpreter *interp,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackReleaseTimScript script=%X\n", scriptId);
 
-  TIMHandleInit(&gameCtx->tim[scriptId]);
+  GameTimAnimatorReleaseTim(&gameCtx->timAnimator, scriptId);
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {

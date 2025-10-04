@@ -2,10 +2,8 @@
 #include "SDL_render.h"
 #include "geometry.h"
 #include "renderer.h"
+#include <assert.h>
 #include <stdint.h>
-
-static void GameRenderMap(GameContext *gameCtx, int xOff, int yOff);
-static void GameRenderScene(GameContext *gameCtx);
 
 static void renderCPS(SDL_Renderer *renderer, const uint8_t *imgData,
                       size_t dataSize, const uint8_t *paletteBuffer, int w,
@@ -39,18 +37,12 @@ static void renderCPS(SDL_Renderer *renderer, const uint8_t *imgData,
   }
 }
 
-static void renderBackground(GameContext *gameCtx) {
+void renderBackground(GameContext *gameCtx) {
   renderCPS(gameCtx->renderer, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette, 320, 200);
   SDL_Rect r = {MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W, MAZE_COORDS_H};
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 255);
   SDL_RenderFillRect(gameCtx->renderer, &r);
-}
-
-void GameRenderFrame(GameContext *gameCtx) {
-  renderBackground(gameCtx);
-  GameRenderMap(gameCtx, 640, 350);
-  GameRenderScene(gameCtx);
 }
 
 typedef struct {
@@ -203,7 +195,7 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   }
 }
 
-static void GameRenderMap(GameContext *gameCtx, int xOff, int yOff) {
+void GameRenderMap(GameContext *gameCtx, int xOff, int yOff) {
   SDL_Renderer *renderer = gameCtx->renderer;
   const int cellSize = 12;
   SDL_Rect mapRect;
@@ -271,12 +263,16 @@ static void GameRenderMap(GameContext *gameCtx, int xOff, int yOff) {
           break;
         }
       }
-      computeViewConeCells(gameCtx, x, y);
     } // y loop
   } // x loop
 }
 
-static void GameRenderScene(GameContext *gameCtx) {
+void GameRenderScene(GameContext *gameCtx) {
+  for (int x = 0; x < 32; x++) {
+    for (int y = 0; y < 32; y++) {
+      computeViewConeCells(gameCtx, x, y);
+    }
+  }
   SDL_Renderer *renderer = gameCtx->renderer;
   LevelContext *level = gameCtx->level;
   drawBackground(renderer, &level->vcnHandle, &level->vmpHandle);

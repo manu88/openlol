@@ -1,4 +1,6 @@
 #pragma once
-#include "game.h"
+#include "game_ctx.h"
 
-void GameRenderFrame(GameContext *ctx);
+void renderBackground(GameContext *gameCtx);
+void GameRenderMap(GameContext *gameCtx, int xOff, int yOff);
+void GameRenderScene(GameContext *gameCtx);

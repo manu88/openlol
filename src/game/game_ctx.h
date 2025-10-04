@@ -14,6 +14,7 @@
 #include "pak_file.h"
 #include "script.h"
 #include "tim_animator.h"
+#include "tim_game_animator.h"
 #include <SDL2/SDL_ttf.h>
 #include <stdint.h>
 
@@ -33,9 +34,13 @@ typedef struct {
 
 } LevelContext;
 
-#define NUM_TIM_ANIMATIONS 4
-typedef struct _GameContext {
+typedef enum {
+  GameState_PlayGame = 0,
+  GameState_TimAnimation = 1,
+} GameState;
 
+typedef struct _GameContext {
+  GameState state;
   uint16_t currentBock;
   Point partyPos;
   Orientation orientation;
@@ -64,8 +69,8 @@ typedef struct _GameContext {
   FNTHandle defaultFont;
   uint8_t gameFlags[100];
 
-  TIMHandle tim[NUM_TIM_ANIMATIONS];
-  TIMAnimator _timAnimator;
+  GameTimAnimator timAnimator;
+
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
@@ -79,3 +84,5 @@ int GameContextRunScript(GameContext *gameCtx, int function);
 uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag);
 void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag, uint16_t val);
 void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag);
+
+void GameContextSetState(GameContext *gameCtx, GameState newState);

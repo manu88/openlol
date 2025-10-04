@@ -1,6 +1,7 @@
 #include "game_ctx.h"
 #include "console.h"
 #include "game_envir.h"
+#include "tim_game_animator.h"
 #include <assert.h>
 #include <string.h>
 
@@ -72,7 +73,7 @@ int GameContextInit(GameContext *gameCtx) {
     }
   }
 
-  TIMAnimatorInit(&gameCtx->_timAnimator);
+  GameTimAnimatorInit(&gameCtx->timAnimator);
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
   setupConsole(gameCtx);
@@ -180,4 +181,9 @@ void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag, uint16_t val) {
 void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag) {
   assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
   gameCtx->gameFlags[flag >> 3] &= ~(1 << (flag & 7));
+}
+
+void GameContextSetState(GameContext *gameCtx, GameState newState) {
+  printf("GameContextSetState from %i to %i\n", gameCtx->state, newState);
+  gameCtx->state = newState;
 }

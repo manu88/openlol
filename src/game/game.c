@@ -5,6 +5,7 @@
 #include "SDL_render.h"
 #include "console.h"
 #include "game_callbacks.h"
+#include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
 #include "geometry.h"
@@ -185,9 +186,21 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
 static void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   SDL_RenderClear(gameCtx->renderer);
-  GameRenderFrame(gameCtx);
-  renderTextStats(gameCtx);
+  renderBackground(gameCtx);
+
+  switch (gameCtx->state) {
+  case GameState_PlayGame:
+    GameRenderScene(gameCtx);
+    break;
+  case GameState_TimAnimation:
+    GameTimAnimatorRender(&gameCtx->timAnimator);
+    break;
+  }
+
   renderDialog(gameCtx);
+
+  renderTextStats(gameCtx);
+  GameRenderMap(gameCtx, 640, 350);
   SDL_RenderPresent(gameCtx->renderer);
 }
 
@@ -198,15 +211,19 @@ static int GameRun(GameContext *gameCtx) {
   // Event loop
   while (!quit) {
     SDL_Event e;
-    SDL_WaitEvent(&e);
+    SDL_WaitEventTimeout(&e, 200);
     if (e.type == SDL_QUIT) {
       quit = 1;
     }
     if (gameCtx->consoleHasFocus) {
       shouldUpdate = processConsoleInputs(gameCtx, &e);
-    } else {
+    } else if (gameCtx->state == GameState_PlayGame) {
       if (e.type == SDL_KEYDOWN) {
         shouldUpdate = processGameInputs(gameCtx, &e);
+      }
+    } else if (gameCtx->state == GameState_TimAnimation) {
+      if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
+        shouldUpdate = 1;
       }
     }
     if (shouldUpdate) {
