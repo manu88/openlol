@@ -1,7 +1,9 @@
 #include "game_envir.h"
 #include "formats/format_lang.h"
 #include "pak_file.h"
+#include <_string.h>
 #include <assert.h>
+#include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -70,11 +72,27 @@ void GameEnvironmentRelease(void) {
   PAKFileRelease(&_envir.pakGeneral);
 }
 
+char *strtoupper(char *dest, const char *src) {
+  char *result = dest;
+  while ((*dest++ = toupper(*src++)))
+    ;
+  return result;
+}
+
 static int getFile(PAKFile *pak, GameFile *file, const char *name) {
   int index = PakFileGetEntryIndex(pak, name);
   if (index == -1) {
     printf("GameEnvironmentGetFile no such file '%s' in %s\n", name,
            generalPakName);
+    if (islower(name[0])) {
+
+      // try with upper name
+      char *upperName = strdup(name);
+      strtoupper(upperName, name);
+      int ret = getFile(pak, file, upperName);
+      free(upperName);
+      return ret;
+    }
     return 0;
   }
   size_t size = pak->entries[index].fileSize;
