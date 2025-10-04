@@ -86,6 +86,7 @@ int GameContextInit(GameContext *gameCtx) {
 }
 
 void GameContextRelease(GameContext *gameCtx) {
+  DBGServerRelease();
   SDL_DestroyRenderer(gameCtx->renderer);
   SDL_DestroyWindow(gameCtx->window);
   if (gameCtx->font) {

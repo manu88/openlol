@@ -1,4 +1,5 @@
 #include "dbg_server.h"
+#include "dbg_msgs.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -12,14 +13,16 @@
 
 static int server_fd;
 static struct sockaddr_in address;
+int cltSocket;
 
+void DBGServerRelease(void) { close(cltSocket); }
 int DBGServerInit(void) {
   printf("INIT DBG Server\n");
 
   // Creating socket file descriptor
   if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
     perror("In socket");
-    exit(EXIT_FAILURE);
+    return 1;
   }
 
   address.sin_family = AF_INET;
@@ -30,27 +33,22 @@ int DBGServerInit(void) {
 
   if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
     perror("In bind");
-    exit(EXIT_FAILURE);
+    return 1;
   }
   if (listen(server_fd, 10) < 0) {
     perror("In listen");
-    exit(EXIT_FAILURE);
+    return 1;
   }
 
   fcntl(server_fd, F_SETFL, O_NONBLOCK);
   return 0;
 }
 
-static char buffer[1024] = {0};
-
 void DBGServerUpdate(void) {
-  int new_socket;
   int addrlen = sizeof(address);
-  long valread;
 
-  char *hello = "Hello from server";
-  if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                           (socklen_t *)&addrlen)) < 0) {
+  if ((cltSocket = accept(server_fd, (struct sockaddr *)&address,
+                          (socklen_t *)&addrlen)) < 0) {
     if (errno == EAGAIN) {
       return;
     }
@@ -58,9 +56,9 @@ void DBGServerUpdate(void) {
     return;
   }
 
-  valread = read(new_socket, buffer, 1024);
-  printf("%s\n", buffer);
-  write(new_socket, hello, strlen(hello));
-  printf("------------------Hello message sent-------------------\n");
-  close(new_socket);
+  DBGMsgHeader header = {0};
+  header.type = DBGMsgType_Hello;
+  header.dataSize = 12;
+
+  write(cltSocket, &header, sizeof(DBGMsgHeader));
 }
