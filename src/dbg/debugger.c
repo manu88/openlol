@@ -2,18 +2,18 @@
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/_types/_ssize_t.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-#define PORT 8080
 
 static char cmdInputBuffer[1024];
 
 static int shouldStop = 0;
-
+static int sock = 0;
 static void readCommand(void) {
   printf(">: ");
   fflush(stdout);
@@ -24,11 +24,19 @@ static void readCommand(void) {
   cmdInputBuffer[ret - 1] = 0;
   if (strcmp(cmdInputBuffer, "exit") == 0) {
     shouldStop = 1;
-  }
-  printf("'%s'\n", cmdInputBuffer);
-}
+  } else if (strcmp(cmdInputBuffer, "status") == 0) {
+    DBGMsgHeader header = {.type = DBGMsgType_StatusRequest, 0};
+    write(sock, &header, sizeof(DBGMsgHeader));
 
-static int sock = 0;
+    read(sock, &header, sizeof(DBGMsgHeader));
+    DBGMsgStatus status;
+    read(sock, &status, sizeof(DBGMsgStatus));
+    printf("received %i %i current block %X\n", header.type, header.dataSize,
+           status.currentBock);
+  } else {
+    printf("unknow command '%s'\n", cmdInputBuffer);
+  }
+}
 
 static int connectToServer(const char *ip) {
 
@@ -42,7 +50,7 @@ static int connectToServer(const char *ip) {
   memset(&serv_addr, 0, sizeof(serv_addr));
 
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(PORT);
+  serv_addr.sin_port = htons(DBG_PORT);
 
   // Convert IPv4 and IPv6 addresses from text to binary form
   if (inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0) {
@@ -57,6 +65,24 @@ static int connectToServer(const char *ip) {
   return 0;
 }
 
+static uint8_t recvBuf[1024];
+
+static void processRecvMsg(const DBGMsgHeader *header, uint8_t *buffer) {
+  switch ((DBGMsgType)header->type) {
+
+  case DBGMsgType_Hello:
+    printf("received Hello\n");
+    break;
+
+  case DBGMsgType_StatusResponse:
+    break;
+
+  case DBGMsgType_StatusRequest:
+  default:
+    assert(0);
+  }
+}
+
 int cmdDbg(int argc, char *argv[]) {
   printf("Start debugger\n");
 
@@ -65,10 +91,17 @@ int cmdDbg(int argc, char *argv[]) {
   }
 
   DBGMsgHeader header = {0};
-
   assert(read(sock, &header, sizeof(DBGMsgHeader)) == sizeof(DBGMsgHeader));
 
   printf("received type=%i size=%i\n", header.type, header.dataSize);
+  if (header.dataSize) {
+    ssize_t dataSizeRead = read(sock, recvBuf, sizeof(recvBuf));
+    if (dataSizeRead <= 0) {
+      perror("read data");
+      return 0;
+    }
+    processRecvMsg(&header, header.dataSize ? recvBuf : NULL);
+  }
 
   shouldStop = 0;
   while (!shouldStop) {

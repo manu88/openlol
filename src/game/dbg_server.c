@@ -1,5 +1,7 @@
 #include "dbg_server.h"
 #include "dbg_msgs.h"
+#include "game_ctx.h"
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -9,13 +11,19 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define PORT 8080
-
 static int server_fd;
 static struct sockaddr_in address;
-int cltSocket;
+int cltSocket = -1;
 
-void DBGServerRelease(void) { close(cltSocket); }
+void DBGServerRelease(void) {
+  printf("DBGServerRelease");
+  if (cltSocket != -1) {
+    DBGMsgHeader outHeader = {.type = DBGMsgType_Goodbye, sizeof(DBGMsgStatus)};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+  }
+  close(cltSocket);
+}
+
 int DBGServerInit(void) {
   printf("INIT DBG Server\n");
 
@@ -27,7 +35,7 @@ int DBGServerInit(void) {
 
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(PORT);
+  address.sin_port = htons(DBG_PORT);
 
   memset(address.sin_zero, '\0', sizeof address.sin_zero);
 
@@ -44,21 +52,66 @@ int DBGServerInit(void) {
   return 0;
 }
 
-void DBGServerUpdate(void) {
+static void processRecvMsg(const GameContext *gameCtx,
+                           const DBGMsgHeader *header, uint8_t *buffer) {
+  switch ((DBGMsgType)header->type) {
+
+  case DBGMsgType_StatusRequest:
+    printf("received StatusRequest\n");
+    DBGMsgHeader outHeader = {.type = DBGMsgType_StatusResponse,
+                              sizeof(DBGMsgStatus)};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMsgStatus s = {.currentBock = gameCtx->currentBock};
+    write(cltSocket, &s, sizeof(DBGMsgStatus));
+    break;
+
+  case DBGMsgType_StatusResponse:
+  case DBGMsgType_Hello:
+  default:
+    assert(0);
+  }
+}
+
+static uint8_t recvBuf[1024];
+
+void DBGServerUpdate(const GameContext *gameCtx) {
   int addrlen = sizeof(address);
 
-  if ((cltSocket = accept(server_fd, (struct sockaddr *)&address,
-                          (socklen_t *)&addrlen)) < 0) {
-    if (errno == EAGAIN) {
+  if (cltSocket == -1) {
+    if ((cltSocket = accept(server_fd, (struct sockaddr *)&address,
+                            (socklen_t *)&addrlen)) < 0) {
+      if (errno == EAGAIN) {
+        return;
+      }
+      perror("In accept");
       return;
     }
-    perror("In accept");
-    return;
+    printf("new client\n");
+    fcntl(cltSocket, F_SETFL, O_NONBLOCK);
+    DBGMsgHeader header = {0};
+    header.type = DBGMsgType_Hello;
+    header.dataSize = 0;
+
+    write(cltSocket, &header, sizeof(DBGMsgHeader));
+  } else {
+    ssize_t ret = read(cltSocket, recvBuf, sizeof(recvBuf));
+    if (ret == 0) {
+      printf("Client connection closed\n");
+      close(cltSocket);
+      cltSocket = -1;
+    } else if (ret == -1) {
+      if (errno == EAGAIN) {
+        return;
+      } else {
+        perror("read");
+      }
+    } else {
+      printf("received %zi bytes\n", ret);
+      if (ret == sizeof(DBGMsgHeader)) {
+        const DBGMsgHeader *header = (const DBGMsgHeader *)recvBuf;
+        printf("received msg %i %i\n", header->type, header->dataSize);
+        processRecvMsg(gameCtx, header, NULL);
+      }
+    }
   }
-
-  DBGMsgHeader header = {0};
-  header.type = DBGMsgType_Hello;
-  header.dataSize = 12;
-
-  write(cltSocket, &header, sizeof(DBGMsgHeader));
 }
