@@ -10,7 +10,7 @@
 #define NUM_TIM_ANIMATIONS 4
 
 typedef struct {
-  
+
   TIMInterpreter timInterpreter;
   uint16_t currentTimScriptId;
 
@@ -27,7 +27,9 @@ typedef struct {
   uint8_t *defaultPalette;
 } GameTimAnimator;
 
-void GameTimAnimatorInit(GameTimAnimator *animator, SDL_Texture *pixBuf);
+typedef struct _GameContext GameContext;
+
+void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf);
 void GameTimAnimatorRelease(GameTimAnimator *animator);
 void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
                             const char *file);

@@ -20,6 +20,9 @@ typedef struct {
                                               const uint16_t buttonStrIds[3]);
   void (*TIMInterpreterCallbacks_InitSceneDialog)(TIMInterpreter *interp,
                                                   int controlMode);
+
+  void (*TIMInterpreterCallbacks_FadeClearWindow)(TIMInterpreter *interp,
+                                                  uint16_t param);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {

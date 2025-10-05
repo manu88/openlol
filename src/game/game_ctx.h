@@ -10,10 +10,10 @@
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
 #include "formats/format_wll.h"
+#include "game_tim_animator.h"
 #include "geometry.h"
 #include "pak_file.h"
 #include "script.h"
-#include "tim_game_animator.h"
 #include <stdint.h>
 
 #define SCREEN_WIDTH 1280

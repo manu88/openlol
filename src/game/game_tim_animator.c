@@ -1,17 +1,18 @@
-#include "tim_game_animator.h"
+#include "game_tim_animator.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
 #include "game_envir.h"
-#include "geometry.h"
 #include "renderer.h"
 #include "tim_interpreter.h"
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
-                            int y, int offscreen, int flags) {
-  GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
+static void callbackTIM_WSAInit(TIMInterpreter *interp, const char *wsaFile,
+                                int x, int y, int offscreen, int flags) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
   GameFile f = {0};
   printf("----> GameTimAnimator load wsa file '%s'\n", wsaFile);
@@ -65,9 +66,10 @@ static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
   SDL_UnlockTexture(animator->pixBuf);
 }
 
-static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
-                                    int frame) {
-  GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
+static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int frameIndex,
+                                        int frame) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
 
   printf("GameTimAnimator: callbackWSADisplayFrame frameIndex=%i fram=%i x=%i "
@@ -82,52 +84,65 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
                  animator->wsa.header.height);
 }
 
-static void callbackWSARelease(TIMInterpreter *interp, int index) {
+static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
+                                        uint16_t param) {
+  printf("GameTimAnimator: callbackFadeClearWindow param=%x\n", param);
+}
+
+static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   printf("GameTimAnimator: callbackWSARelease index=%i\n", index);
-  GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
   WSAHandleRelease(&animator->wsa);
 }
 
-static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId,
-                                 int argc, const uint16_t *argv) {
-  GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
+static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
+                                     int argc, const uint16_t *argv) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
   printf("GameTimAnimator callbackPlayDialogue stringId=%i argc=%i\n", stringId,
          argc);
 }
 
-static void callbackShowButtons(TIMInterpreter *interp, uint16_t functionId,
-                                const uint16_t buttonStrIds[3]) {
+static void callbackTIM_ShowButtons(TIMInterpreter *interp, uint16_t functionId,
+                                    const uint16_t buttonStrIds[3]) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
+  assert(animator);
   printf("GameTimAnimator callbackShowButtons  %X %X %X\n", buttonStrIds[0],
          buttonStrIds[1], buttonStrIds[2]);
-  GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
-  assert(animator);
 }
 
-static void callbackInitSceneDialog(TIMInterpreter *interp, int controlMode) {
-  GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
+static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
+                                        int controlMode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
   printf("GameTimAnimator callbackInitSceneDialog controlMode=%X\n",
          controlMode);
 }
 
-void GameTimAnimatorInit(GameTimAnimator *animator, SDL_Texture *pixBuf) {
+void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
+  GameTimAnimator *animator = &gameCtx->timAnimator;
   memset(animator, 0, sizeof(GameTimAnimator));
   TIMInterpreterInit(&animator->timInterpreter);
-  animator->timInterpreter.callbackCtx = animator;
+  animator->timInterpreter.callbackCtx = gameCtx;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSAInit =
-      callbackWSAInit;
+      callbackTIM_WSAInit;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSADisplayFrame =
-      callbackWSADisplayFrame;
+      callbackTIM_WSADisplayFrame;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_PlayDialogue =
-      callbackPlayDialogue;
+      callbackTIM_PlayDialogue;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_ShowButtons =
-      callbackShowButtons;
+      callbackTIM_ShowButtons;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_InitSceneDialog =
-      callbackInitSceneDialog;
+      callbackTIM_InitSceneDialog;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSARelease =
-      callbackWSARelease;
+      callbackTIM_WSARelease;
+  animator->timInterpreter.callbacks.TIMInterpreterCallbacks_FadeClearWindow =
+      callbackTIM_FadeClearWindow;
 
   animator->pixBuf = pixBuf;
 }

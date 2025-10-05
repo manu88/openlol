@@ -2,7 +2,7 @@
 #include "SDL_render.h"
 #include "dbg_server.h"
 #include "game_envir.h"
-#include "tim_game_animator.h"
+#include "game_tim_animator.h"
 #include <assert.h>
 #include <string.h>
 
@@ -64,7 +64,7 @@ int GameContextInit(GameContext *gameCtx) {
     printf("unable to get FONT6P.FNT data\n");
   }
 
-  GameTimAnimatorInit(&gameCtx->timAnimator, gameCtx->pixBuf);
+  GameTimAnimatorInit(gameCtx, gameCtx->pixBuf);
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
 

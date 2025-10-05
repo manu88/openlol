@@ -90,7 +90,6 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
   params++;
   switch (timOpCode) {
   case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE:
-    printf("\t TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE %i params\n", numParams);
     if (interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog) {
       interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog(interp,
                                                                 params[0]);
@@ -107,10 +106,12 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     printf("\t TIM_OPCODE_SET_PARTY_POS %i params\n", numParams);
     break;
   case TIM_OPCODE_FADE_CLEAR_WINDOW:
-    printf("\t TIM_OPCODE_FADE_CLEAR_WINDOW %i params\n", numParams);
+    if (interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow) {
+      interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow(interp,
+                                                                params[0]);
+    }
     break;
   case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
-    printf("\t TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT %i params\n", numParams);
     if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
       interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(
           interp, params[0], numParams - 1, numParams > 1 ? params + 1 : NULL);
