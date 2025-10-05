@@ -57,7 +57,9 @@ static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
       uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
       uint32_t *row =
           (unsigned int *)((char *)data + pitch * (animator->wsaY + y));
-      row[animator->wsaX + x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+      if (r && g && b) {
+        row[animator->wsaX + x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+      }
     }
   }
   SDL_UnlockTexture(animator->pixBuf);

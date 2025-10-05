@@ -16,8 +16,8 @@
 #include "tim_game_animator.h"
 #include <stdint.h>
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 400
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 800
 
 #define PIX_BUF_WIDTH 320
 #define PIX_BUF_HEIGHT 200

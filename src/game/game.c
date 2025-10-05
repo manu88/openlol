@@ -184,15 +184,12 @@ static void GameRender(GameContext *gameCtx) {
   SDL_RenderClear(gameCtx->renderer);
   renderBackground(gameCtx);
 
-  switch (gameCtx->state) {
-  case GameState_PlayGame:
-    GameRenderScene(gameCtx);
-    break;
-  case GameState_TimAnimation:
+  GameRenderScene(gameCtx);
+
+  if (gameCtx->state == GameState_TimAnimation) {
     if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
-    break;
   }
   renderDialog(gameCtx);
   // GameRenderMap(gameCtx, 640, 350);
