@@ -12,7 +12,7 @@ void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
   int y = yOff;
   for (int i = 0; i < strlen(text) - 1; i++) {
 
-    drawChar(gameCtx->renderer, &gameCtx->defaultFont, text[i], x, y);
+    drawChar2(gameCtx->pixBuf, &gameCtx->defaultFont, text[i], x, y);
     x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
     if (x - xOff >= width) {
       x = xOff;

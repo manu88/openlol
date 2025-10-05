@@ -34,16 +34,6 @@ static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
   memset(animator->wsaFrameBuffer, 0,
          animator->wsa.header.width * animator->wsa.header.height);
   assert(animator->wsaFrameBuffer);
-
-  if (animator->pixBuf) {
-    SDL_DestroyTexture(animator->pixBuf);
-  }
-  animator->pixBuf = SDL_CreateTexture(
-      animator->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
-      animator->wsa.header.width, animator->wsa.header.height);
-  if (animator->pixBuf == NULL) {
-    printf("Error: %s\n", SDL_GetError());
-  }
 }
 
 static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
@@ -65,12 +55,9 @@ static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
       uint8_t r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
       uint8_t g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
       uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
-      if (r != 255 && b != 255 && b != 0) {
-        int xx = x; // + animator->wsaX;
-        int yy = y; // + animator->wsaY;
-        uint32_t *row = (unsigned int *)((char *)data + pitch * yy);
-        row[xx] = 0XFF + (r << 0X10) + (g << 0X8) + b;
-      }
+      uint32_t *row =
+          (unsigned int *)((char *)data + pitch * (animator->wsaY + y));
+      row[animator->wsaX + x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
     }
   }
   SDL_UnlockTexture(animator->pixBuf);
@@ -80,7 +67,7 @@ static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
                                     int frame) {
   GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
   assert(animator);
-  assert(animator->renderer);
+
   printf("GameTimAnimator: callbackWSADisplayFrame frameIndex=%i fram=%i x=%i "
          "y=%i\n",
          frameIndex, frame, animator->wsaX, animator->wsaY);
@@ -98,11 +85,6 @@ static void callbackWSARelease(TIMInterpreter *interp, int index) {
   GameTimAnimator *animator = (GameTimAnimator *)interp->callbackCtx;
   assert(animator);
   WSAHandleRelease(&animator->wsa);
-
-  if (animator->pixBuf) {
-    SDL_DestroyTexture(animator->pixBuf);
-  }
-  animator->pixBuf = NULL;
 }
 
 static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId,
@@ -128,7 +110,7 @@ static void callbackInitSceneDialog(TIMInterpreter *interp, int controlMode) {
          controlMode);
 }
 
-void GameTimAnimatorInit(GameTimAnimator *animator, SDL_Renderer *renderer) {
+void GameTimAnimatorInit(GameTimAnimator *animator, SDL_Texture *pixBuf) {
   memset(animator, 0, sizeof(GameTimAnimator));
   TIMInterpreterInit(&animator->timInterpreter);
   animator->timInterpreter.callbackCtx = animator;
@@ -145,7 +127,7 @@ void GameTimAnimatorInit(GameTimAnimator *animator, SDL_Renderer *renderer) {
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSARelease =
       callbackWSARelease;
 
-  animator->renderer = renderer;
+  animator->pixBuf = pixBuf;
 }
 
 void GameTimAnimatorRelease(GameTimAnimator *animator) {
@@ -153,7 +135,6 @@ void GameTimAnimatorRelease(GameTimAnimator *animator) {
   if (animator->wsaFrameBuffer) {
     free(animator->wsaFrameBuffer);
   }
-  SDL_DestroyTexture(animator->pixBuf);
 }
 
 void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
@@ -181,10 +162,6 @@ int GameTimAnimatorRender(GameTimAnimator *animator) {
     printf("TIM anim is done\n");
     return 0;
   }
-  SDL_Rect d = {.x = animator->wsaX,
-                .y = animator->wsaY,
-                .w = animator->wsa.header.width,
-                .h = animator->wsa.header.height};
-  SDL_RenderCopy(animator->renderer, animator->pixBuf, NULL, &d);
+
   return 1;
 }

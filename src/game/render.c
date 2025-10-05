@@ -1,13 +1,17 @@
 #include "render.h"
 #include "SDL_render.h"
+#include "game_ctx.h"
 #include "geometry.h"
 #include "renderer.h"
 #include <assert.h>
 #include <stdint.h>
 
-static void renderCPS(SDL_Renderer *renderer, const uint8_t *imgData,
+static void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData,
                       size_t dataSize, const uint8_t *paletteBuffer, int w,
                       int h) {
+  void *data;
+  int pitch;
+  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
   for (int x = 0; x < w; x++) {
     for (int y = 0; y < h; y++) {
       int offset = (w * y) + x;
@@ -28,21 +32,27 @@ static void renderCPS(SDL_Renderer *renderer, const uint8_t *imgData,
         g = paletteIdx;
         b = paletteIdx;
       }
-      if (1) { // r && g && b) {
-        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-        SDL_Rect rect = {.x = x, .y = y, .w = 1, .h = 1};
-        SDL_RenderFillRect(renderer, &rect);
-      }
+
+      drawPix(data, pitch, r, g, b, x, y);
     }
   }
+  SDL_UnlockTexture(pixBuf);
 }
 
 void renderBackground(GameContext *gameCtx) {
-  renderCPS(gameCtx->renderer, gameCtx->playField.data,
-            gameCtx->playField.imageSize, gameCtx->playField.palette, 320, 200);
-  SDL_Rect r = {MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W, MAZE_COORDS_H};
-  SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 255);
-  SDL_RenderFillRect(gameCtx->renderer, &r);
+  renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
+            gameCtx->playField.imageSize, gameCtx->playField.palette,
+            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  void *data;
+  int pitch;
+  SDL_LockTexture(gameCtx->pixBuf, NULL, &data, &pitch);
+  for (int x = 0; x < MAZE_COORDS_W; x++) {
+    for (int y = 0; y < MAZE_COORDS_H; y++) {
+      drawPix(data, pitch, 0, 0, 0, MAZE_COORDS_X + x, MAZE_COORDS_Y + y);
+    }
+  }
+  SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
 typedef struct {
@@ -136,7 +146,7 @@ typedef enum {
   DecorationIndex_O_SOUTH = 8,
 } DecorationIndex;
 
-static void renderDecoration(SDL_Renderer *renderer, LevelContext *ctx,
+static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
                              DecorationIndex decorationIndex,
                              uint16_t decorationId, int destXOffset,
                              int destYOffset, uint8_t xFlip) {
@@ -150,34 +160,33 @@ static void renderDecoration(SDL_Renderer *renderer, LevelContext *ctx,
   SHPFrame frame = {0};
   SHPHandleGetFrame(&ctx->shpHandle, &frame, deco->shapeIndex[decorationIndex]);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(renderer, &frame, deco->shapeX[decorationIndex] + destXOffset,
+  drawSHPFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
                deco->shapeY[decorationIndex] + destYOffset,
-               ctx->vcnHandle.palette, 1, xFlip);
+               ctx->vcnHandle.palette, xFlip);
   if (deco->flags & DatDecorationFlags_Mirror) {
     // only for south walls
     if (decorationIndex == DecorationIndex_N_SOUTH ||
         decorationIndex == DecorationIndex_J_SOUTH ||
         decorationIndex == DecorationIndex_D_SOUTH)
-      drawSHPFrame(renderer, &frame,
-                   deco->shapeX[decorationIndex] + destXOffset,
+      drawSHPFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
                    deco->shapeY[decorationIndex] + destYOffset,
-                   ctx->vcnHandle.palette, 1, 1);
+                   ctx->vcnHandle.palette, 1);
   }
 
   if (deco->next) {
-    renderDecoration(renderer, ctx, decorationIndex, deco->next, destXOffset,
+    renderDecoration(pixBuf, ctx, decorationIndex, deco->next, destXOffset,
                      destYOffset, xFlip);
   }
 }
 
-static void renderWallDecoration(SDL_Renderer *renderer, LevelContext *ctx,
+static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
                                  DecorationIndex DecorationIndex, uint8_t wmi,
                                  int destXOffset, int destYOffset,
                                  uint8_t xFlip) {
   const WllWallMapping *mapping = WllHandleGetWallMapping(&ctx->wllHandle, wmi);
   if (mapping && mapping->decorationId != 0 &&
       mapping->decorationId <= ctx->datHandle.nbrDecorations) {
-    renderDecoration(renderer, ctx, DecorationIndex, mapping->decorationId,
+    renderDecoration(pixBuf, ctx, DecorationIndex, mapping->decorationId,
                      destXOffset, destYOffset, xFlip);
   }
 }
@@ -273,9 +282,8 @@ void GameRenderScene(GameContext *gameCtx) {
       computeViewConeCells(gameCtx, x, y);
     }
   }
-  SDL_Renderer *renderer = gameCtx->renderer;
   LevelContext *level = gameCtx->level;
-  drawBackground(renderer, &level->vcnHandle, &level->vmpHandle);
+  drawCeilingAndFloor(gameCtx->pixBuf, &level->vcnHandle, &level->vmpHandle);
 
   const ViewConeEntry *aEntry = gameCtx->viewConeEntries + CELL_A;
   const ViewConeEntry *bEntry = gameCtx->viewConeEntries + CELL_B;
@@ -356,6 +364,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (gEntry->valid) {
     int index = gEntry->coords.y * 32 + gEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -368,6 +377,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (bEntry->valid) {
     int index = bEntry->coords.y * 32 + bEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -380,6 +390,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (cEntry->valid) {
     int index = cEntry->coords.y * 32 + cEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -403,8 +414,8 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  D_south);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_D_SOUTH, wmi, 64,
-                           26, 0);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_D_SOUTH, wmi,
+                           64, 26, 0);
     }
   }
 
@@ -420,6 +431,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (fEntry->valid) {
     int index = fEntry->coords.y * 32 + fEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -432,6 +444,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (hEntry->valid) {
     int index = hEntry->coords.y * 32 + hEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -456,6 +469,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -480,6 +494,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (iEntry->valid) {
     int index = iEntry->coords.y * 32 + iEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -492,6 +507,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (jEntry->valid) {
     int index = jEntry->coords.y * 32 + jEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -502,10 +518,11 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  J_south);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_J_SOUTH, wmi, 48,
-                           20, 0);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_J_SOUTH, wmi,
+                           48, 20, 0);
     }
   }
+
   if (kEntry->valid) {
     int index = kEntry->coords.y * 32 + kEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -518,6 +535,7 @@ void GameRenderScene(GameContext *gameCtx) {
       }
     }
   }
+
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -528,10 +546,11 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  M_east);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_M_WEST, wmi, 24, 10,
-                           0);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_M_WEST, wmi,
+                           24, 10, 0);
     }
   }
+
   if (oEntry->valid) {
     int index = oEntry->coords.y * 32 + oEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -542,10 +561,11 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  O_west);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_O_EAST, wmi, 24, 10,
-                           1);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_O_EAST, wmi,
+                           24, 10, 1);
     }
   }
+
   if (mEntry->valid) {
     int index = mEntry->coords.y * 32 + mEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -556,8 +576,8 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  M_south);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_M_SOUTH, wmi, 0, 0,
-                           0);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_M_SOUTH, wmi,
+                           0, 0, 0);
     }
   }
 
@@ -588,17 +608,8 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  N_south);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_N_SOUTH, wmi, 24, 8,
-                           0);
-
-#if 0
-      const WllWallMapping *entry =
-          WllHandleGetWallMapping(&level->wllHandle, wmi);
-      if (entry) {
-        printf("0X%X 0X%X 0X%X\n", entry->unknown1, entry->unknown2,
-               entry->unknown3);
-      }
-#endif
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_N_SOUTH, wmi,
+                           24, 8, 0);
     }
   }
 
@@ -612,8 +623,8 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  P_east);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_P_EAST, wmi, 0, 0,
-                           0);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_P_EAST, wmi,
+                           0, 0, 0);
     }
   }
 
@@ -627,8 +638,8 @@ void GameRenderScene(GameContext *gameCtx) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  Q_west);
       }
-      renderWallDecoration(renderer, level, DecorationIndex_Q_WEST, wmi, 0, 0,
-                           1);
+      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_Q_WEST, wmi,
+                           0, 0, 1);
     }
   }
 }

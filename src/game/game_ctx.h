@@ -16,8 +16,11 @@
 #include "tim_game_animator.h"
 #include <stdint.h>
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 200
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 400
+
+#define PIX_BUF_WIDTH 320
+#define PIX_BUF_HEIGHT 200
 
 #define DIALOG_BUFFER_SIZE (size_t)1024
 
@@ -44,6 +47,8 @@ typedef struct _GameContext {
   Orientation orientation;
 
   LevelContext *level;
+
+  SDL_Texture *pixBuf;
   SDL_Renderer *renderer;
   SDL_Window *window;
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];

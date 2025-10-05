@@ -2,6 +2,7 @@
 #include "SDL_events.h"
 #include "SDL_keyboard.h"
 #include "SDL_keycode.h"
+#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "dbg_server.h"
 #include "game_callbacks.h"
@@ -193,9 +194,11 @@ static void GameRender(GameContext *gameCtx) {
     }
     break;
   }
-
   renderDialog(gameCtx);
   // GameRenderMap(gameCtx, 640, 350);
+
+  SDL_Rect dest = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
   SDL_RenderPresent(gameCtx->renderer);
 }
 

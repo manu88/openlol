@@ -159,7 +159,7 @@ static void renderWSAFrame(TIMAnimator *animator, const uint8_t *imgData,
         int yy = y + animator->animYOffset;
         uint32_t *row = (unsigned int *)((char *)data + pitch * yy);
 
-        row[xx] = 0XFF + (r << 0X10) + (g << 0X8) + b;
+        row[xx] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
       }
     }
   }

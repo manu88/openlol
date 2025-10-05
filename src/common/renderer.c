@@ -4,7 +4,7 @@
 #include "SDL_surface.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
-#include "game.h"
+#include "game_ctx.h"
 #include "geometry.h"
 #include <SDL_image.h>
 #include <assert.h>
@@ -98,20 +98,22 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
-static void drawPix(SDL_Renderer *renderer, int x, int y, uint8_t r, uint8_t g,
-                    uint8_t b) {
-  SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-  SDL_Rect rect;
-  rect.w = 1;
-  rect.h = 1;
-  rect.x = MAZE_COORDS_X + x;
-  rect.y = MAZE_COORDS_Y + y;
-  if (r && g && b) {
-    SDL_RenderFillRect(renderer, &rect);
-  }
+void drawPix(void *data, int pitch, uint8_t r, uint8_t g, uint8_t b, int x,
+             int y) {
+  uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+  row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
 }
-void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
-               int x, int y, int flip) {
+
+static void drawMazePix(void *data, int pitch, uint8_t r, uint8_t g, uint8_t b,
+                        int x, int y) {
+  x += MAZE_COORDS_X;
+  y += MAZE_COORDS_Y;
+  uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+  row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+}
+
+void blitBlock(SDL_Texture *pixBuf, const VCNHandle *handle, int blockId, int x,
+               int y, int flip) {
   const VCNBlock *block = handle->blocks + blockId;
 
   const int s = flip ? -1 : 1;
@@ -124,6 +126,9 @@ void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
   }
   assert(numPalette < VCN_PALETTE_TABLE_SIZE);
 
+  void *data;
+  int pitch;
+  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
   for (int w = 0; w < 8; w++) {
     for (int v = 0; v < 4; v++) {
       uint8_t word = block->rawData[v + w * 4];
@@ -143,17 +148,22 @@ void blitBlock(SDL_Renderer *renderer, const VCNHandle *handle, int blockId,
 
       uint8_t destX = x + p + s * 2 * v;
       uint8_t destY = y + w;
-
-      drawPix(renderer, destX, destY, r, g, b);
+      if (r && g && b) {
+        drawMazePix(data, pitch, r, g, b, destX, destY);
+      }
 
       r = VGA6To8(handle->palette[0 + idx1 * 3]);
       g = VGA6To8(handle->palette[1 + idx1 * 3]);
       b = VGA6To8(handle->palette[2 + idx1 * 3]);
 
       destX = x + p + s + s * 2 * v;
-      drawPix(renderer, destX, destY, r, g, b);
+
+      if (r && g && b) {
+        drawMazePix(data, pitch, r, g, b, destX, destY);
+      }
     }
   }
+  SDL_UnlockTexture(pixBuf);
 }
 
 static uint8_t colorMap[] = {
@@ -169,6 +179,87 @@ static uint8_t getColor(uint8_t p) {
   }
 
   return colorMap[p];
+}
+void drawChar2(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c, int xOff,
+               int yOff) {
+  assert(pixBuf);
+  if (c >= font->numGlyphs) {
+    return;
+  }
+
+  if (!font->bitmapOffsets[c]) {
+    return;
+  }
+  const uint8_t *src = font->buffer + font->bitmapOffsets[c];
+  const uint8_t charWidth = font->widthTable[c];
+
+  if (!charWidth)
+    return;
+
+  void *data;
+  int pitch;
+  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
+
+  uint8_t charH1 = font->heightTable[c * 2 + 0];
+  uint8_t charH2 = font->heightTable[c * 2 + 1];
+  uint8_t charH0 = font->maxHeight - (charH1 + charH2);
+
+  int x = xOff;
+  int y = yOff;
+  while (charH1--) {
+    uint8_t col = getColor(0);
+    for (int i = 0; i < charWidth; ++i) {
+      if (col != 0) {
+        uint8_t r = col;
+        uint8_t g = 0;
+        uint8_t b = 0;
+        drawPix(data, pitch, r, g, b, x, y);
+      }
+      x++;
+    }
+    x = xOff;
+    y += 1;
+  }
+
+  while (charH2--) {
+    uint8_t b = 0;
+    for (int i = 0; i < charWidth; ++i) {
+      uint8_t col;
+      if (i & 1) {
+        col = getColor(b >> 4);
+      } else {
+        b = *src++;
+        col = getColor(b & 0xF);
+      }
+      if (col != 0) {
+        uint8_t r = col;
+        uint8_t g = 0;
+        uint8_t b = 0;
+        uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+        row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+      }
+      x += 1;
+    }
+    y += 1;
+    x = xOff;
+  }
+
+  while (charH0--) {
+    uint8_t col = getColor(0);
+    for (int i = 0; i < charWidth; ++i) {
+      if (col != 0) {
+        uint8_t r = col;
+        uint8_t g = 0;
+        uint8_t b = 0;
+        uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+        row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+      }
+      x += 1;
+    }
+    y += 1;
+    x = xOff;
+  }
+  SDL_UnlockTexture(pixBuf);
 }
 
 void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
@@ -284,10 +375,12 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
+  assert(0 || "will fail because we're passing a SDL_Renderer to blitBlock "
+              "instead of a pixel buffer -- this is easy to fix");
   for (int i = 0; i < handle->nbBlocks; i++) {
     int blockX = i % widthBlocks;
     int blockY = i / widthBlocks;
-    blitBlock(renderer, handle, i, blockX * BLOCK_SIZE, blockY * BLOCK_SIZE, 0);
+    blitBlock(NULL, handle, i, blockX * BLOCK_SIZE, blockY * BLOCK_SIZE, 0);
   }
 
   SDL_RenderPresent(renderer);
@@ -296,10 +389,11 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
-void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
-                  int yPos, const uint8_t *palette, int scaleFactor,
-                  uint8_t xFlip) {
-
+void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
+                  int yPos, const uint8_t *palette, uint8_t xFlip) {
+  void *data;
+  int pitch;
+  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
   for (int y = 0; y < frame->header.height; y++) {
     for (int x = 0; x < frame->header.width; x++) {
       int p = x + (y * frame->header.width);
@@ -315,20 +409,20 @@ void drawSHPFrame(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
         g = VGA6To8(palette[(v * 3) + 1]);
         b = VGA6To8(palette[(v * 3) + 2]);
       }
-      SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-      SDL_Rect rect;
-      rect.w = scaleFactor;
-      rect.h = scaleFactor;
-      rect.x = (x + xPos) * scaleFactor;
+
+      int xx = x + xPos;
+      int yy = y + yPos;
+
       if (xFlip) {
-        rect.x = MAZE_COORDS_W - rect.x;
+        xx = MAZE_COORDS_W - xx;
       }
-      rect.x += MAZE_COORDS_X;
-      rect.y = (y + yPos) * scaleFactor;
-      rect.y += MAZE_COORDS_Y;
-      SDL_RenderFillRect(renderer, &rect);
+
+      yy = y + yPos;
+      yy += MAZE_COORDS_Y;
+      drawMazePix(data, pitch, r, g, b, xx, yy);
     }
   }
+  SDL_UnlockTexture(pixBuf);
 }
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
                    const uint8_t *palette) {
@@ -337,7 +431,8 @@ void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
       0, frame->header.width, frame->header.height, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
-  drawSHPFrame(renderer, frame, 0, 0, palette, 1, 0);
+  assert(0 || "will fail because we don't pass a SDL_Texture");
+  drawSHPFrame(NULL, frame, 0, 0, palette, 0);
 
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, savePngPath);
@@ -356,6 +451,7 @@ typedef struct {
   int skipValue;
   int flipFlag;
 } WallRenderData;
+
 WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
     {
         /* Side-Walls left back */
@@ -408,7 +504,6 @@ WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
 
 void drawWall(GameContext *gameCtx, const VCNHandle *vcn, const VMPHandle *vmp,
               int wallType, int wallPosition) {
-  SDL_Renderer *renderer = gameCtx->renderer;
   const WallRenderData *wallCfg = &wallRenderData[wallPosition];
   int flipX = wallCfg->flipFlag;
   int offset = wallCfg->baseOffset;
@@ -434,7 +529,7 @@ void drawWall(GameContext *gameCtx, const VCNHandle *vcn, const VMPHandle *vmp,
       int blockFlip = (tile.flipped) ^ flipX;
       int destPostX = xpos * 8;
       int destPostY = ypos * 8;
-      blitBlock(renderer, vcn, tile.blockIndex, destPostX, destPostY,
+      blitBlock(gameCtx->pixBuf, vcn, tile.blockIndex, destPostX, destPostY,
                 blockFlip);
 
       offset++;
@@ -443,8 +538,8 @@ void drawWall(GameContext *gameCtx, const VCNHandle *vcn, const VMPHandle *vmp,
   }
 }
 
-void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
-                    const VMPHandle *vmp) {
+void drawCeilingAndFloor(SDL_Texture *pixBuf, const VCNHandle *vcn,
+                         const VMPHandle *vmp) {
   for (int y = 0; y < 15; y++) {
     for (int x = 0; x < 22; x++) {
       int index = y * 22 + x;
@@ -452,7 +547,7 @@ void drawBackground(SDL_Renderer *renderer, const VCNHandle *vcn,
       VMPTile tile = {0};
       VMPHandleGetTile(vmp, index, &tile);
       assert(tile.blockIndex < vcn->nbBlocks);
-      blitBlock(renderer, vcn, tile.blockIndex, x * 8, y * 8, tile.flipped);
+      blitBlock(pixBuf, vcn, tile.blockIndex, x * 8, y * 8, tile.flipped);
     }
   }
 }
