@@ -389,8 +389,8 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   SDL_DestroyRenderer(renderer);
 }
 
-void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
-                  int yPos, const uint8_t *palette, uint8_t xFlip) {
+void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
+                      int yPos, const uint8_t *palette, uint8_t xFlip) {
   void *data;
   int pitch;
   SDL_LockTexture(pixBuf, NULL, &data, &pitch);
@@ -424,6 +424,37 @@ void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
   }
   SDL_UnlockTexture(pixBuf);
 }
+
+void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
+                  int yPos, const uint8_t *palette) {
+  void *data;
+  int pitch;
+  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
+  for (int y = 0; y < frame->header.height; y++) {
+    for (int x = 0; x < frame->header.width; x++) {
+      int p = x + (y * frame->header.width);
+      uint8_t v = frame->imageBuffer[p];
+      if (v == 0) {
+        continue;
+      }
+      uint8_t r = v;
+      uint8_t g = v;
+      uint8_t b = v;
+      if (palette) {
+        r = VGA6To8(palette[(v * 3) + 0]);
+        g = VGA6To8(palette[(v * 3) + 1]);
+        b = VGA6To8(palette[(v * 3) + 2]);
+      }
+
+      int xx = x + xPos;
+      int yy = y + yPos;
+
+      drawPix(data, pitch, r, g, b, xx, yy);
+    }
+  }
+  SDL_UnlockTexture(pixBuf);
+}
+
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
                    const uint8_t *palette) {
   SDL_Init(SDL_INIT_VIDEO);
@@ -432,7 +463,7 @@ void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
   assert(0 || "will fail because we don't pass a SDL_Texture");
-  drawSHPFrame(NULL, frame, 0, 0, palette, 0);
+  drawSHPFrame(NULL, frame, 0, 0, palette);
 
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, savePngPath);

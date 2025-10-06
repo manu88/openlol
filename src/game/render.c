@@ -6,9 +6,8 @@
 #include <assert.h>
 #include <stdint.h>
 
-void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData,
-                      size_t dataSize, const uint8_t *paletteBuffer, int w,
-                      int h) {
+void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
+               const uint8_t *paletteBuffer, int w, int h) {
   void *data;
   int pitch;
   SDL_LockTexture(pixBuf, NULL, &data, &pitch);
@@ -164,17 +163,18 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
   SHPFrame frame = {0};
   SHPHandleGetFrame(&ctx->shpHandle, &frame, deco->shapeIndex[decorationIndex]);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
-               deco->shapeY[decorationIndex] + destYOffset,
-               ctx->vcnHandle.palette, xFlip);
+  drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
+                   deco->shapeY[decorationIndex] + destYOffset,
+                   ctx->vcnHandle.palette, xFlip);
   if (deco->flags & DatDecorationFlags_Mirror) {
     // only for south walls
     if (decorationIndex == DecorationIndex_N_SOUTH ||
         decorationIndex == DecorationIndex_J_SOUTH ||
         decorationIndex == DecorationIndex_D_SOUTH)
-      drawSHPFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
-                   deco->shapeY[decorationIndex] + destYOffset,
-                   ctx->vcnHandle.palette, 1);
+      drawSHPMazeFrame(pixBuf, &frame,
+                       deco->shapeX[decorationIndex] + destXOffset,
+                       deco->shapeY[decorationIndex] + destYOffset,
+                       ctx->vcnHandle.palette, 1);
   }
 
   if (deco->next) {

@@ -326,14 +326,22 @@ static void animateDialogZone(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
-static void renderInventory(GameContext *gameCtx) {
+static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
+                                uint16_t itemID) {
+  assert(slot <= 9);
   SHPFrame frame = {0};
-  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, 0);
+  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, itemID);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame, UI_INVENTORY_BUTTON_X,
-               UI_INVENTORY_BUTTON_Y, gameCtx->level->vcnHandle.palette, 0);
+  drawSHPFrame(gameCtx->pixBuf, &frame,
+               UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * (1 + slot)) + 2,
+               UI_INVENTORY_BUTTON_Y, gameCtx->level->vcnHandle.palette);
 }
 
+static void renderInventory(GameContext *gameCtx) {
+  for (int i = 0; i < 9; i++) {
+    renderInventorySlot(gameCtx, i, i);
+  }
+}
 static void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   SDL_RenderClear(gameCtx->renderer);
