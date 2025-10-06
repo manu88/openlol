@@ -39,11 +39,7 @@ static void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData,
   SDL_UnlockTexture(pixBuf);
 }
 
-void renderBackground(GameContext *gameCtx) {
-  renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
-            gameCtx->playField.imageSize, gameCtx->playField.palette,
-            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-
+void clearMazeZone(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_LockTexture(gameCtx->pixBuf, NULL, &data, &pitch);
@@ -53,6 +49,14 @@ void renderBackground(GameContext *gameCtx) {
     }
   }
   SDL_UnlockTexture(gameCtx->pixBuf);
+}
+
+void renderBackground(GameContext *gameCtx) {
+  renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
+            gameCtx->playField.imageSize, gameCtx->playField.palette,
+            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  clearMazeZone(gameCtx);
 }
 
 typedef struct {

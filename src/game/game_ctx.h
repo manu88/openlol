@@ -42,6 +42,9 @@ typedef enum {
 
 typedef struct _GameContext {
   GameState state;
+  int fadeOutFrames;
+  int dialogBoxFrames;
+  int showBigDialog;
   uint16_t currentBock;
   Point partyPos;
   Orientation orientation;

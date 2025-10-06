@@ -3,7 +3,6 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "script.h"
-#include "tim_animator.h"
 #include <assert.h>
 #include <stdint.h>
 
@@ -23,7 +22,7 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   uint8_t useLevelFile = 0;
   int realStringId = LangGetString(strId, &useLevelFile);
   printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
-
+  assert(useLevelFile);
   LangHandleGetString(&ctx->level->levelLang, realStringId,
                       ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;

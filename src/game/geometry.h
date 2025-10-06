@@ -7,9 +7,12 @@
 #define MAZE_COORDS_W (int)174
 #define MAZE_COORDS_H (int)120
 
-#define DIALOG_BOX_X 90
-#define DIALOG_BOX_Y 126
-#define DIALOG_BOX_W 200
+#define DIALOG_BOX_X 83
+#define DIALOG_BOX_Y 122
+#define DIALOG_BOX_W 235
+#define DIALOG_BOX_H 20
+
+#define DIALOG_BOX_H2 56
 
 typedef struct {
   uint16_t x;

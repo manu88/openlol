@@ -23,7 +23,7 @@ void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
 
 void renderDialog(GameContext *gameCtx) {
   if (gameCtx->dialogText) {
-    renderText(gameCtx, DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W,
+    renderText(gameCtx, DIALOG_BOX_X + 5, DIALOG_BOX_Y + 2, DIALOG_BOX_W - 5,
                gameCtx->dialogText);
   }
 }

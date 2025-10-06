@@ -4,6 +4,7 @@
 #include "SDL_keycode.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
+#include "SDL_stdinc.h"
 #include "dbg_server.h"
 #include "game_callbacks.h"
 #include "game_ctx.h"
@@ -179,18 +180,69 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   return shouldUpdate;
 }
 
+static void animateDialogZone(GameContext *gameCtx) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(gameCtx->pixBuf, &rect, &data, &pitch);
+
+  // copy outline
+  int offset = gameCtx->dialogBoxFrames;
+  const int size = 20;
+  for (int y = DIALOG_BOX_H - size; y < DIALOG_BOX_H; y++) {
+    const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
+    uint32_t *rowDest = (unsigned int *)((char *)data + pitch * (y + offset));
+    for (int x = 0; x < DIALOG_BOX_W; x++) {
+      rowDest[x] = rowSource[x];
+    }
+  }
+
+  if (gameCtx->dialogBoxFrames >= size) {
+    // need to copy the dialog background
+    int size = DIALOG_BOX_H - 1;
+    if (gameCtx->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
+      size++;
+    }
+    for (int y = 1; y < size; y++) {
+      const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
+      uint32_t *rowDest =
+          (unsigned int *)((char *)data + pitch * (y + (DIALOG_BOX_H - 2)));
+      for (int x = 0; x < DIALOG_BOX_W; x++) {
+        rowDest[x] = rowSource[x];
+      }
+    }
+  }
+
+  if (gameCtx->dialogBoxFrames <= (DIALOG_BOX_H2 - DIALOG_BOX_H)) {
+    gameCtx->dialogBoxFrames++;
+  }
+  SDL_UnlockTexture(gameCtx->pixBuf);
+}
+
 static void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   SDL_RenderClear(gameCtx->renderer);
   renderBackground(gameCtx);
 
-  GameRenderScene(gameCtx);
+  if (gameCtx->fadeOutFrames) {
 
-  if (gameCtx->state == GameState_TimAnimation) {
-    if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
-      GameContextSetState(gameCtx, GameState_PlayGame);
+    gameCtx->fadeOutFrames--;
+    clearMazeZone(gameCtx);
+
+  } else {
+    GameRenderScene(gameCtx);
+
+    if (gameCtx->state == GameState_TimAnimation) {
+      if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
+        GameContextSetState(gameCtx, GameState_PlayGame);
+      }
     }
   }
+
+  if (gameCtx->showBigDialog) {
+    animateDialogZone(gameCtx);
+  }
+
   renderDialog(gameCtx);
   // GameRenderMap(gameCtx, 640, 350);
 

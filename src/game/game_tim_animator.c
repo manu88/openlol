@@ -1,6 +1,7 @@
 #include "game_tim_animator.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
+#include "game_ctx.h"
 #include "game_envir.h"
 #include "renderer.h"
 #include "tim_interpreter.h"
@@ -58,9 +59,9 @@ static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
       uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
       uint32_t *row =
           (unsigned int *)((char *)data + pitch * (animator->wsaY + y));
-      if (r && g && b) {
-        row[animator->wsaX + x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
-      }
+      // if (r && g && b) {
+      row[animator->wsaX + x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+      //}
     }
   }
   SDL_UnlockTexture(animator->pixBuf);
@@ -87,6 +88,8 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int frameIndex,
 static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
                                         uint16_t param) {
   printf("GameTimAnimator: callbackFadeClearWindow param=%x\n", param);
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->fadeOutFrames = 10;
 }
 
 static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
@@ -104,6 +107,14 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
   assert(animator);
   printf("GameTimAnimator callbackPlayDialogue stringId=%i argc=%i\n", stringId,
          argc);
+
+  uint8_t useLevelFile = 0;
+  int realStringId = LangGetString(stringId, &useLevelFile);
+  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
+  assert(useLevelFile);
+  LangHandleGetString(&gameCtx->level->levelLang, realStringId,
+                      gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
+  gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 
 static void callbackTIM_ShowButtons(TIMInterpreter *interp, uint16_t functionId,
@@ -113,6 +124,25 @@ static void callbackTIM_ShowButtons(TIMInterpreter *interp, uint16_t functionId,
   assert(animator);
   printf("GameTimAnimator callbackShowButtons  %X %X %X\n", buttonStrIds[0],
          buttonStrIds[1], buttonStrIds[2]);
+
+  for (int i = 0; i < 3; i++) {
+    if (buttonStrIds[i] == 0XFFFF) {
+      break;
+    }
+    uint8_t useLevelFile = 0;
+    printf("LangGetString %i %X\n", i, buttonStrIds[i]);
+    int realId = LangGetString(buttonStrIds[i], &useLevelFile);
+    assert(realId != -1);
+    if (!useLevelFile) {
+      assert(0); // to implement :)
+    }
+    assert(realId);
+
+    printf("realID = %x\n", realId);
+    // LangHandleGetString(gameCtx->level->levelLang, realId,
+    // animator->buttonText[i], 16); printf("Dialogue Button %i: '%s'\n", i,
+    // animator->buttonText[i]);
+  }
 }
 
 static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
@@ -122,6 +152,7 @@ static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
   assert(animator);
   printf("GameTimAnimator callbackInitSceneDialog controlMode=%X\n",
          controlMode);
+  gameCtx->showBigDialog = 1;
 }
 
 void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
