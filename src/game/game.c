@@ -401,7 +401,9 @@ static int GameRun(GameContext *gameCtx) {
   int firstTime = 1;
   // Event loop
   while (!quit) {
-    DBGServerUpdate(gameCtx);
+    if (DBGServerUpdate(gameCtx)) {
+      shouldUpdate = 1;
+    }
     while (gameCtx->state == GameState_PlayGame &&
            EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
       EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
@@ -414,7 +416,9 @@ static int GameRun(GameContext *gameCtx) {
       quit = 1;
     }
     if (gameCtx->state == GameState_PlayGame) {
-      shouldUpdate = processGameInputs(gameCtx, &e);
+      if (processGameInputs(gameCtx, &e)) {
+        shouldUpdate = 1;
+      }
       if (shouldUpdate) {
         uint16_t gameX = 0;
         uint16_t gameY = 0;
@@ -431,7 +435,9 @@ static int GameRun(GameContext *gameCtx) {
       firstTime = 0;
     }
     if (gameCtx->mouseEv.pending) {
-      shouldUpdate = processMouse(gameCtx);
+      if (processMouse(gameCtx)) {
+        shouldUpdate = 1;
+      }
       gameCtx->mouseEv.pending = 0;
     }
     if (shouldUpdate) {

@@ -20,12 +20,17 @@ static void processCommand(int argc, char *argv[]) {
   if (strcmp(cmd, "exit") == 0) {
     shouldStop = 1;
   } else if (strcmp(cmd, "give") == 0) {
+    if (argc < 2) {
+      printf("missing itemID");
+      return;
+    }
+
     DBGMsgHeader header = {.type = DBGMsgType_GiveItemRequest,
                            sizeof(DBGMSGGiveItemRequest)};
     write(sock, &header, sizeof(DBGMsgHeader));
     printf("sent header\n");
     DBGMSGGiveItemRequest req;
-    req.itemId = 0X10;
+    req.itemId = atoi(argv[1]);
     write(sock, &req, sizeof(DBGMSGGiveItemRequest));
     printf("sent data\n");
 

@@ -102,3 +102,5 @@ void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag, uint16_t val);
 void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag);
 
 void GameContextSetState(GameContext *gameCtx, GameState newState);
+
+int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId);

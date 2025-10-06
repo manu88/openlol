@@ -15,6 +15,9 @@ static int server_fd;
 static struct sockaddr_in address;
 int cltSocket = -1;
 
+int recvDataSize;
+static uint8_t recvBuf[1024];
+
 void DBGServerRelease(void) {
   printf("DBGServerRelease");
   if (cltSocket != -1) {
@@ -52,8 +55,8 @@ int DBGServerInit(void) {
   return 0;
 }
 
-static void processRecvMsg(const GameContext *gameCtx,
-                           const DBGMsgHeader *header, uint8_t *buffer) {
+static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
+                          uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {
 
   case DBGMsgType_StatusRequest: {
@@ -68,33 +71,34 @@ static void processRecvMsg(const GameContext *gameCtx,
   case DBGMsgType_GiveItemRequest: {
     const DBGMSGGiveItemRequest *req = (const DBGMSGGiveItemRequest *)buffer;
     printf("received GiveItemRequest 0X%0X\n", req->itemId);
+
     DBGMsgHeader outHeader = {.type = DBGMsgType_GiveItemResponse,
                               sizeof(DBGMSGGiveItemResponse)};
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
     DBGMSGGiveItemResponse resp;
-    resp.response = 44;
+    resp.response = GameContextAddItemToInventory(gameCtx, req->itemId);
     write(cltSocket, &resp, sizeof(DBGMSGGiveItemResponse));
+    return 1;
   } break;
   case DBGMsgType_StatusResponse:
   case DBGMsgType_Hello:
   default:
     assert(0);
   }
+  return 0;
 }
 
-static uint8_t recvBuf[1024];
-
-void DBGServerUpdate(const GameContext *gameCtx) {
+int DBGServerUpdate(GameContext *gameCtx) {
   int addrlen = sizeof(address);
 
   if (cltSocket == -1) {
     if ((cltSocket = accept(server_fd, (struct sockaddr *)&address,
                             (socklen_t *)&addrlen)) < 0) {
       if (errno == EAGAIN) {
-        return;
+        return 0;
       }
       perror("In accept");
-      return;
+      return 0;
     }
     printf("new client\n");
     fcntl(cltSocket, F_SETFL, O_NONBLOCK);
@@ -104,6 +108,7 @@ void DBGServerUpdate(const GameContext *gameCtx) {
 
     write(cltSocket, &header, sizeof(DBGMsgHeader));
   } else {
+
     DBGMsgHeader header = {0};
     ssize_t ret = read(cltSocket, &header, sizeof(DBGMsgHeader));
     if (ret == 0) {
@@ -112,7 +117,7 @@ void DBGServerUpdate(const GameContext *gameCtx) {
       cltSocket = -1;
     } else if (ret == -1) {
       if (errno == EAGAIN) {
-        return;
+        return 0;
       } else {
         perror("read");
       }
@@ -125,7 +130,8 @@ void DBGServerUpdate(const GameContext *gameCtx) {
       }
       if (ret >= sizeof(DBGMsgHeader)) {
         printf("received msg %i %i\n", header.type, header.dataSize);
-        processRecvMsg(gameCtx, &header, header.dataSize ? recvBuf : NULL);
+        return processRecvMsg(gameCtx, &header,
+                              header.dataSize ? recvBuf : NULL);
       }
     }
   }

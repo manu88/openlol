@@ -6,6 +6,7 @@
 #include "game_envir.h"
 #include "game_tim_animator.h"
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
 static int runINIScript(GameContext *gameCtx);
@@ -81,9 +82,6 @@ int GameContextInit(GameContext *gameCtx) {
   assert(gameCtx->dialogTextBuffer);
 
   DBGServerInit();
-  for (int i = 0; i < INVENTORY_SIZE; i++) {
-    gameCtx->inventory[i] = i + 1;
-  }
   return 1;
 }
 
@@ -98,6 +96,16 @@ void GameContextRelease(GameContext *gameCtx) {
   CPSImageRelease(&gameCtx->playField);
   INFScriptRelease(&gameCtx->script);
   free(gameCtx->dialogTextBuffer);
+}
+
+int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    if (ctx->inventory[i] == 0) {
+      ctx->inventory[i] = itemId;
+      return 1;
+    }
+  }
+  return 0;
 }
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
