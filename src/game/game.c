@@ -80,7 +80,90 @@ static void clickOnFrontWall(GameContext *gameCtx) {
   GameContextRunScript(gameCtx, nextBlock);
 }
 
-static void processMouse(GameContext *gameCtx) {
+static void moveFront(Point *pt, Orientation orientation) {
+  switch (orientation) {
+  case North:
+    pt->y -= 1;
+    break;
+  case East:
+    pt->x += 1;
+    break;
+  case South:
+    pt->y += 1;
+    break;
+  case West:
+    pt->x -= 1;
+    break;
+  }
+}
+
+static void moveBack(Point *pt, Orientation orientation) {
+  switch (orientation) {
+  case North:
+    pt->y += 1;
+    break;
+  case East:
+    pt->x -= 1;
+    break;
+  case South:
+    pt->y -= 1;
+    break;
+  case West:
+    pt->x += 1;
+    break;
+  }
+}
+
+static void moveLeft(Point *pt, Orientation orientation) {
+  switch (orientation) {
+  case North:
+    pt->x -= 1;
+    break;
+  case East:
+    pt->y -= 1;
+    break;
+  case South:
+    pt->x += 1;
+    break;
+  case West:
+    pt->y += 1;
+    break;
+  }
+}
+
+static void moveRight(Point *pt, Orientation orientation) {
+  switch (orientation) {
+  case North:
+    pt->x += 1;
+    break;
+  case East:
+    pt->y += 1;
+    break;
+  case South:
+    pt->x -= 1;
+    break;
+  case West:
+    pt->y -= 1;
+    break;
+  }
+}
+static Orientation turnLeft(Orientation orientation) {
+  orientation -= 1;
+  if ((int)orientation < 0) {
+    return West;
+  }
+  return orientation;
+}
+
+static Orientation turnRight(Orientation orientation) {
+  orientation += 1;
+  if (orientation > West) {
+    return North;
+  }
+  return orientation;
+}
+
+static int processMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
       gameCtx->mouseEv.pos.x < (UI_TURN_LEFT_BUTTON_X + (UI_BUTTON_W * 3)) &&
@@ -92,21 +175,22 @@ static void processMouse(GameContext *gameCtx) {
     if (buttonX <= 2 && buttonY <= 1) {
       if (buttonY == 0) {
         if (buttonX == 0) {
-          printf("Turn Left\n");
+          gameCtx->orientation = turnLeft(gameCtx->orientation);
         } else if (buttonX == 1) {
-          printf("Go front\n");
+          moveFront(&gameCtx->partyPos, gameCtx->orientation);
         } else if (buttonX == 2) {
-          printf("Turn Right\n");
+          gameCtx->orientation = turnRight(gameCtx->orientation);
         }
       } else if (buttonY == 1) {
         if (buttonX == 0) {
-          printf("Strafe Left\n");
+          moveLeft(&gameCtx->partyPos, gameCtx->orientation);
         } else if (buttonX == 1) {
-          printf("Go back\n");
+          moveBack(&gameCtx->partyPos, gameCtx->orientation);
         } else if (buttonX == 2) {
-          printf("Strafe Right\n");
+          moveRight(&gameCtx->partyPos, gameCtx->orientation);
         }
       }
+      return 1;
     }
   } else if (gameCtx->mouseEv.pos.x >= UI_MENU_BUTTON_X &&
              gameCtx->mouseEv.pos.y >= UI_MENU_BUTTON_Y &&
@@ -139,6 +223,7 @@ static void processMouse(GameContext *gameCtx) {
   } else {
     printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
   }
+  return 0;
 }
 
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
@@ -154,90 +239,33 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     case SDLK_z:
       // go front
       shouldUpdate = 1;
-      switch (gameCtx->orientation) {
-      case North:
-        gameCtx->partyPos.y -= 1;
-        break;
-      case East:
-        gameCtx->partyPos.x += 1;
-        break;
-      case South:
-        gameCtx->partyPos.y += 1;
-        break;
-      case West:
-        gameCtx->partyPos.x -= 1;
-        break;
-      }
+      moveFront(&gameCtx->partyPos, gameCtx->orientation);
       break;
     case SDLK_s:
       // go back
       shouldUpdate = 1;
-      switch (gameCtx->orientation) {
-      case North:
-        gameCtx->partyPos.y += 1;
-        break;
-      case East:
-        gameCtx->partyPos.x -= 1;
-        break;
-      case South:
-        gameCtx->partyPos.y -= 1;
-        break;
-      case West:
-        gameCtx->partyPos.x += 1;
-        break;
-      }
+      moveBack(&gameCtx->partyPos, gameCtx->orientation);
       break;
     case SDLK_q:
       // go left
       shouldUpdate = 1;
-      switch (gameCtx->orientation) {
-      case North:
-        gameCtx->partyPos.x -= 1;
-        break;
-      case East:
-        gameCtx->partyPos.y -= 1;
-        break;
-      case South:
-        gameCtx->partyPos.x += 1;
-        break;
-      case West:
-        gameCtx->partyPos.y += 1;
-        break;
-      }
+      moveLeft(&gameCtx->partyPos, gameCtx->orientation);
       break;
     case SDLK_d:
       // go right
       shouldUpdate = 1;
-      switch (gameCtx->orientation) {
-      case North:
-        gameCtx->partyPos.x += 1;
-        break;
-      case East:
-        gameCtx->partyPos.y += 1;
-        break;
-      case South:
-        gameCtx->partyPos.x -= 1;
-        break;
-      case West:
-        gameCtx->partyPos.y -= 1;
-        break;
-      }
+      moveRight(&gameCtx->partyPos, gameCtx->orientation);
       break;
     case SDLK_a:
       // turn anti-clockwise
       shouldUpdate = 1;
-      gameCtx->orientation -= 1;
-      if ((int)gameCtx->orientation < 0) {
-        gameCtx->orientation = West;
-      }
+      gameCtx->orientation = turnLeft(gameCtx->orientation);
+
       break;
     case SDLK_e:
       // turn clockwise
       shouldUpdate = 1;
-      gameCtx->orientation += 1;
-      if (gameCtx->orientation > West) {
-        gameCtx->orientation = North;
-      }
+      gameCtx->orientation = turnRight(gameCtx->orientation);
       break;
     case SDLK_SPACE:
       shouldUpdate = 1;
@@ -360,7 +388,7 @@ static int GameRun(GameContext *gameCtx) {
       firstTime = 0;
     }
     if (gameCtx->mouseEv.pending) {
-      processMouse(gameCtx);
+      shouldUpdate = processMouse(gameCtx);
       gameCtx->mouseEv.pending = 0;
     }
     if (shouldUpdate) {
