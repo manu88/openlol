@@ -56,15 +56,25 @@ static void processRecvMsg(const GameContext *gameCtx,
                            const DBGMsgHeader *header, uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {
 
-  case DBGMsgType_StatusRequest:
+  case DBGMsgType_StatusRequest: {
+
     printf("received StatusRequest\n");
     DBGMsgHeader outHeader = {.type = DBGMsgType_StatusResponse,
                               sizeof(DBGMsgStatus)};
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
     DBGMsgStatus s = {.currentBock = gameCtx->currentBock};
     write(cltSocket, &s, sizeof(DBGMsgStatus));
-    break;
-
+  } break;
+  case DBGMsgType_GiveItemRequest: {
+    const DBGMSGGiveItemRequest *req = (const DBGMSGGiveItemRequest *)buffer;
+    printf("received GiveItemRequest 0X%0X\n", req->itemId);
+    DBGMsgHeader outHeader = {.type = DBGMsgType_GiveItemResponse,
+                              sizeof(DBGMSGGiveItemResponse)};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMSGGiveItemResponse resp;
+    resp.response = 44;
+    write(cltSocket, &resp, sizeof(DBGMSGGiveItemResponse));
+  } break;
   case DBGMsgType_StatusResponse:
   case DBGMsgType_Hello:
   default:
@@ -94,7 +104,8 @@ void DBGServerUpdate(const GameContext *gameCtx) {
 
     write(cltSocket, &header, sizeof(DBGMsgHeader));
   } else {
-    ssize_t ret = read(cltSocket, recvBuf, sizeof(recvBuf));
+    DBGMsgHeader header = {0};
+    ssize_t ret = read(cltSocket, &header, sizeof(DBGMsgHeader));
     if (ret == 0) {
       printf("Client connection closed\n");
       close(cltSocket);
@@ -106,11 +117,15 @@ void DBGServerUpdate(const GameContext *gameCtx) {
         perror("read");
       }
     } else {
-      printf("received %zi bytes\n", ret);
-      if (ret == sizeof(DBGMsgHeader)) {
-        const DBGMsgHeader *header = (const DBGMsgHeader *)recvBuf;
-        printf("received msg %i %i\n", header->type, header->dataSize);
-        processRecvMsg(gameCtx, header, NULL);
+      printf("received %zi bytes of header\n", ret);
+      assert(ret == sizeof(DBGMsgHeader));
+      if (header.dataSize) {
+        ssize_t r = read(cltSocket, recvBuf, header.dataSize);
+        printf("read %zi bytes of data\n", r);
+      }
+      if (ret >= sizeof(DBGMsgHeader)) {
+        printf("received msg %i %i\n", header.type, header.dataSize);
+        processRecvMsg(gameCtx, &header, header.dataSize ? recvBuf : NULL);
       }
     }
   }

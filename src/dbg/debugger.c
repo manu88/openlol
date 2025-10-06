@@ -24,6 +24,22 @@ static void readCommand(void) {
   cmdInputBuffer[ret - 1] = 0;
   if (strcmp(cmdInputBuffer, "exit") == 0) {
     shouldStop = 1;
+  } else if (strcmp(cmdInputBuffer, "give") == 0) {
+    DBGMsgHeader header = {.type = DBGMsgType_GiveItemRequest,
+                           sizeof(DBGMSGGiveItemRequest)};
+    write(sock, &header, sizeof(DBGMsgHeader));
+    printf("sent header\n");
+    DBGMSGGiveItemRequest req;
+    req.itemId = 0X10;
+    write(sock, &req, sizeof(DBGMSGGiveItemRequest));
+    printf("sent data\n");
+
+    read(sock, &header, sizeof(DBGMsgHeader));
+    printf("Got reply\n");
+    assert(header.type == DBGMsgType_GiveItemResponse);
+    DBGMSGGiveItemResponse resp;
+    read(sock, &resp, sizeof(DBGMSGGiveItemResponse));
+    printf("reply %i\n", resp.response);
   } else if (strcmp(cmdInputBuffer, "status") == 0) {
     DBGMsgHeader header = {.type = DBGMsgType_StatusRequest, 0};
     write(sock, &header, sizeof(DBGMsgHeader));
