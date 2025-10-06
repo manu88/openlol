@@ -433,7 +433,7 @@ static int cmdCPSExtract(const char *filepath) {
     printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
-  CPSImage image;
+  CPSImage image = {0};
   int ok = CPSImageFromFile(&image, buffer, dataSize);
   if (freeBuffer) {
     free(buffer);
