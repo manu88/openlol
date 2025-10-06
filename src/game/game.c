@@ -80,6 +80,67 @@ static void clickOnFrontWall(GameContext *gameCtx) {
   GameContextRunScript(gameCtx, nextBlock);
 }
 
+static void processMouse(GameContext *gameCtx) {
+  if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
+      gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
+      gameCtx->mouseEv.pos.x < (UI_TURN_LEFT_BUTTON_X + (UI_BUTTON_W * 3)) &&
+      gameCtx->mouseEv.pos.y < (UI_TURN_LEFT_BUTTON_Y + (UI_BUTTON_W * 2))) {
+    int x = gameCtx->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
+    int y = gameCtx->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
+    int buttonX = (int)(x / UI_BUTTON_W);
+    int buttonY = (int)(y / UI_BUTTON_W);
+    if (buttonX <= 2 && buttonY <= 1) {
+      if (buttonY == 0) {
+        if (buttonX == 0) {
+          printf("Turn Left\n");
+        } else if (buttonX == 1) {
+          printf("Go front\n");
+        } else if (buttonX == 2) {
+          printf("Turn Right\n");
+        }
+      } else if (buttonY == 1) {
+        if (buttonX == 0) {
+          printf("Strafe Left\n");
+        } else if (buttonX == 1) {
+          printf("Go back\n");
+        } else if (buttonX == 2) {
+          printf("Strafe Right\n");
+        }
+      }
+    }
+  } else if (gameCtx->mouseEv.pos.x >= UI_MENU_BUTTON_X &&
+             gameCtx->mouseEv.pos.y >= UI_MENU_BUTTON_Y &&
+             gameCtx->mouseEv.pos.x < (UI_MENU_BUTTON_X + (UI_BUTTON_W * 2)) &&
+             gameCtx->mouseEv.pos.y < (UI_MENU_BUTTON_Y + (UI_BUTTON_W * 1))) {
+    int x = gameCtx->mouseEv.pos.x - UI_MENU_BUTTON_X;
+    int buttonX = (int)(x / UI_BUTTON_W);
+    if (buttonX == 0) {
+      printf("Menu button\n");
+    } else if (buttonX == 1) {
+      printf("sleep button\n");
+    }
+  } else if (gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
+             gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
+             gameCtx->mouseEv.pos.x <
+                 (UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * 11)) &&
+             gameCtx->mouseEv.pos.y <
+                 (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1))) {
+    int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
+    int buttonX = (int)(x / UI_BUTTON_W);
+    // 0 is left arrow, 10 is right arrow
+    if (buttonX == 0) {
+      printf("Inventory button Left\n");
+    } else if (buttonX == 10) {
+      printf("Inventory button Right\n");
+    } else {
+      printf("Inventory button %i\n", buttonX);
+    }
+
+  } else {
+    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+  }
+}
+
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   int shouldUpdate = 0;
   if (e->type == SDL_MOUSEBUTTONDOWN) {
@@ -299,7 +360,7 @@ static int GameRun(GameContext *gameCtx) {
       firstTime = 0;
     }
     if (gameCtx->mouseEv.pending) {
-      printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+      processMouse(gameCtx);
       gameCtx->mouseEv.pending = 0;
     }
     if (shouldUpdate) {

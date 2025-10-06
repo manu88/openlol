@@ -14,6 +14,18 @@
 
 #define DIALOG_BOX_H2 56
 
+#define UI_BUTTON_W 21
+#define UI_BUTTON_H 21
+
+#define UI_TURN_LEFT_BUTTON_X 11
+#define UI_TURN_LEFT_BUTTON_Y 131
+
+#define UI_MENU_BUTTON_X 11
+#define UI_MENU_BUTTON_Y 179
+
+#define UI_INVENTORY_BUTTON_X 85
+#define UI_INVENTORY_BUTTON_Y 179
+
 typedef struct {
   uint16_t x;
   uint16_t y;
