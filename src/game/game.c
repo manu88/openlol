@@ -81,101 +81,104 @@ static void clickOnFrontWall(GameContext *gameCtx) {
 }
 
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
-  int shouldUpdate = 1;
-  switch (e->key.keysym.sym) {
-  case SDLK_z:
-    // go front
-    shouldUpdate = 1;
-    switch (gameCtx->orientation) {
-    case North:
-      gameCtx->partyPos.y -= 1;
+  int shouldUpdate = 0;
+  if (e->type == SDL_KEYDOWN) {
+    switch (e->key.keysym.sym) {
+    case SDLK_z:
+      // go front
+      shouldUpdate = 1;
+      switch (gameCtx->orientation) {
+      case North:
+        gameCtx->partyPos.y -= 1;
+        break;
+      case East:
+        gameCtx->partyPos.x += 1;
+        break;
+      case South:
+        gameCtx->partyPos.y += 1;
+        break;
+      case West:
+        gameCtx->partyPos.x -= 1;
+        break;
+      }
       break;
-    case East:
-      gameCtx->partyPos.x += 1;
+    case SDLK_s:
+      // go back
+      shouldUpdate = 1;
+      switch (gameCtx->orientation) {
+      case North:
+        gameCtx->partyPos.y += 1;
+        break;
+      case East:
+        gameCtx->partyPos.x -= 1;
+        break;
+      case South:
+        gameCtx->partyPos.y -= 1;
+        break;
+      case West:
+        gameCtx->partyPos.x += 1;
+        break;
+      }
       break;
-    case South:
-      gameCtx->partyPos.y += 1;
+    case SDLK_q:
+      // go left
+      shouldUpdate = 1;
+      switch (gameCtx->orientation) {
+      case North:
+        gameCtx->partyPos.x -= 1;
+        break;
+      case East:
+        gameCtx->partyPos.y -= 1;
+        break;
+      case South:
+        gameCtx->partyPos.x += 1;
+        break;
+      case West:
+        gameCtx->partyPos.y += 1;
+        break;
+      }
       break;
-    case West:
-      gameCtx->partyPos.x -= 1;
+    case SDLK_d:
+      // go right
+      shouldUpdate = 1;
+      switch (gameCtx->orientation) {
+      case North:
+        gameCtx->partyPos.x += 1;
+        break;
+      case East:
+        gameCtx->partyPos.y += 1;
+        break;
+      case South:
+        gameCtx->partyPos.x -= 1;
+        break;
+      case West:
+        gameCtx->partyPos.y -= 1;
+        break;
+      }
+      break;
+    case SDLK_a:
+      // turn anti-clockwise
+      shouldUpdate = 1;
+      gameCtx->orientation -= 1;
+      if ((int)gameCtx->orientation < 0) {
+        gameCtx->orientation = West;
+      }
+      break;
+    case SDLK_e:
+      // turn clockwise
+      shouldUpdate = 1;
+      gameCtx->orientation += 1;
+      if (gameCtx->orientation > West) {
+        gameCtx->orientation = North;
+      }
+      break;
+    case SDLK_SPACE:
+      shouldUpdate = 1;
+      clickOnFrontWall(gameCtx);
+      break;
+    default:
       break;
     }
-    break;
-  case SDLK_s:
-    // go back
-    shouldUpdate = 1;
-    switch (gameCtx->orientation) {
-    case North:
-      gameCtx->partyPos.y += 1;
-      break;
-    case East:
-      gameCtx->partyPos.x -= 1;
-      break;
-    case South:
-      gameCtx->partyPos.y -= 1;
-      break;
-    case West:
-      gameCtx->partyPos.x += 1;
-      break;
-    }
-    break;
-  case SDLK_q:
-    // go left
-    shouldUpdate = 1;
-    switch (gameCtx->orientation) {
-    case North:
-      gameCtx->partyPos.x -= 1;
-      break;
-    case East:
-      gameCtx->partyPos.y -= 1;
-      break;
-    case South:
-      gameCtx->partyPos.x += 1;
-      break;
-    case West:
-      gameCtx->partyPos.y += 1;
-      break;
-    }
-    break;
-  case SDLK_d:
-    // go right
-    shouldUpdate = 1;
-    switch (gameCtx->orientation) {
-    case North:
-      gameCtx->partyPos.x += 1;
-      break;
-    case East:
-      gameCtx->partyPos.y += 1;
-      break;
-    case South:
-      gameCtx->partyPos.x -= 1;
-      break;
-    case West:
-      gameCtx->partyPos.y -= 1;
-      break;
-    }
-    break;
-  case SDLK_a:
-    // turn anti-clockwise
-    shouldUpdate = 1;
-    gameCtx->orientation -= 1;
-    if ((int)gameCtx->orientation < 0) {
-      gameCtx->orientation = West;
-    }
-    break;
-  case SDLK_e:
-    // turn clockwise
-    shouldUpdate = 1;
-    gameCtx->orientation += 1;
-    if (gameCtx->orientation > West) {
-      gameCtx->orientation = North;
-    }
-    break;
-  case SDLK_SPACE:
-    clickOnFrontWall(gameCtx);
-    break;
-  default:
-    break;
   }
   return shouldUpdate;
 }
@@ -254,7 +257,7 @@ static void GameRender(GameContext *gameCtx) {
 static int GameRun(GameContext *gameCtx) {
   int quit = 0;
   int shouldUpdate = 1;
-
+  int firstTime = 1;
   // Event loop
   while (!quit) {
     DBGServerUpdate(gameCtx);
@@ -272,8 +275,8 @@ static int GameRun(GameContext *gameCtx) {
       quit = 1;
     }
     if (gameCtx->state == GameState_PlayGame) {
-      if (e.type == SDL_KEYDOWN) {
-        shouldUpdate = processGameInputs(gameCtx, &e);
+      shouldUpdate = processGameInputs(gameCtx, &e);
+      if (shouldUpdate) {
         uint16_t gameX = 0;
         uint16_t gameY = 0;
         GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
@@ -283,6 +286,10 @@ static int GameRun(GameContext *gameCtx) {
       if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
         shouldUpdate = 1;
       }
+    }
+    if (firstTime) {
+      shouldUpdate = 1;
+      firstTime = 0;
     }
     if (shouldUpdate) {
       GameRender(gameCtx);
