@@ -82,7 +82,13 @@ static void clickOnFrontWall(GameContext *gameCtx) {
 
 static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   int shouldUpdate = 0;
-  if (e->type == SDL_KEYDOWN) {
+  if (e->type == SDL_MOUSEBUTTONDOWN) {
+    assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
+    gameCtx->mouseEv.pending = 1;
+    gameCtx->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
+    gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
+
+  } else if (e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
@@ -249,7 +255,8 @@ static void GameRender(GameContext *gameCtx) {
   renderDialog(gameCtx);
   // GameRenderMap(gameCtx, 640, 350);
 
-  SDL_Rect dest = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
   assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
   SDL_RenderPresent(gameCtx->renderer);
 }
@@ -290,6 +297,10 @@ static int GameRun(GameContext *gameCtx) {
     if (firstTime) {
       shouldUpdate = 1;
       firstTime = 0;
+    }
+    if (gameCtx->mouseEv.pending) {
+      printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+      gameCtx->mouseEv.pending = 0;
     }
     if (shouldUpdate) {
       GameRender(gameCtx);

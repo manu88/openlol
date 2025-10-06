@@ -16,8 +16,7 @@
 #include "script.h"
 #include <stdint.h>
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 800
+#define SCREEN_FACTOR 4
 
 #define PIX_BUF_WIDTH 320
 #define PIX_BUF_HEIGHT 200
@@ -40,11 +39,18 @@ typedef enum {
   GameState_TimAnimation = 1,
 } GameState;
 
+typedef struct {
+  Point pos;
+  uint8_t pending;
+} MouseEvent;
+
 typedef struct _GameContext {
   GameState state;
   int fadeOutFrames;
   int dialogBoxFrames;
   int showBigDialog;
+
+  MouseEvent mouseEv;
   uint16_t currentBock;
   Point partyPos;
   Orientation orientation;

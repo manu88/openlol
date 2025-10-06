@@ -32,9 +32,10 @@ int GameContextInit(GameContext *gameCtx) {
     return 0;
   }
 
-  gameCtx->window = SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
-                                     SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                                     SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+  gameCtx->window =
+      SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
+                       SDL_WINDOWPOS_UNDEFINED, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                       PIX_BUF_HEIGHT * SCREEN_FACTOR, SDL_WINDOW_SHOWN);
   if (!gameCtx->window) {
     printf("Window could not be created!\n"
            "SDL_Error: %s\n",
