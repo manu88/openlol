@@ -6,6 +6,7 @@
 #include "formats/format_fnt.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
@@ -42,6 +43,7 @@ typedef enum {
 typedef struct {
   Point pos;
   uint8_t pending;
+  uint8_t isRightClick;
 } MouseEvent;
 
 typedef struct _GameContext {
@@ -81,6 +83,9 @@ typedef struct _GameContext {
   uint8_t gameFlags[100];
 
   GameTimAnimator timAnimator;
+
+  uint16_t inventory[INVENTORY_SIZE];
+  uint16_t inventoryIndex;
 
 } GameContext;
 

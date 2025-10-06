@@ -5,6 +5,7 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "dbg_server.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_callbacks.h"
 #include "game_ctx.h"
@@ -214,9 +215,23 @@ static int processMouse(GameContext *gameCtx) {
     int buttonX = (int)(x / UI_BUTTON_W);
     // 0 is left arrow, 10 is right arrow
     if (buttonX == 0) {
-      printf("Inventory button Left\n");
+
+      int inventoryIndex =
+          gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
+      if (inventoryIndex < 0) {
+        inventoryIndex = INVENTORY_SIZE - 1;
+      }
+      gameCtx->inventoryIndex = inventoryIndex;
+      return 1;
     } else if (buttonX == 10) {
-      printf("Inventory button Right\n");
+
+      int inventoryIndex =
+          gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
+      if (inventoryIndex >= INVENTORY_SIZE) {
+        inventoryIndex = 0;
+      }
+      gameCtx->inventoryIndex = inventoryIndex;
+      return 1;
     } else {
       printf("Inventory button %i\n", buttonX);
     }
@@ -242,6 +257,7 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     gameCtx->mouseEv.pending = 1;
     gameCtx->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
     gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
+    gameCtx->mouseEv.isRightClick = e->button.button == 3;
 
   } else if (e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
@@ -339,7 +355,11 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
 
 static void renderInventory(GameContext *gameCtx) {
   for (int i = 0; i < 9; i++) {
-    renderInventorySlot(gameCtx, i, i);
+    uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
+    uint16_t itemId = gameCtx->inventory[index];
+    if (itemId) {
+      renderInventorySlot(gameCtx, i, itemId);
+    }
   }
 }
 static void GameRender(GameContext *gameCtx) {

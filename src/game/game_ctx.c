@@ -1,6 +1,7 @@
 #include "game_ctx.h"
 #include "SDL_render.h"
 #include "dbg_server.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_envir.h"
 #include "game_tim_animator.h"
@@ -80,6 +81,9 @@ int GameContextInit(GameContext *gameCtx) {
   assert(gameCtx->dialogTextBuffer);
 
   DBGServerInit();
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    gameCtx->inventory[i] = i + 1;
+  }
   return 1;
 }
 
