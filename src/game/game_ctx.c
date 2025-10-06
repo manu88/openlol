@@ -129,9 +129,7 @@ static int runINIScript(GameContext *gameCtx) {
   EMCStateSetOffset(&iniState, 0);
   EMCStateStart(&iniState, 0);
   while (EMCInterpreterIsValid(&gameCtx->interp, &iniState)) {
-    if (EMCInterpreterRun(&gameCtx->interp, &iniState) == 0) {
-      printf("EMCInterpreterRun returned 0\n");
-    }
+    EMCInterpreterRun(&gameCtx->interp, &iniState);
   }
   return 1;
 }

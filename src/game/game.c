@@ -367,9 +367,7 @@ static int GameRun(GameContext *gameCtx) {
     DBGServerUpdate(gameCtx);
     while (gameCtx->state == GameState_PlayGame &&
            EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
-      if (EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState) == 0) {
-        printf("EMCInterpreterRun returned 0\n");
-      }
+      EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
       shouldUpdate = 1;
     }
 

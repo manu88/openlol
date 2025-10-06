@@ -433,9 +433,7 @@ int EMCStateStart(EMCState *state, int function) {
 
   uint16_t functionOffset =
       INFScriptGetFunctionOffset(state->dataPtr, function);
-  printf("function %i -- functionOffset=0X%X\n", function, functionOffset);
   if (functionOffset == 0xFFFF) {
-    printf("no such function\n");
     return 0;
   }
   functionOffset++;
