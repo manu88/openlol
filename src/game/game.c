@@ -219,7 +219,15 @@ static int processMouse(GameContext *gameCtx) {
     } else {
       printf("Inventory button %i\n", buttonX);
     }
-
+  } else if (gameCtx->mouseEv.pos.x >= MAZE_COORDS_X &&
+             gameCtx->mouseEv.pos.y >= MAZE_COORDS_Y &&
+             (gameCtx->mouseEv.pos.x < (MAZE_COORDS_X + MAZE_COORDS_W)) &&
+             (gameCtx->mouseEv.pos.y < (MAZE_COORDS_Y + MAZE_COORDS_H))) {
+    int x = gameCtx->mouseEv.pos.x - MAZE_COORDS_X;
+    int y = gameCtx->mouseEv.pos.y - MAZE_COORDS_Y;
+    printf("maze click %i %i\n", x, y);
+    clickOnFrontWall(gameCtx);
+    return 1;
   } else {
     printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
   }
