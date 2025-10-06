@@ -4,14 +4,15 @@
 #include "SDL_keycode.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
-#include "SDL_stdinc.h"
 #include "dbg_server.h"
+#include "formats/format_shp.h"
 #include "game_callbacks.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
 #include "geometry.h"
 #include "render.h"
+#include "renderer.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
@@ -325,6 +326,14 @@ static void animateDialogZone(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
+static void renderInventory(GameContext *gameCtx) {
+  SHPFrame frame = {0};
+  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, 0);
+  SHPFrameGetImageData(&frame);
+  drawSHPFrame(gameCtx->pixBuf, &frame, UI_INVENTORY_BUTTON_X,
+               UI_INVENTORY_BUTTON_Y, gameCtx->level->vcnHandle.palette, 0);
+}
+
 static void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   SDL_RenderClear(gameCtx->renderer);
@@ -344,7 +353,7 @@ static void GameRender(GameContext *gameCtx) {
       }
     }
   }
-
+  renderInventory(gameCtx);
   if (gameCtx->showBigDialog) {
     animateDialogZone(gameCtx);
   }

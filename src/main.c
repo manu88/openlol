@@ -300,7 +300,7 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageSHP(void) {
-  printf("shp subcommands: list|extract filepath [index] [palette]\n");
+  printf("shp subcommands: [-c] list|extract  filepath [index] [palette]\n");
 }
 
 static int cmdShp(int argc, char *argv[]) {
@@ -308,7 +308,15 @@ static int cmdShp(int argc, char *argv[]) {
     usageSHP();
     return 1;
   }
+  int compressed = 0;
 
+  if (strcmp(argv[0], "-c") == 0) {
+    compressed = 1;
+    argc--;
+    argv++;
+  }
+  printf("compressed = %i\n", compressed);
+  printf("%s\n", argv[0]);
   if (strcmp(argv[0], "list") != 0 && strcmp(argv[0], "extract") != 0) {
     usageSHP();
     return 1;
@@ -317,6 +325,7 @@ static int cmdShp(int argc, char *argv[]) {
     usageSHP();
     return 1;
   }
+
   const char *shpFile = argv[1];
   printf("open SHP file '%s'\n", shpFile);
   size_t fileSize = 0;
@@ -327,10 +336,18 @@ static int cmdShp(int argc, char *argv[]) {
     return 1;
   }
   SHPHandle handle = {0};
-  if (!SHPHandleFromBuffer(&handle, buffer, readSize)) {
-    perror("SHPHandleFromBuffer");
-    free(buffer);
-    return 1;
+  if (compressed == 0) {
+    if (!SHPHandleFromBuffer(&handle, buffer, readSize)) {
+      perror("SHPHandleFromBuffer");
+      free(buffer);
+      return 1;
+    }
+  } else {
+    if (!SHPHandleFromCompressedBuffer(&handle, buffer, readSize)) {
+      perror("SHPHandleFromBuffer");
+      free(buffer);
+      return 1;
+    }
   }
   if (strcmp(argv[0], "list") == 0) {
     SHPHandlePrint(&handle);
@@ -394,6 +411,7 @@ static int cmdDat(int argc, char *argv[]) {
   DatHandleRelease(&handle);
   return 0;
 }
+
 static int cmdMap(int argc, char *argv[]) {
   size_t fileSize = 0;
   size_t readSize = 0;

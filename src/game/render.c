@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-static void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData,
+void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData,
                       size_t dataSize, const uint8_t *paletteBuffer, int w,
                       int h) {
   void *data;

@@ -42,10 +42,14 @@ typedef struct {
   uint32_t *frameOffsets; // array size = framesCount
 
   uint8_t *originalBuffer;
+
+  uint8_t *toFree;
 } SHPHandle;
 
 void SHPHandleRelease(SHPHandle *handle);
 int SHPHandleFromBuffer(SHPHandle *handle, uint8_t *buffer, size_t size);
+int SHPHandleFromCompressedBuffer(SHPHandle *handle, uint8_t *buffer,
+                                  size_t size);
 
 uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
                            size_t index);

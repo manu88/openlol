@@ -63,6 +63,7 @@ typedef struct _GameContext {
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 
   CPSImage playField;
+  SHPHandle itemShapes;
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;
   PAKFile generalPak;

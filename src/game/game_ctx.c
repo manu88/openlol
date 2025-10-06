@@ -1,6 +1,7 @@
 #include "game_ctx.h"
 #include "SDL_render.h"
 #include "dbg_server.h"
+#include "formats/format_shp.h"
 #include "game_envir.h"
 #include "game_tim_animator.h"
 #include <assert.h>
@@ -22,6 +23,15 @@ int GameContextInit(GameContext *gameCtx) {
 
     if (CPSImageFromFile(&gameCtx->playField, f.buffer, f.bufferSize) == 0) {
       printf("unable to get playFieldData\n");
+    }
+  }
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, "ITEMICN.SHP"));
+    if (SHPHandleFromCompressedBuffer(&gameCtx->itemShapes, f.buffer,
+                                      f.bufferSize) == 0) {
+      printf("unable to get ITEMICN.SHP\n");
+      assert(0);
     }
   }
 

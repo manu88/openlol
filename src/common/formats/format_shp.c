@@ -6,7 +6,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void SHPHandleRelease(SHPHandle *handle) {}
+void SHPHandleRelease(SHPHandle *handle) {
+  if (handle->toFree) {
+    free(handle->toFree);
+  }
+}
+
+#define SHPBITMAPHEADER_SIZE 10
+typedef struct {
+  uint16_t fileSize;
+  uint16_t compressionType;
+  uint32_t uncompressedSize;
+} CompressedSHPHeader;
+
+int SHPHandleFromCompressedBuffer(SHPHandle *handle, uint8_t *buffer,
+                                  size_t size) {
+
+  const CompressedSHPHeader *header = (const CompressedSHPHeader *)buffer;
+  handle->toFree = malloc(header->uncompressedSize);
+  if (!handle->toFree) {
+    return 0;
+  }
+  assert(LCWDecompress(buffer + SHPBITMAPHEADER_SIZE,
+                       size - SHPBITMAPHEADER_SIZE, handle->toFree,
+                       header->uncompressedSize) == header->uncompressedSize);
+  return SHPHandleFromBuffer(handle, handle->toFree, header->uncompressedSize);
+}
 
 int SHPHandleFromBuffer(SHPHandle *handle, uint8_t *buffer, size_t size) {
   handle->originalBuffer = buffer;

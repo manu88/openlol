@@ -1,5 +1,4 @@
 #include "format_vcn.h"
-#include "bytes.h"
 #include "format_lcw.h"
 #include <assert.h>
 #include <stddef.h>
