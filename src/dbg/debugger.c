@@ -14,17 +14,12 @@ static char cmdInputBuffer[1024];
 
 static int shouldStop = 0;
 static int sock = 0;
-static void readCommand(void) {
-  printf(">: ");
-  fflush(stdout);
-  ssize_t ret = read(STDIN_FILENO, cmdInputBuffer, sizeof(cmdInputBuffer));
-  if (ret <= 0) {
-    perror("read input");
-  }
-  cmdInputBuffer[ret - 1] = 0;
-  if (strcmp(cmdInputBuffer, "exit") == 0) {
+
+static void processCommand(int argc, char *argv[]) {
+  const char *cmd = argv[0];
+  if (strcmp(cmd, "exit") == 0) {
     shouldStop = 1;
-  } else if (strcmp(cmdInputBuffer, "give") == 0) {
+  } else if (strcmp(cmd, "give") == 0) {
     DBGMsgHeader header = {.type = DBGMsgType_GiveItemRequest,
                            sizeof(DBGMSGGiveItemRequest)};
     write(sock, &header, sizeof(DBGMsgHeader));
@@ -40,7 +35,7 @@ static void readCommand(void) {
     DBGMSGGiveItemResponse resp;
     read(sock, &resp, sizeof(DBGMSGGiveItemResponse));
     printf("reply %i\n", resp.response);
-  } else if (strcmp(cmdInputBuffer, "status") == 0) {
+  } else if (strcmp(cmd, "status") == 0) {
     DBGMsgHeader header = {.type = DBGMsgType_StatusRequest, 0};
     write(sock, &header, sizeof(DBGMsgHeader));
 
@@ -50,8 +45,31 @@ static void readCommand(void) {
     printf("received %i %i current block %X\n", header.type, header.dataSize,
            status.currentBock);
   } else {
-    printf("unknow command '%s'\n", cmdInputBuffer);
+    printf("unknow command '%s'\n", cmd);
   }
+}
+
+static void readCommand(void) {
+  printf(">: ");
+  fflush(stdout);
+  ssize_t ret = read(STDIN_FILENO, cmdInputBuffer, sizeof(cmdInputBuffer));
+  if (ret <= 0) {
+    perror("read input");
+  }
+  cmdInputBuffer[ret - 1] = 0;
+  char *str = (char *)cmdInputBuffer;
+  char *tok = NULL;
+  int argc = 0;
+  char **argv = NULL;
+  while ((tok = strsep(&str, " ")) != NULL) {
+    argv = realloc(argv, (argc + 1) * sizeof(char *));
+    argv[argc] = tok;
+    argc++;
+  }
+  if (argc) {
+    processCommand(argc, argv);
+  }
+  free(argv);
 }
 
 static int connectToServer(const char *ip) {
