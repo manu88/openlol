@@ -41,7 +41,6 @@ typedef struct {
 
   uint32_t *frameOffsets; // array size = framesCount
 
-  // freed by DatHandleRelease
   uint8_t *originalBuffer;
 } SHPHandle;
 
