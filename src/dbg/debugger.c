@@ -21,21 +21,18 @@ static void processCommand(int argc, char *argv[]) {
     shouldStop = 1;
   } else if (strcmp(cmd, "give") == 0) {
     if (argc < 2) {
-      printf("missing itemID");
+      printf("missing itemID\n");
       return;
     }
 
     DBGMsgHeader header = {.type = DBGMsgType_GiveItemRequest,
                            sizeof(DBGMSGGiveItemRequest)};
     write(sock, &header, sizeof(DBGMsgHeader));
-    printf("sent header\n");
     DBGMSGGiveItemRequest req;
     req.itemId = atoi(argv[1]);
     write(sock, &req, sizeof(DBGMSGGiveItemRequest));
-    printf("sent data\n");
 
     read(sock, &header, sizeof(DBGMsgHeader));
-    printf("Got reply\n");
     assert(header.type == DBGMsgType_GiveItemResponse);
     DBGMSGGiveItemResponse resp;
     read(sock, &resp, sizeof(DBGMSGGiveItemResponse));
@@ -50,7 +47,7 @@ static void processCommand(int argc, char *argv[]) {
     printf("received %i %i current block %X\n", header.type, header.dataSize,
            status.currentBock);
   } else {
-    printf("unknow command '%s'\n", cmd);
+    printf("unknown command '%s'\n", cmd);
   }
 }
 
@@ -78,7 +75,6 @@ static void readCommand(void) {
 }
 
 static int connectToServer(const char *ip) {
-
   struct sockaddr_in serv_addr;
 
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -93,12 +89,12 @@ static int connectToServer(const char *ip) {
 
   // Convert IPv4 and IPv6 addresses from text to binary form
   if (inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0) {
-    printf("\nInvalid address/ Address not supported \n");
+    printf("Invalid address/ Address not supported\n");
     return 1;
   }
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    printf("\nConnection Failed \n");
+    printf("Connection Failed\n");
     return 1;
   }
   return 0;
@@ -122,10 +118,16 @@ static void processRecvMsg(const DBGMsgHeader *header, uint8_t *buffer) {
   }
 }
 
-int cmdDbg(int argc, char *argv[]) {
-  printf("Start debugger\n");
+const char defaultIP[] = "127.0.0.1";
 
-  if (connectToServer("127.0.0.1") != 0) {
+int cmdDbg(int argc, char *argv[]) {
+  const char *host = defaultIP;
+  if (argc > 0) {
+    host = argv[0];
+  }
+  printf("connect to %s:%i\n", host, DBG_PORT);
+
+  if (connectToServer(host) != 0) {
     return 1;
   }
 
@@ -148,6 +150,5 @@ int cmdDbg(int argc, char *argv[]) {
   }
 
   close(sock);
-
   return 0;
 }
