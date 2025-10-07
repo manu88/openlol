@@ -3,11 +3,6 @@
 #include <stdint.h>
 
 typedef struct {
-  uint8_t *buffer;
-  size_t bufferSize;
-} SAVHandle;
-
-typedef struct {
   uint16_t flags;
   char name[11];
   uint8_t raceClassSex;
@@ -87,5 +82,11 @@ typedef struct {
   int16_t *inventory; // size is INVENTORY_SIZE
 } SAVSlot;
 
+typedef struct {
+  uint8_t *buffer;
+  size_t bufferSize;
+
+  SAVSlot slot;
+} SAVHandle;
+
 int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize);
-int SAVHandleGetSlot(const SAVHandle *handle, SAVSlot *slot);

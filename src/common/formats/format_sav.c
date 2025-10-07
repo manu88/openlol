@@ -3,19 +3,12 @@
 #include <stdint.h>
 #include <stdio.h>
 
-int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize) {
-  assert(handle);
-  handle->buffer = buffer;
-  handle->bufferSize = bufferSize;
-  return 1;
-}
-
 #define CHARACTERS_OFFSET 0X41
 #define GENERAL_OFFSET 0X249
 #define INVENTORY_OFFSET 0X25F
 #define AFTER_INVENTORY_OFFSET INVENTORY_OFFSET + INVENTORY_SIZE
 
-int SAVHandleGetSlot(const SAVHandle *handle, SAVSlot *slot) {
+static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
   assert(slot);
 
   slot->header = (SAVHeader *)handle->buffer;
@@ -29,4 +22,11 @@ int SAVHandleGetSlot(const SAVHandle *handle, SAVSlot *slot) {
 
   slot->inventory = (int16_t *)(handle->buffer + INVENTORY_OFFSET);
   return 1;
+}
+
+int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize) {
+  assert(handle);
+  handle->buffer = buffer;
+  handle->bufferSize = bufferSize;
+  return getSlot(handle, &handle->slot);
 }

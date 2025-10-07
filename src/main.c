@@ -636,33 +636,31 @@ static int cmdSAVShow(const char *filepath) {
 
   SAVHandle handle = {0};
   SAVHandleFromBuffer(&handle, buffer, dataSize);
-  SAVSlot slot = {0};
-  if (SAVHandleGetSlot(&handle, &slot)) {
-    printf("Slot name '%s'\n", slot.header->name);
-    printf("+CHARACTERS\n");
-    for (int i = 0; i < 4; i++) {
-      const SAVCharacter *ch = slot.characters[i];
-      printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%X "
-             "magicPointsCur=%X "
-             "magicPointsMax=%X\n",
-             i, ch->flags, ch->name, ch->raceClassSex, ch->id,
-             ch->magicPointsCur, ch->magicPointsMax);
-    }
+  const SAVSlot *slot = &handle.slot;
+  printf("Slot name '%s'\n", slot->header->name);
+  printf("+CHARACTERS\n");
+  for (int i = 0; i < 4; i++) {
+    const SAVCharacter *ch = slot->characters[i];
+    printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%X "
+           "magicPointsCur=%X "
+           "magicPointsMax=%X\n",
+           i, ch->flags, ch->name, ch->raceClassSex, ch->id, ch->magicPointsCur,
+           ch->magicPointsMax);
 
     printf("+GENERAL\n");
     uint16_t x = 0;
     uint16_t y = 0;
-    GetRealCoords(slot.general->posX, slot.general->posY, &x, &y);
-    printf("block=%X x=%X y=%X (real %i %i)\n", slot.general->currentBlock,
-           slot.general->posX, slot.general->posY, x, y);
-    printf("orientation=%X compass=%X\n", slot.general->currentDirection,
-           slot.general->compassDirection);
-    printf("level %i\n", slot.general->currentLevel);
-    printf("selected char %i\n", slot.general->selectedChar);
+    GetRealCoords(slot->general->posX, slot->general->posY, &x, &y);
+    printf("block=%X x=%X y=%X (real %i %i)\n", slot->general->currentBlock,
+           slot->general->posX, slot->general->posY, x, y);
+    printf("orientation=%X compass=%X\n", slot->general->currentDirection,
+           slot->general->compassDirection);
+    printf("level %i\n", slot->general->currentLevel);
+    printf("selected char %i\n", slot->general->selectedChar);
     printf("+INVENTORY\n");
     for (int i = 0; i < INVENTORY_SIZE; i++) {
-      if (slot.inventory[i]) {
-        printf("%i: 0X%X\n", i, slot.inventory[i]);
+      if (slot->inventory[i]) {
+        printf("%i: 0X%X\n", i, slot->inventory[i]);
       }
     }
   }
