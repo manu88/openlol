@@ -76,6 +76,7 @@ typedef struct {
 } SAVHeader;
 
 #define INVENTORY_SIZE 48
+#define MAX_ITEM_ID 0X89
 
 typedef struct {
   SAVHeader *header;
