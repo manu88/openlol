@@ -79,7 +79,7 @@ typedef struct {
 
   SAVGeneral *general;
 
-  int16_t *inventory; // size is INVENTORY_SIZE
+  uint16_t *inventory; // size is INVENTORY_SIZE
 } SAVSlot;
 
 typedef struct {
@@ -90,3 +90,4 @@ typedef struct {
 } SAVHandle;
 
 int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize);
+void SAVHandleGetNewGame(SAVHandle *handle);

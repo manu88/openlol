@@ -4,6 +4,7 @@
 #include "SDL_keycode.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
+#include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
@@ -24,27 +25,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+static int getChapterId(int levelId) {
+  assert(levelId <= 5);
+  return 1;
+}
+
+static SAVHandle savHandle = {0};
 
 static int GameRun(GameContext *gameCtx);
+static void usageGame(void) { printf("game [savefile.dat]\n"); }
 
-int cmdGame(int argc, char *argv[]) {
-  assert(GameEnvironmentInit("data"));
-
-  if (argc < 2) {
-    printf("game chapterID levelID\n");
+int loadSaveFile(const char *filepath) {
+  size_t fileSize = 0;
+  size_t readSize = 0;
+  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  if (!buffer) {
     return 0;
   }
+  return SAVHandleFromBuffer(&savHandle, buffer, readSize);
+}
 
-  int chapterId = atoi(argv[0]);
-  int levelId = atoi(argv[1]);
-  if (chapterId < 1) {
+int cmdGame(int argc, char *argv[]) {
+  if (argc > 0 && strcmp(argv[0], "-h") == 0) {
+    usageGame();
     return 1;
   }
-  if (levelId < 1) {
-    return 1;
-  }
-  printf("Loading chapter %i level %i\n", chapterId, levelId);
+  char *savFile = NULL;
 
+  if (argc > 0) {
+    savFile = argv[0];
+  }
+
+  if (savFile) {
+    printf("Loading sav file '%s'\n", savFile);
+    if (loadSaveFile(savFile) == 0) {
+      printf("Error while reading file '%s'\n", savFile);
+      return 1;
+    }
+  } else {
+    printf("New game\n");
+    SAVHandleGetNewGame(&savHandle);
+  }
+
+  assert(GameEnvironmentInit("data"));
+  int levelId = savHandle.slot.general->currentLevel;
+  int chapterId = getChapterId(levelId);
   assert(GameEnvironmentLoadChapter(chapterId));
 
   GameContext gameCtx = {0};
@@ -57,8 +84,17 @@ int cmdGame(int argc, char *argv[]) {
 
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
-  GameContextLoadLevel(&gameCtx, levelId, 0X24D, North);
 
+  GameContextLoadLevel(&gameCtx, levelId, savHandle.slot.general->currentBlock,
+                       savHandle.slot.general->currentDirection);
+
+  memcpy(gameCtx.inventory, savHandle.slot.inventory,
+         INVENTORY_SIZE * sizeof(uint16_t));
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    if (savHandle.slot.inventory[i] != 0) {
+      printf("set inventory %i = %X\n", i, savHandle.slot.inventory[i]);
+    }
+  }
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);

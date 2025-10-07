@@ -1,4 +1,5 @@
 #include "format_sav.h"
+#include "geometry.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -19,8 +20,7 @@ static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
   }
 
   slot->general = (SAVGeneral *)(handle->buffer + GENERAL_OFFSET);
-
-  slot->inventory = (int16_t *)(handle->buffer + INVENTORY_OFFSET);
+  slot->inventory = (uint16_t *)(handle->buffer + INVENTORY_OFFSET);
   return 1;
 }
 
@@ -29,4 +29,15 @@ int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize) {
   handle->buffer = buffer;
   handle->bufferSize = bufferSize;
   return getSlot(handle, &handle->slot);
+}
+
+static SAVGeneral _general = {
+    .currentLevel = 1, .currentDirection = North, .currentBlock = 0X24D};
+
+static uint16_t defaultInventory[INVENTORY_SIZE] = {0X0A, 0X0D, 0X12};
+
+void SAVHandleGetNewGame(SAVHandle *handle) {
+  assert(handle);
+  handle->slot.general = &_general;
+  handle->slot.inventory = defaultInventory;
 }
