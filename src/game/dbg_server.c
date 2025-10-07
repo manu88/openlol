@@ -135,4 +135,5 @@ int DBGServerUpdate(GameContext *gameCtx) {
       }
     }
   }
+  return 0;
 }

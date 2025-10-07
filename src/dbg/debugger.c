@@ -6,12 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/_types/_ssize_t.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 static char cmdInputBuffer[1024];
-
+static uint8_t recvBuf[1024];
 static int shouldStop = 0;
 static int sock = 0;
 
@@ -99,8 +98,6 @@ static int connectToServer(const char *ip) {
   }
   return 0;
 }
-
-static uint8_t recvBuf[1024];
 
 static void processRecvMsg(const DBGMsgHeader *header, uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {

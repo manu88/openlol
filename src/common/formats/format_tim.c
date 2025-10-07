@@ -1,6 +1,5 @@
 #include "format_tim.h"
 #include "bytes.h"
-#include <_ctype.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

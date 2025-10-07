@@ -1,7 +1,4 @@
 #include "format_cps.h"
-#include "SDL_rect.h"
-#include "SDL_render.h"
-#include "bytes.h"
 #include "format_lcw.h"
 #include <SDL2/SDL.h>
 #include <assert.h>

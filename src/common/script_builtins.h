@@ -1,7 +1,7 @@
 #pragma once
-
 #include <stddef.h>
 #include <stdint.h>
+
 typedef struct _EMCState EMCState;
 typedef struct _EMCInterpreter EMCInterpreter;
 

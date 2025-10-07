@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <xlocale/_stdio.h>
 
 #define ANIM_WIDTH 300
 #define ANIM_HEIGHT 200
