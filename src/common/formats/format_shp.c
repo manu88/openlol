@@ -17,13 +17,14 @@ typedef struct {
   uint16_t fileSize;
   uint16_t compressionType;
   uint32_t uncompressedSize;
+  uint16_t paletteSize;
 } CompressedSHPHeader;
 
 int SHPHandleFromCompressedBuffer(SHPHandle *handle, uint8_t *buffer,
                                   size_t size) {
-
   const CompressedSHPHeader *header = (const CompressedSHPHeader *)buffer;
   handle->toFree = malloc(header->uncompressedSize);
+  assert(header->paletteSize == 0);
   if (!handle->toFree) {
     return 0;
   }
