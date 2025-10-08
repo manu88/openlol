@@ -6,7 +6,7 @@ typedef struct {
   uint16_t flags;
   char name[11];
   uint8_t raceClassSex;
-  uint16_t id;
+  int16_t id; // negative number means this is the hero
   uint8_t currentFaceFrame;
   uint8_t tempFaceFrame;
   uint8_t screamSfx;

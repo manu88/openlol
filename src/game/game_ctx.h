@@ -66,6 +66,10 @@ typedef struct _GameContext {
 
   CPSImage playField;
   SHPHandle itemShapes;
+
+  SHPHandle charFaces[4];
+  SAVCharacter chars[4];
+
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;
   PAKFile generalPak;
@@ -104,3 +108,4 @@ void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag);
 void GameContextSetState(GameContext *gameCtx, GameState newState);
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId);
+uint8_t GameContextGetNumChars(const GameContext *ctx);

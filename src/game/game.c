@@ -97,6 +97,25 @@ int cmdGame(int argc, char *argv[]) {
     printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
     gameCtx.inventory[i] = obj->itemId;
   }
+
+  // FACE01.SHP
+  char faceFile[11] = "";
+  for (int i = 0; i < 4; i++) {
+    uint8_t charId = savHandle.slot.characters[i]->id > 0
+                         ? savHandle.slot.characters[i]->id
+                         : -savHandle.slot.characters[i]->id;
+    memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
+           sizeof(SAVCharacter));
+    if (charId == 0) {
+      continue;
+    }
+    printf("character %i=%i\n", i, charId);
+    snprintf(faceFile, 11, "FACE%02i.SHP", charId);
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, faceFile));
+    SHPHandleFromCompressedBuffer(&gameCtx.charFaces[i], f.buffer,
+                                  f.bufferSize);
+  }
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);
@@ -407,6 +426,31 @@ static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
   return 0;
 }
 
+static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
+  SHPFrame frame = {0};
+  assert(SHPHandleGetFrame(&gameCtx->charFaces[charId], &frame, 0));
+  SHPFrameGetImageData(&frame);
+  drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_FACE_Y,
+               gameCtx->level->vcnHandle.palette);
+}
+
+static void renderCharFaces(GameContext *gameCtx) {
+  uint8_t numChars = GameContextGetNumChars(gameCtx);
+  printf("Got %i chars\n", numChars);
+  switch (numChars) {
+  case 1:
+    renderCharFace(gameCtx, 0, CHAR_FACE_0_1_X);
+    break;
+  case 2:
+    renderCharFace(gameCtx, 0, CHAR_FACE_0_2_X);
+    renderCharFace(gameCtx, 1, CHAR_FACE_1_2_X);
+    break;
+  case 3:
+  default:
+    assert(0);
+  }
+}
+
 static void renderInventory(GameContext *gameCtx) {
   for (int i = 0; i < 9; i++) {
     uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
@@ -422,13 +466,11 @@ static void GameRender(GameContext *gameCtx) {
   renderBackground(gameCtx);
 
   if (gameCtx->fadeOutFrames) {
-
     gameCtx->fadeOutFrames--;
     clearMazeZone(gameCtx);
 
   } else {
     GameRenderScene(gameCtx);
-
     if (gameCtx->state == GameState_TimAnimation) {
       if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
         GameContextSetState(gameCtx, GameState_PlayGame);
@@ -436,6 +478,9 @@ static void GameRender(GameContext *gameCtx) {
     }
   }
   renderInventory(gameCtx);
+
+  renderCharFaces(gameCtx);
+
   if (gameCtx->showBigDialog) {
     animateDialogZone(gameCtx);
   }

@@ -195,3 +195,13 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   printf("GameContextSetState from %i to %i\n", gameCtx->state, newState);
   gameCtx->state = newState;
 }
+
+uint8_t GameContextGetNumChars(const GameContext *ctx) {
+  uint8_t c = 0;
+  for (int i = 0; i < 4; i++) {
+    if (ctx->chars[i].id != 0) {
+      c++;
+    }
+  }
+  return c;
+}

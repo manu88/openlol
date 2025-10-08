@@ -644,7 +644,7 @@ static int cmdSAVShow(const char *filepath) {
     if (!ch->flags) {
       continue;
     }
-    printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%X "
+    printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%i "
            "magicPointsCur=%X "
            "magicPointsMax=%X\n",
            i, ch->flags, ch->name, ch->raceClassSex, ch->id, ch->magicPointsCur,
