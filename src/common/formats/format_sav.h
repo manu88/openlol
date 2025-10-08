@@ -29,7 +29,7 @@ typedef struct {
   uint16_t might;
   uint16_t protection;
   int16_t nextAnimUpdateCountdown;
-
+  uint16_t uu;
   uint16_t items[11];
   // uint16_t skillLevels[11];
   //  uint16_t skillModifiers[11];
@@ -74,12 +74,20 @@ typedef struct {
 #define MAX_ITEM_ID 0X89
 
 typedef struct {
+
+  uint8_t rest[14];
+  uint16_t itemId;
+} GameObject;
+
+typedef struct {
   SAVHeader *header;
   SAVCharacter *characters[4];
 
   SAVGeneral *general;
 
   uint16_t *inventory; // size is INVENTORY_SIZE
+
+  GameObject *gameObjects;
 } SAVSlot;
 
 typedef struct {

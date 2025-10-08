@@ -88,12 +88,14 @@ int cmdGame(int argc, char *argv[]) {
   GameContextLoadLevel(&gameCtx, levelId, savHandle.slot.general->currentBlock,
                        savHandle.slot.general->currentDirection);
 
-  memcpy(gameCtx.inventory, savHandle.slot.inventory,
-         INVENTORY_SIZE * sizeof(uint16_t));
   for (int i = 0; i < INVENTORY_SIZE; i++) {
-    if (savHandle.slot.inventory[i] != 0) {
-      printf("set inventory %i = %X\n", i, savHandle.slot.inventory[i]);
+    uint16_t gameObjIndex = savHandle.slot.inventory[i];
+    if (gameObjIndex == 0) {
+      continue;
     }
+    const GameObject *obj = savHandle.slot.gameObjects + gameObjIndex;
+    printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
+    gameCtx.inventory[i] = obj->itemId;
   }
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
@@ -379,14 +381,30 @@ static void animateDialogZone(GameContext *gameCtx) {
 }
 
 static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
-                                uint16_t itemID) {
+                                uint16_t frameId) {
   assert(slot <= 9);
   SHPFrame frame = {0};
-  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, itemID);
+  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, frameId);
   SHPFrameGetImageData(&frame);
   drawSHPFrame(gameCtx->pixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * (1 + slot)) + 2,
                UI_INVENTORY_BUTTON_Y, gameCtx->level->vcnHandle.palette);
+}
+
+static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
+  switch (itemId) {
+  case 0XD9:
+    return 43;
+  case 0XDA:
+    return 42;
+  case 0XD8:
+    return 30;
+  case 0X2C:
+    return 7;
+  }
+  printf("getItemSHPFrameIndex: unhandled %X\n", itemId);
+  assert(0);
+  return 0;
 }
 
 static void renderInventory(GameContext *gameCtx) {
@@ -394,7 +412,7 @@ static void renderInventory(GameContext *gameCtx) {
     uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
     uint16_t itemId = gameCtx->inventory[index];
     if (itemId) {
-      renderInventorySlot(gameCtx, i, itemId);
+      renderInventorySlot(gameCtx, i, getItemSHPFrameIndex(itemId));
     }
   }
 }

@@ -7,7 +7,7 @@
 #define CHARACTERS_OFFSET 0X41
 #define GENERAL_OFFSET 0X249
 #define INVENTORY_OFFSET 0X25F
-#define AFTER_INVENTORY_OFFSET INVENTORY_OFFSET + INVENTORY_SIZE
+#define ALL_OBJECTS_OFFSET 0X474
 
 static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
   assert(slot);
@@ -21,6 +21,8 @@ static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
 
   slot->general = (SAVGeneral *)(handle->buffer + GENERAL_OFFSET);
   slot->inventory = (uint16_t *)(handle->buffer + INVENTORY_OFFSET);
+  assert(sizeof(GameObject) == 16);
+  slot->gameObjects = (GameObject *)(handle->buffer + ALL_OBJECTS_OFFSET);
   return 1;
 }
 

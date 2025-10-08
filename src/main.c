@@ -641,29 +641,54 @@ static int cmdSAVShow(const char *filepath) {
   printf("+CHARACTERS\n");
   for (int i = 0; i < 4; i++) {
     const SAVCharacter *ch = slot->characters[i];
+    if (!ch->flags) {
+      continue;
+    }
     printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%X "
            "magicPointsCur=%X "
            "magicPointsMax=%X\n",
            i, ch->flags, ch->name, ch->raceClassSex, ch->id, ch->magicPointsCur,
            ch->magicPointsMax);
-
-    printf("+GENERAL\n");
-    uint16_t x = 0;
-    uint16_t y = 0;
-    GetRealCoords(slot->general->posX, slot->general->posY, &x, &y);
-    printf("block=%X x=%X y=%X (real %i %i)\n", slot->general->currentBlock,
-           slot->general->posX, slot->general->posY, x, y);
-    printf("orientation=%X compass=%X\n", slot->general->currentDirection,
-           slot->general->compassDirection);
-    printf("level %i\n", slot->general->currentLevel);
-    printf("selected char %i\n", slot->general->selectedChar);
-    printf("+INVENTORY\n");
-    for (int i = 0; i < INVENTORY_SIZE; i++) {
-      if (slot->inventory[i]) {
-        printf("%i: 0X%X\n", i, slot->inventory[i]);
-      }
+    printf("\titems: ");
+    for (int i = 0; i < 11; i++) {
+      printf(" %02X ", ch->items[i]);
     }
+    printf("\n");
   }
+  printf("+GENERAL\n");
+  uint16_t x = 0;
+  uint16_t y = 0;
+  GetRealCoords(slot->general->posX, slot->general->posY, &x, &y);
+  printf("block=%X x=%X y=%X (real %i %i)\n", slot->general->currentBlock,
+         slot->general->posX, slot->general->posY, x, y);
+  printf("orientation=%X compass=%X\n", slot->general->currentDirection,
+         slot->general->compassDirection);
+  printf("level %i\n", slot->general->currentLevel);
+  printf("selected char %i\n", slot->general->selectedChar);
+  printf("+INVENTORY\n");
+  for (int i = 0; i < INVENTORY_SIZE; i++) {
+    uint16_t gameObjIndex = slot->inventory[i];
+    if (gameObjIndex == 0) {
+      continue;
+    }
+    const GameObject *obj = slot->gameObjects + gameObjIndex;
+    printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
+  }
+
+  printf("+Objects\n");
+  for (int i = 0; i < 400; i++) {
+    const GameObject *obj = slot->gameObjects + i;
+    if (obj->itemId == 0) {
+      continue;
+    }
+    printf("%03i %04X", i, obj->itemId);
+    printf("\t");
+    for (int j = 0; j < 14; j++) {
+      printf("%02X ", obj->rest[j]);
+    }
+    printf("\n");
+  }
+
   free(buffer);
   return 0;
 }
