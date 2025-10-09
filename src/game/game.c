@@ -2,10 +2,8 @@
 #include "SDL_events.h"
 #include "SDL_keyboard.h"
 #include "SDL_keycode.h"
-#include "SDL_mouse.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
-#include "SDL_surface.h"
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
@@ -39,7 +37,7 @@ static int getChapterId(int levelId) {
 static SAVHandle savHandle = {0};
 
 static int GameRun(GameContext *gameCtx);
-static void usageGame(void) { printf("game [savefile.dat]\n"); }
+static void usageGame(void) { printf("game [-d datadir] [savefile.dat]\n"); }
 
 int loadSaveFile(const char *filepath) {
   size_t fileSize = 0;
@@ -52,10 +50,23 @@ int loadSaveFile(const char *filepath) {
 }
 
 int cmdGame(int argc, char *argv[]) {
-  if (argc > 0 && strcmp(argv[0], "-h") == 0) {
-    usageGame();
-    return 1;
+  const char *dataDir = NULL;
+  optind = 0;
+  char c;
+  while ((c = getopt(argc, argv, "hd:")) != -1) {
+    switch (c) {
+    case 'h':
+      usageGame();
+      return 0;
+    case 'd':
+      dataDir = optarg;
+      break;
+    }
   }
+
+  argc = argc - optind;
+  argv = argv + optind;
+
   char *savFile = NULL;
 
   if (argc > 0) {
@@ -73,7 +84,7 @@ int cmdGame(int argc, char *argv[]) {
     SAVHandleGetNewGame(&savHandle);
   }
 
-  assert(GameEnvironmentInit("data"));
+  assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
   int levelId = savHandle.slot.general->currentLevel;
   int chapterId = getChapterId(levelId);
   assert(GameEnvironmentLoadChapter(chapterId));
