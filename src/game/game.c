@@ -262,6 +262,14 @@ static int charPortraitClicked(const GameContext *gameCtx) {
   return -1;
 }
 
+static int mouseIsInInventoryStrip(GameContext *gameCtx) {
+  return gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
+         gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
+         gameCtx->mouseEv.pos.x <
+             (UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * 11)) &&
+         gameCtx->mouseEv.pos.y < (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1));
+}
+
 static int processCharInventoryMouse(GameContext *gameCtx) {
   printf("processCharInventoryMouse %i %i %i %i\n",
          INVENTORY_SCREEN_EXIT_BUTTON_X, INVENTORY_SCREEN_EXIT_BUTTON_Y,
@@ -276,12 +284,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
     printf("exit inventory\n");
     gameCtx->state = GameState_PlayGame;
     return 1;
-  } else if (gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
-             gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
-             gameCtx->mouseEv.pos.x <
-                 (UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * 11)) &&
-             gameCtx->mouseEv.pos.y <
-                 (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1))) {
+  } else if (mouseIsInInventoryStrip(gameCtx)) {
     int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
     int buttonX = (int)(x / UI_BUTTON_W);
     // 0 is left arrow, 10 is right arrow
@@ -358,12 +361,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     } else if (buttonX == 1) {
       printf("sleep button\n");
     }
-  } else if (gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
-             gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
-             gameCtx->mouseEv.pos.x <
-                 (UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * 11)) &&
-             gameCtx->mouseEv.pos.y <
-                 (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1))) {
+  } else if (mouseIsInInventoryStrip(gameCtx)) {
     int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
     int buttonX = (int)(x / UI_BUTTON_W);
     // 0 is left arrow, 10 is right arrow
