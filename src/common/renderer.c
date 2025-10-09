@@ -439,9 +439,7 @@ void drawSHPFrameCursor(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
       uint8_t r = VGA6To8(palette[(v * 3) + 0]);
       uint8_t g = VGA6To8(palette[(v * 3) + 1]);
       uint8_t b = VGA6To8(palette[(v * 3) + 2]);
-      if (r == 0 && g == 0 && b == 0) {
-        continue;
-      }
+
       int xx = x + xPos;
       int yy = y + yPos;
 

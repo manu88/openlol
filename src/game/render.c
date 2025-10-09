@@ -17,12 +17,12 @@ void createCursorForItem(GameContext *ctx, uint16_t frameId) {
   SDL_Renderer *r = SDL_CreateSoftwareRenderer(s);
   assert(r);
   SHPFrame frame = {0};
-  SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 0, 0, 0));
+  SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 127, 127, 127));
   assert(SHPHandleGetFrame(&ctx->itemShapes, &frame, frameId));
   assert(SHPFrameGetImageData(&frame));
 
   SDL_RenderClear(r);
-  SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+  SDL_SetRenderDrawColor(r, 127, 127, 127, 255);
   SDL_RenderFillRect(r, NULL);
   drawSHPFrameCursor(r, &frame, 0, 0, ctx->defaultPalette);
   ctx->cursor = SDL_CreateColorCursor(s, frameId == 0 ? 0 : w / 2,
