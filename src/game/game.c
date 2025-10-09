@@ -270,11 +270,33 @@ static int mouseIsInInventoryStrip(GameContext *gameCtx) {
          gameCtx->mouseEv.pos.y < (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1));
 }
 
+static int processInventoryStripMouse(GameContext *gameCtx) {
+  int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
+  int buttonX = (int)(x / UI_BUTTON_W);
+  // 0 is left arrow, 10 is right arrow
+  if (buttonX == 0) {
+    int inventoryIndex =
+        gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
+    if (inventoryIndex < 0) {
+      inventoryIndex = INVENTORY_SIZE - 1;
+    }
+    gameCtx->inventoryIndex = inventoryIndex;
+    return 1;
+  } else if (buttonX == 10) {
+    int inventoryIndex =
+        gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
+    if (inventoryIndex >= INVENTORY_SIZE) {
+      inventoryIndex = 0;
+    }
+    gameCtx->inventoryIndex = inventoryIndex;
+    return 1;
+  } else {
+    printf("Inventory button %i\n", buttonX);
+  }
+  return 0;
+}
+
 static int processCharInventoryMouse(GameContext *gameCtx) {
-  printf("processCharInventoryMouse %i %i %i %i\n",
-         INVENTORY_SCREEN_EXIT_BUTTON_X, INVENTORY_SCREEN_EXIT_BUTTON_Y,
-         INVENTORY_SCREEN_EXIT_BUTTON_X + INVENTORY_SCREEN_EXIT_BUTTON_W,
-         INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H);
   if (gameCtx->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
       gameCtx->mouseEv.pos.x <
@@ -285,28 +307,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
     gameCtx->state = GameState_PlayGame;
     return 1;
   } else if (mouseIsInInventoryStrip(gameCtx)) {
-    int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
-    int buttonX = (int)(x / UI_BUTTON_W);
-    // 0 is left arrow, 10 is right arrow
-    if (buttonX == 0) {
-      int inventoryIndex =
-          gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
-      if (inventoryIndex < 0) {
-        inventoryIndex = INVENTORY_SIZE - 1;
-      }
-      gameCtx->inventoryIndex = inventoryIndex;
-      return 1;
-    } else if (buttonX == 10) {
-      int inventoryIndex =
-          gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
-      if (inventoryIndex >= INVENTORY_SIZE) {
-        inventoryIndex = 0;
-      }
-      gameCtx->inventoryIndex = inventoryIndex;
-      return 1;
-    } else {
-      printf("Inventory button %i\n", buttonX);
-    }
+    return processInventoryStripMouse(gameCtx);
   } else {
 
     int charIndex = charPortraitClicked(gameCtx);
@@ -362,28 +363,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
       printf("sleep button\n");
     }
   } else if (mouseIsInInventoryStrip(gameCtx)) {
-    int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
-    int buttonX = (int)(x / UI_BUTTON_W);
-    // 0 is left arrow, 10 is right arrow
-    if (buttonX == 0) {
-      int inventoryIndex =
-          gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
-      if (inventoryIndex < 0) {
-        inventoryIndex = INVENTORY_SIZE - 1;
-      }
-      gameCtx->inventoryIndex = inventoryIndex;
-      return 1;
-    } else if (buttonX == 10) {
-      int inventoryIndex =
-          gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
-      if (inventoryIndex >= INVENTORY_SIZE) {
-        inventoryIndex = 0;
-      }
-      gameCtx->inventoryIndex = inventoryIndex;
-      return 1;
-    } else {
-      printf("Inventory button %i\n", buttonX);
-    }
+    return processInventoryStripMouse(gameCtx);
   } else if (gameCtx->mouseEv.pos.x >= MAZE_COORDS_X &&
              gameCtx->mouseEv.pos.y >= MAZE_COORDS_Y &&
              (gameCtx->mouseEv.pos.x < (MAZE_COORDS_X + MAZE_COORDS_W)) &&
