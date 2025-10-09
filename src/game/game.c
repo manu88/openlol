@@ -9,6 +9,7 @@
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
+#include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_callbacks.h"
@@ -275,7 +276,7 @@ static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
   case 0XD8:
     return 30; // 1E
   case 0X2C:
-    return 7;  // 07
+    return 7; // 07
   case 0XB9:
     return 29; // 1B
   }
@@ -573,6 +574,9 @@ static void renderCharInventory(GameContext *gameCtx) {
               gameCtx->inventoryBackground.imageSize,
               gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
               INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H);
+  char c[10] = "";
+  LangHandleGetString(&gameCtx->lang, 51, c, sizeof(c));
+  renderText(gameCtx, 277, 104, 50, c);
 }
 
 static void renderInventory(GameContext *gameCtx) {

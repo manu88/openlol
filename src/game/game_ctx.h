@@ -32,7 +32,6 @@ typedef struct {
   DatHandle datHandle;
   SHPHandle shpHandle;
   LangHandle levelLang;
-
 } LevelContext;
 
 typedef enum {
@@ -67,6 +66,7 @@ typedef struct _GameContext {
 
   CPSImage playField;
   SHPHandle itemShapes;
+  LangHandle lang;
 
   SHPHandle charFaces[NUM_CHARACTERS];
   SAVCharacter chars[NUM_CHARACTERS];

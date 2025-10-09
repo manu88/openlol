@@ -3,6 +3,7 @@
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
+#include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_envir.h"
@@ -30,6 +31,14 @@ int GameContextInit(GameContext *gameCtx) {
     if (SHPHandleFromCompressedBuffer(&gameCtx->itemShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get ITEMICN.SHP\n");
+      assert(0);
+    }
+  }
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralLangFile(&f));
+    if (LangHandleFromBuffer(&gameCtx->lang, f.buffer, f.bufferSize) == 0) {
+      printf("unable to get LANDS.FRE\n");
       assert(0);
     }
   }

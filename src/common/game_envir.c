@@ -107,6 +107,25 @@ int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {
   return getFile(&_envir.pakGeneral, file, name);
 }
 
+int GameEnvironmentGetGeneralFileWithExt(GameFile *file, const char *name,
+                                         const char *ext) {
+  assert(file);
+  assert(name);
+  assert(ext);
+  const size_t fullNameSize = strlen(name) + sizeof(ext) + 2; // dot and null
+  char *fullName = malloc(fullNameSize);
+  assert(fullName);
+  assert(snprintf(fullName, fullNameSize, "%s.%s", name, ext) < fullNameSize);
+  int ret = GameEnvironmentGetGeneralFile(file, fullName);
+  free(fullName);
+  return ret;
+}
+
+int GameEnvironmentGetGeneralLangFile(GameFile *file) {
+  return GameEnvironmentGetGeneralFileWithExt(
+      file, "LANDS", LanguageGetExtension(_envir.lang));
+}
+
 int GameEnvironmentGetFile(GameFile *file, const char *name) {
   assert(file);
   assert(name);

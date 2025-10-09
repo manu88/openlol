@@ -15,7 +15,11 @@ int GameEnvironmentLoadChapter(uint8_t index);
 
 int GameEnvironmentGetFile(GameFile *file, const char *name);
 int GameEnvironmentGetGeneralFile(GameFile *file, const char *name);
+int GameEnvironmentGetGeneralFileWithExt(GameFile *file, const char *name,
+                                         const char *ext);
+int GameEnvironmentGetGeneralLangFile(GameFile *file);
 
-int GameEnvironmentGetFileWithExt(GameFile *file, const char *name, const char* ext);
+int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,
+                                  const char *ext);
+
 int GameEnvironmentGetLangFile(GameFile *file, const char *name);
-
