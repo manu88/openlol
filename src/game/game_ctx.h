@@ -70,6 +70,7 @@ typedef struct _GameContext {
 
   SHPHandle charFaces[NUM_CHARACTERS];
   SAVCharacter chars[NUM_CHARACTERS];
+  uint8_t selectedChar;
 
   CPSImage inventoryBackground;
 

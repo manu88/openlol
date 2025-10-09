@@ -353,6 +353,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
       GameContextSetState(gameCtx, GameState_ShowInventory);
+      gameCtx->selectedChar = charIndex;
       return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
@@ -421,6 +422,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
       GameContextSetState(gameCtx, GameState_ShowInventory);
+      gameCtx->selectedChar = charIndex;
       return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
@@ -577,6 +579,8 @@ static void renderCharInventory(GameContext *gameCtx) {
   char c[10] = "";
   LangHandleGetString(&gameCtx->lang, 51, c, sizeof(c));
   renderText(gameCtx, 277, 104, 50, c);
+
+  renderText(gameCtx, 250, 10, 50, gameCtx->chars[gameCtx->selectedChar].name);
 }
 
 static void renderInventory(GameContext *gameCtx) {
