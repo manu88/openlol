@@ -31,7 +31,7 @@ void createCursorForItem(GameContext *ctx, uint16_t frameId) {
   SDL_DestroyRenderer(r);
   SDL_FreeSurface(s);
   if (prevCursor) {
-    SDL_FreeCursor(ctx->cursor);
+    SDL_FreeCursor(prevCursor);
   }
 }
 

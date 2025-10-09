@@ -93,6 +93,7 @@ typedef struct _GameContext {
 
   uint16_t inventory[INVENTORY_SIZE];
   uint16_t inventoryIndex;
+  uint16_t itemInHand;
 
   uint8_t *defaultPalette;
 

@@ -266,6 +266,36 @@ static int charPortraitClicked(const GameContext *gameCtx) {
   return -1;
 }
 
+static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
+  switch (itemId) {
+  case 0XD9:
+    return 43;
+  case 0XDA:
+    return 42;
+  case 0XD8:
+    return 30;
+  case 0X2C:
+    return 7;
+  }
+  printf("getItemSHPFrameIndex: unhandled %X\n", itemId);
+  assert(0);
+  return 0;
+}
+
+static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
+  int realIndex = (gameCtx->inventoryIndex + index) % INVENTORY_SIZE;
+  uint16_t itemId = gameCtx->inventory[realIndex];
+  if (gameCtx->itemInHand == 0 && itemId) {
+    gameCtx->inventory[realIndex] = 0;
+    createCursorForItem(gameCtx, getItemSHPFrameIndex(itemId));
+    gameCtx->itemInHand = itemId;
+  } else {
+    gameCtx->inventory[realIndex] = gameCtx->itemInHand;
+    gameCtx->itemInHand = itemId;
+    createCursorForItem(gameCtx, itemId ? getItemSHPFrameIndex(itemId) : 0);
+  }
+}
+
 static int mouseIsInInventoryStrip(GameContext *gameCtx) {
   return gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
          gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
@@ -296,7 +326,8 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
     gameCtx->inventoryIndex = inventoryIndex;
     return 1;
   } else {
-    printf("Inventory button %i\n", buttonX);
+    selectFromInventoryStrip(gameCtx, buttonX - 1);
+    return 1;
   }
   return 0;
 }
@@ -509,22 +540,6 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   drawSHPFrame(gameCtx->pixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
                UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
-}
-
-static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
-  switch (itemId) {
-  case 0XD9:
-    return 43;
-  case 0XDA:
-    return 42;
-  case 0XD8:
-    return 30;
-  case 0X2C:
-    return 7;
-  }
-  printf("getItemSHPFrameIndex: unhandled %X\n", itemId);
-  assert(0);
-  return 0;
 }
 
 static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
