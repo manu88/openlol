@@ -441,7 +441,47 @@ static int cmdMap(int argc, char *argv[]) {
   return 0;
 }
 
-static void usageCPS(void) { printf("cps extract cpsfile \n"); }
+static void usageCPS(void) { printf("cps extract|extract-pal cpsfile \n"); }
+
+static int cmdCPSExtractPal(const char *filepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+  CPSImage image = {0};
+  int ok = CPSImageFromFile(&image, buffer, dataSize);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  if (!ok) {
+    return 1;
+  }
+  if (image.paletteSize == 0) {
+    printf("no palette found\n");
+    if (freeBuffer) {
+      free(buffer);
+    }
+    CPSImageRelease(&image);
+    return 1;
+  }
+  char *destFilePath = strdup(filepath);
+  assert(destFilePath);
+  destFilePath[strlen(destFilePath) - 3] = 'p';
+  destFilePath[strlen(destFilePath) - 2] = 'a';
+  destFilePath[strlen(destFilePath) - 1] = 'l';
+  printf("Create pal file '%s'\n", destFilePath);
+  assert(image.palette);
+  writeBinaryFile(destFilePath, image.palette, image.paletteSize);
+  free(destFilePath);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  CPSImageRelease(&image);
+  return 0;
+}
 
 static int cmdCPSExtract(const char *filepath) {
   size_t dataSize = 0;
@@ -477,6 +517,8 @@ static int cmdCPS(int argc, char *argv[]) {
   }
   if (strcmp(argv[0], "extract") == 0) {
     return cmdCPSExtract(argv[1]);
+  } else if (strcmp(argv[0], "extract-pal") == 0) {
+    return cmdCPSExtractPal(argv[1]);
   }
   usageCPS();
   return 1;

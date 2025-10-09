@@ -27,3 +27,5 @@ compile_commands.json
 *.FRE
 *.WSA
 *.FNT
+*.COL
+*.PAL
