@@ -7,6 +7,9 @@
 #define MAZE_COORDS_W (int)174
 #define MAZE_COORDS_H (int)120
 
+#define INVENTORY_SCREEN_W (int)208
+#define INVENTORY_SCREEN_H MAZE_COORDS_H
+
 #define DIALOG_BOX_X 83
 #define DIALOG_BOX_Y 122
 #define DIALOG_BOX_W 235

@@ -79,9 +79,11 @@ typedef struct {
   uint16_t itemId;
 } GameObject;
 
+#define NUM_CHARACTERS 3
+
 typedef struct {
   SAVHeader *header;
-  SAVCharacter *characters[4];
+  SAVCharacter *characters[NUM_CHARACTERS];
 
   SAVGeneral *general;
 

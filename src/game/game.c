@@ -6,6 +6,7 @@
 #include "SDL_render.h"
 #include "bytes.h"
 #include "dbg_server.h"
+#include "formats/format_cps.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_callbacks.h"
@@ -100,7 +101,7 @@ int cmdGame(int argc, char *argv[]) {
 
   // FACE01.SHP
   char faceFile[11] = "";
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < NUM_CHARACTERS; i++) {
     uint8_t charId = savHandle.slot.characters[i]->id > 0
                          ? savHandle.slot.characters[i]->id
                          : -savHandle.slot.characters[i]->id;
@@ -116,6 +117,14 @@ int cmdGame(int argc, char *argv[]) {
     SHPHandleFromCompressedBuffer(&gameCtx.charFaces[i], f.buffer,
                                   f.bufferSize);
   }
+
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, "INVENT1.CPS"));
+    assert(
+        CPSImageFromFile(&gameCtx.inventoryBackground, f.buffer, f.bufferSize));
+  }
+
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
   GameContextRelease(&gameCtx);
@@ -335,7 +344,7 @@ static int processMouse(GameContext *gameCtx) {
   } else {
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
-      printf("Char %i\n", charIndex);
+      printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
     }
@@ -486,6 +495,13 @@ static void renderCharFaces(GameContext *gameCtx) {
   }
 }
 
+static void renderCharInventory(GameContext *gameCtx) {
+  renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
+              gameCtx->inventoryBackground.imageSize,
+              gameCtx->inventoryBackground.palette, MAZE_COORDS_X,
+              MAZE_COORDS_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H);
+}
+
 static void renderInventory(GameContext *gameCtx) {
   for (int i = 0; i < 9; i++) {
     uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
@@ -512,6 +528,7 @@ static void GameRender(GameContext *gameCtx) {
       }
     }
   }
+  renderCharInventory(gameCtx);
   renderInventory(gameCtx);
 
   renderCharFaces(gameCtx);

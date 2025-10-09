@@ -67,8 +67,10 @@ typedef struct _GameContext {
   CPSImage playField;
   SHPHandle itemShapes;
 
-  SHPHandle charFaces[4];
-  SAVCharacter chars[4];
+  SHPHandle charFaces[NUM_CHARACTERS];
+  SAVCharacter chars[NUM_CHARACTERS];
+
+  CPSImage inventoryBackground;
 
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;

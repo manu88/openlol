@@ -203,7 +203,7 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
 
 uint8_t GameContextGetNumChars(const GameContext *ctx) {
   uint8_t c = 0;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < NUM_CHARACTERS; i++) {
     if (ctx->chars[i].id != 0) {
       c++;
     }
