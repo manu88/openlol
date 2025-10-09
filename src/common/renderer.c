@@ -100,6 +100,7 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
 
 void drawPix(void *data, int pitch, uint8_t r, uint8_t g, uint8_t b, int x,
              int y) {
+  assert(data);
   uint32_t *row = (unsigned int *)((char *)data + pitch * y);
   row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
 }
@@ -423,6 +424,33 @@ void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
     }
   }
   SDL_UnlockTexture(pixBuf);
+}
+
+void drawSHPFrameCursor(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
+                        int yPos, const uint8_t *palette) {
+  for (int y = 0; y < frame->header.height; y++) {
+    for (int x = 0; x < frame->header.width; x++) {
+      int p = x + (y * frame->header.width);
+      uint8_t v = frame->imageBuffer[p];
+      if (v == 0) {
+        continue;
+      }
+
+      uint8_t r = VGA6To8(palette[(v * 3) + 0]);
+      uint8_t g = VGA6To8(palette[(v * 3) + 1]);
+      uint8_t b = VGA6To8(palette[(v * 3) + 2]);
+      if (r == 0 && g == 0 && b == 0) {
+        continue;
+      }
+      int xx = x + xPos;
+      int yy = y + yPos;
+
+      SDL_SetRenderDrawColor(renderer, r, g, b, 0);
+      SDL_Rect rect = {xx * SCREEN_FACTOR, yy * SCREEN_FACTOR, SCREEN_FACTOR,
+                       SCREEN_FACTOR};
+      SDL_RenderFillRect(renderer, &rect);
+    }
+  }
 }
 
 void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,

@@ -1,5 +1,6 @@
 #pragma once
 #include "game_ctx.h"
+#include <stdint.h>
 
 void renderPlayField(GameContext *gameCtx);
 void GameRenderMap(GameContext *gameCtx, int xOff, int yOff);
@@ -9,3 +10,5 @@ void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
                const uint8_t *paletteBuffer, int w, int h);
 void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
                  const uint8_t *paletteBuffer, int x, int y, int w, int h);
+
+void createCursorForItem(GameContext *ctx, uint16_t frameId);

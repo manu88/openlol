@@ -98,6 +98,8 @@ typedef struct _GameContext {
 
   int controlDisabled;
 
+  SDL_Cursor *cursor;
+
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

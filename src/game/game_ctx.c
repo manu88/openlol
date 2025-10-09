@@ -101,6 +101,7 @@ void GameContextRelease(GameContext *gameCtx) {
   CPSImageRelease(&gameCtx->playField);
   INFScriptRelease(&gameCtx->script);
   free(gameCtx->dialogTextBuffer);
+  SDL_FreeCursor(gameCtx->cursor);
 }
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {

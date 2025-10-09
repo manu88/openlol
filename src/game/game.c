@@ -2,8 +2,10 @@
 #include "SDL_events.h"
 #include "SDL_keyboard.h"
 #include "SDL_keycode.h"
+#include "SDL_mouse.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
+#include "SDL_surface.h"
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
@@ -124,6 +126,8 @@ int cmdGame(int argc, char *argv[]) {
     assert(CPSImageFromBuffer(&gameCtx.inventoryBackground, f.buffer,
                               f.bufferSize));
   }
+
+  createCursorForItem(&gameCtx, 0);
 
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);

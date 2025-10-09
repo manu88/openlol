@@ -1,4 +1,5 @@
 #include "render.h"
+#include "SDL_mouse.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "game_ctx.h"
@@ -6,6 +7,33 @@
 #include "renderer.h"
 #include <assert.h>
 #include <stdint.h>
+
+void createCursorForItem(GameContext *ctx, uint16_t frameId) {
+  SDL_Cursor *prevCursor = ctx->cursor;
+
+  const int w = 20 * SCREEN_FACTOR;
+  SDL_Surface *s = SDL_CreateRGBSurface(0, w, w, 32, 0, 0, 0, 0);
+  assert(s);
+  SDL_Renderer *r = SDL_CreateSoftwareRenderer(s);
+  assert(r);
+  SHPFrame frame = {0};
+  SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 0, 0, 0));
+  assert(SHPHandleGetFrame(&ctx->itemShapes, &frame, frameId));
+  assert(SHPFrameGetImageData(&frame));
+
+  SDL_RenderClear(r);
+  SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+  SDL_RenderFillRect(r, NULL);
+  drawSHPFrameCursor(r, &frame, 0, 0, ctx->defaultPalette);
+  ctx->cursor = SDL_CreateColorCursor(s, frameId == 0 ? 0 : w / 2,
+                                      frameId == 0 ? 0 : w / 2);
+  SDL_SetCursor(ctx->cursor);
+  SDL_DestroyRenderer(r);
+  SDL_FreeSurface(s);
+  if (prevCursor) {
+    SDL_FreeCursor(ctx->cursor);
+  }
+}
 
 void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
                  const uint8_t *paletteBuffer, int xOff, int yOff, int w,
