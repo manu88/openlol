@@ -1,6 +1,8 @@
 #include "game_ctx.h"
 #include "SDL_render.h"
+#include "bytes.h"
 #include "dbg_server.h"
+#include "formats/format_cps.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_envir.h"
@@ -13,11 +15,6 @@ static int runINIScript(GameContext *gameCtx);
 
 int GameContextInit(GameContext *gameCtx) {
   memset(gameCtx, 0, sizeof(GameContext));
-  PAKFileInit(&gameCtx->generalPak);
-  if (PAKFileRead(&gameCtx->generalPak, "data/GENERAL.PAK") == 0) {
-    printf("unable to read 'data/GENERAL.PAK' file\n");
-    return 0;
-  }
 
   {
     GameFile f = {0};
@@ -80,6 +77,14 @@ int GameContextInit(GameContext *gameCtx) {
   GameTimAnimatorInit(gameCtx, gameCtx->pixBuf);
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
+
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
+    CPSImage img = {0};
+    assert(CPSImageFromFile(&img, f.buffer, f.bufferSize));
+    gameCtx->defaultPalette = img.palette;
+  }
 
   DBGServerInit();
   return 1;

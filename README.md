@@ -21,3 +21,7 @@ Play is a very misleading term :) , right now you can move around in the mazes, 
 ```bash
 ./lol game 1 1 #chapter 1 level 1 - a.k.a keep
 ```
+
+## Notes
+
+Looks like some palette are embedded in the bin and not shipped in the pak files. ([see forum](https://www.dungeon-master.com/forum/viewtopic.php?t=23792)). Currently the default palette is taken from `GERIM.CPS` in chapter1.pak.

@@ -407,7 +407,7 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   SHPFrameGetImageData(&frame);
   drawSHPFrame(gameCtx->pixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * (1 + slot)) + 2,
-               UI_INVENTORY_BUTTON_Y, gameCtx->level->vcnHandle.palette);
+               UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
 }
 
 static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
@@ -431,7 +431,7 @@ static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
   assert(SHPHandleGetFrame(&gameCtx->charFaces[charId], &frame, 0));
   SHPFrameGetImageData(&frame);
   drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_FACE_Y,
-               gameCtx->level->vcnHandle.palette);
+               gameCtx->defaultPalette);
 }
 
 static void renderCharFaces(GameContext *gameCtx) {
