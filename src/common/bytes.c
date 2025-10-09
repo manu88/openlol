@@ -7,25 +7,37 @@ uint8_t *readBinaryFile(const char *path, size_t *fileSize, size_t *readSize) {
   if (!inFile) {
     printf("error while reading file '%s'\n", path);
     perror("readBinaryFile.open");
-    *fileSize = 0;
-    *readSize = 0;
+    if (fileSize) {
+      *fileSize = 0;
+    }
+    if (readSize) {
+      *readSize = 0;
+    }
     return NULL;
   }
 
   fseek(inFile, 0, SEEK_END);
   long fsize = ftell(inFile);
   fseek(inFile, 0, SEEK_SET);
-  *fileSize = fsize;
+  if (fileSize) {
+    *fileSize = fsize;
+  }
   uint8_t *buffer = malloc(fsize);
   if (!buffer) {
     perror("readBinaryFile.malloc");
     fclose(inFile);
-    *fileSize = 0;
-    *readSize = 0;
+    if (fileSize) {
+      *fileSize = 0;
+    }
+    if (readSize) {
+      *readSize = 0;
+    }
     return NULL;
   }
   if (fread(buffer, fsize, 1, inFile) == 1) {
-    *readSize = fsize;
+    if (readSize) {
+      *readSize = fsize;
+    }
   }
   fclose(inFile);
   return buffer;
