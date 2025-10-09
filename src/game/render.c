@@ -1,4 +1,5 @@
 #include "render.h"
+#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "game_ctx.h"
 #include "geometry.h"
@@ -83,12 +84,36 @@ void clearMazeZone(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
+static void drawDisabledOverlay(GameContext *gameCtx, int x, int y, int w,
+                                int h) {
+  void *data;
+  int pitch;
+  SDL_Rect r = {.x = x, .y = y, .w = w, .h = h};
+  SDL_LockTexture(gameCtx->pixBuf, &r, &data, &pitch);
+  for (int x = 0; x < r.w; x++) {
+    for (int y = 0; y < r.h; y++) {
+      if (x % 2 == 0 && y % 2 == 0) {
+        drawPix(data, pitch, 0, 0, 0, x, y);
+      } else if (x % 2 == 1 && y % 2 == 1) {
+        drawPix(data, pitch, 0, 0, 0, x, y);
+      }
+    }
+  }
+  SDL_UnlockTexture(gameCtx->pixBuf);
+}
+
 void renderPlayField(GameContext *gameCtx) {
   renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-
   clearMazeZone(gameCtx);
+
+  if (gameCtx->controlDisabled) {
+    drawDisabledOverlay(gameCtx, UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
+                        UI_DIR_BUTTON_W * 3, UI_DIR_BUTTON_H * 2);
+    drawDisabledOverlay(gameCtx, UI_MENU_BUTTON_X, UI_MENU_BUTTON_Y,
+                        UI_MENU_INV_BUTTON_W * 2, UI_MENU_INV_BUTTON_H);
+  }
 }
 
 typedef struct {

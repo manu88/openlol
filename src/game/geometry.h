@@ -24,8 +24,11 @@
 
 #define DIALOG_BOX_H2 56
 
-#define UI_BUTTON_W 21
-#define UI_BUTTON_H 21
+#define UI_DIR_BUTTON_W 21
+#define UI_DIR_BUTTON_H 18
+
+#define UI_MENU_INV_BUTTON_W 21
+#define UI_MENU_INV_BUTTON_H 21
 
 #define UI_TURN_LEFT_BUTTON_X 11
 #define UI_TURN_LEFT_BUTTON_Y 131

@@ -96,6 +96,8 @@ typedef struct _GameContext {
 
   uint8_t *defaultPalette;
 
+  int controlDisabled;
+
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

@@ -266,13 +266,14 @@ static int mouseIsInInventoryStrip(GameContext *gameCtx) {
   return gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
          gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
          gameCtx->mouseEv.pos.x <
-             (UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * 11)) &&
-         gameCtx->mouseEv.pos.y < (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1));
+             (UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * 11)) &&
+         gameCtx->mouseEv.pos.y <
+             (UI_INVENTORY_BUTTON_Y + (UI_MENU_INV_BUTTON_W * 1));
 }
 
 static int processInventoryStripMouse(GameContext *gameCtx) {
   int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
-  int buttonX = (int)(x / UI_BUTTON_W);
+  int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
   // 0 is left arrow, 10 is right arrow
   if (buttonX == 0) {
     int inventoryIndex =
@@ -305,6 +306,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
           INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H) {
     printf("exit inventory\n");
     gameCtx->state = GameState_PlayGame;
+    gameCtx->controlDisabled = 0;
     return 1;
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
@@ -314,6 +316,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
       gameCtx->state = GameState_ShowInventory;
+      gameCtx->controlDisabled = 1;
       return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
@@ -325,12 +328,14 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
 static int processPlayGameMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
-      gameCtx->mouseEv.pos.x < (UI_TURN_LEFT_BUTTON_X + (UI_BUTTON_W * 3)) &&
-      gameCtx->mouseEv.pos.y < (UI_TURN_LEFT_BUTTON_Y + (UI_BUTTON_W * 2))) {
+      gameCtx->mouseEv.pos.x <
+          (UI_TURN_LEFT_BUTTON_X + (UI_DIR_BUTTON_W * 3)) &&
+      gameCtx->mouseEv.pos.y <
+          (UI_TURN_LEFT_BUTTON_Y + (UI_DIR_BUTTON_W * 2))) {
     int x = gameCtx->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
     int y = gameCtx->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
-    int buttonX = (int)(x / UI_BUTTON_W);
-    int buttonY = (int)(y / UI_BUTTON_W);
+    int buttonX = (int)(x / UI_DIR_BUTTON_W);
+    int buttonY = (int)(y / UI_DIR_BUTTON_W);
     if (buttonX <= 2 && buttonY <= 1) {
       if (buttonY == 0) {
         if (buttonX == 0) {
@@ -353,10 +358,12 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     }
   } else if (gameCtx->mouseEv.pos.x >= UI_MENU_BUTTON_X &&
              gameCtx->mouseEv.pos.y >= UI_MENU_BUTTON_Y &&
-             gameCtx->mouseEv.pos.x < (UI_MENU_BUTTON_X + (UI_BUTTON_W * 2)) &&
-             gameCtx->mouseEv.pos.y < (UI_MENU_BUTTON_Y + (UI_BUTTON_W * 1))) {
+             gameCtx->mouseEv.pos.x <
+                 (UI_MENU_BUTTON_X + (UI_MENU_INV_BUTTON_W * 2)) &&
+             gameCtx->mouseEv.pos.y <
+                 (UI_MENU_BUTTON_Y + (UI_MENU_INV_BUTTON_H * 1))) {
     int x = gameCtx->mouseEv.pos.x - UI_MENU_BUTTON_X;
-    int buttonX = (int)(x / UI_BUTTON_W);
+    int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
     if (buttonX == 0) {
       printf("Menu button\n");
     } else if (buttonX == 1) {
@@ -378,6 +385,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
       gameCtx->state = GameState_ShowInventory;
+      gameCtx->controlDisabled = 1;
       return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
@@ -498,7 +506,7 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   SHPHandleGetFrame(&gameCtx->itemShapes, &frame, frameId);
   SHPFrameGetImageData(&frame);
   drawSHPFrame(gameCtx->pixBuf, &frame,
-               UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * (1 + slot)) + 2,
+               UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
                UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
 }
 
