@@ -38,6 +38,7 @@ typedef struct {
 typedef enum {
   GameState_PlayGame = 0,
   GameState_TimAnimation = 1,
+  GameState_ShowInventory = 2,
 } GameState;
 
 typedef struct {

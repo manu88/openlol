@@ -262,7 +262,63 @@ static int charPortraitClicked(const GameContext *gameCtx) {
   return -1;
 }
 
-static int processMouse(GameContext *gameCtx) {
+static int processCharInventoryMouse(GameContext *gameCtx) {
+  printf("processCharInventoryMouse %i %i %i %i\n",
+         INVENTORY_SCREEN_EXIT_BUTTON_X, INVENTORY_SCREEN_EXIT_BUTTON_Y,
+         INVENTORY_SCREEN_EXIT_BUTTON_X + INVENTORY_SCREEN_EXIT_BUTTON_W,
+         INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H);
+  if (gameCtx->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
+      gameCtx->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
+      gameCtx->mouseEv.pos.x <
+          INVENTORY_SCREEN_EXIT_BUTTON_X + INVENTORY_SCREEN_EXIT_BUTTON_W &&
+      gameCtx->mouseEv.pos.y <
+          INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H) {
+    printf("exit inventory\n");
+    gameCtx->state = GameState_PlayGame;
+    return 1;
+  } else if (gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
+             gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
+             gameCtx->mouseEv.pos.x <
+                 (UI_INVENTORY_BUTTON_X + (UI_BUTTON_W * 11)) &&
+             gameCtx->mouseEv.pos.y <
+                 (UI_INVENTORY_BUTTON_Y + (UI_BUTTON_W * 1))) {
+    int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
+    int buttonX = (int)(x / UI_BUTTON_W);
+    // 0 is left arrow, 10 is right arrow
+    if (buttonX == 0) {
+      int inventoryIndex =
+          gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
+      if (inventoryIndex < 0) {
+        inventoryIndex = INVENTORY_SIZE - 1;
+      }
+      gameCtx->inventoryIndex = inventoryIndex;
+      return 1;
+    } else if (buttonX == 10) {
+      int inventoryIndex =
+          gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
+      if (inventoryIndex >= INVENTORY_SIZE) {
+        inventoryIndex = 0;
+      }
+      gameCtx->inventoryIndex = inventoryIndex;
+      return 1;
+    } else {
+      printf("Inventory button %i\n", buttonX);
+    }
+  } else {
+
+    int charIndex = charPortraitClicked(gameCtx);
+    if (charIndex != -1) {
+      printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
+      gameCtx->state = GameState_ShowInventory;
+      return 1;
+    } else {
+      printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+    }
+  }
+  return 0;
+}
+
+static int processPlayGameMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
       gameCtx->mouseEv.pos.x < (UI_TURN_LEFT_BUTTON_X + (UI_BUTTON_W * 3)) &&
@@ -312,7 +368,6 @@ static int processMouse(GameContext *gameCtx) {
     int buttonX = (int)(x / UI_BUTTON_W);
     // 0 is left arrow, 10 is right arrow
     if (buttonX == 0) {
-
       int inventoryIndex =
           gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
       if (inventoryIndex < 0) {
@@ -321,7 +376,6 @@ static int processMouse(GameContext *gameCtx) {
       gameCtx->inventoryIndex = inventoryIndex;
       return 1;
     } else if (buttonX == 10) {
-
       int inventoryIndex =
           gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
       if (inventoryIndex >= INVENTORY_SIZE) {
@@ -345,9 +399,24 @@ static int processMouse(GameContext *gameCtx) {
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
+      gameCtx->state = GameState_ShowInventory;
+      return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
     }
+  }
+  return 0;
+}
+
+static int processMouse(GameContext *gameCtx) {
+  switch (gameCtx->state) {
+  case GameState_PlayGame:
+    return processPlayGameMouse(gameCtx);
+  case GameState_ShowInventory:
+    return processCharInventoryMouse(gameCtx);
+  case GameState_TimAnimation:
+    return 0;
+    break;
   }
   return 0;
 }
@@ -498,8 +567,8 @@ static void renderCharFaces(GameContext *gameCtx) {
 static void renderCharInventory(GameContext *gameCtx) {
   renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
               gameCtx->inventoryBackground.imageSize,
-              gameCtx->inventoryBackground.palette, MAZE_COORDS_X,
-              MAZE_COORDS_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H);
+              gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
+              INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H);
 }
 
 static void renderInventory(GameContext *gameCtx) {
@@ -514,12 +583,13 @@ static void renderInventory(GameContext *gameCtx) {
 static void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   SDL_RenderClear(gameCtx->renderer);
-  renderBackground(gameCtx);
+  renderPlayField(gameCtx);
 
   if (gameCtx->fadeOutFrames) {
     gameCtx->fadeOutFrames--;
     clearMazeZone(gameCtx);
-
+  } else if (gameCtx->state == GameState_ShowInventory) {
+    renderCharInventory(gameCtx);
   } else {
     GameRenderScene(gameCtx);
     if (gameCtx->state == GameState_TimAnimation) {
@@ -528,7 +598,7 @@ static void GameRender(GameContext *gameCtx) {
       }
     }
   }
-  renderCharInventory(gameCtx);
+
   renderInventory(gameCtx);
 
   renderCharFaces(gameCtx);
@@ -566,7 +636,8 @@ static int GameRun(GameContext *gameCtx) {
     if (e.type == SDL_QUIT) {
       quit = 1;
     }
-    if (gameCtx->state == GameState_PlayGame) {
+    if (gameCtx->state == GameState_PlayGame ||
+        gameCtx->state == GameState_ShowInventory) {
       if (processGameInputs(gameCtx, &e)) {
         shouldUpdate = 1;
       }

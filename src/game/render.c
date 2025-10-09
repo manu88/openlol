@@ -83,7 +83,7 @@ void clearMazeZone(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
-void renderBackground(GameContext *gameCtx) {
+void renderPlayField(GameContext *gameCtx) {
   renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
