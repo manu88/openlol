@@ -30,6 +30,9 @@
 #define CHAR_FACE_0_1_X 167
 #define CHAR_FACE_Y 144
 
+#define CHAR_FACE_W 32
+#define CHAR_FACE_H 32
+
 // two characters in the gang
 #define CHAR_FACE_0_2_X 116
 #define CHAR_FACE_1_2_X 216

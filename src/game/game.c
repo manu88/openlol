@@ -222,6 +222,37 @@ static Orientation turnRight(Orientation orientation) {
   return orientation;
 }
 
+static int charPortraitClicked(const GameContext *gameCtx) {
+  if (gameCtx->mouseEv.pos.y < CHAR_FACE_Y ||
+      gameCtx->mouseEv.pos.y > CHAR_FACE_Y + CHAR_FACE_H) {
+    return -1;
+  }
+
+  uint8_t numChars = GameContextGetNumChars(gameCtx);
+  switch (numChars) {
+  case 1:
+    if (gameCtx->mouseEv.pos.x > CHAR_FACE_0_1_X &&
+        gameCtx->mouseEv.pos.x < CHAR_FACE_0_1_X + CHAR_FACE_W) {
+      return 0;
+    }
+    break;
+  case 2: {
+    if (gameCtx->mouseEv.pos.x > CHAR_FACE_0_2_X &&
+        gameCtx->mouseEv.pos.x < CHAR_FACE_0_2_X + CHAR_FACE_W) {
+      return 0;
+    } else if (gameCtx->mouseEv.pos.x > CHAR_FACE_1_2_X &&
+               gameCtx->mouseEv.pos.x < CHAR_FACE_1_2_X + CHAR_FACE_W) {
+      return 1;
+    }
+  } break;
+  case 3:
+  default:
+    assert(0);
+  }
+
+  return -1;
+}
+
 static int processMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
@@ -302,7 +333,12 @@ static int processMouse(GameContext *gameCtx) {
     clickOnFrontWall(gameCtx);
     return 1;
   } else {
-    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+    int charIndex = charPortraitClicked(gameCtx);
+    if (charIndex != -1) {
+      printf("Char %i\n", charIndex);
+    } else {
+      printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+    }
   }
   return 0;
 }
@@ -436,7 +472,6 @@ static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
 
 static void renderCharFaces(GameContext *gameCtx) {
   uint8_t numChars = GameContextGetNumChars(gameCtx);
-  printf("Got %i chars\n", numChars);
   switch (numChars) {
   case 1:
     renderCharFace(gameCtx, 0, CHAR_FACE_0_1_X);
