@@ -269,13 +269,15 @@ static int charPortraitClicked(const GameContext *gameCtx) {
 static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
   switch (itemId) {
   case 0XD9:
-    return 43;
+    return 43; // 2B
   case 0XDA:
-    return 42;
+    return 42; // 2A
   case 0XD8:
-    return 30;
+    return 30; // 1E
   case 0X2C:
-    return 7;
+    return 7;  // 07
+  case 0XB9:
+    return 29; // 1B
   }
   printf("getItemSHPFrameIndex: unhandled %X\n", itemId);
   assert(0);

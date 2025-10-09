@@ -175,6 +175,8 @@ typedef struct _EMCInterpreterCallbacks {
                                                uint16_t loop);
   void (*EMCInterpreterCallbacks_ReleaseTimScript)(EMCInterpreter *interp,
                                                    uint16_t scriptId);
+
+  uint16_t (*EMCInterpreterCallbacks_GetItemInHand)(EMCInterpreter *interp);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

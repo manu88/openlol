@@ -105,7 +105,7 @@ void GameContextRelease(GameContext *gameCtx) {
 }
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
-  if (itemId == 0 || itemId > MAX_ITEM_ID) {
+  if (itemId == 0) {
     return 0;
   }
 

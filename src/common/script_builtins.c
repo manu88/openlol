@@ -61,7 +61,9 @@ static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
-  printf("getItemParam\n");
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  printf("getItemParam %X %X\n", p0, p1);
   return 0;
 }
 
@@ -237,7 +239,9 @@ static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
-  printf("getItemInHand\n");
+  if (interp->callbacks.EMCInterpreterCallbacks_GetItemInHand) {
+    return interp->callbacks.EMCInterpreterCallbacks_GetItemInHand(interp);
+  }
   return 0;
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {

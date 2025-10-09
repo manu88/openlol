@@ -71,7 +71,6 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
   case DBGMsgType_GiveItemRequest: {
     const DBGMSGGiveItemRequest *req = (const DBGMSGGiveItemRequest *)buffer;
     printf("received GiveItemRequest 0X%0X\n", req->itemId);
-
     DBGMsgHeader outHeader = {.type = DBGMsgType_GiveItemResponse,
                               sizeof(DBGMSGGiveItemResponse)};
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
