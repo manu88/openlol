@@ -452,7 +452,7 @@ static int cmdCPSExtractPal(const char *filepath) {
     return 1;
   }
   CPSImage image = {0};
-  int ok = CPSImageFromFile(&image, buffer, dataSize);
+  int ok = CPSImageFromBuffer(&image, buffer, dataSize);
   if (freeBuffer) {
     free(buffer);
   }
@@ -492,7 +492,7 @@ static int cmdCPSExtract(const char *filepath) {
     return 1;
   }
   CPSImage image = {0};
-  int ok = CPSImageFromFile(&image, buffer, dataSize);
+  int ok = CPSImageFromBuffer(&image, buffer, dataSize);
   if (freeBuffer) {
     free(buffer);
   }

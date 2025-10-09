@@ -121,8 +121,8 @@ int cmdGame(int argc, char *argv[]) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "INVENT1.CPS"));
-    assert(
-        CPSImageFromFile(&gameCtx.inventoryBackground, f.buffer, f.bufferSize));
+    assert(CPSImageFromBuffer(&gameCtx.inventoryBackground, f.buffer,
+                              f.bufferSize));
   }
 
   GameRun(&gameCtx);

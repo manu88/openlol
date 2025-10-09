@@ -20,7 +20,7 @@ int GameContextInit(GameContext *gameCtx) {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PLAYFLD.CPS"));
 
-    if (CPSImageFromFile(&gameCtx->playField, f.buffer, f.bufferSize) == 0) {
+    if (CPSImageFromBuffer(&gameCtx->playField, f.buffer, f.bufferSize) == 0) {
       printf("unable to get playFieldData\n");
     }
   }
@@ -82,7 +82,7 @@ int GameContextInit(GameContext *gameCtx) {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
     CPSImage img = {0};
-    assert(CPSImageFromFile(&img, f.buffer, f.bufferSize));
+    assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
     gameCtx->defaultPalette = img.palette;
   }
 

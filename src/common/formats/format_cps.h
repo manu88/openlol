@@ -12,4 +12,5 @@ typedef struct {
 } CPSImage;
 
 void CPSImageRelease(CPSImage *image);
-int CPSImageFromFile(CPSImage *image, const uint8_t *buffer, size_t bufferSize);
+int CPSImageFromBuffer(CPSImage *image, const uint8_t *buffer,
+                       size_t bufferSize);

@@ -32,8 +32,8 @@ typedef struct {
                         // 256-colour 6-bit RGB VGA palette,
 } CPSFileHeader;
 
-int CPSImageFromFile(CPSImage *image, const uint8_t *buffer,
-                     size_t bufferSize) {
+int CPSImageFromBuffer(CPSImage *image, const uint8_t *buffer,
+                       size_t bufferSize) {
   CPSFileHeader *file = (CPSFileHeader *)buffer;
   assert(file->compressionType <= CPSCompressionType_LZW_LCW);
   file->fileSize += 2; // CPSCompressionType_LZW_LCW: must add 2 bytes
