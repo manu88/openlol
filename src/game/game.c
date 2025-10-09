@@ -305,8 +305,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
       gameCtx->mouseEv.pos.y <
           INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H) {
     printf("exit inventory\n");
-    gameCtx->state = GameState_PlayGame;
-    gameCtx->controlDisabled = 0;
+    GameContextSetState(gameCtx, GameState_PlayGame);
     return 1;
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
@@ -315,8 +314,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
-      gameCtx->state = GameState_ShowInventory;
-      gameCtx->controlDisabled = 1;
+      GameContextSetState(gameCtx, GameState_ShowInventory);
       return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
@@ -384,8 +382,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
-      gameCtx->state = GameState_ShowInventory;
-      gameCtx->controlDisabled = 1;
+      GameContextSetState(gameCtx, GameState_ShowInventory);
       return 1;
     } else {
       printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
