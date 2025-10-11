@@ -300,6 +300,8 @@ static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
     return 3;
   case 0X99:
     return 15;
+  case 0XF4:
+    return 40;
   }
   printf("getItemSHPFrameIndex: unhandled %X\n", itemId);
   assert(0);
