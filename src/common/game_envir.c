@@ -40,18 +40,16 @@ int GameEnvironmentInit(const char *dataDir) {
   return 1;
 }
 
-#define CHAPTER_PREFIX (const char *)"CHAPTER"
-
-int GameEnvironmentLoadChapter(uint8_t index) {
+int GameEnvironmentLoadLevel(uint8_t index) {
   assert(index < 9);
   const size_t fullPathSize =
       strlen(_envir.dataDir) +
       14; // / sizeof('CHAPTER') + INDEX sizeof('.PAK') + NULL
   char *fullPath = malloc(fullPathSize);
   assert(fullPath);
-  assert(snprintf(fullPath, fullPathSize, "%s/%s%i.PAK", _envir.dataDir,
-                  CHAPTER_PREFIX, index) < fullPathSize);
-  printf("GameEnvironmentLoadChapter load %i '%s'\n", index, fullPath);
+  assert(snprintf(fullPath, fullPathSize, "%s/L%02i.PAK", _envir.dataDir,
+                  index) < fullPathSize);
+  printf("GameEnvironmentLoadLevel load %i '%s'\n", index, fullPath);
 
   assert(_envir.pakChapter == NULL); // TODO release previous chapter if loaded
   _envir.pakChapter = malloc(sizeof(PAKFile));
@@ -97,7 +95,7 @@ static int getFile(PAKFile *pak, GameFile *file, const char *name) {
   size_t size = pak->entries[index].fileSize;
   if (size) {
     file->buffer = PakFileGetEntryData(pak, index);
-    file->bufferSize = pak->entries[index].fileSize;
+    file->bufferSize = PakFileGetEntrySize(pak, index);
     return 1;
   }
   return 0;
@@ -151,4 +149,31 @@ int GameEnvironmentGetLangFile(GameFile *file, const char *name) {
   assert(name);
   return GameEnvironmentGetFileWithExt(file, name,
                                        LanguageGetExtension(_envir.lang));
+}
+
+int GameEnvironmentGetFileFromPak(GameFile *file, const char *filename,
+                                  const char *pakFile) {
+  const size_t fullPathSize = strlen(_envir.dataDir) + strlen(pakFile) + 2;
+  char *fullPath = malloc(fullPathSize);
+  assert(fullPath);
+  assert(snprintf(fullPath, fullPathSize, "%s/%s", _envir.dataDir, pakFile) <
+         fullPathSize);
+
+  PAKFile f = {0};
+  PAKFileInit(&f);
+  f.freeContent = 0;
+  if (PAKFileRead(&f, fullPath) == 0) {
+    free(fullPath);
+    return 0;
+  }
+  free(fullPath);
+  int fIndex = PakFileGetEntryIndex(&f, filename);
+  if (fIndex == -1) {
+    PAKFileRelease(&f);
+    return 0;
+  }
+  file->buffer = PakFileGetEntryData(&f, fIndex);
+  file->bufferSize = PakFileGetEntrySize(&f, fIndex);
+  PAKFileRelease(&f);
+  return 1;
 }

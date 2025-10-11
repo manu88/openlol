@@ -87,7 +87,7 @@ int cmdGame(int argc, char *argv[]) {
   assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
   int levelId = savHandle.slot.general->currentLevel;
   int chapterId = getChapterId(levelId);
-  assert(GameEnvironmentLoadChapter(chapterId));
+  assert(GameEnvironmentLoadLevel(levelId));
 
   GameContext gameCtx = {0};
   if (!GameContextInit(&gameCtx)) {

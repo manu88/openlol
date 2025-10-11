@@ -27,7 +27,7 @@ int GameContextInit(GameContext *gameCtx) {
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetGeneralFile(&f, "ITEMICN.SHP"));
+    assert(GameEnvironmentGetFileFromPak(&f, "ITEMICN.SHP", "STARTUP.PAK"));
     if (SHPHandleFromCompressedBuffer(&gameCtx->itemShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get ITEMICN.SHP\n");
@@ -36,7 +36,8 @@ int GameContextInit(GameContext *gameCtx) {
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetGeneralLangFile(&f));
+    assert(GameEnvironmentGetFileFromPak(&f, "LANDS.FRE", "STARTUP.PAK"));
+    // assert(GameEnvironmentGetGeneralLangFile(&f));
     if (LangHandleFromBuffer(&gameCtx->lang, f.buffer, f.bufferSize) == 0) {
       printf("unable to get LANDS.FRE\n");
       assert(0);
@@ -77,7 +78,8 @@ int GameContextInit(GameContext *gameCtx) {
   }
 
   GameFile f = {0};
-  assert(GameEnvironmentGetGeneralFile(&f, "FONT6P.FNT"));
+  assert(GameEnvironmentGetFileFromPak(&f, "FONT6P.FNT", "STARTUP.PAK"));
+  // assert(GameEnvironmentGetGeneralFile(&f, "FONT6P.FNT"));
 
   if (FNTHandleFromBuffer(&gameCtx->defaultFont, f.buffer, f.bufferSize) == 0) {
     printf("unable to get FONT6P.FNT data\n");
@@ -89,7 +91,8 @@ int GameContextInit(GameContext *gameCtx) {
 
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
+    assert(GameEnvironmentGetFileFromPak(&f, "GERIM.CPS", "O01A.PAK"));
+    // assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
     CPSImage img = {0};
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
     gameCtx->defaultPalette = img.palette;

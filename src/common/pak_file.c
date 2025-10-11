@@ -5,12 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-void PAKFileInit(PAKFile *file) { memset(file, 0, sizeof(PAKFile)); }
+void PAKFileInit(PAKFile *file) {
+  memset(file, 0, sizeof(PAKFile));
+  file->freeContent = 1;
+}
 void PAKFileRelease(PAKFile *file) {
   fclose(file->fp);
-  for (int i = 0; i < file->count; i++) {
-    if (file->entries[i].data) {
-      free(file->entries[i].data);
+  if (file->freeContent) {
+    for (int i = 0; i < file->count; i++) {
+      if (file->entries[i].data) {
+        free(file->entries[i].data);
+      }
     }
   }
   free(file->entries);
