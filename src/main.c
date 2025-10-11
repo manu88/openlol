@@ -595,9 +595,7 @@ static int cmdPakList(void) {
   assert(file);
   for (int i = 0; i <= file->count; i++) {
     PAKEntry *entry = &file->entries[i];
-    printf("%i (%x): Entry offset %u name '%s' ('%s') size %u \n", i, i,
-           entry->offset, entry->filename, PakFileEntryGetExtension(entry),
-           entry->fileSize);
+    printf("%s\n", entry->filename);
   }
   return 0;
 }
@@ -1097,7 +1095,6 @@ int main(int argc, char *argv[]) {
     return 0;
   }
   if (pakFilePath) {
-    printf("Using pak file '%s'\n", pakFilePath);
     if (!PakFileLoadMain(pakFilePath)) {
       printf("error while reading pak file %s\n", pakFilePath);
       return 1;
