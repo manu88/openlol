@@ -61,8 +61,6 @@ typedef struct {
   uint16_t compassDirection;
   uint8_t selectedChar;
 
-  uint8_t unused_2;
-
   uint8_t currentLevel;
 } SAVGeneral;
 

@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define CHARACTERS_OFFSET 0X41
-#define GENERAL_OFFSET 0X249
-#define INVENTORY_OFFSET 0X25F
-#define ALL_OBJECTS_OFFSET 0X474
+#define CHARACTERS_OFFSET 0X4C
+#define GENERAL_OFFSET 0X254
+#define INVENTORY_OFFSET 0X26A
+#define ALL_OBJECTS_OFFSET 0X485
 
 static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
   assert(slot);
