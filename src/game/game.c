@@ -48,6 +48,7 @@ static int loadSaveFile(const char *filepath) {
   return 1;
 }
 
+static GameContext gameCtx = {0};
 int cmdGame(int argc, char *argv[]) {
   const char *dataDir = NULL;
   optind = 0;
@@ -73,7 +74,7 @@ int cmdGame(int argc, char *argv[]) {
   }
 
   assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
-  GameContext gameCtx = {0};
+
   if (!GameContextInit(&gameCtx)) {
     return 1;
   }

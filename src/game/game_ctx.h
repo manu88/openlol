@@ -151,6 +151,7 @@ typedef struct _GameContext {
 
   INFScript script;
   INFScript iniScript;
+  INFScript itemScript;
 
   EMCInterpreter interp;
   EMCState interpState;

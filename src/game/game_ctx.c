@@ -2,6 +2,7 @@
 #include "SDL_render.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
+#include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
@@ -13,7 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int runINIScript(GameContext *gameCtx);
+static int runScript(GameContext *gameCtx, INFScript *script);
 
 int GameContextInit(GameContext *gameCtx) {
   memset(gameCtx, 0, sizeof(GameContext));
@@ -41,6 +42,15 @@ int GameContextInit(GameContext *gameCtx) {
     // assert(GameEnvironmentGetGeneralLangFile(&f));
     if (LangHandleFromBuffer(&gameCtx->lang, f.buffer, f.bufferSize) == 0) {
       printf("unable to get LANDS.ENG\n");
+      assert(0);
+    }
+  }
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetStartupFile(&f, "ITEM.INF"));
+    if (INFScriptFromBuffer(&gameCtx->itemScript, f.buffer, f.bufferSize) ==
+        0) {
+      printf("unable to get ITEMS.INF\n");
       assert(0);
     }
   }
@@ -134,22 +144,30 @@ int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
   return 0;
 }
 
+static int runScript(GameContext *gameCtx, INFScript *script) {
+  EMCState state = {0};
+  EMCStateInit(&state, script);
+  EMCStateSetOffset(&state, 0);
+  EMCStateStart(&state, 0);
+  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
+    EMCInterpreterRun(&gameCtx->interp, &state);
+  }
+  return 1;
+}
+
+static int runCompleteScript(GameContext *ctx, const char *name) {
+  GameFile f;
+  assert(GameEnvironmentGetStartupFile(&f, name));
+  INFScript script = {0};
+  assert(INFScriptFromBuffer(&script, f.buffer, f.bufferSize));
+  return runScript(ctx, &script);
+}
+
 int GameContextStartup(GameContext *ctx) {
   printf("Game: startup\n");
 
-  printf("loading ONETIME.INF script\n");
-  GameFile f;
-  assert(GameEnvironmentGetStartupFile(&f, "ONETIME.INF"));
-  INFScript script;
-  assert(INFScriptFromBuffer(&script, f.buffer, f.bufferSize));
-
-  EMCState iniState = {0};
-  EMCStateInit(&iniState, &script);
-  EMCStateSetOffset(&iniState, 0);
-  EMCStateStart(&iniState, 0);
-  while (EMCInterpreterIsValid(&ctx->interp, &iniState)) {
-    EMCInterpreterRun(&ctx->interp, &iniState);
-  }
+  printf("loading and running ONETIME.INF script\n");
+  runCompleteScript(ctx, "ONETIME.INF");
   return 1;
 }
 
@@ -181,21 +199,10 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   }
 
   printf("START runINIScript\n");
-  runINIScript(ctx);
+  runScript(ctx, &ctx->iniScript);
   printf("DONE runINIScript\n");
   GameContextRunLevelInitScript(ctx);
 
-  return 1;
-}
-
-static int runINIScript(GameContext *gameCtx) {
-  EMCState iniState = {0};
-  EMCStateInit(&iniState, &gameCtx->iniScript);
-  EMCStateSetOffset(&iniState, 0);
-  EMCStateStart(&iniState, 0);
-  while (EMCInterpreterIsValid(&gameCtx->interp, &iniState)) {
-    EMCInterpreterRun(&gameCtx->interp, &iniState);
-  }
   return 1;
 }
 

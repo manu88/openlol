@@ -557,7 +557,33 @@ static uint16_t getGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
 static uint16_t setGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
   printf("setGlobalScriptVar\n");
   ASSERT_UNIMPLEMENTED;
-  return 0;
+  return 1;
+}
+
+static uint16_t battleHitSkillTest(EMCInterpreter *interp, EMCState *state) {
+  printf("battleHitSkillTest\n");
+  return 1;
+}
+
+static uint16_t calcInflictableDamagePerItem(EMCInterpreter *interp,
+                                             EMCState *state) {
+  printf("calcInflictableDamagePerItem\n");
+  return 1;
+}
+
+static uint16_t getInflictedDamage(EMCInterpreter *interp, EMCState *state) {
+  printf("getInflictedDamage\n");
+  return 1;
+}
+
+static uint16_t inflictDamage(EMCInterpreter *interp, EMCState *state) {
+  printf("inflictDamage\n");
+  return 1;
+}
+
+static uint16_t paletteFlash(EMCInterpreter *interp, EMCState *state) {
+  printf("paletteFlash\n");
+  return 1;
 }
 
 static ScriptFunDesc functions[] = {
@@ -637,8 +663,8 @@ static ScriptFunDesc functions[] = {
     {loadMonsterProperties, "loadMonsterProperties"},
 
     // 0X40
-    {NULL},
-    {NULL},
+    {battleHitSkillTest, "battleHitSkillTest"},
+    {inflictDamage, "inflictDamage"},
     {NULL},
     {NULL},
     {moveMonster, "moveMonster"},
@@ -689,13 +715,13 @@ static ScriptFunDesc functions[] = {
     {stopPortraitSpeechAnim, "stopPortraitSpeechAnim"},
     {setPaletteBrightness, "setPaletteBrightness"},
     {NULL},
-    {NULL},
+    {getInflictedDamage, "getInflictedDamage"},
     {NULL},
     {printMessage, "printMessage"},
 
     // 0X70
     {NULL},
-    {NULL},
+    {calcInflictableDamagePerItem, "calcInflictableDamagePerItem"},
     {NULL},
     {NULL},
     {checkInventoryFull, "checkInventoryFull"},
@@ -770,7 +796,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
 
     // B0
-    {NULL},
+    {paletteFlash, "paletteFlash"},
     {NULL},
     {NULL},
     {disableControls, "disableControls"},
