@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define ASSERT_UNIMPLEMENTED // assert(0)
+
 static uint16_t allocItemProperties(EMCInterpreter *interp, EMCState *state) {
   uint16_t size = EMCStateStackVal(state, 0);
   interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties(interp, size);
@@ -29,6 +31,7 @@ static uint16_t setItemProperty(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   printf("getWallType\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
@@ -40,28 +43,33 @@ static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
   int16_t times = EMCStateStackVal(state, 0);
   int16_t max = EMCStateStackVal(state, 1);
   printf("rollDice times=%i max=%i\n", times, max);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
   printf("enableSysTimer\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
   printf("initDialogueSequence\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t restoreAfterDialogueSequence(EMCInterpreter *interp,
                                              EMCState *state) {
   printf("restoreAfterDialogueSequence\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t resetPortraitsAndDisableSysTimer(EMCInterpreter *interp,
                                                  EMCState *state) {
   printf("enableSysTimer\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -81,22 +89,26 @@ static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
   uint16_t p0 = EMCStateStackVal(state, 0);
   uint16_t p1 = EMCStateStackVal(state, 1);
   printf("getItemParam %X %X\n", p0, p1);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {
   printf("createLevelItem\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
   printf("playAnimationPart\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t setNextFunc(EMCInterpreter *interp, EMCState *state) {
   uint16_t p = EMCStateStackVal(state, 0);
   printf("setNextFunc %x\n", p);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -107,27 +119,33 @@ static uint16_t getDirection(EMCInterpreter *interp, EMCState *state) {
 static uint16_t checkRectForMousePointer(EMCInterpreter *interp,
                                          EMCState *state) {
   printf("checkRectForMousePointer\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t clearDialogueField(EMCInterpreter *interp, EMCState *state) {
   printf("clearDialogueField\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
                                              EMCState *state) {
   printf("setupBackgroundAnimationPart\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t hideMouse(EMCInterpreter *interp, EMCState *state) {
   printf("hideMouse\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t showMouse(EMCInterpreter *interp, EMCState *state) {
   printf("showMouse\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
   printf("fadeToBlack\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
@@ -135,11 +153,13 @@ static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
   int16_t p1 = EMCStateStackVal(state, 1);
   const char *f = EMCStateGetDataString(state, p0);
   printf("loadBitmap %X %X '%s'\n", p0, p1, f);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
                                         EMCState *state) {
   printf("stopBackgroundAnimation\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -157,6 +177,7 @@ static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
   printf("initMonster\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -170,21 +191,25 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
   printf("loadSoundFile\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
   printf("playMusicTrack\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t fadeClearSceneWindow(EMCInterpreter *interp, EMCState *state) {
   printf("fadeClearSceneWindow\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t fadeSequencePalette(EMCInterpreter *interp, EMCState *state) {
   printf("fadeSequencePalette\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -192,12 +217,14 @@ static uint16_t initSceneWindowDialogue(EMCInterpreter *interp,
                                         EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);
   printf("initSceneWindowDialogue %x\n", p0);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
                                          EMCState *state) {
   printf("startBackgroundAnimation\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -207,6 +234,7 @@ static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
   printf("moveMonster\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -216,6 +244,7 @@ static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
   const char *str = EMCStateGetDataString(state, stringId);
   interp->callbacks.EMCInterpreterCallbacks_LoadTimScript(interp, scriptId,
                                                           str);
+  return 1;
 }
 
 static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
@@ -223,11 +252,13 @@ static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t loop = EMCStateStackVal(state, 1);
   interp->callbacks.EMCInterpreterCallbacks_RunTimScript(interp, scriptId,
                                                          loop);
+  return 1;
 }
 
 static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
   printf("stopTimScript scriptId=%X\n", scriptId);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -241,6 +272,7 @@ static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
   printf("playSoundEffect\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -256,6 +288,7 @@ static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
 
 static uint16_t drawExitButton(EMCInterpreter *interp, EMCState *state) {
   printf("drawExitButton\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -263,6 +296,7 @@ static uint16_t triggerEventOnMouseButtonClick(EMCInterpreter *interp,
                                                EMCState *state) {
   int evt = EMCStateStackVal(state, 0);
   printf("triggerEventOnMouseButtonClick evt=%X\n", evt);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -285,7 +319,8 @@ static uint16_t loadMonsterShapes(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
   int16_t p1 = EMCStateStackVal(state, 1);
   int16_t p2 = EMCStateStackVal(state, 2);
-  printf("loadMonsterShapes '%s' %X %X\n", file, p1, p2);
+  interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes(interp, file, p1,
+                                                              p2);
   return 1;
 }
 
@@ -297,6 +332,7 @@ static uint16_t setSequenceButtons(EMCInterpreter *interp, EMCState *state) {
   int16_t enableFlags = EMCStateStackVal(state, 4);
   printf("setSequenceButtons x=%i y=%i w=%i h=%i enableFlags=%i\n", x, y, w, h,
          enableFlags);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -309,6 +345,7 @@ static uint16_t setSpecialSceneButtons(EMCInterpreter *interp,
   int16_t enableFlags = EMCStateStackVal(state, 4);
   printf("setSpecialSceneButtons x=%i y=%i w=%i h=%i enableFlags=%i\n", x, y, w,
          h, enableFlags);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -331,12 +368,13 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t setPaletteBrightness(EMCInterpreter *interp, EMCState *state) {
-  printf("setPaletteBrightness\n");
+  uint16_t brightness = EMCStateStackVal(state, 0);
+  uint16_t otherParam = EMCStateStackVal(state, 1);
+  printf("setPaletteBrightness %X %X\n", brightness, otherParam);
   return 1;
 }
 
 static uint16_t loadMonsterProperties(EMCInterpreter *interp, EMCState *state) {
-
   uint16_t monsterIndex = EMCStateStackVal(state, 0);
   uint16_t shapeIndex = EMCStateStackVal(state, 1);
 
@@ -354,6 +392,7 @@ static uint16_t loadMonsterProperties(EMCInterpreter *interp, EMCState *state) {
          "speed=%i\n",
          monsterIndex, shapeIndex, fightingStats[0], fightingStats[2],
          fightingStats[3], fightingStats[4]);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -365,23 +404,27 @@ static uint16_t initAnimStruct(EMCInterpreter *interp, EMCState *state) {
   uint16_t p4 = EMCStateStackVal(state, 4);
   uint16_t p5 = EMCStateStackVal(state, 5);
   printf("initAnimStruct '%s' %X %X %X %X %X\n", file, p1, p2, p3, p4, p5);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t disableControls(EMCInterpreter *interp, EMCState *state) {
   uint16_t mode = EMCStateStackVal(state, 0);
   printf("disableControls %X\n", mode);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t enableControls(EMCInterpreter *interp, EMCState *state) {
   printf("enableControls\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t freeAnimStruct(EMCInterpreter *interp, EMCState *state) {
   uint16_t p0 = EMCStateStackVal(state, 0);
   printf("freeAnimStruct %X\n", p0);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -389,7 +432,10 @@ static uint16_t loadDoorShapes(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
   uint16_t p1 = EMCStateStackVal(state, 1);
   uint16_t p2 = EMCStateStackVal(state, 2);
-  printf("loadDoorShapes '%s' %X %X\n", file, p1, p2);
+  uint16_t p3 = EMCStateStackVal(state, 3);
+  uint16_t p4 = EMCStateStackVal(state, 4);
+  interp->callbacks.EMCInterpreterCallbacks_LoadDoorShapes(interp, file, p1, p2,
+                                                           p3, p4);
   return 1;
 }
 
@@ -412,6 +458,7 @@ static uint16_t loadLevelShapes(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t closeLevelShapeFile(EMCInterpreter *interp, EMCState *state) {
   printf("closeLevelShapeFile\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -419,45 +466,53 @@ static uint16_t assignLevelDecorationShape(EMCInterpreter *interp,
                                            EMCState *state) {
   uint16_t p0 = EMCStateStackVal(state, 0);
   printf("assignLevelDecorationShape %X\n", p0);
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t resetBlockShapeAssignment(EMCInterpreter *interp,
                                           EMCState *state) {
   printf("resetBlockShapeAssignment\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t stopPortraitSpeechAnim(EMCInterpreter *interp,
                                        EMCState *state) {
   printf("stopPortraitSpeechAnim\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {
   int16_t track = EMCStateStackVal(state, 0);
   printf("playDialogueTalkText track=%x\n", track);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
                                           EMCState *state) {
   uint16_t monsterType = EMCStateStackVal(state, 0);
   printf("checkMonsterTypeHostility monsterType=%x\n", monsterType);
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
   printf("savePage5\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t restorePage5(EMCInterpreter *interp, EMCState *state) {
   printf("restorePage5\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
   printf("moveParty\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -472,46 +527,53 @@ static uint16_t loadNewLevel(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t checkInventoryFull(EMCInterpreter *interp, EMCState *state) {
   printf("checkInventoryFull\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t createHandItem(EMCInterpreter *interp, EMCState *state) {
   printf("createHandItem\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
   printf("prepareSpecialScene\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t makeItem(EMCInterpreter *interp, EMCState *state) {
   printf("makeItem\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t giveItemToMonster(EMCInterpreter *interp, EMCState *state) {
   printf("giveItemToMonster\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t assignCustomSfx(EMCInterpreter *interp, EMCState *state) {
   printf("assignCustomSfx\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static uint16_t getGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
   printf("getGlobalScriptVar\n");
+  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t setGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
   printf("setGlobalScriptVar\n");
+  ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
 static ScriptFunDesc functions[] = {
-
     {NULL},
     {getWallType, "getWallType"},
     {drawScene, "drawScene"},

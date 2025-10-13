@@ -167,9 +167,19 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_SetGameFlag)(EMCInterpreter *interp,
                                               uint16_t flag, uint16_t val);
 
+  void (*EMCInterpreterCallbacks_LoadDoorShapes)(EMCInterpreter *interp,
+                                                 const char *file, uint16_t p1,
+                                                 uint16_t p2, uint16_t p3,
+                                                 uint16_t p4);
+
+  void (*EMCInterpreterCallbacks_LoadMonsterShapes)(EMCInterpreter *interp,
+                                                    const char *file,
+                                                    uint16_t p1, uint16_t p2);
+
   void (*EMCInterpreterCallbacks_LoadTimScript)(EMCInterpreter *interp,
                                                 uint16_t scriptId,
                                                 const char *file);
+
   void (*EMCInterpreterCallbacks_RunTimScript)(EMCInterpreter *interp,
                                                uint16_t scriptId,
                                                uint16_t loop);

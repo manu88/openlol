@@ -37,6 +37,10 @@ typedef struct {
   DatHandle datHandle;
   SHPHandle shpHandle;
   LangHandle levelLang;
+
+  SHPHandle doors;
+  SHPHandle monsters;
+
 } LevelContext;
 
 typedef enum {
@@ -130,4 +134,4 @@ int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId);
 uint8_t GameContextGetNumChars(const GameContext *ctx);
 
 uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
-                             char *outBuffer, size_t outBufferSize);
+                              char *outBuffer, size_t outBufferSize);

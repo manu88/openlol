@@ -1,4 +1,5 @@
 #include "game_callbacks.h"
+#include "formats/format_shp.h"
 #include "formats/format_tim.h"
 #include "game_ctx.h"
 #include "game_envir.h"
@@ -136,14 +137,12 @@ static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFileFromPak(&f, shpFile, pakFile));
-    // assert(GameEnvironmentGetFile(&f, shpFile));
     assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
                                f.bufferSize));
   }
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFileFromPak(&f, datFile, pakFile));
-    // assert(GameEnvironmentGetFile(&f, datFile));
     assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
                                f.bufferSize));
   }
@@ -198,6 +197,32 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
     assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
                                   f.bufferSize));
   }
+}
+
+static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
+                                   uint16_t p1, uint16_t p2, uint16_t p3,
+                                   uint16_t p4) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("loadDoorShapes '%s' %X %X %X %X\n", file, p1, p2, p3, p4);
+  assert(p1 == 0);
+  assert(p2 == 0);
+  assert(p3 == 0);
+  assert(p4 == 0);
+  GameFile f;
+  assert(GameEnvironmentGetFile(&f, file));
+  assert(SHPHandleFromBuffer(&gameCtx->level->doors, f.buffer, f.bufferSize));
+}
+
+static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
+                                      uint16_t p1, uint16_t p2) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("load monster shapes %s %i %i", file, p1, p2);
+  assert(p1 == 0);
+  assert(p2 == 0);
+  GameFile f;
+  assert(GameEnvironmentGetFile(&f, file));
+  assert(
+      SHPHandleFromBuffer(&gameCtx->level->monsters, f.buffer, f.bufferSize));
 }
 
 static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
@@ -287,4 +312,9 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
 
   interp->callbacks.EMCInterpreterCallbacks_SetItemProperty =
       callbackSetItemProperty;
+
+  interp->callbacks.EMCInterpreterCallbacks_LoadDoorShapes =
+      callbackLoadDoorShapes;
+  interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes =
+      callbackLoadMonsterShapes;
 }

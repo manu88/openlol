@@ -92,7 +92,6 @@ int GameContextInit(GameContext *gameCtx) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFileFromPak(&f, "GERIM.CPS", "O01A.PAK"));
-    // assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
     CPSImage img = {0};
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
     gameCtx->defaultPalette = img.palette;
