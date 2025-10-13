@@ -716,7 +716,7 @@ static int cmdSAVShow(const char *filepath) {
   }
 
   printf("+Objects\n");
-  for (int i = 0; i < 400; i++) {
+  for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
     const GameObject *obj = slot->gameObjects + i;
     if (obj->itemId == 0) {
       continue;

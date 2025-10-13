@@ -26,6 +26,7 @@
 
 #define MAX_MONSTER_PROPERTIES 5
 #define MAX_MONSTERS 30
+#define MAX_IN_GAME_ITEMS 400
 
 typedef struct {
   uint16_t stringId;
