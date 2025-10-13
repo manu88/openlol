@@ -360,6 +360,17 @@ static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
   LangHandleGetString(&gameCtx->lang, realStringId, c, sizeof(c));
 }
 
+static void callbackDisableControls(EMCInterpreter *interp, uint16_t mode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  assert(mode == 0);
+  gameCtx->controlDisabled = 1;
+}
+
+static void callbackEnableControls(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->controlDisabled = 0;
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -403,4 +414,9 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackCheckMonsterHostility;
 
   interp->callbacks.EMCInterpreterCallbacks_GetItemParam = callbackGetItemParam;
+
+  interp->callbacks.EMCInterpreterCallbacks_EnableControls =
+      callbackEnableControls;
+  interp->callbacks.EMCInterpreterCallbacks_DisableControls =
+      callbackDisableControls;
 }

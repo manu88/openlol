@@ -403,14 +403,12 @@ static uint16_t initAnimStruct(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t disableControls(EMCInterpreter *interp, EMCState *state) {
   uint16_t mode = EMCStateStackVal(state, 0);
-  printf("disableControls %X\n", mode);
-  ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_DisableControls(interp, mode);
   return 1;
 }
 
 static uint16_t enableControls(EMCInterpreter *interp, EMCState *state) {
-  printf("enableControls\n");
-  ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_EnableControls(interp);
   return 1;
 }
 
