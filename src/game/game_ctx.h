@@ -24,10 +24,62 @@
 
 #define DIALOG_BUFFER_SIZE (size_t)1024
 
+#define MAX_MONSTER_PROPERTIES 5
+#define MAX_MONSTERS 30
+
 typedef struct {
   uint16_t stringId;
   uint16_t shapeId;
 } Item;
+
+typedef struct {
+  uint8_t shapeIndex;
+  uint8_t maxWidth;
+  uint16_t fightingStats[9];
+  uint16_t itemsMight[8];
+  uint16_t protectionAgainstItems[8];
+  uint16_t itemProtection;
+  uint16_t hitPoints;
+  uint8_t speedTotalWaitTicks;
+  uint8_t skillLevel;
+  uint16_t flags;
+  uint16_t _unknown;
+  uint16_t numDistAttacks;
+  uint16_t numDistWeapons;
+  uint16_t distWeapons[3];
+  uint8_t attackSkillChance;
+  uint8_t attackSkillType;
+  uint8_t defenseSkillChance;
+  uint8_t defenseSkillType;
+  uint8_t sounds[3];
+} MonsterProperties;
+
+typedef struct {
+  uint8_t destDirection;
+  int8_t shiftStep;
+  uint16_t destX;
+  uint16_t destY;
+
+  int8_t hitOffsX;
+  int8_t hitOffsY;
+  uint8_t currentSubFrame;
+  uint8_t mode;
+  int8_t fightCurTick;
+  uint8_t id;
+  uint8_t direction;
+  uint8_t facing;
+  uint16_t flags;
+  uint16_t damageReceived;
+  int16_t hitPoints;
+  uint8_t speedTick;
+  uint8_t type;
+  MonsterProperties *properties;
+  uint8_t numDistAttacks;
+  uint8_t curDistWeapon;
+  int8_t distAttackTick;
+  uint16_t assignedItems;
+  uint8_t equipmentShapes[4];
+} Monster;
 
 typedef struct {
   VCNHandle vcnHandle;
@@ -39,7 +91,10 @@ typedef struct {
   LangHandle levelLang;
 
   SHPHandle doors;
-  SHPHandle monsters;
+  SHPHandle monsterShapes;
+
+  MonsterProperties monsterProperties[MAX_MONSTER_PROPERTIES];
+  Monster monsters[MAX_MONSTERS];
 
 } LevelContext;
 

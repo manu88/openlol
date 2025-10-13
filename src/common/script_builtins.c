@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define ASSERT_UNIMPLEMENTED // assert(0)
+#define ASSERT_UNIMPLEMENTED assert(0)
 
 static uint16_t allocItemProperties(EMCInterpreter *interp, EMCState *state) {
   uint16_t size = EMCStateStackVal(state, 0);
@@ -123,9 +123,8 @@ static uint16_t checkRectForMousePointer(EMCInterpreter *interp,
   return 0;
 }
 static uint16_t clearDialogueField(EMCInterpreter *interp, EMCState *state) {
-  printf("clearDialogueField\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  interp->callbacks.EMCInterpreterCallbacks_ClearDialogField(interp);
+  return 1;
 }
 static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
                                              EMCState *state) {
@@ -190,9 +189,8 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
-  printf("loadSoundFile\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  printf("[UNIMPLEMENTED] loadSoundFile\n");
+  return 1;
 }
 
 static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
@@ -257,9 +255,8 @@ static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
-  printf("stopTimScript scriptId=%X\n", scriptId);
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  printf("[UNIMPLEMENTED] stopTimScript scriptId=%X\n", scriptId);
+  return 1;
 }
 
 static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
@@ -377,22 +374,16 @@ static uint16_t setPaletteBrightness(EMCInterpreter *interp, EMCState *state) {
 static uint16_t loadMonsterProperties(EMCInterpreter *interp, EMCState *state) {
   uint16_t monsterIndex = EMCStateStackVal(state, 0);
   uint16_t shapeIndex = EMCStateStackVal(state, 1);
-
-  uint16_t fightingStats[9] = {0};
-  fightingStats[0] = (EMCStateStackVal(state, 2) << 8) / 100; // hit chance
-  fightingStats[1] = 256;
-  fightingStats[2] = (EMCStateStackVal(state, 3) << 8) / 100; // protection
-  fightingStats[3] = EMCStateStackVal(state, 4);              // evade chance
-  fightingStats[4] = (EMCStateStackVal(state, 5) << 8) / 100; // speed
-  fightingStats[5] = (EMCStateStackVal(state, 6) << 8) / 100;
-  fightingStats[6] = (EMCStateStackVal(state, 7) << 8) / 100;
-  fightingStats[7] = (EMCStateStackVal(state, 8) << 8) / 100;
-  fightingStats[8] = 0;
-  printf("loadMonsterProperties monster %X shape %X hit=%i prot=%i evade=%i "
-         "speed=%i\n",
-         monsterIndex, shapeIndex, fightingStats[0], fightingStats[2],
-         fightingStats[3], fightingStats[4]);
-  ASSERT_UNIMPLEMENTED;
+  uint16_t hitChance = EMCStateStackVal(state, 2);
+  uint16_t protection = EMCStateStackVal(state, 3);
+  uint16_t evadeChance = EMCStateStackVal(state, 4);
+  uint16_t speed = EMCStateStackVal(state, 5);
+  uint16_t p6 = EMCStateStackVal(state, 6);
+  uint16_t p7 = EMCStateStackVal(state, 7);
+  uint16_t p8 = EMCStateStackVal(state, 8);
+  interp->callbacks.EMCInterpreterCallbacks_LoadMonster(
+      interp, monsterIndex, shapeIndex, hitChance, protection, evadeChance,
+      speed, p6, p7, p8);
   return 1;
 }
 
@@ -457,45 +448,42 @@ static uint16_t loadLevelShapes(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t closeLevelShapeFile(EMCInterpreter *interp, EMCState *state) {
-  printf("closeLevelShapeFile\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] closeLevelShapeFile\n");
+  // ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t assignLevelDecorationShape(EMCInterpreter *interp,
                                            EMCState *state) {
   uint16_t p0 = EMCStateStackVal(state, 0);
-  printf("assignLevelDecorationShape %X\n", p0);
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] assignLevelDecorationShape %X\n", p0);
+  // ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t resetBlockShapeAssignment(EMCInterpreter *interp,
                                           EMCState *state) {
-  printf("resetBlockShapeAssignment\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] resetBlockShapeAssignment\n");
+  // ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
 static uint16_t stopPortraitSpeechAnim(EMCInterpreter *interp,
                                        EMCState *state) {
-  printf("stopPortraitSpeechAnim\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] stopPortraitSpeechAnim\n");
   return 1;
 }
 
 static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {
   int16_t track = EMCStateStackVal(state, 0);
-  printf("playDialogueTalkText track=%x\n", track);
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  printf("[UNIMPLEMENTED] playDialogueTalkText track=%x\n", track);
+  return 1;
 }
 static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
                                           EMCState *state) {
   uint16_t monsterType = EMCStateStackVal(state, 0);
-  printf("checkMonsterTypeHostility monsterType=%x\n", monsterType);
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  return interp->callbacks.EMCInterpreterCallbacks_CheckMonsterHostility(
+      interp, monsterType);
 }
 
 static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
@@ -556,9 +544,8 @@ static uint16_t giveItemToMonster(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t assignCustomSfx(EMCInterpreter *interp, EMCState *state) {
-  printf("assignCustomSfx\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  printf("[UNIMPLEMENTED] assignCustomSfx\n");
+  return 1;
 }
 
 static uint16_t getGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {

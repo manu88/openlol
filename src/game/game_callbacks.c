@@ -217,13 +217,53 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
 static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
                                       uint16_t p1, uint16_t p2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("load monster shapes %s %i %i", file, p1, p2);
+  printf("load monster shapes %s %i %i\n", file, p1, p2);
   assert(p1 == 0);
   assert(p2 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
-  assert(
-      SHPHandleFromBuffer(&gameCtx->level->monsters, f.buffer, f.bufferSize));
+  assert(SHPHandleFromBuffer(&gameCtx->level->monsterShapes, f.buffer,
+                             f.bufferSize));
+}
+
+static void callbackClearDialogField(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->dialogText = 0;
+}
+
+static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,
+                                              uint16_t monsterType) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackCheckMonsterHostility %x\n", monsterType);
+  for (int i = 0; i < MAX_MONSTERS; i++) {
+    if (gameCtx->level->monsters[i].type != monsterType &&
+        monsterType != 0XFFFF) {
+      continue;
+    }
+    return gameCtx->level->monsters[i].mode == 1 ? 0 : 1;
+  }
+  return 1;
+}
+
+static void callbackLoadMonster(EMCInterpreter *interp, uint16_t monsterId,
+                                uint16_t shapeId, uint16_t hitChance,
+                                uint16_t protection, uint16_t evadeChance,
+                                uint16_t speed, uint16_t p6, uint16_t p7,
+                                uint16_t p8) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("[INCOMPLETE] callbackLoadMonster %i %i\n", monsterId, shapeId);
+  assert(monsterId < MAX_MONSTER_PROPERTIES);
+  MonsterProperties *props = &gameCtx->level->monsterProperties[monsterId];
+  props->shapeIndex = shapeId;
+  props->fightingStats[0] = (hitChance << 8) / 100;
+  props->fightingStats[1] = 256;
+  props->fightingStats[2] = (protection << 8) / 100;
+  props->fightingStats[3] = evadeChance;
+  props->fightingStats[4] = (speed << 8) / 100;
+  props->fightingStats[5] = (p6 << 8) / 100;
+  props->fightingStats[6] = (p7 << 8) / 100;
+  props->fightingStats[7] = (p8 << 8) / 100;
+  props->fightingStats[8] = 0;
 }
 
 static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
@@ -318,4 +358,12 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackLoadDoorShapes;
   interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes =
       callbackLoadMonsterShapes;
+
+  interp->callbacks.EMCInterpreterCallbacks_LoadMonster = callbackLoadMonster;
+
+  interp->callbacks.EMCInterpreterCallbacks_ClearDialogField =
+      callbackClearDialogField;
+
+  interp->callbacks.EMCInterpreterCallbacks_CheckMonsterHostility =
+      callbackCheckMonsterHostility;
 }

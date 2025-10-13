@@ -153,7 +153,7 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_LoadLevelShapes)(EMCInterpreter *interp,
                                                   const char *shpFile,
                                                   const char *datFile);
-
+  void (*EMCInterpreterCallbacks_ClearDialogField)(EMCInterpreter *interp);
   // files: VCF VCN VMP
   void (*EMCInterpreterCallbacks_LoadLevelGraphics)(EMCInterpreter *interp,
                                                     const char *file);
@@ -176,6 +176,11 @@ typedef struct _EMCInterpreterCallbacks {
                                                     const char *file,
                                                     uint16_t p1, uint16_t p2);
 
+  void (*EMCInterpreterCallbacks_LoadMonster)(
+      EMCInterpreter *interp, uint16_t monsterIndex, uint16_t shapeIndex,
+      uint16_t hitChance, uint16_t protection, uint16_t evadeChance,
+      uint16_t speed, uint16_t p6, uint16_t p7, uint16_t p8);
+
   void (*EMCInterpreterCallbacks_LoadTimScript)(EMCInterpreter *interp,
                                                 uint16_t scriptId,
                                                 const char *file);
@@ -194,6 +199,9 @@ typedef struct _EMCInterpreterCallbacks {
       EMCInterpreter *interp, uint16_t index, uint16_t stringId,
       uint16_t shapeId, uint16_t type, uint16_t scriptFun, uint16_t might,
       uint16_t skill, uint16_t protection, uint16_t flags);
+
+  uint16_t (*EMCInterpreterCallbacks_CheckMonsterHostility)(
+      EMCInterpreter *interp, uint16_t monsterType);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
