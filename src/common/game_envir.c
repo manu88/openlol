@@ -167,6 +167,29 @@ int GameEnvironmentGetGeneralLangFile(GameFile *file) {
       file, "LANDS", LanguageGetExtension(_envir.lang));
 }
 
+int GameEnvironmentLoadPak(const char *pakFileName) {
+  int cacheIndex = GetCacheIndex(pakFileName);
+  if (cacheIndex != -1) {
+    return 1;
+  }
+
+  const size_t fullPathSize = strlen(_envir.dataDir) + strlen(pakFileName) + 2;
+  char *fullPath = malloc(fullPathSize);
+  assert(fullPath);
+  assert(snprintf(fullPath, fullPathSize, "%s/%s", _envir.dataDir,
+                  pakFileName) < fullPathSize);
+
+  PAKFile f = {0};
+  PAKFileInit(&f);
+  if (PAKFileRead(&f, fullPath) == 0) {
+    free(fullPath);
+    return 0;
+  }
+  free(fullPath);
+  AddInCache(&f, pakFileName);
+  return 1;
+}
+
 int GameEnvironmentGetFile(GameFile *file, const char *name) {
   assert(file);
   assert(name);
