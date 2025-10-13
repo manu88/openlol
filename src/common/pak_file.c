@@ -39,7 +39,6 @@ int PAKFileRead(PAKFile *file, const char *filepath) {
 
   file->count = 0;
   while (1) {
-
     file->entries =
         realloc(file->entries, (file->count + 1) * sizeof(PAKEntry));
     memset(file->entries + file->count, 0, sizeof(PAKEntry));
@@ -56,8 +55,6 @@ int PAKFileRead(PAKFile *file, const char *filepath) {
     }
     file->count++;
   }
-  file->count--;
-
   return 1;
 }
 
@@ -75,6 +72,9 @@ int PakFileGetEntryIndex(const PAKFile *file, const char *name) {
 }
 
 uint8_t *PakFileGetEntryData(const PAKFile *file, int index) {
+  if (index < 0 || index >= file->count) {
+    printf("Will assert for %i %i\n", index, file->count);
+  }
   assert(index >= 0 && index < file->count);
   PAKEntry *entry = file->entries + index;
   if (entry->data == NULL) {

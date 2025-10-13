@@ -593,7 +593,7 @@ static void usagePak(void) { printf("pak subcommands: list|extract [file]\n"); }
 static int cmdPakList(void) {
   const PAKFile *file = PakFileGetMain();
   assert(file);
-  for (int i = 0; i <= file->count; i++) {
+  for (int i = 0; i < file->count; i++) {
     PAKEntry *entry = &file->entries[i];
     printf("%s\n", entry->filename);
   }
