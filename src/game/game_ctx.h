@@ -128,6 +128,7 @@ typedef struct _GameContext {
   Orientation orientation;
 
   LevelContext *level;
+  int levelId;
 
   SDL_Texture *pixBuf;
   SDL_Renderer *renderer;
@@ -181,8 +182,7 @@ void GameContextRelease(GameContext *gameCtx);
 int GameContextInit(GameContext *gameCtx);
 int GameContextStartup(GameContext *ctx);
 
-int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
-                         uint16_t startDir);
+int GameContextLoadLevel(GameContext *ctx, int levelNum);
 int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
 

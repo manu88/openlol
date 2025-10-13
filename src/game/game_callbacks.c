@@ -152,7 +152,10 @@ static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
                               uint16_t startBlock, uint16_t startDir) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackLoadLevel %i %X %X\n", levelNum, startBlock, startDir);
-  GameContextLoadLevel(gameCtx, levelNum, startBlock, startDir);
+  gameCtx->currentBock = startBlock;
+  gameCtx->orientation = startDir;
+  gameCtx->levelId = levelNum;
+  GameContextLoadLevel(gameCtx, levelNum);
 }
 
 static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
@@ -235,6 +238,7 @@ static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,
                                               uint16_t monsterType) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackCheckMonsterHostility %x\n", monsterType);
+  return 0;
   for (int i = 0; i < MAX_MONSTERS; i++) {
     if (gameCtx->level->monsters[i].type != monsterType &&
         monsterType != 0XFFFF) {
@@ -354,9 +358,6 @@ static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
   assert(useLevelFile == 0);
 
   LangHandleGetString(&gameCtx->lang, realStringId, c, sizeof(c));
-
-  printf("callbackSetItemProperty id=%02x shp=%03i typ=%04X flags %04X %s\n",
-         index, shapeId, type, flags, c);
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {

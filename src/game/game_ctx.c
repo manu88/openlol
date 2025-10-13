@@ -153,11 +153,8 @@ int GameContextStartup(GameContext *ctx) {
   return 1;
 }
 
-int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
-                         uint16_t startDir) {
-
-  GetGameCoordsFromBlock(startBlock, &ctx->partyPos.x, &ctx->partyPos.y);
-  ctx->orientation = startDir;
+int GameContextLoadLevel(GameContext *ctx, int levelNum) {
+  GetGameCoordsFromBlock(ctx->currentBock, &ctx->partyPos.x, &ctx->partyPos.y);
   ctx->dialogText = NULL;
 
   GameEnvironmentLoadLevel(levelNum);

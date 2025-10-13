@@ -91,7 +91,8 @@ static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
   if (p0 == 0) {
     return 0;
   }
-  return interp->callbacks.EMCInterpreterCallbacks_GetItemParam(interp, p0,(EMCGetItemParam) p1);
+  return interp->callbacks.EMCInterpreterCallbacks_GetItemParam(
+      interp, p0, (EMCGetItemParam)p1);
 }
 
 static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {
@@ -269,8 +270,7 @@ static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
   return interp->callbacks.EMCInterpreterCallbacks_GetItemInHand(interp);
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
-  printf("playSoundEffect\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] playSoundEffect\n");
   return 0;
 }
 
@@ -488,8 +488,7 @@ static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
 }
 
 static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
-  printf("savePage5\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] savePage5\n");
   return 0;
 }
 

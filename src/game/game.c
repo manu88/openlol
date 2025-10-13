@@ -30,18 +30,22 @@
 #include <unistd.h>
 
 static SAVHandle savHandle = {0};
-
 static int GameRun(GameContext *gameCtx);
 static void usageGame(void) { printf("game [-d datadir] [savefile.dat]\n"); }
 
-int loadSaveFile(const char *filepath) {
+static int loadSaveFile(const char *filepath) {
+
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
   if (!buffer) {
     return 0;
   }
-  return SAVHandleFromBuffer(&savHandle, buffer, readSize);
+  if (!SAVHandleFromBuffer(&savHandle, buffer, readSize)) {
+    return 0;
+  }
+
+  return 1;
 }
 
 int cmdGame(int argc, char *argv[]) {
@@ -68,20 +72,7 @@ int cmdGame(int argc, char *argv[]) {
     savFile = argv[0];
   }
 
-  if (savFile) {
-    printf("Loading sav file '%s'\n", savFile);
-    if (loadSaveFile(savFile) == 0) {
-      printf("Error while reading file '%s'\n", savFile);
-      return 1;
-    }
-  } else {
-    printf("New game\n");
-    SAVHandleGetNewGame(&savHandle);
-  }
-
   assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
-  int levelId = savHandle.slot.general->currentLevel;
-
   GameContext gameCtx = {0};
   if (!GameContextInit(&gameCtx)) {
     return 1;
@@ -94,27 +85,46 @@ int cmdGame(int argc, char *argv[]) {
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
 
-  GameContextLoadLevel(&gameCtx, levelId, savHandle.slot.general->currentBlock,
-                       savHandle.slot.general->currentDirection);
-
-  for (int i = 0; i < INVENTORY_SIZE; i++) {
-    uint16_t gameObjIndex = savHandle.slot.inventory[i];
-    if (gameObjIndex == 0) {
-      continue;
+  if (savFile) {
+    printf("Loading sav file '%s'\n", savFile);
+    if (loadSaveFile(savFile) == 0) {
+      printf("Error while reading file '%s'\n", savFile);
+      return 1;
     }
-    const GameObject *obj = savHandle.slot.gameObjects + gameObjIndex;
-    printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
-    gameCtx.inventory[i] = obj->itemId;
+
+    gameCtx.levelId = savHandle.slot.general->currentLevel;
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+      uint16_t gameObjIndex = savHandle.slot.inventory[i];
+      if (gameObjIndex == 0) {
+        continue;
+      }
+      const GameObject *obj = savHandle.slot.gameObjects + gameObjIndex;
+      printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
+      gameCtx.inventory[i] = obj->itemId;
+    }
+
+    for (int i = 0; i < NUM_CHARACTERS; i++) {
+      memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
+             sizeof(SAVCharacter));
+    }
+    gameCtx.currentBock = savHandle.slot.general->currentBlock;
+    gameCtx.orientation = savHandle.slot.general->currentDirection;
+  } else {
+    gameCtx.levelId = 1;
+    gameCtx.chars[0].id = -9; // Ak'shel for the win
+    // temp until we get the value from script/tim
+    gameCtx.currentBock = 0X22D;
+    gameCtx.orientation = North;
+    gameCtx.inventory[0] = 216;
+    gameCtx.inventory[1] = 217;
+    gameCtx.inventory[2] = 218;
+    printf("New game\n");
   }
 
-  // FACE01.SHP
   char faceFile[11] = "";
   for (int i = 0; i < NUM_CHARACTERS; i++) {
-    uint8_t charId = savHandle.slot.characters[i]->id > 0
-                         ? savHandle.slot.characters[i]->id
-                         : -savHandle.slot.characters[i]->id;
-    memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
-           sizeof(SAVCharacter));
+    uint8_t charId =
+        gameCtx.chars[i].id > 0 ? gameCtx.chars[i].id : -gameCtx.chars[i].id;
     if (charId == 0) {
       continue;
     }
@@ -125,6 +135,8 @@ int cmdGame(int argc, char *argv[]) {
     SHPHandleFromCompressedBuffer(&gameCtx.charFaces[i], f.buffer,
                                   f.bufferSize);
   }
+
+  GameContextLoadLevel(&gameCtx, gameCtx.levelId);
 
   {
     GameFile f = {0};
