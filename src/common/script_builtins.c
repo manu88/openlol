@@ -8,7 +8,6 @@
 static uint16_t allocItemProperties(EMCInterpreter *interp, EMCState *state) {
   uint16_t size = EMCStateStackVal(state, 0);
   interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties(interp, size);
-
   return 1;
 }
 
@@ -69,18 +68,13 @@ static uint16_t resetPortraitsAndDisableSysTimer(EMCInterpreter *interp,
 static uint16_t setGameFlag(EMCInterpreter *interp, EMCState *state) {
   uint16_t flag = EMCStateStackVal(state, 0);
   uint16_t val = EMCStateStackVal(state, 1);
-  if (interp->callbacks.EMCInterpreterCallbacks_SetGameFlag) {
-    interp->callbacks.EMCInterpreterCallbacks_SetGameFlag(interp, flag, val);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_SetGameFlag(interp, flag, val);
   return 1;
 }
 
 static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
   uint16_t p = EMCStateStackVal(state, 0);
-  if (interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p)) {
-    return interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p);
-  }
-  return 0;
+  return interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p);
 }
 
 static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
@@ -107,10 +101,7 @@ static uint16_t setNextFunc(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getDirection(EMCInterpreter *interp, EMCState *state) {
-  if (interp->callbacks.EMCInterpreterCallbacks_GetDirection) {
-    return interp->callbacks.EMCInterpreterCallbacks_GetDirection(interp);
-  }
-  return 0;
+  return interp->callbacks.EMCInterpreterCallbacks_GetDirection(interp);
 }
 
 static uint16_t checkRectForMousePointer(EMCInterpreter *interp,
@@ -161,11 +152,7 @@ void calcCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
 static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
   uint16_t how = EMCStateStackVal(state, 0);
   uint16_t a = EMCStateStackVal(state, 1);
-  if (interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar) {
-    return interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar(interp, how,
-                                                                  a);
-  }
-  return 0;
+  return interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar(interp, how, a);
 }
 
 static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
@@ -177,11 +164,8 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
   uint16_t how = EMCStateStackVal(state, 0);
   uint16_t a = EMCStateStackVal(state, 1);
   uint16_t b = EMCStateStackVal(state, 2);
-  if (interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar) {
-    return interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar(interp, how,
-                                                                  a, b);
-  }
-  return 0;
+  return interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar(interp, how, a,
+                                                                b);
 }
 
 static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
@@ -230,21 +214,15 @@ static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
   uint16_t scriptId = EMCStateStackVal(state, 0);
   uint16_t stringId = EMCStateStackVal(state, 1);
   const char *str = EMCStateGetDataString(state, stringId);
-  if (interp->callbacks.EMCInterpreterCallbacks_LoadTimScript) {
-    interp->callbacks.EMCInterpreterCallbacks_LoadTimScript(interp, scriptId,
-                                                            str);
-  }
-  return 1;
+  interp->callbacks.EMCInterpreterCallbacks_LoadTimScript(interp, scriptId,
+                                                          str);
 }
 
 static uint16_t runTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
   int16_t loop = EMCStateStackVal(state, 1);
-  if (interp->callbacks.EMCInterpreterCallbacks_RunTimScript) {
-    interp->callbacks.EMCInterpreterCallbacks_RunTimScript(interp, scriptId,
-                                                           loop);
-  }
-  return 1;
+  interp->callbacks.EMCInterpreterCallbacks_RunTimScript(interp, scriptId,
+                                                         loop);
 }
 
 static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
@@ -255,17 +233,11 @@ static uint16_t stopTimScript(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
   int16_t scriptId = EMCStateStackVal(state, 0);
-  if (interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript) {
-    interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript(interp,
-                                                               scriptId);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript(interp, scriptId);
   return 1;
 }
 static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
-  if (interp->callbacks.EMCInterpreterCallbacks_GetItemInHand) {
-    return interp->callbacks.EMCInterpreterCallbacks_GetItemInHand(interp);
-  }
-  return 0;
+  return interp->callbacks.EMCInterpreterCallbacks_GetItemInHand(interp);
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
   printf("playSoundEffect\n");
@@ -277,11 +249,8 @@ static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
   int16_t charId = EMCStateStackVal(state, 0);
   int16_t mode = EMCStateStackVal(state, 1);
   int16_t stringId = EMCStateStackVal(state, 2);
-
-  if (interp->callbacks.EMCInterpreterCallbacks_PlayDialogue) {
-    interp->callbacks.EMCInterpreterCallbacks_PlayDialogue(interp, charId, mode,
-                                                           stringId);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_PlayDialogue(interp, charId, mode,
+                                                         stringId);
   return 1;
 }
 
@@ -301,19 +270,14 @@ static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
   uint16_t type = EMCStateStackVal(state, 0);
   uint16_t stringId = EMCStateStackVal(state, 1);
   uint16_t soundID = EMCStateStackVal(state, 2);
-
-  if (interp->callbacks.EMCInterpreterCallbacks_PrintMessage) {
-    interp->callbacks.EMCInterpreterCallbacks_PrintMessage(interp, type,
-                                                           stringId, soundID);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_PrintMessage(interp, type, stringId,
+                                                         soundID);
   return 1;
 }
 
 static uint16_t loadBlockProperties(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
-  if (interp->callbacks.EMCInterpreterCallbacks_LoadCMZ) {
-    interp->callbacks.EMCInterpreterCallbacks_LoadCMZ(interp, file);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_LoadCMZ(interp, file);
   return 1;
 }
 
@@ -362,13 +326,7 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
 
   printf("loadLevelGraphics '%s' %X %X %X %X %X %s\n", file, specialColor,
          weight, vcnLen, vmpLen, p5, paletteFile);
-  // files: VCF VCN VMP
-  if (interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics) {
-    interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);
-  }
-#if 0
-
-#endif
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);
   return 1;
 }
 
@@ -438,9 +396,7 @@ static uint16_t loadDoorShapes(EMCInterpreter *interp, EMCState *state) {
 static uint16_t loadLangFile(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
   assert(file);
-  if (interp->callbacks.EMCInterpreterCallbacks_LoadLangFile) {
-    interp->callbacks.EMCInterpreterCallbacks_LoadLangFile(interp, file);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_LoadLangFile(interp, file);
   return 1;
 }
 
@@ -449,11 +405,8 @@ static uint16_t loadLevelShapes(EMCInterpreter *interp, EMCState *state) {
       EMCStateGetDataString(state, EMCStateStackVal(state, 0));
   const char *datFile =
       EMCStateGetDataString(state, EMCStateStackVal(state, 1));
-  if (interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes) {
-    interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes(interp, shpFile,
-                                                              datFile);
-  }
-  printf("loadLevelShapes '%s' '%s'\n", shpFile, datFile);
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes(interp, shpFile,
+                                                            datFile);
   return 1;
 }
 
@@ -512,10 +465,8 @@ static uint16_t loadNewLevel(EMCInterpreter *interp, EMCState *state) {
   uint16_t level = EMCStateStackVal(state, 0);
   uint16_t startBlock = EMCStateStackVal(state, 1);
   uint16_t startDir = EMCStateStackVal(state, 2);
-  if (interp->callbacks.EMCInterpreterCallbacks_LoadLevel) {
-    interp->callbacks.EMCInterpreterCallbacks_LoadLevel(interp, level,
-                                                        startBlock, startDir);
-  }
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevel(interp, level, startBlock,
+                                                      startDir);
   return 1;
 }
 
