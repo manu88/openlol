@@ -273,7 +273,7 @@ static int charPortraitClicked(const GameContext *gameCtx) {
 }
 
 static uint16_t getItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId) {
-  return gameCtx->items[itemId].shapeId;
+  return gameCtx->itemProperties[itemId].shapeId;
 }
 
 static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
@@ -290,7 +290,7 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
   if (gameCtx->itemInHand == 0) {
     return;
   }
-  uint16_t stringId = gameCtx->items[gameCtx->itemInHand].stringId;
+  uint16_t stringId = gameCtx->itemProperties[gameCtx->itemInHand].stringId;
 
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);

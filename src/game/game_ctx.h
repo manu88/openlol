@@ -29,9 +29,14 @@
 #define MAX_IN_GAME_ITEMS 400
 
 typedef struct {
+  uint8_t level;
+  uint16_t itemPropertyIndex;
+} Item;
+
+typedef struct {
   uint16_t stringId;
   uint16_t shapeId;
-} Item;
+} ItemProperty;
 
 typedef struct {
   uint8_t shapeIndex;
@@ -167,7 +172,8 @@ typedef struct _GameContext {
 
   SDL_Cursor *cursor;
 
-  Item *items;
+  ItemProperty *itemProperties;
+  Item *itemsInGame;
   uint16_t itemsCount;
 } GameContext;
 

@@ -10,6 +10,7 @@
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 static int runINIScript(GameContext *gameCtx);
@@ -96,6 +97,10 @@ int GameContextInit(GameContext *gameCtx) {
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
     gameCtx->defaultPalette = img.palette;
   }
+
+  gameCtx->itemsInGame = malloc(MAX_IN_GAME_ITEMS * sizeof(Item));
+  assert(gameCtx->itemsInGame);
+  memset(gameCtx->itemsInGame, 0, MAX_IN_GAME_ITEMS * sizeof(Item));
 
   DBGServerInit();
   return 1;

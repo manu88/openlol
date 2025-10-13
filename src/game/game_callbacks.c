@@ -298,10 +298,43 @@ static uint16_t callbackGetItemInHand(EMCInterpreter *interp) {
   return gameCtx->itemInHand;
 }
 
+static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,
+                                     EMCGetItemParam how) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackGetItemParam %X %X\n", itemId, how);
+  const Item *item = &gameCtx->itemsInGame[itemId];
+  const ItemProperty *p = &gameCtx->itemProperties[item->itemPropertyIndex];
+  switch (how) {
+  case EMCGetItemParam_Block:
+  case EMCGetItemParam_X:
+  case EMCGetItemParam_Y:
+  case EMCGetItemParam_LEVEL:
+    return item->level;
+  case EMCGetItemParam_PropertyIndex:
+    return item->itemPropertyIndex;
+  case EMCGetItemParam_CurrentFrameFlag:
+  case EMCGetItemParam_NameStringId:
+  case EMCGetItemParam_UNUSED_7:
+  case EMCGetItemParam_ShpIndex:
+  case EMCGetItemParam_Type:
+  case EMCGetItemParam_ScriptFun:
+  case EMCGetItemParam_Might:
+  case EMCGetItemParam_Skill:
+  case EMCGetItemParam_Protection:
+  case EMCGetItemParam_14:
+  case EMCGetItemParam_CurrentFrameFlag2:
+  case EMCGetItemParam_Flags:
+  case EMCGetItemParam_SkillMight:
+    break;
+  }
+  assert(0);
+  return 0;
+}
+
 static void callbackAllocItemProperties(EMCInterpreter *interp, uint16_t size) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  gameCtx->items = malloc(size * sizeof(Item));
-  assert(gameCtx->items);
+  gameCtx->itemProperties = malloc(size * sizeof(ItemProperty));
+  assert(gameCtx->itemProperties);
   gameCtx->itemsCount = size;
 }
 
@@ -314,8 +347,8 @@ static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   assert(index < gameCtx->itemsCount);
 
-  gameCtx->items[index].shapeId = shapeId;
-  gameCtx->items[index].stringId = stringId;
+  gameCtx->itemProperties[index].shapeId = shapeId;
+  gameCtx->itemProperties[index].stringId = stringId;
   uint8_t useLevelFile = 0;
   int realStringId = LangGetString(stringId, &useLevelFile);
   assert(useLevelFile == 0);
@@ -356,6 +389,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
 
   interp->callbacks.EMCInterpreterCallbacks_LoadDoorShapes =
       callbackLoadDoorShapes;
+
   interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes =
       callbackLoadMonsterShapes;
 
@@ -366,4 +400,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
 
   interp->callbacks.EMCInterpreterCallbacks_CheckMonsterHostility =
       callbackCheckMonsterHostility;
+
+  interp->callbacks.EMCInterpreterCallbacks_GetItemParam = callbackGetItemParam;
 }
