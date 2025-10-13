@@ -172,7 +172,6 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
   assert(name);
   if (_envir.currentLevelPak) {
     if (getFile(_envir.currentLevelPak, file, name)) {
-      printf("Found file in current level pak\n");
       return 1;
     }
   }
@@ -181,16 +180,13 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
       continue;
     }
     if (getFile(&_envir.cache[i].file, file, name)) {
-      printf("Found file in cached %s pak\n", _envir.cache[i].name);
       return 1;
     }
   }
   if (getFile(&_envir.pakGeneral, file, name)) {
-    printf("Found file in general pak\n");
     return 1;
   }
   if (getFile(&_envir.pakStartup, file, name)) {
-    printf("Found file in startup pak\n");
     return 1;
   }
   return 0;
