@@ -210,7 +210,8 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
   assert(p4 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
-  assert(SHPHandleFromBuffer(&gameCtx->level->doors, f.buffer, f.bufferSize));
+  assert(SHPHandleFromCompressedBuffer(&gameCtx->level->doors, f.buffer,
+                                       f.bufferSize));
 }
 
 static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,

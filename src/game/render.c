@@ -697,10 +697,18 @@ void GameRenderScene(GameContext *gameCtx) {
       if (wallType) {
         drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
                  N_south);
+        if (wallType == 3) { // door
+          SHPFrame frame = {0};
+          assert(gameCtx->level->doors.originalBuffer);
+          SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+          SHPFrameGetImageData(&frame);
+          drawSHPMazeFrame(gameCtx->pixBuf, &frame, 52, 16,
+                           gameCtx->level->vcnHandle.palette, 0);
+        }
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_N_SOUTH, wmi,
-                           24, 8, 0);
     }
+    renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_N_SOUTH, wmi,
+                         24, 8, 0);
   }
 
   if (pEntry->valid) {
