@@ -128,3 +128,6 @@ void GameContextSetState(GameContext *gameCtx, GameState newState);
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId);
 uint8_t GameContextGetNumChars(const GameContext *ctx);
+
+uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
+                             char *outBuffer, size_t outBufferSize);

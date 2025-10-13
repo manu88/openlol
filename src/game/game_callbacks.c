@@ -21,12 +21,7 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   printf("callbacksPlayDialogue charId=%i, mode=%i stringID=%i\n", charId, mode,
          strId);
 
-  uint8_t useLevelFile = 0;
-  int realStringId = LangGetString(strId, &useLevelFile);
-  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
-  assert(useLevelFile);
-  LangHandleGetString(&ctx->level->levelLang, realStringId,
-                      ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
+  GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;
 }
 
@@ -36,11 +31,8 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
   assert(ctx);
   printf("callbacksPrintMessage type=%i stringID=%i soundID=%i\n", type, strId,
          soundId);
-  uint8_t useLevelFile = 0;
-  int realStringId = LangGetString(strId, &useLevelFile);
-  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
-  LangHandleGetString(&ctx->level->levelLang, realStringId,
-                      ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
+
+  GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;
 }
 

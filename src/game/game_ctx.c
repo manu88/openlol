@@ -248,3 +248,15 @@ uint8_t GameContextGetNumChars(const GameContext *ctx) {
   }
   return c;
 }
+
+uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
+                              char *outBuffer, size_t outBufferSize) {
+  uint8_t useLevelFile = 0;
+  int realStringId = LangGetString(stringId, &useLevelFile);
+  if (useLevelFile) {
+    return LangHandleGetString(&ctx->level->levelLang, realStringId, outBuffer,
+                               outBufferSize);
+  }
+  return LangHandleGetString(&ctx->lang, realStringId, outBuffer,
+                             outBufferSize);
+}

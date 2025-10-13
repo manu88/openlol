@@ -108,12 +108,8 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
   printf("GameTimAnimator callbackPlayDialogue stringId=%i argc=%i\n", stringId,
          argc);
 
-  uint8_t useLevelFile = 0;
-  int realStringId = LangGetString(stringId, &useLevelFile);
-  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
-  assert(useLevelFile);
-  LangHandleGetString(&gameCtx->level->levelLang, realStringId,
-                      gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
+  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
+                       DIALOG_BUFFER_SIZE);
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 

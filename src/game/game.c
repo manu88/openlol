@@ -291,12 +291,9 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
     return;
   }
   uint16_t stringId = gameCtx->items[gameCtx->itemInHand].stringId;
-  uint8_t useLevelFile = 0;
-  int realStringId = LangGetString(stringId, &useLevelFile);
-  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
-  assert(useLevelFile == 0);
-  LangHandleGetString(&gameCtx->lang, realStringId, gameCtx->dialogTextBuffer,
-                      DIALOG_BUFFER_SIZE);
+
+  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
+                       DIALOG_BUFFER_SIZE);
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 
