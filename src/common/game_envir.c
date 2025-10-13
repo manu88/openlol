@@ -135,16 +135,16 @@ char *strtoupper(char *dest, const char *src) {
 static int getFile(PAKFile *pak, GameFile *file, const char *name) {
   int index = PakFileGetEntryIndex(pak, name);
   if (index == -1) {
-    if (islower(name[0])) {
-
-      // try with upper name
-      char *upperName = strdup(name);
-      strtoupper(upperName, name);
-      int ret = getFile(pak, file, upperName);
+    // try with upper name
+    char *upperName = strdup(name);
+    strtoupper(upperName, name);
+    if (strcmp(upperName, name) == 0) {
       free(upperName);
-      return ret;
+      return 0;
     }
-    return 0;
+    int ret = getFile(pak, file, upperName);
+    free(upperName);
+    return ret;
   }
   size_t size = pak->entries[index].fileSize;
   if (size) {
