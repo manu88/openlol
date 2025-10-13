@@ -88,9 +88,10 @@ static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
 static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
   uint16_t p0 = EMCStateStackVal(state, 0);
   uint16_t p1 = EMCStateStackVal(state, 1);
-  printf("getItemParam %X %X\n", p0, p1);
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  if (p0 == 0) {
+    return 0;
+  }
+  return interp->callbacks.EMCInterpreterCallbacks_GetItemParam(interp, p0,(EMCGetItemParam) p1);
 }
 
 static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {

@@ -130,6 +130,27 @@ typedef enum {
   EMCGlobalVarID_AbortTIMFlag = 14,
 } EMCGlobalVarID;
 
+typedef enum {
+  EMCGetItemParam_Block = 0,
+  EMCGetItemParam_X = 1,
+  EMCGetItemParam_Y = 2,
+  EMCGetItemParam_LEVEL = 3,
+  EMCGetItemParam_PropertyIndex = 4,
+  EMCGetItemParam_CurrentFrameFlag = 5,
+  EMCGetItemParam_NameStringId = 6,
+  EMCGetItemParam_UNUSED_7 = 7,
+  EMCGetItemParam_ShpIndex = 8,
+  EMCGetItemParam_Type = 9,
+  EMCGetItemParam_ScriptFun = 10,
+  EMCGetItemParam_Might = 11,
+  EMCGetItemParam_Skill = 12,
+  EMCGetItemParam_Protection = 13,
+  EMCGetItemParam_14 = 14,
+  EMCGetItemParam_CurrentFrameFlag2 = 15,
+  EMCGetItemParam_Flags = 16,
+  EMCGetItemParam_SkillMight = 17,
+} EMCGetItemParam;
+
 typedef struct _EMCInterpreter EMCInterpreter;
 
 typedef struct _EMCInterpreterCallbacks {
@@ -202,6 +223,10 @@ typedef struct _EMCInterpreterCallbacks {
 
   uint16_t (*EMCInterpreterCallbacks_CheckMonsterHostility)(
       EMCInterpreter *interp, uint16_t monsterType);
+
+  uint16_t (*EMCInterpreterCallbacks_GetItemParam)(EMCInterpreter *interp,
+                                                   uint16_t itemId,
+                                                   EMCGetItemParam how);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
