@@ -5,6 +5,29 @@
 #include <stdio.h>
 #include <string.h>
 
+static uint16_t allocItemProperties(EMCInterpreter *interp, EMCState *state) {
+  uint16_t size = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties(interp, size);
+
+  return 1;
+}
+
+static uint16_t setItemProperty(EMCInterpreter *interp, EMCState *state) {
+  uint16_t index = EMCStateStackVal(state, 0);
+  uint16_t stringId = EMCStateStackVal(state, 1);
+  uint16_t shpId = EMCStateStackVal(state, 2);
+  uint16_t type = EMCStateStackVal(state, 3);
+  uint16_t scriptFun = EMCStateStackVal(state, 4);
+  uint16_t might = EMCStateStackVal(state, 5);
+  uint16_t skill = EMCStateStackVal(state, 6);
+  uint16_t protection = EMCStateStackVal(state, 7);
+  uint16_t flags = EMCStateStackVal(state, 8);
+  interp->callbacks.EMCInterpreterCallbacks_SetItemProperty(
+      interp, index, stringId, shpId, type, scriptFun, might, skill, protection,
+      flags);
+  return 1;
+}
+
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   printf("getWallType\n");
   return 1;
@@ -552,8 +575,8 @@ static ScriptFunDesc functions[] = {
     {loadBlockProperties, "loadBlockProperties"},
     {loadMonsterShapes, "loadMonsterShapes"},
     {NULL},
-    {NULL},
-    {NULL},
+    {allocItemProperties, "allocItemProperties"},
+    {setItemProperty, "setItemProperty"},
     {makeItem, "makeItem"},
 
     // 0X10

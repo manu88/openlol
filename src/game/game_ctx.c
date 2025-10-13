@@ -1,6 +1,5 @@
 #include "game_ctx.h"
 #include "SDL_render.h"
-#include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
 #include "formats/format_lang.h"
@@ -8,6 +7,7 @@
 #include "formats/format_shp.h"
 #include "game_envir.h"
 #include "game_tim_animator.h"
+#include "script.h"
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
@@ -27,7 +27,7 @@ int GameContextInit(GameContext *gameCtx) {
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetGeneralFile(&f, "ITEMICN.SHP"));
+    assert(GameEnvironmentGetStartupFile(&f, "ITEMICN.SHP"));
     if (SHPHandleFromCompressedBuffer(&gameCtx->itemShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get ITEMICN.SHP\n");
@@ -36,9 +36,10 @@ int GameContextInit(GameContext *gameCtx) {
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetGeneralLangFile(&f));
+    assert(GameEnvironmentGetStartupFile(&f, "LANDS.ENG"));
+    // assert(GameEnvironmentGetGeneralLangFile(&f));
     if (LangHandleFromBuffer(&gameCtx->lang, f.buffer, f.bufferSize) == 0) {
-      printf("unable to get LANDS.FRE\n");
+      printf("unable to get LANDS.ENG\n");
       assert(0);
     }
   }
@@ -77,7 +78,8 @@ int GameContextInit(GameContext *gameCtx) {
   }
 
   GameFile f = {0};
-  assert(GameEnvironmentGetGeneralFile(&f, "FONT6P.FNT"));
+  assert(GameEnvironmentGetStartupFile(&f, "FONT6P.FNT"));
+  // assert(GameEnvironmentGetGeneralFile(&f, "FONT6P.FNT"));
 
   if (FNTHandleFromBuffer(&gameCtx->defaultFont, f.buffer, f.bufferSize) == 0) {
     printf("unable to get FONT6P.FNT data\n");
@@ -89,7 +91,8 @@ int GameContextInit(GameContext *gameCtx) {
 
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
+    assert(GameEnvironmentGetFileFromPak(&f, "GERIM.CPS", "O01A.PAK"));
+    // assert(GameEnvironmentGetFile(&f, "GERIM.CPS"));
     CPSImage img = {0};
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
     gameCtx->defaultPalette = img.palette;
@@ -127,6 +130,25 @@ int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
   return 0;
 }
 
+int GameContextStartup(GameContext *ctx) {
+  printf("Game: startup\n");
+
+  printf("loading ONETIME.INF script\n");
+  GameFile f;
+  assert(GameEnvironmentGetStartupFile(&f, "ONETIME.INF"));
+  INFScript script;
+  assert(INFScriptFromBuffer(&script, f.buffer, f.bufferSize));
+
+  EMCState iniState = {0};
+  EMCStateInit(&iniState, &script);
+  EMCStateSetOffset(&iniState, 0);
+  EMCStateStart(&iniState, 0);
+  while (EMCInterpreterIsValid(&ctx->interp, &iniState)) {
+    EMCInterpreterRun(&ctx->interp, &iniState);
+  }
+  return 1;
+}
+
 int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
                          uint16_t startDir) {
 
@@ -134,6 +156,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
   ctx->orientation = startDir;
   ctx->dialogText = NULL;
 
+  GameEnvironmentLoadLevel(levelNum);
   {
     GameFile f = {0};
     char wllFile[12];

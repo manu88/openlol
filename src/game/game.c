@@ -29,11 +29,6 @@
 #include <string.h>
 #include <unistd.h>
 
-static int getChapterId(int levelId) {
-  assert(levelId <= 5);
-  return 1;
-}
-
 static SAVHandle savHandle = {0};
 
 static int GameRun(GameContext *gameCtx);
@@ -86,8 +81,6 @@ int cmdGame(int argc, char *argv[]) {
 
   assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
   int levelId = savHandle.slot.general->currentLevel;
-  int chapterId = getChapterId(levelId);
-  assert(GameEnvironmentLoadChapter(chapterId));
 
   GameContext gameCtx = {0};
   if (!GameContextInit(&gameCtx)) {
@@ -97,6 +90,7 @@ int cmdGame(int argc, char *argv[]) {
   GameContextInstallCallbacks(&gameCtx.interp);
   gameCtx.interp.callbackCtx = &gameCtx;
 
+  GameContextStartup(&gameCtx);
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
 
@@ -278,34 +272,8 @@ static int charPortraitClicked(const GameContext *gameCtx) {
   return -1;
 }
 
-static uint16_t getItemSHPFrameIndex(uint16_t itemId) {
-  switch (itemId) {
-  case 0XD9:
-    return 43; // 2B
-  case 0XDA:
-    return 42; // 2A
-  case 0XD8:
-    return 30; // 1E
-  case 0X2C:
-    return 7; // 07
-  case 0XB9:
-    return 29; // 1B
-  case 0XA2:
-    return 33;
-  case 0X83:
-    return 19;
-  case 0X8A:
-    return 14;
-  case 0X5D:
-    return 3;
-  case 0X99:
-    return 15;
-  case 0XF4:
-    return 40;
-  }
-  printf("getItemSHPFrameIndex: unhandled %X\n", itemId);
-  assert(0);
-  return 0;
+static uint16_t getItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId) {
+  return gameCtx->items[itemId].shapeId;
 }
 
 static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
@@ -313,13 +281,23 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
   uint16_t itemId = gameCtx->inventory[realIndex];
   if (gameCtx->itemInHand == 0 && itemId) {
     gameCtx->inventory[realIndex] = 0;
-    createCursorForItem(gameCtx, getItemSHPFrameIndex(itemId));
-    gameCtx->itemInHand = itemId;
   } else {
     gameCtx->inventory[realIndex] = gameCtx->itemInHand;
-    gameCtx->itemInHand = itemId;
-    createCursorForItem(gameCtx, itemId ? getItemSHPFrameIndex(itemId) : 0);
   }
+  gameCtx->itemInHand = itemId;
+  createCursorForItem(gameCtx,
+                      itemId ? getItemSHPFrameIndex(gameCtx, itemId) : 0);
+  if (gameCtx->itemInHand == 0) {
+    return;
+  }
+  uint16_t stringId = gameCtx->items[gameCtx->itemInHand].stringId;
+  uint8_t useLevelFile = 0;
+  int realStringId = LangGetString(stringId, &useLevelFile);
+  printf("real string ID=%i, levelFile?%i\n", realStringId, useLevelFile);
+  assert(useLevelFile == 0);
+  LangHandleGetString(&gameCtx->lang, realStringId, gameCtx->dialogTextBuffer,
+                      DIALOG_BUFFER_SIZE);
+  gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 
 static int mouseIsInInventoryStrip(GameContext *gameCtx) {
@@ -611,7 +589,7 @@ static void renderInventory(GameContext *gameCtx) {
     uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
     uint16_t itemId = gameCtx->inventory[index];
     if (itemId) {
-      renderInventorySlot(gameCtx, i, getItemSHPFrameIndex(itemId));
+      renderInventorySlot(gameCtx, i, getItemSHPFrameIndex(gameCtx, itemId));
     }
   }
 }

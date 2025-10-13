@@ -177,6 +177,13 @@ typedef struct _EMCInterpreterCallbacks {
                                                    uint16_t scriptId);
 
   uint16_t (*EMCInterpreterCallbacks_GetItemInHand)(EMCInterpreter *interp);
+  void (*EMCInterpreterCallbacks_AllocItemProperties)(EMCInterpreter *interp,
+                                                      uint16_t size);
+
+  void (*EMCInterpreterCallbacks_SetItemProperty)(
+      EMCInterpreter *interp, uint16_t index, uint16_t stringId,
+      uint16_t shapeId, uint16_t type, uint16_t scriptFun, uint16_t might,
+      uint16_t skill, uint16_t protection, uint16_t flags);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

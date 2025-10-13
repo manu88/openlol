@@ -25,6 +25,11 @@
 #define DIALOG_BUFFER_SIZE (size_t)1024
 
 typedef struct {
+  uint16_t stringId;
+  uint16_t shapeId;
+} Item;
+
+typedef struct {
   VCNHandle vcnHandle;
   VMPHandle vmpHandle;
   MazeHandle mazHandle;
@@ -102,10 +107,13 @@ typedef struct _GameContext {
 
   SDL_Cursor *cursor;
 
+  Item *items;
+  uint16_t itemsCount;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
 int GameContextInit(GameContext *gameCtx);
+int GameContextStartup(GameContext *ctx);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum, uint16_t startBlock,
                          uint16_t startDir);

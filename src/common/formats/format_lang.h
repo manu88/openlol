@@ -5,7 +5,8 @@
 #include <sys/types.h>
 
 typedef enum {
-  Language_FR = 0,
+  Language_EN = 0,
+  Language_FR,
 } Language;
 
 const char *LanguageGetExtension(Language lang);

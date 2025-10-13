@@ -6,6 +6,8 @@
 
 const char *LanguageGetExtension(Language lang) {
   switch (lang) {
+  case Language_EN:
+    return "ENG";
   case Language_FR:
     return "FRE";
   }

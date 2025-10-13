@@ -5,6 +5,8 @@
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
@@ -132,15 +134,24 @@ static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
                                     const char *datFile) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackLoadLevelShapes '%s' '%s'\n", shpFile, datFile);
+  char pakFile[12] = "";
+  strncpy(pakFile, shpFile, 12);
+
+  pakFile[strlen(pakFile) - 1] = 'K';
+  pakFile[strlen(pakFile) - 2] = 'A';
+  pakFile[strlen(pakFile) - 3] = 'P';
+  printf("using pak file '%s'\n", pakFile);
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFile(&f, shpFile));
+    assert(GameEnvironmentGetFileFromPak(&f, shpFile, pakFile));
+    // assert(GameEnvironmentGetFile(&f, shpFile));
     assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
                                f.bufferSize));
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFile(&f, datFile));
+    assert(GameEnvironmentGetFileFromPak(&f, datFile, pakFile));
+    // assert(GameEnvironmentGetFile(&f, datFile));
     assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
                                f.bufferSize));
   }
@@ -174,9 +185,14 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
                                       const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackLoadLevelGraphics '%s'\n", file);
+  char pakFile[12] = "";
+  snprintf(pakFile, 12, "%s.PAK", file);
+  char fileName[12] = "";
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFileWithExt(&f, file, "VCN"));
+    snprintf(fileName, 12, "%s.VCN", file);
+    assert(GameEnvironmentGetFileFromPak(&f, fileName, pakFile));
+    // assert(GameEnvironmentGetFileWithExt(&f, file, "VCN"));
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
 
@@ -184,7 +200,9 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFileWithExt(&f, file, "VMP"));
+    snprintf(fileName, 12, "%s.VMP", file);
+    assert(GameEnvironmentGetFileFromPak(&f, fileName, pakFile));
+    // assert(GameEnvironmentGetFileWithExt(&f, file, "VMP"));
     assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
                                   f.bufferSize));
   }
@@ -222,6 +240,34 @@ static uint16_t callbackGetItemInHand(EMCInterpreter *interp) {
   return gameCtx->itemInHand;
 }
 
+static void callbackAllocItemProperties(EMCInterpreter *interp, uint16_t size) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->items = malloc(size * sizeof(Item));
+  assert(gameCtx->items);
+  gameCtx->itemsCount = size;
+}
+
+static char c[128] = "";
+static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
+                                    uint16_t stringId, uint16_t shapeId,
+                                    uint16_t type, uint16_t scriptFun,
+                                    uint16_t might, uint16_t skill,
+                                    uint16_t protection, uint16_t flags) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  assert(index < gameCtx->itemsCount);
+
+  gameCtx->items[index].shapeId = shapeId;
+  gameCtx->items[index].stringId = stringId;
+  uint8_t useLevelFile = 0;
+  int realStringId = LangGetString(stringId, &useLevelFile);
+  assert(useLevelFile == 0);
+
+  LangHandleGetString(&gameCtx->lang, realStringId, c, sizeof(c));
+
+  printf("callbackSetItemProperty id=%02x shp=%03i typ=%04X flags %04X %s\n",
+         index, shapeId, type, flags, c);
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -244,4 +290,9 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackReleaseTimScript;
   interp->callbacks.EMCInterpreterCallbacks_GetItemInHand =
       callbackGetItemInHand;
+  interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties =
+      callbackAllocItemProperties;
+
+  interp->callbacks.EMCInterpreterCallbacks_SetItemProperty =
+      callbackSetItemProperty;
 }

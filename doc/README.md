@@ -1,3 +1,7 @@
+# Some special files 
+- "STARTUP.PAK/ONETIME.INF": as the name says, it must be exec one, at startup
+- "STARTUP.PAK/ITEM.INF": ditto, at startup.
+
 # Extensions
 https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files for more details
 
