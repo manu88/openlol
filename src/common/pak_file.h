@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -30,6 +31,10 @@ int PakFileGetEntryIndex(const PAKFile *file, const char *name);
 const char *PakFileEntryGetExtension(const PAKEntry *entry);
 
 uint8_t *PakFileGetEntryData(const PAKFile *file, int index);
+
+static inline uint32_t PakFileGetEntrySize(const PAKFile *file, int index) {
+  return file->entries[index].fileSize;
+}
 
 const PAKFile *PakFileGetMain(void);
 int PakFileLoadMain(const char *filepath);
