@@ -97,7 +97,7 @@ typedef struct {
   LangHandle levelLang;
 
   SHPHandle doors;
-  SHPHandle monsterShapes;
+  SHPHandle monsterShapes[MAX_MONSTERS];
 
   MonsterProperties monsterProperties[MAX_MONSTER_PROPERTIES];
   Monster monsters[MAX_MONSTERS];

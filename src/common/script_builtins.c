@@ -48,8 +48,8 @@ static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
-  printf("enableSysTimer\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] enableSysTimer\n");
+  // ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -102,8 +102,8 @@ static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
-  printf("playAnimationPart\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] playAnimationPart\n");
+  // ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -198,13 +198,13 @@ static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
 static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
   printf("playMusicTrack\n");
   ASSERT_UNIMPLEMENTED;
-  return 0;
+  return 1;
 }
 
 static uint16_t fadeClearSceneWindow(EMCInterpreter *interp, EMCState *state) {
-  printf("fadeClearSceneWindow\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  printf("[UNIMPLEMENTED] fadeClearSceneWindow\n");
+  // ASSERT_UNIMPLEMENTED;
+  return 1;
 }
 
 static uint16_t fadeSequencePalette(EMCInterpreter *interp, EMCState *state) {
@@ -315,10 +315,10 @@ static uint16_t loadBlockProperties(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t loadMonsterShapes(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
-  int16_t p1 = EMCStateStackVal(state, 1);
+  int16_t monsterId = EMCStateStackVal(state, 1);
   int16_t p2 = EMCStateStackVal(state, 2);
-  interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes(interp, file, p1,
-                                                              p2);
+  interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes(interp, file,
+                                                              monsterId, p2);
   return 1;
 }
 
@@ -395,8 +395,9 @@ static uint16_t initAnimStruct(EMCInterpreter *interp, EMCState *state) {
   uint16_t p3 = EMCStateStackVal(state, 3);
   uint16_t p4 = EMCStateStackVal(state, 4);
   uint16_t p5 = EMCStateStackVal(state, 5);
-  printf("initAnimStruct '%s' %X %X %X %X %X\n", file, p1, p2, p3, p4, p5);
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] initAnimStruct '%s' %X %X %X %X %X\n", file, p1, p2,
+         p3, p4, p5);
+  // ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -415,8 +416,8 @@ static uint16_t enableControls(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t freeAnimStruct(EMCInterpreter *interp, EMCState *state) {
   uint16_t p0 = EMCStateStackVal(state, 0);
-  printf("freeAnimStruct %X\n", p0);
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] freeAnimStruct %X\n", p0);
+  // ASSERT_UNIMPLEMENTED;
   return 1;
 }
 

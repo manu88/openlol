@@ -218,15 +218,15 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
 }
 
 static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
-                                      uint16_t p1, uint16_t p2) {
+                                      uint16_t monsterId, uint16_t p2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("load monster shapes %s %i %i\n", file, p1, p2);
-  assert(p1 == 0);
+  printf("load monster shapes %s %i %i\n", file, monsterId, p2);
+  assert(monsterId < MAX_MONSTERS);
   assert(p2 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
-  assert(SHPHandleFromBuffer(&gameCtx->level->monsterShapes, f.buffer,
-                             f.bufferSize));
+  assert(SHPHandleFromBuffer(&gameCtx->level->monsterShapes[monsterId],
+                             f.buffer, f.bufferSize));
 }
 
 static void callbackClearDialogField(EMCInterpreter *interp) {

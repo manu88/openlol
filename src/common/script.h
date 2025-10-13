@@ -195,7 +195,7 @@ typedef struct _EMCInterpreterCallbacks {
 
   void (*EMCInterpreterCallbacks_LoadMonsterShapes)(EMCInterpreter *interp,
                                                     const char *file,
-                                                    uint16_t p1, uint16_t p2);
+                                                    uint16_t monsterId, uint16_t p2);
 
   void (*EMCInterpreterCallbacks_LoadMonster)(
       EMCInterpreter *interp, uint16_t monsterIndex, uint16_t shapeIndex,
