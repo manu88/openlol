@@ -20,7 +20,27 @@ Point PointGoFront(const Point *pos, Orientation orientation, int distance) {
   return pt;
 }
 
-Point PointGoLeft(const Point *pos, Orientation orientation, int distance) {
+Point PointGoBack(const Point *pos, Orientation orientation, int distance) {
+  Point pt = *pos;
+  switch (orientation) {
+  case North:
+    pt.y += distance;
+    break;
+  case East:
+    pt.x -= distance;
+    break;
+  case South:
+    pt.y -= distance;
+    break;
+  case West:
+    pt.x += distance;
+    break;
+  }
+  return pt;
+}
+
+Point PointGoRight(const Point *pos, Orientation orientation, int distance) {
+
   Point pt = *pos;
   switch (orientation) {
   case North:
@@ -39,7 +59,7 @@ Point PointGoLeft(const Point *pos, Orientation orientation, int distance) {
   return pt;
 }
 
-Point PointGoRight(const Point *pos, Orientation orientation, int distance) {
+Point PointGoLeft(const Point *pos, Orientation orientation, int distance) {
   Point pt = *pos;
   switch (orientation) {
   case North:
@@ -65,9 +85,9 @@ Point PointGo(const Point *pos, Orientation orientation, int frontDist,
     p = PointGoFront(&p, orientation, frontDist);
   }
   if (leftDist > 0) {
-    p = PointGoRight(&p, orientation, leftDist);
+    p = PointGoLeft(&p, orientation, leftDist);
   } else if (leftDist < 0) {
-    p = PointGoLeft(&p, orientation, -leftDist);
+    p = PointGoRight(&p, orientation, -leftDist);
   }
   return p;
 }

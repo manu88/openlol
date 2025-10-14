@@ -72,6 +72,7 @@ typedef enum {
 Point PointGoFront(const Point *pos, Orientation orientation, int distance);
 Point PointGoLeft(const Point *pos, Orientation orientation, int distance);
 Point PointGoRight(const Point *pos, Orientation orientation, int distance);
+Point PointGoBack(const Point *pos, Orientation orientation, int distance);
 Point PointGo(const Point *pos, Orientation orientation, int frontDist,
               int leftDist);
 
