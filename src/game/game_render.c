@@ -193,8 +193,5 @@ void GameRender(GameContext *gameCtx) {
   renderDialog(gameCtx);
   // GameRenderMap(gameCtx, 640, 350);
 
-  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
-  SDL_RenderPresent(gameCtx->renderer);
+
 }
