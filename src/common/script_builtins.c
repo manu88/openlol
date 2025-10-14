@@ -476,8 +476,8 @@ static uint16_t stopPortraitSpeechAnim(EMCInterpreter *interp,
 }
 
 static uint16_t playDialogueTalkText(EMCInterpreter *interp, EMCState *state) {
-  int16_t track = EMCStateStackVal(state, 0);
-  printf("[UNIMPLEMENTED] playDialogueTalkText track=%x\n", track);
+  int16_t trackId = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_PlayDialogue(interp, 4, 0, trackId);
   return 1;
 }
 static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
