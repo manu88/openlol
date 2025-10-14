@@ -509,12 +509,13 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
 static int GameRun(GameContext *gameCtx) {
   int quit = 0;
   int shouldUpdate = 1;
-  int firstTime = 1;
+
   // Event loop
   while (!quit) {
     if (DBGServerUpdate(gameCtx)) {
       shouldUpdate = 1;
     }
+
     while (gameCtx->state == GameState_PlayGame &&
            EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
       EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
@@ -541,10 +542,6 @@ static int GameRun(GameContext *gameCtx) {
       if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
         shouldUpdate = 1;
       }
-    }
-    if (firstTime) {
-      shouldUpdate = 1;
-      firstTime = 0;
     }
     if (gameCtx->mouseEv.pending) {
       if (processMouse(gameCtx)) {
