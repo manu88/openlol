@@ -1,6 +1,22 @@
 #include "geometry.h"
 #include <assert.h>
 
+Orientation OrientationTurnLeft(Orientation orientation) {
+  orientation -= 1;
+  if ((int)orientation < 0) {
+    return West;
+  }
+  return orientation;
+}
+
+Orientation OrientationTurnRight(Orientation orientation) {
+  orientation += 1;
+  if (orientation > West) {
+    return North;
+  }
+  return orientation;
+}
+
 Point PointGoFront(const Point *pos, Orientation orientation, int distance) {
   Point pt = *pos;
   switch (orientation) {

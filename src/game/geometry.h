@@ -69,6 +69,9 @@ typedef enum {
   West = 3,
 } Orientation;
 
+Orientation OrientationTurnRight(Orientation orientation);
+Orientation OrientationTurnLeft(Orientation orientation);
+
 Point PointGoFront(const Point *pos, Orientation orientation, int distance);
 Point PointGoLeft(const Point *pos, Orientation orientation, int distance);
 Point PointGoRight(const Point *pos, Orientation orientation, int distance);

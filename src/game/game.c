@@ -173,89 +173,6 @@ static void clickOnFrontWall(GameContext *gameCtx) {
   GameContextRunScript(gameCtx, nextBlock);
 }
 
-static void moveFront(Point *pt, Orientation orientation) {
-  switch (orientation) {
-  case North:
-    pt->y -= 1;
-    break;
-  case East:
-    pt->x += 1;
-    break;
-  case South:
-    pt->y += 1;
-    break;
-  case West:
-    pt->x -= 1;
-    break;
-  }
-}
-
-static void moveBack(Point *pt, Orientation orientation) {
-  switch (orientation) {
-  case North:
-    pt->y += 1;
-    break;
-  case East:
-    pt->x -= 1;
-    break;
-  case South:
-    pt->y -= 1;
-    break;
-  case West:
-    pt->x += 1;
-    break;
-  }
-}
-
-static void moveLeft(Point *pt, Orientation orientation) {
-  switch (orientation) {
-  case North:
-    pt->x -= 1;
-    break;
-  case East:
-    pt->y -= 1;
-    break;
-  case South:
-    pt->x += 1;
-    break;
-  case West:
-    pt->y += 1;
-    break;
-  }
-}
-
-static void moveRight(Point *pt, Orientation orientation) {
-  switch (orientation) {
-  case North:
-    pt->x += 1;
-    break;
-  case East:
-    pt->y += 1;
-    break;
-  case South:
-    pt->x -= 1;
-    break;
-  case West:
-    pt->y -= 1;
-    break;
-  }
-}
-static Orientation turnLeft(Orientation orientation) {
-  orientation -= 1;
-  if ((int)orientation < 0) {
-    return West;
-  }
-  return orientation;
-}
-
-static Orientation turnRight(Orientation orientation) {
-  orientation += 1;
-  if (orientation > West) {
-    return North;
-  }
-  return orientation;
-}
-
 static int charPortraitClicked(const GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.y < CHAR_FACE_Y ||
       gameCtx->mouseEv.pos.y > CHAR_FACE_Y + CHAR_FACE_H) {
@@ -385,19 +302,23 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     if (buttonX <= 2 && buttonY <= 1) {
       if (buttonY == 0) {
         if (buttonX == 0) {
-          gameCtx->orientation = turnLeft(gameCtx->orientation);
+          gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
         } else if (buttonX == 1) {
-          moveFront(&gameCtx->partyPos, gameCtx->orientation);
+          gameCtx->partyPos =
+              PointGoFront(&gameCtx->partyPos, gameCtx->orientation, 1);
         } else if (buttonX == 2) {
-          gameCtx->orientation = turnRight(gameCtx->orientation);
+          gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
         }
       } else if (buttonY == 1) {
         if (buttonX == 0) {
-          moveLeft(&gameCtx->partyPos, gameCtx->orientation);
+          gameCtx->partyPos =
+              PointGoLeft(&gameCtx->partyPos, gameCtx->orientation, 1);
         } else if (buttonX == 1) {
-          moveBack(&gameCtx->partyPos, gameCtx->orientation);
+          gameCtx->partyPos =
+              PointGoBack(&gameCtx->partyPos, gameCtx->orientation, 1);
         } else if (buttonX == 2) {
-          moveRight(&gameCtx->partyPos, gameCtx->orientation);
+          gameCtx->partyPos =
+              PointGoRight(&gameCtx->partyPos, gameCtx->orientation, 1);
         }
       }
       return 1;
@@ -467,33 +388,37 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     case SDLK_z:
       // go front
       shouldUpdate = 1;
-      moveFront(&gameCtx->partyPos, gameCtx->orientation);
+      gameCtx->partyPos =
+          PointGoFront(&gameCtx->partyPos, gameCtx->orientation, 1);
       break;
     case SDLK_s:
       // go back
       shouldUpdate = 1;
-      moveBack(&gameCtx->partyPos, gameCtx->orientation);
+      gameCtx->partyPos =
+          PointGoBack(&gameCtx->partyPos, gameCtx->orientation, 1);
       break;
     case SDLK_q:
       // go left
       shouldUpdate = 1;
-      moveLeft(&gameCtx->partyPos, gameCtx->orientation);
+      gameCtx->partyPos =
+          PointGoLeft(&gameCtx->partyPos, gameCtx->orientation, 1);
       break;
     case SDLK_d:
       // go right
       shouldUpdate = 1;
-      moveRight(&gameCtx->partyPos, gameCtx->orientation);
+      gameCtx->partyPos =
+          PointGoRight(&gameCtx->partyPos, gameCtx->orientation, 1);
       break;
     case SDLK_a:
       // turn anti-clockwise
       shouldUpdate = 1;
-      gameCtx->orientation = turnLeft(gameCtx->orientation);
+      gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
 
       break;
     case SDLK_e:
       // turn clockwise
       shouldUpdate = 1;
-      gameCtx->orientation = turnRight(gameCtx->orientation);
+      gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
       break;
     case SDLK_SPACE:
       shouldUpdate = 1;
@@ -549,6 +474,11 @@ static void GameRunOnce(GameContext *gameCtx) {
     GameRender(gameCtx);
     shouldUpdate = 0;
   }
+
+  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
+  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
+  SDL_RenderPresent(gameCtx->renderer);
 }
 
 static int GameRun(GameContext *gameCtx) {
