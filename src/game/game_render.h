@@ -4,3 +4,6 @@
 void renderDialog(GameContext *gameCtx);
 void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
                 const char *text);
+
+void renderPlayField(GameContext *gameCtx);
+void GameRender(GameContext *gameCtx);

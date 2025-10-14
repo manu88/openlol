@@ -1,4 +1,5 @@
 #include "script_builtins.h"
+#include "game_ctx.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>

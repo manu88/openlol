@@ -202,3 +202,5 @@ uint8_t GameContextGetNumChars(const GameContext *ctx);
 
 uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
                               char *outBuffer, size_t outBufferSize);
+
+uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId);

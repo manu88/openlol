@@ -288,10 +288,6 @@ static int charPortraitClicked(const GameContext *gameCtx) {
   return -1;
 }
 
-static uint16_t getItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId) {
-  return gameCtx->itemProperties[itemId].shapeId;
-}
-
 static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
   int realIndex = (gameCtx->inventoryIndex + index) % INVENTORY_SIZE;
   uint16_t itemId = gameCtx->inventory[realIndex];
@@ -301,8 +297,8 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
     gameCtx->inventory[realIndex] = gameCtx->itemInHand;
   }
   gameCtx->itemInHand = itemId;
-  createCursorForItem(gameCtx,
-                      itemId ? getItemSHPFrameIndex(gameCtx, itemId) : 0);
+  createCursorForItem(
+      gameCtx, itemId ? GameContextGetItemSHPFrameIndex(gameCtx, itemId) : 0);
   if (gameCtx->itemInHand == 0) {
     return;
   }
@@ -509,137 +505,6 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     }
   }
   return shouldUpdate;
-}
-
-static void animateDialogZone(GameContext *gameCtx) {
-  void *data;
-  int pitch;
-  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->pixBuf, &rect, &data, &pitch);
-
-  // copy outline
-  int offset = gameCtx->dialogBoxFrames;
-  const int size = 20;
-  for (int y = DIALOG_BOX_H - size; y < DIALOG_BOX_H; y++) {
-    const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
-    uint32_t *rowDest = (unsigned int *)((char *)data + pitch * (y + offset));
-    for (int x = 0; x < DIALOG_BOX_W; x++) {
-      rowDest[x] = rowSource[x];
-    }
-  }
-
-  if (gameCtx->dialogBoxFrames >= size) {
-    // need to copy the dialog background
-    int size = DIALOG_BOX_H - 1;
-    if (gameCtx->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
-      size++;
-    }
-    for (int y = 1; y < size; y++) {
-      const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
-      uint32_t *rowDest =
-          (unsigned int *)((char *)data + pitch * (y + (DIALOG_BOX_H - 2)));
-      for (int x = 0; x < DIALOG_BOX_W; x++) {
-        rowDest[x] = rowSource[x];
-      }
-    }
-  }
-
-  if (gameCtx->dialogBoxFrames <= (DIALOG_BOX_H2 - DIALOG_BOX_H)) {
-    gameCtx->dialogBoxFrames++;
-  }
-  SDL_UnlockTexture(gameCtx->pixBuf);
-}
-
-static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
-                                uint16_t frameId) {
-  assert(slot <= 9);
-  SHPFrame frame = {0};
-  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, frameId);
-  SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame,
-               UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
-               UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
-}
-
-static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
-  SHPFrame frame = {0};
-  assert(SHPHandleGetFrame(&gameCtx->charFaces[charId], &frame, 0));
-  SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_FACE_Y,
-               gameCtx->defaultPalette);
-}
-
-static void renderCharFaces(GameContext *gameCtx) {
-  uint8_t numChars = GameContextGetNumChars(gameCtx);
-  switch (numChars) {
-  case 1:
-    renderCharFace(gameCtx, 0, CHAR_FACE_0_1_X);
-    break;
-  case 2:
-    renderCharFace(gameCtx, 0, CHAR_FACE_0_2_X);
-    renderCharFace(gameCtx, 1, CHAR_FACE_1_2_X);
-    break;
-  case 3:
-  default:
-    assert(0);
-  }
-}
-
-static void renderCharInventory(GameContext *gameCtx) {
-  renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
-              gameCtx->inventoryBackground.imageSize,
-              gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
-              INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H);
-  char c[10] = "";
-  LangHandleGetString(&gameCtx->lang, 51, c, sizeof(c));
-  renderText(gameCtx, 277, 104, 50, c);
-
-  renderText(gameCtx, 250, 10, 50, gameCtx->chars[gameCtx->selectedChar].name);
-}
-
-static void renderInventory(GameContext *gameCtx) {
-  for (int i = 0; i < 9; i++) {
-    uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
-    uint16_t itemId = gameCtx->inventory[index];
-    if (itemId) {
-      renderInventorySlot(gameCtx, i, getItemSHPFrameIndex(gameCtx, itemId));
-    }
-  }
-}
-static void GameRender(GameContext *gameCtx) {
-  SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
-  SDL_RenderClear(gameCtx->renderer);
-  renderPlayField(gameCtx);
-
-  if (gameCtx->fadeOutFrames) {
-    gameCtx->fadeOutFrames--;
-    clearMazeZone(gameCtx);
-  } else if (gameCtx->state == GameState_ShowInventory) {
-    renderCharInventory(gameCtx);
-  } else {
-    GameRenderScene(gameCtx);
-    if (gameCtx->state == GameState_TimAnimation) {
-      if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
-        GameContextSetState(gameCtx, GameState_PlayGame);
-      }
-    }
-  }
-
-  renderInventory(gameCtx);
-
-  renderCharFaces(gameCtx);
-
-  if (gameCtx->showBigDialog) {
-    animateDialogZone(gameCtx);
-  }
-
-  renderDialog(gameCtx);
-  // GameRenderMap(gameCtx, 640, 350);
-
-  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
-  SDL_RenderPresent(gameCtx->renderer);
 }
 
 static int GameRun(GameContext *gameCtx) {

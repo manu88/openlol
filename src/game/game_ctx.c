@@ -268,3 +268,8 @@ uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
   return LangHandleGetString(&ctx->lang, realStringId, outBuffer,
                              outBufferSize);
 }
+
+uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
+                                         uint16_t itemId) {
+  return gameCtx->itemProperties[itemId].shapeId;
+}

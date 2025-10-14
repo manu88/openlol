@@ -2,7 +2,7 @@
 #include "game_ctx.h"
 #include <stdint.h>
 
-void renderPlayField(GameContext *gameCtx);
+
 void GameRenderMap(GameContext *gameCtx, int xOff, int yOff);
 void GameRenderScene(GameContext *gameCtx);
 void clearMazeZone(GameContext *gameCtx);
