@@ -75,6 +75,9 @@ int cmdGame(int argc, char *argv[]) {
 
   assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
 
+  GameEnvironmentLoadPak("O01A.PAK");
+  GameEnvironmentLoadPak("O01E.PAK");
+  GameEnvironmentLoadPak("O01D.PAK");
   if (!GameContextInit(&gameCtx)) {
     return 1;
   }
