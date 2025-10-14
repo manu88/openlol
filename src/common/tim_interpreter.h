@@ -7,8 +7,9 @@ typedef struct _TIMInterpreter TIMInterpreter;
 
 typedef struct {
   void (*TIMInterpreterCallbacks_WSAInit)(TIMInterpreter *interp,
-                                          const char *wsaFile, int x, int y,
-                                          int offscreen, int flags);
+                                          uint16_t index, const char *wsaFile,
+                                          int x, int y, int offscreen,
+                                          int flags);
   void (*TIMInterpreterCallbacks_WSARelease)(TIMInterpreter *interp, int index);
   void (*TIMInterpreterCallbacks_WSADisplayFrame)(TIMInterpreter *interp,
                                                   int frameIndex, int frame);

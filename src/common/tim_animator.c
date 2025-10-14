@@ -94,8 +94,9 @@ const char *wsaFlags(int flags) {
 static void callbackWSADisplayFrame(TIMInterpreter *interp, int frameIndex,
                                     int frame);
 
-static void callbackWSAInit(TIMInterpreter *interp, const char *wsaFile, int x,
-                            int y, int offscreen, int flags) {
+static void callbackWSAInit(TIMInterpreter *interp, uint16_t index,
+                            const char *wsaFile, int x, int y, int offscreen,
+                            int flags) {
   TIMAnimator *animator = (TIMAnimator *)interp->callbackCtx;
   assert(animator);
   printf("TIMAnimator: callbackWSAInit wsa file='%s' x=%i y=%i offscreen=%i "

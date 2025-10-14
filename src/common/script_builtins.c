@@ -152,11 +152,10 @@ static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);
-  int16_t p1 = EMCStateStackVal(state, 1);
+  // int16_t p1 = EMCStateStackVal(state, 1);
   const char *f = EMCStateGetDataString(state, p0);
-  printf("loadBitmap %X %X '%s'\n", p0, p1, f);
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  interp->callbacks.EMCInterpreterCallbacks_LoadBitmap(interp, f);
+  return 1;
 }
 static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
                                         EMCState *state) {
@@ -396,9 +395,9 @@ static uint16_t initAnimStruct(EMCInterpreter *interp, EMCState *state) {
   uint16_t y = EMCStateStackVal(state, 3);
   uint16_t offscreenBuffer = EMCStateStackVal(state, 4);
   uint16_t wsaFlags = EMCStateStackVal(state, 5);
-  printf("[UNIMPLEMENTED] initAnimStruct '%s' %X %X %X %X %X\n", file, index, x,
-         y, offscreenBuffer, wsaFlags);
-  // ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_WSAInit(interp, index, file, x, y,
+                                                    offscreenBuffer, wsaFlags);
+
   return 1;
 }
 

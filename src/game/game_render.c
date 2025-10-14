@@ -169,6 +169,11 @@ void GameRender(GameContext *gameCtx) {
   } else if (gameCtx->state == GameState_ShowInventory) {
     renderCharInventory(gameCtx);
   } else {
+    if (gameCtx->imageTest.data) {
+      renderCPS(gameCtx->pixBuf, gameCtx->imageTest.data,
+                gameCtx->imageTest.imageSize, gameCtx->imageTest.palette,
+                PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+    }
     GameRenderScene(gameCtx);
     if (gameCtx->state == GameState_TimAnimation) {
       if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {

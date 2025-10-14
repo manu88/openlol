@@ -160,7 +160,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 
     break;
   case TIM_COMMAND_ID_WSA_INIT: {
-    // int index = instrParams[0];
+    uint16_t index = instrParams[0];
     uint16_t strParam = instrParams[1];
     uint16_t x = (int16_t)instrParams[2];
     uint16_t y = (int16_t)instrParams[3];
@@ -168,8 +168,8 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     uint16_t wsaFlags = instrParams[5];
     const char *wsaFile = TIMHandleGetText(interp->_tim, strParam);
     if (interp->callbacks.TIMInterpreterCallbacks_WSAInit) {
-      interp->callbacks.TIMInterpreterCallbacks_WSAInit(interp, wsaFile, x, y,
-                                                        offscreen, wsaFlags);
+      interp->callbacks.TIMInterpreterCallbacks_WSAInit(
+          interp, index, wsaFile, x, y, offscreen, wsaFlags);
     }
     break;
   }

@@ -1,4 +1,5 @@
 #include "game_callbacks.h"
+#include "formats/format_cps.h"
 #include "formats/format_shp.h"
 #include "formats/format_tim.h"
 #include "game_ctx.h"
@@ -202,6 +203,15 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
   }
 }
 
+static void callbackLoadBitmap(EMCInterpreter *interp, const char *file) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadBitmap %s\n", file);
+  GameFile f = {0};
+  assert(GameEnvironmentGetFile(&f, file));
+
+  assert(CPSImageFromBuffer(&gameCtx->imageTest, f.buffer, f.bufferSize));
+}
+
 static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
                                    uint16_t p1, uint16_t p2, uint16_t p3,
                                    uint16_t p4) {
@@ -386,6 +396,14 @@ static uint16_t callbackGetGlobalScriptVar(EMCInterpreter *interp,
   return gameCtx->globalScriptVars[index];
 }
 
+static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
+                            const char *wsaFile, int x, int y, int offscreen,
+                            int flags) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimatorWSAInit(&gameCtx->timAnimator, index, wsaFile, x, y, offscreen,
+                         flags);
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -410,32 +428,26 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackGetItemInHand;
   interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties =
       callbackAllocItemProperties;
-
   interp->callbacks.EMCInterpreterCallbacks_SetItemProperty =
       callbackSetItemProperty;
-
   interp->callbacks.EMCInterpreterCallbacks_LoadDoorShapes =
       callbackLoadDoorShapes;
-
   interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes =
       callbackLoadMonsterShapes;
-
   interp->callbacks.EMCInterpreterCallbacks_LoadMonster = callbackLoadMonster;
-
   interp->callbacks.EMCInterpreterCallbacks_ClearDialogField =
       callbackClearDialogField;
-
   interp->callbacks.EMCInterpreterCallbacks_CheckMonsterHostility =
       callbackCheckMonsterHostility;
-
   interp->callbacks.EMCInterpreterCallbacks_GetItemParam = callbackGetItemParam;
-
   interp->callbacks.EMCInterpreterCallbacks_EnableControls =
       callbackEnableControls;
   interp->callbacks.EMCInterpreterCallbacks_DisableControls =
       callbackDisableControls;
+  interp->callbacks.EMCInterpreterCallbacks_LoadBitmap = callbackLoadBitmap;
   interp->callbacks.EMCInterpreterCallbacks_GetGlobalScriptVar =
       callbackGetGlobalScriptVar;
   interp->callbacks.EMCInterpreterCallbacks_SetGlobalScriptVar =
       callbackSetGlobalScriptVar;
+  interp->callbacks.EMCInterpreterCallbacks_WSAInit = callbackWSAInit;
 }

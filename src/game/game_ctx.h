@@ -181,6 +181,8 @@ typedef struct _GameContext {
   ItemProperty *itemProperties;
   Item *itemsInGame;
   uint16_t itemsCount;
+
+  CPSImage imageTest;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

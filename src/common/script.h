@@ -182,62 +182,56 @@ typedef struct _EMCInterpreterCallbacks {
                                             uint16_t levelNum,
                                             uint16_t startBlock,
                                             uint16_t startDir);
-
   uint16_t (*EMCInterpreterCallbacks_TestGameFlag)(EMCInterpreter *interp,
                                                    uint16_t flag);
   void (*EMCInterpreterCallbacks_SetGameFlag)(EMCInterpreter *interp,
                                               uint16_t flag, uint16_t val);
-
+  void (*EMCInterpreterCallbacks_LoadBitmap)(EMCInterpreter *interp,
+                                             const char *file);
   void (*EMCInterpreterCallbacks_LoadDoorShapes)(EMCInterpreter *interp,
                                                  const char *file, uint16_t p1,
                                                  uint16_t p2, uint16_t p3,
                                                  uint16_t p4);
-
   void (*EMCInterpreterCallbacks_LoadMonsterShapes)(EMCInterpreter *interp,
                                                     const char *file,
                                                     uint16_t monsterId,
                                                     uint16_t p2);
-
   void (*EMCInterpreterCallbacks_LoadMonster)(
       EMCInterpreter *interp, uint16_t monsterIndex, uint16_t shapeIndex,
       uint16_t hitChance, uint16_t protection, uint16_t evadeChance,
       uint16_t speed, uint16_t p6, uint16_t p7, uint16_t p8);
-
   void (*EMCInterpreterCallbacks_LoadTimScript)(EMCInterpreter *interp,
                                                 uint16_t scriptId,
                                                 const char *file);
-
   void (*EMCInterpreterCallbacks_RunTimScript)(EMCInterpreter *interp,
                                                uint16_t scriptId,
                                                uint16_t loop);
   void (*EMCInterpreterCallbacks_ReleaseTimScript)(EMCInterpreter *interp,
                                                    uint16_t scriptId);
-
   uint16_t (*EMCInterpreterCallbacks_GetItemInHand)(EMCInterpreter *interp);
   void (*EMCInterpreterCallbacks_AllocItemProperties)(EMCInterpreter *interp,
                                                       uint16_t size);
-
   void (*EMCInterpreterCallbacks_SetItemProperty)(
       EMCInterpreter *interp, uint16_t index, uint16_t stringId,
       uint16_t shapeId, uint16_t type, uint16_t scriptFun, uint16_t might,
       uint16_t skill, uint16_t protection, uint16_t flags);
-
   uint16_t (*EMCInterpreterCallbacks_CheckMonsterHostility)(
       EMCInterpreter *interp, uint16_t monsterType);
-
   uint16_t (*EMCInterpreterCallbacks_GetItemParam)(EMCInterpreter *interp,
                                                    uint16_t itemId,
                                                    EMCGetItemParam how);
-
   void (*EMCInterpreterCallbacks_DisableControls)(EMCInterpreter *interp,
                                                   uint16_t mode);
   void (*EMCInterpreterCallbacks_EnableControls)(EMCInterpreter *interp);
-
   uint16_t (*EMCInterpreterCallbacks_GetGlobalScriptVar)(EMCInterpreter *interp,
                                                          uint16_t index);
   void (*EMCInterpreterCallbacks_SetGlobalScriptVar)(EMCInterpreter *interp,
                                                      uint16_t index,
                                                      uint16_t val);
+  void (*EMCInterpreterCallbacks_WSAInit)(EMCInterpreter *interp,
+                                          uint16_t index, const char *wsaFile,
+                                          int x, int y, int offscreen,
+                                          int flags);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
