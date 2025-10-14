@@ -2,6 +2,7 @@
 #include "render.h"
 #include "renderer.h"
 #include <assert.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -13,6 +14,9 @@ void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
   int x = xOff;
   int y = yOff;
   for (int i = 0; i < strlen(text); i++) {
+    if (!isprint(text[i])) {
+      continue;
+    }
     drawChar2(gameCtx->pixBuf, &gameCtx->defaultFont, text[i], x, y);
     x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
     if (x - xOff >= width) {
@@ -192,6 +196,4 @@ void GameRender(GameContext *gameCtx) {
 
   renderDialog(gameCtx);
   // GameRenderMap(gameCtx, 640, 350);
-
-
 }
