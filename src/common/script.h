@@ -232,6 +232,12 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_DisableControls)(EMCInterpreter *interp,
                                                   uint16_t mode);
   void (*EMCInterpreterCallbacks_EnableControls)(EMCInterpreter *interp);
+
+  uint16_t (*EMCInterpreterCallbacks_GetGlobalScriptVar)(EMCInterpreter *interp,
+                                                         uint16_t index);
+  void (*EMCInterpreterCallbacks_SetGlobalScriptVar)(EMCInterpreter *interp,
+                                                     uint16_t index,
+                                                     uint16_t val);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

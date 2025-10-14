@@ -371,6 +371,21 @@ static void callbackEnableControls(EMCInterpreter *interp) {
   gameCtx->controlDisabled = 0;
 }
 
+static void callbackSetGlobalScriptVar(EMCInterpreter *interp, uint16_t index,
+                                       uint16_t val) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackSetGlobalScriptVar %X %X\n", index, val);
+  gameCtx->globalScriptVars[index] = val;
+}
+
+static uint16_t callbackGetGlobalScriptVar(EMCInterpreter *interp,
+                                           uint16_t index) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackGetGlobalScriptVar %X (val=%X)\n", index,
+         gameCtx->globalScriptVars[index]);
+  return gameCtx->globalScriptVars[index];
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -419,4 +434,8 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackEnableControls;
   interp->callbacks.EMCInterpreterCallbacks_DisableControls =
       callbackDisableControls;
+  interp->callbacks.EMCInterpreterCallbacks_GetGlobalScriptVar =
+      callbackGetGlobalScriptVar;
+  interp->callbacks.EMCInterpreterCallbacks_SetGlobalScriptVar =
+      callbackSetGlobalScriptVar;
 }

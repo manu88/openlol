@@ -548,14 +548,18 @@ static uint16_t assignCustomSfx(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
-  printf("getGlobalScriptVar\n");
-  ASSERT_UNIMPLEMENTED;
-  return 1;
+  uint16_t index = EMCStateStackVal(state, 0);
+  assert(index < NUM_GLOBAL_SCRIPT_VARS);
+  return interp->callbacks.EMCInterpreterCallbacks_GetGlobalScriptVar(interp,
+                                                                      index);
 }
 
 static uint16_t setGlobalScriptVar(EMCInterpreter *interp, EMCState *state) {
-  printf("setGlobalScriptVar\n");
-  ASSERT_UNIMPLEMENTED;
+  uint16_t index = EMCStateStackVal(state, 0);
+  uint16_t val = EMCStateStackVal(state, 1);
+  assert(index < NUM_GLOBAL_SCRIPT_VARS);
+  interp->callbacks.EMCInterpreterCallbacks_SetGlobalScriptVar(interp, index,
+                                                               val);
   return 1;
 }
 

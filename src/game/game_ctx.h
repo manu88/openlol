@@ -28,6 +28,8 @@
 #define MAX_MONSTERS 30
 #define MAX_IN_GAME_ITEMS 400
 
+#define NUM_GLOBAL_SCRIPT_VARS 24
+
 typedef struct {
   uint8_t level;
   uint16_t itemPropertyIndex;
@@ -158,6 +160,8 @@ typedef struct _GameContext {
 
   char *dialogTextBuffer;
   char *dialogText; // will either be NULL or pointing to dialogTextBuffer
+
+  uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS];
 
   FNTHandle defaultFont;
   uint8_t gameFlags[100];
