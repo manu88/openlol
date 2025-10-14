@@ -1,8 +1,10 @@
 #include "game_callbacks.h"
+#include "formats/format_cps.h"
 #include "formats/format_shp.h"
 #include "formats/format_tim.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "render.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -200,6 +202,15 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
     assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
                                   f.bufferSize));
   }
+}
+
+static void callbackLoadBitmap(EMCInterpreter *interp, const char *file) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackLoadBitmap %s\n", file);
+  GameFile f = {0};
+  assert(GameEnvironmentGetFile(&f, file));
+
+  assert(CPSImageFromBuffer(&gameCtx->imageTest, f.buffer, f.bufferSize));
 }
 
 static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
@@ -434,6 +445,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackEnableControls;
   interp->callbacks.EMCInterpreterCallbacks_DisableControls =
       callbackDisableControls;
+  interp->callbacks.EMCInterpreterCallbacks_LoadBitmap = callbackLoadBitmap;
   interp->callbacks.EMCInterpreterCallbacks_GetGlobalScriptVar =
       callbackGetGlobalScriptVar;
   interp->callbacks.EMCInterpreterCallbacks_SetGlobalScriptVar =
