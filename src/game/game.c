@@ -506,53 +506,56 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   return shouldUpdate;
 }
 
-static int GameRun(GameContext *gameCtx) {
-  int quit = 0;
-  int shouldUpdate = 1;
+static void GameRunOnce(GameContext *gameCtx) {
+  int shouldUpdate = 0;
+  if (DBGServerUpdate(gameCtx)) {
+    shouldUpdate = 1;
+  }
 
-  // Event loop
-  while (!quit) {
-    if (DBGServerUpdate(gameCtx)) {
+  while (gameCtx->state == GameState_PlayGame &&
+         EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
+    EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
+    shouldUpdate = 1;
+  }
+
+  SDL_Event e;
+  SDL_WaitEventTimeout(&e, 20);
+  if (e.type == SDL_QUIT) {
+    gameCtx->_shouldRun = 0;
+  }
+  if (gameCtx->state == GameState_PlayGame ||
+      gameCtx->state == GameState_ShowInventory) {
+    if (processGameInputs(gameCtx, &e)) {
       shouldUpdate = 1;
-    }
-
-    while (gameCtx->state == GameState_PlayGame &&
-           EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
-      EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
-      shouldUpdate = 1;
-    }
-
-    SDL_Event e;
-    SDL_WaitEventTimeout(&e, 20);
-    if (e.type == SDL_QUIT) {
-      quit = 1;
-    }
-    if (gameCtx->state == GameState_PlayGame ||
-        gameCtx->state == GameState_ShowInventory) {
-      if (processGameInputs(gameCtx, &e)) {
-        shouldUpdate = 1;
-      }
-      if (shouldUpdate) {
-        uint16_t gameX = 0;
-        uint16_t gameY = 0;
-        GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
-        gameCtx->currentBock = BlockFromCoords(gameX, gameY);
-      }
-    } else if (gameCtx->state == GameState_TimAnimation) {
-      if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
-        shouldUpdate = 1;
-      }
-    }
-    if (gameCtx->mouseEv.pending) {
-      if (processMouse(gameCtx)) {
-        shouldUpdate = 1;
-      }
-      gameCtx->mouseEv.pending = 0;
     }
     if (shouldUpdate) {
-      GameRender(gameCtx);
-      shouldUpdate = 0;
+      uint16_t gameX = 0;
+      uint16_t gameY = 0;
+      GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
+      gameCtx->currentBock = BlockFromCoords(gameX, gameY);
     }
+  } else if (gameCtx->state == GameState_TimAnimation) {
+    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
+      shouldUpdate = 1;
+    }
+  }
+  if (gameCtx->mouseEv.pending) {
+    if (processMouse(gameCtx)) {
+      shouldUpdate = 1;
+    }
+    gameCtx->mouseEv.pending = 0;
+  }
+  if (shouldUpdate) {
+    GameRender(gameCtx);
+    shouldUpdate = 0;
+  }
+}
+
+static int GameRun(GameContext *gameCtx) {
+  gameCtx->_shouldRun = 1;
+  // Event loop
+  while (gameCtx->_shouldRun) {
+    GameRunOnce(gameCtx);
   }
 
   SDL_Quit();

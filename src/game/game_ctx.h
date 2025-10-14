@@ -183,6 +183,7 @@ typedef struct _GameContext {
   uint16_t itemsCount;
 
   CPSImage imageTest;
+  int _shouldRun;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
