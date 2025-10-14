@@ -103,7 +103,6 @@ int cmdGame(int argc, char *argv[]) {
         continue;
       }
       const GameObject *obj = savHandle.slot.gameObjects + gameObjIndex;
-      printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
       gameCtx.inventory[i] = obj->itemId;
     }
 
@@ -123,7 +122,6 @@ int cmdGame(int argc, char *argv[]) {
     gameCtx.inventory[0] = 216;
     gameCtx.inventory[1] = 217;
     gameCtx.inventory[2] = 218;
-    printf("New game\n");
   }
 
   char faceFile[11] = "";
