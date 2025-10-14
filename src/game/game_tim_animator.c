@@ -10,10 +10,9 @@
 #include <stdio.h>
 #include <string.h>
 
-static void callbackTIM_WSAInit(TIMInterpreter *interp, const char *wsaFile,
-                                int x, int y, int offscreen, int flags) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
+void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
+                            const char *wsaFile, int x, int y, int offscreen,
+                            int flags) {
   assert(animator);
   GameFile f = {0};
   printf("----> GameTimAnimator load wsa file '%s'\n", wsaFile);
@@ -36,6 +35,14 @@ static void callbackTIM_WSAInit(TIMInterpreter *interp, const char *wsaFile,
   memset(animator->wsaFrameBuffer, 0,
          animator->wsa.header.width * animator->wsa.header.height);
   assert(animator->wsaFrameBuffer);
+}
+
+static void callbackTIM_WSAInit(TIMInterpreter *interp, uint16_t index,
+                                const char *wsaFile, int x, int y,
+                                int offscreen, int flags) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameTimAnimator *animator = &gameCtx->timAnimator;
+  GameTimAnimatorWSAInit(animator, index, wsaFile, x, y, offscreen, flags);
 }
 
 static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,

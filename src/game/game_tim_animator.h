@@ -37,3 +37,7 @@ void GameTimAnimatorRunTim(GameTimAnimator *animator, uint16_t scriptId);
 void GameTimAnimatorReleaseTim(GameTimAnimator *animator, uint16_t scriptId);
 
 int GameTimAnimatorRender(GameTimAnimator *animator);
+
+void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
+                            const char *wsaFile, int x, int y, int offscreen,
+                            int flags);
