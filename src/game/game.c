@@ -116,6 +116,7 @@ int cmdGame(int argc, char *argv[]) {
   } else {
     gameCtx.levelId = 1;
     gameCtx.chars[0].id = -9; // Ak'shel for the win
+    snprintf(gameCtx.chars[0].name, 11, "Ak'shel");
     // temp until we get the value from script/tim
     gameCtx.currentBock = 0X22D;
     gameCtx.orientation = North;
