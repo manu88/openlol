@@ -2,8 +2,6 @@
 #include "game_ctx.h"
 #include <stdint.h>
 
-
-void GameRenderMap(GameContext *gameCtx, int xOff, int yOff);
 void GameRenderScene(GameContext *gameCtx);
 void clearMazeZone(GameContext *gameCtx);
 void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,

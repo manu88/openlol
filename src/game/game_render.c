@@ -195,5 +195,4 @@ void GameRender(GameContext *gameCtx) {
   }
 
   renderDialog(gameCtx);
-  // GameRenderMap(gameCtx, 640, 350);
 }

@@ -382,8 +382,7 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     gameCtx->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
     gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
     gameCtx->mouseEv.isRightClick = e->button.button == 3;
-
-  } else if (e->type == SDL_KEYDOWN) {
+  } else if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
@@ -483,11 +482,9 @@ static void GameRunOnce(GameContext *gameCtx) {
 
 static int GameRun(GameContext *gameCtx) {
   gameCtx->_shouldRun = 1;
-  // Event loop
   while (gameCtx->_shouldRun) {
     GameRunOnce(gameCtx);
   }
-
   SDL_Quit();
   return 0;
 }
