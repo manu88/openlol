@@ -45,6 +45,19 @@ static void processCommand(int argc, char *argv[]) {
     read(sock, &status, sizeof(DBGMsgStatus));
     printf("received %i %i current block %X\n", header.type, header.dataSize,
            status.currentBock);
+  } else if (strcmp(cmd, "state") == 0) {
+    DBGMsgHeader header = {.type = DBGMsgType_SetStateRequest,
+                           sizeof(DBGMSGSetStateRequest)};
+    write(sock, &header, sizeof(DBGMsgHeader));
+
+    DBGMSGSetStateRequest req;
+    req.state = atoi(argv[1]);
+    write(sock, &req, sizeof(DBGMSGSetStateRequest));
+    read(sock, &header, sizeof(DBGMsgHeader));
+    assert(header.type == DBGMsgType_SetStateResponse);
+    DBGMSGSetStateResponse resp;
+    read(sock, &resp, sizeof(DBGMSGSetStateResponse));
+    printf("reply %i\n", resp.response);
   } else {
     printf("unknown command '%s'\n", cmd);
   }

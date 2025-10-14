@@ -58,7 +58,6 @@ int DBGServerInit(void) {
 static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
                           uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {
-
   case DBGMsgType_StatusRequest: {
 
     printf("received StatusRequest\n");
@@ -78,7 +77,21 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
     resp.response = GameContextAddItemToInventory(gameCtx, req->itemId);
     write(cltSocket, &resp, sizeof(DBGMSGGiveItemResponse));
     return 1;
-  } break;
+  };
+  case DBGMsgType_SetStateRequest: {
+    const DBGMSGSetStateRequest *req = (const DBGMSGSetStateRequest *)buffer;
+    printf("received DBGMSGSetStateRequest 0X%0X\n", req->state);
+    GameContextSetState(gameCtx, req->state);
+    DBGMsgHeader outHeader = {.type = DBGMsgType_SetStateResponse,
+                              sizeof(DBGMSGSetStateResponse)};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMSGSetStateResponse resp;
+    resp.response = 1;
+    write(cltSocket, &resp, sizeof(DBGMSGSetStateResponse));
+    return 1;
+  };
+  case DBGMsgType_SetStateResponse:
+  case DBGMsgType_GiveItemResponse:
   case DBGMsgType_StatusResponse:
   case DBGMsgType_Hello:
   default:
