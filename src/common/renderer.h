@@ -71,7 +71,7 @@ void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
 
 void drawCeilingAndFloor(SDL_Texture *pixBuf, const VCNHandle *vcn,
                          const VMPHandle *vmp);
-void drawWall(GameContext *ctx, const VCNHandle *vcn, const VMPHandle *vmp,
+void drawWall(SDL_Texture *pixBuf, const VCNHandle *vcn, const VMPHandle *vmp,
               int wallType, int wallPosition);
 
 void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int x, int y,

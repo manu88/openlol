@@ -36,18 +36,21 @@ void createCursorForItem(GameContext *ctx, uint16_t frameId) {
 }
 
 void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
-                 const uint8_t *paletteBuffer, int xOff, int yOff, int w,
-                 int h) {
+                 const uint8_t *paletteBuffer, int destX, int destY,
+                 int sourceW, int sourceH, int imageW, int imageH) {
   void *data;
   int pitch;
-  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
-  for (int x = 0; x < w; x++) {
-    for (int y = 0; y < h; y++) {
-      int offset = ((xOff + w) * y) + x;
+  SDL_Rect rect = {.x = destX, .y = destY, .w = imageW, .h = imageH};
+  SDL_LockTexture(pixBuf, &rect, &data, &pitch);
+  for (int x = 0; x < sourceW; x++) {
+    for (int y = 0; y < sourceH; y++) {
+      int offset = ((imageW)*y) + x;
       if (offset >= dataSize) {
-        printf("Offset %i >= %zu\n", offset, dataSize);
+        // printf("Offset %i >= %zu\n", offset, dataSize);
+        continue;
       }
-      assert(offset < dataSize);
+
+      //      assert(offset < dataSize);
       uint8_t paletteIdx = *(imgData + offset);
       uint8_t r;
       uint8_t g;
@@ -62,7 +65,7 @@ void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
         b = paletteIdx;
       }
 
-      drawPix(data, pitch, r, g, b, xOff + x, yOff + y);
+      drawPix(data, pitch, r, g, b, x, y);
     }
   }
   SDL_UnlockTexture(pixBuf);
@@ -103,13 +106,13 @@ void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
 void clearMazeZone(GameContext *gameCtx) {
   void *data;
   int pitch;
-  SDL_LockTexture(gameCtx->pixBuf, NULL, &data, &pitch);
+  SDL_LockTexture(gameCtx->foregroundPixBuf, NULL, &data, &pitch);
   for (int x = 0; x < MAZE_COORDS_W; x++) {
     for (int y = 0; y < MAZE_COORDS_H; y++) {
       drawPix(data, pitch, 0, 0, 0, MAZE_COORDS_X + x, MAZE_COORDS_Y + y);
     }
   }
-  SDL_UnlockTexture(gameCtx->pixBuf);
+  SDL_UnlockTexture(gameCtx->foregroundPixBuf);
 }
 
 typedef struct {
@@ -262,14 +265,16 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   }
 }
 
-void GameRenderScene(GameContext *gameCtx) {
+void GameRenderMaze(GameContext *gameCtx) {
+  clearMazeZone(gameCtx);
   for (int x = 0; x < 32; x++) {
     for (int y = 0; y < 32; y++) {
       computeViewConeCells(gameCtx, x, y);
     }
   }
   LevelContext *level = gameCtx->level;
-  drawCeilingAndFloor(gameCtx->pixBuf, &level->vcnHandle, &level->vmpHandle);
+  drawCeilingAndFloor(gameCtx->foregroundPixBuf, &level->vcnHandle,
+                      &level->vmpHandle);
 
   const ViewConeEntry *aEntry = gameCtx->viewConeEntries + CELL_A;
   const ViewConeEntry *bEntry = gameCtx->viewConeEntries + CELL_B;
@@ -289,6 +294,7 @@ void GameRenderScene(GameContext *gameCtx) {
   const ViewConeEntry *pEntry = gameCtx->viewConeEntries + CELL_P;
   const ViewConeEntry *qEntry = gameCtx->viewConeEntries + CELL_Q;
 
+  SDL_Texture *texture = gameCtx->foregroundPixBuf;
   if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -296,7 +302,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  A_east);
       }
     }
@@ -309,7 +315,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  B_east);
       }
     }
@@ -321,7 +327,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  C_east);
       }
     }
@@ -333,7 +339,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  E_west);
       }
     }
@@ -345,7 +351,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  F_west);
       }
     }
@@ -358,7 +364,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  G_west);
       }
     }
@@ -371,7 +377,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  B_south);
       }
     }
@@ -384,7 +390,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  C_south);
       }
     }
@@ -397,11 +403,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  D_south);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_D_SOUTH, wmi,
-                           64, 26, 0);
+      renderWallDecoration(texture, level, DecorationIndex_D_SOUTH, wmi, 64, 26,
+                           0);
     }
   }
 
@@ -412,7 +418,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  E_south);
       }
     }
@@ -425,7 +431,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  F_south);
       }
     }
@@ -438,7 +444,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  H_east);
       }
     }
@@ -450,7 +456,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  I_east);
       }
     }
@@ -463,7 +469,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  K_west);
       }
     }
@@ -475,7 +481,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  L_west);
       }
     }
@@ -488,7 +494,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  I_south);
       }
     }
@@ -501,11 +507,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  J_south);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_J_SOUTH, wmi,
-                           48, 20, 0);
+      renderWallDecoration(texture, level, DecorationIndex_J_SOUTH, wmi, 48, 20,
+                           0);
     }
   }
 
@@ -516,7 +522,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  K_south);
       }
     }
@@ -529,11 +535,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  M_east);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_M_WEST, wmi,
-                           24, 10, 0);
+      renderWallDecoration(texture, level, DecorationIndex_M_WEST, wmi, 24, 10,
+                           0);
     }
   }
 
@@ -544,11 +550,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  O_west);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_O_EAST, wmi,
-                           24, 10, 1);
+      renderWallDecoration(texture, level, DecorationIndex_O_EAST, wmi, 24, 10,
+                           1);
     }
   }
 
@@ -559,11 +565,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  M_south);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_M_SOUTH, wmi,
-                           0, 0, 0);
+      renderWallDecoration(texture, level, DecorationIndex_M_SOUTH, wmi, 0, 0,
+                           0);
     }
   }
 
@@ -574,7 +580,7 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  O_south);
       }
       // renderWallDecoration(renderer, ctx, DecorationIndex_O_SOUTH, wmi, 24,
@@ -591,20 +597,20 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  N_south);
         if (wallType == 3) { // door
           SHPFrame frame = {0};
           assert(gameCtx->level->doors.originalBuffer);
           SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
           SHPFrameGetImageData(&frame);
-          drawSHPMazeFrame(gameCtx->pixBuf, &frame, 52, 16,
+          drawSHPMazeFrame(texture, &frame, 52, 16,
                            gameCtx->level->vcnHandle.palette, 0);
         }
       }
     }
-    renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_N_SOUTH, wmi,
-                         24, 8, 0);
+    renderWallDecoration(texture, level, DecorationIndex_N_SOUTH, wmi, 24, 8,
+                         0);
   }
 
   if (pEntry->valid) {
@@ -614,11 +620,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  P_east);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_P_EAST, wmi,
-                           0, 0, 0);
+      renderWallDecoration(texture, level, DecorationIndex_P_EAST, wmi, 0, 0,
+                           0);
     }
   }
 
@@ -629,11 +635,11 @@ void GameRenderScene(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
-        drawWall(gameCtx, &level->vcnHandle, &level->vmpHandle, wallType,
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  Q_west);
       }
-      renderWallDecoration(gameCtx->pixBuf, level, DecorationIndex_Q_WEST, wmi,
-                           0, 0, 1);
+      renderWallDecoration(texture, level, DecorationIndex_Q_WEST, wmi, 0, 0,
+                           1);
     }
   }
 }

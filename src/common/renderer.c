@@ -559,7 +559,7 @@ WallRenderData wallRenderData[25] = /* 25 different wall positions exists */
         {-101, 19, 15, 3, 0, 1}, /* Q-west */
 };
 
-void drawWall(GameContext *gameCtx, const VCNHandle *vcn, const VMPHandle *vmp,
+void drawWall(SDL_Texture *pixBuf, const VCNHandle *vcn, const VMPHandle *vmp,
               int wallType, int wallPosition) {
   const WallRenderData *wallCfg = &wallRenderData[wallPosition];
   int flipX = wallCfg->flipFlag;
@@ -586,8 +586,7 @@ void drawWall(GameContext *gameCtx, const VCNHandle *vcn, const VMPHandle *vmp,
       int blockFlip = (tile.flipped) ^ flipX;
       int destPostX = xpos * 8;
       int destPostY = ypos * 8;
-      blitBlock(gameCtx->pixBuf, vcn, tile.blockIndex, destPostX, destPostY,
-                blockFlip);
+      blitBlock(pixBuf, vcn, tile.blockIndex, destPostX, destPostY, blockFlip);
 
       offset++;
     }
