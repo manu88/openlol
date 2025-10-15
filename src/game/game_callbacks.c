@@ -4,6 +4,7 @@
 #include "formats/format_tim.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "game_render.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -187,12 +188,14 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
   }
 }
 
-static void callbackLoadBitmap(EMCInterpreter *interp, const char *file) {
+static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,
+                               uint16_t param) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  assert(param == 2);
   GameFile f = {0};
   assert(GameEnvironmentGetFile(&f, file));
 
-  assert(CPSImageFromBuffer(&gameCtx->imageTest, f.buffer, f.bufferSize));
+  assert(CPSImageFromBuffer(&gameCtx->loadedbitMap, f.buffer, f.bufferSize));
 }
 
 static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
@@ -377,6 +380,22 @@ static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
                          flags);
 }
 
+static void callbackCopyPage(EMCInterpreter *interp, uint16_t srcX,
+                             uint16_t srcY, uint16_t destX, uint16_t destY,
+                             uint16_t w, uint16_t h, uint16_t srcPage,
+                             uint16_t dstPage) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackCopyPage x1=%i y1=%i x2=%i y2=%i w=%i h=%i "
+         "scrPage=%i dstPage=%i\n",
+         srcX, srcY, destX, destY, w, h, srcPage, dstPage);
+  GameCopyPage(gameCtx, srcX, srcY, destX, destY, w, h, srcPage, dstPage);
+}
+
+static void callbackInitSceneDialog(EMCInterpreter *interp, int param) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextSetState(gameCtx, GameState_GrowDialogBox);
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -423,4 +442,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_SetGlobalScriptVar =
       callbackSetGlobalScriptVar;
   interp->callbacks.EMCInterpreterCallbacks_WSAInit = callbackWSAInit;
+  interp->callbacks.EMCInterpreterCallbacks_InitSceneDialog =
+      callbackInitSceneDialog;
+  interp->callbacks.EMCInterpreterCallbacks_CopyPage = callbackCopyPage;
 }

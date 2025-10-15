@@ -107,9 +107,11 @@ typedef struct {
 } LevelContext;
 
 typedef enum {
-  GameState_PlayGame = 0,
-  GameState_TimAnimation = 1,
-  GameState_ShowInventory = 2,
+  GameState_Invalid = 0,
+  GameState_PlayGame = 1,
+  GameState_TimAnimation = 2,
+  GameState_ShowInventory = 3,
+  GameState_GrowDialogBox = 4,
 } GameState;
 
 typedef struct {
@@ -120,6 +122,8 @@ typedef struct {
 
 typedef struct _GameContext {
   GameState state;
+  GameState prevState;
+
   int fadeOutFrames;
   int dialogBoxFrames;
   int showBigDialog;
@@ -132,7 +136,8 @@ typedef struct _GameContext {
   LevelContext *level;
   int levelId;
 
-  SDL_Texture *pixBuf;
+  SDL_Texture *backgroundPixBuf;
+  SDL_Texture *foregroundPixBuf;
   SDL_Renderer *renderer;
   SDL_Window *window;
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
@@ -182,7 +187,7 @@ typedef struct _GameContext {
   Item *itemsInGame;
   uint16_t itemsCount;
 
-  CPSImage imageTest;
+  CPSImage loadedbitMap;
   int _shouldRun;
 } GameContext;
 

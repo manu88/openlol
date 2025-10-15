@@ -78,6 +78,7 @@ int cmdGame(int argc, char *argv[]) {
   GameEnvironmentLoadPak("O01A.PAK");
   GameEnvironmentLoadPak("O01E.PAK");
   GameEnvironmentLoadPak("O01D.PAK");
+
   if (!GameContextInit(&gameCtx)) {
     return 1;
   }
@@ -369,6 +370,10 @@ static int processMouse(GameContext *gameCtx) {
   case GameState_TimAnimation:
     return 0;
     break;
+  case GameState_GrowDialogBox:
+  case GameState_Invalid:
+    assert(0);
+    break;
   }
   return 0;
 }
@@ -429,15 +434,23 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   return shouldUpdate;
 }
 
+static int GamePreUpdate(GameContext *gameCtx) {
+  int shouldUpdate = 0;
+  while (gameCtx->state == GameState_PlayGame &&
+         EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
+    EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
+    shouldUpdate = 1;
+  }
+  return shouldUpdate;
+}
+
 static void GameRunOnce(GameContext *gameCtx) {
   int shouldUpdate = 0;
   if (DBGServerUpdate(gameCtx)) {
     shouldUpdate = 1;
   }
 
-  while (gameCtx->state == GameState_PlayGame &&
-         EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
-    EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
+  if (GamePreUpdate(gameCtx)) {
     shouldUpdate = 1;
   }
 
@@ -446,8 +459,10 @@ static void GameRunOnce(GameContext *gameCtx) {
   if (e.type == SDL_QUIT) {
     gameCtx->_shouldRun = 0;
   }
-  if (gameCtx->state == GameState_PlayGame ||
-      gameCtx->state == GameState_ShowInventory) {
+
+  switch (gameCtx->state) {
+  case GameState_PlayGame:
+  case GameState_ShowInventory:
     if (processGameInputs(gameCtx, &e)) {
       shouldUpdate = 1;
     }
@@ -457,11 +472,20 @@ static void GameRunOnce(GameContext *gameCtx) {
       GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
       gameCtx->currentBock = BlockFromCoords(gameX, gameY);
     }
-  } else if (gameCtx->state == GameState_TimAnimation) {
+    break;
+  case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
       shouldUpdate = 1;
     }
+    break;
+  case GameState_GrowDialogBox:
+    shouldUpdate = 1;
+    break;
+  case GameState_Invalid:
+    assert(0);
+    break;
   }
+
   if (gameCtx->mouseEv.pending) {
     if (processMouse(gameCtx)) {
       shouldUpdate = 1;
@@ -475,7 +499,19 @@ static void GameRunOnce(GameContext *gameCtx) {
 
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                    PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
+  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->backgroundPixBuf, NULL,
+                        &dest) == 0);
+  if (gameCtx->state != GameState_ShowInventory) {
+
+    SDL_Rect source = {MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
+                       MAZE_COORDS_H};
+    dest.x = MAZE_COORDS_X * SCREEN_FACTOR;
+    dest.y = MAZE_COORDS_Y * SCREEN_FACTOR;
+    dest.w = MAZE_COORDS_W * SCREEN_FACTOR;
+    dest.h = MAZE_COORDS_H * SCREEN_FACTOR;
+    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->foregroundPixBuf, &source,
+                          &dest) == 0);
+  }
   SDL_RenderPresent(gameCtx->renderer);
 }
 

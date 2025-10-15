@@ -187,7 +187,7 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_SetGameFlag)(EMCInterpreter *interp,
                                               uint16_t flag, uint16_t val);
   void (*EMCInterpreterCallbacks_LoadBitmap)(EMCInterpreter *interp,
-                                             const char *file);
+                                             const char *file, uint16_t param);
   void (*EMCInterpreterCallbacks_LoadDoorShapes)(EMCInterpreter *interp,
                                                  const char *file, uint16_t p1,
                                                  uint16_t p2, uint16_t p3,
@@ -232,6 +232,14 @@ typedef struct _EMCInterpreterCallbacks {
                                           uint16_t index, const char *wsaFile,
                                           int x, int y, int offscreen,
                                           int flags);
+  void (*EMCInterpreterCallbacks_InitSceneDialog)(EMCInterpreter *interp,
+                                                  int controlMode);
+
+  void (*EMCInterpreterCallbacks_CopyPage)(EMCInterpreter *interp,
+                                           uint16_t srcX, uint16_t srcY,
+                                           uint16_t destX, uint16_t destY,
+                                           uint16_t w, uint16_t h,
+                                           uint16_t srcPage, uint16_t dstPage);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

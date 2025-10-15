@@ -1,10 +1,24 @@
 #include "game_render.h"
+#include "game_ctx.h"
+#include "geometry.h"
 #include "render.h"
 #include "renderer.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
 #include <string.h>
+
+void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
+                  uint16_t destX, uint16_t destY, uint16_t w, uint16_t h,
+                  uint16_t srcPage, uint16_t dstPage) {
+  if (w == 320) {
+    return;
+  }
+  assert(gameCtx->loadedbitMap.data);
+  renderCPSAt(gameCtx->foregroundPixBuf, gameCtx->loadedbitMap.data,
+              gameCtx->loadedbitMap.imageSize, gameCtx->loadedbitMap.palette,
+              destX, destY, w, h, 320, 200);
+}
 
 void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
                 const char *text) {
@@ -17,7 +31,7 @@ void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
     if (!isprint(text[i])) {
       continue;
     }
-    drawChar2(gameCtx->pixBuf, &gameCtx->defaultFont, text[i], x, y);
+    drawChar2(gameCtx->backgroundPixBuf, &gameCtx->defaultFont, text[i], x, y);
     x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
     if (x - xOff >= width) {
       x = xOff;
@@ -38,7 +52,7 @@ static void drawDisabledOverlay(GameContext *gameCtx, int x, int y, int w,
   void *data;
   int pitch;
   SDL_Rect r = {.x = x, .y = y, .w = w, .h = h};
-  SDL_LockTexture(gameCtx->pixBuf, &r, &data, &pitch);
+  SDL_LockTexture(gameCtx->backgroundPixBuf, &r, &data, &pitch);
   for (int x = 0; x < r.w; x++) {
     for (int y = 0; y < r.h; y++) {
       if (x % 2 == 0 && y % 2 == 0) {
@@ -48,14 +62,13 @@ static void drawDisabledOverlay(GameContext *gameCtx, int x, int y, int w,
       }
     }
   }
-  SDL_UnlockTexture(gameCtx->pixBuf);
+  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
 }
 
 void renderPlayField(GameContext *gameCtx) {
-  renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
+  renderCPS(gameCtx->backgroundPixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  clearMazeZone(gameCtx);
 
   if (gameCtx->controlDisabled) {
     drawDisabledOverlay(gameCtx, UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
@@ -71,16 +84,17 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   SHPFrame frame = {0};
   SHPHandleGetFrame(&gameCtx->itemShapes, &frame, frameId);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame,
+  drawSHPFrame(gameCtx->backgroundPixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
                UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
 }
 
 static void renderCharInventory(GameContext *gameCtx) {
-  renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
+  renderCPSAt(gameCtx->backgroundPixBuf, gameCtx->inventoryBackground.data,
               gameCtx->inventoryBackground.imageSize,
               gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
-              INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H);
+              INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320,
+              200);
   char c[10] = "";
   LangHandleGetString(&gameCtx->lang, 51, c, sizeof(c));
   renderText(gameCtx, 277, 104, 50, c);
@@ -103,7 +117,7 @@ static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
   SHPFrame frame = {0};
   assert(SHPHandleGetFrame(&gameCtx->charFaces[charId], &frame, 0));
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_FACE_Y,
+  drawSHPFrame(gameCtx->backgroundPixBuf, &frame, x, CHAR_FACE_Y,
                gameCtx->defaultPalette);
 }
 
@@ -127,7 +141,7 @@ static void animateDialogZone(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->pixBuf, &rect, &data, &pitch);
+  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
 
   // copy outline
   int offset = gameCtx->dialogBoxFrames;
@@ -158,39 +172,35 @@ static void animateDialogZone(GameContext *gameCtx) {
 
   if (gameCtx->dialogBoxFrames <= (DIALOG_BOX_H2 - DIALOG_BOX_H)) {
     gameCtx->dialogBoxFrames++;
+  } else {
+    assert(gameCtx->prevState != GameState_Invalid);
+    gameCtx->state = gameCtx->prevState;
   }
-  SDL_UnlockTexture(gameCtx->pixBuf);
+  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
 }
 
 void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
-  SDL_RenderClear(gameCtx->renderer);
+  // SDL_RenderClear(gameCtx->renderer);
   renderPlayField(gameCtx);
 
   if (gameCtx->fadeOutFrames) {
     gameCtx->fadeOutFrames--;
-    clearMazeZone(gameCtx);
+    // clearMazeZone(gameCtx);
   } else if (gameCtx->state == GameState_ShowInventory) {
     renderCharInventory(gameCtx);
-  } else {
-    if (gameCtx->imageTest.data) {
-      renderCPS(gameCtx->pixBuf, gameCtx->imageTest.data,
-                gameCtx->imageTest.imageSize, gameCtx->imageTest.palette,
-                PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-    }
-    GameRenderScene(gameCtx);
-    if (gameCtx->state == GameState_TimAnimation) {
-      if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
-        GameContextSetState(gameCtx, GameState_PlayGame);
-      }
+  } else if (gameCtx->state == GameState_PlayGame) {
+    GameRenderMaze(gameCtx);
+  } else if (gameCtx->state == GameState_TimAnimation) {
+    if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
+      GameContextSetState(gameCtx, GameState_PlayGame);
     }
   }
 
   renderInventory(gameCtx);
-
   renderCharFaces(gameCtx);
 
-  if (gameCtx->showBigDialog) {
+  if (gameCtx->state == GameState_GrowDialogBox) {
     animateDialogZone(gameCtx);
   }
 

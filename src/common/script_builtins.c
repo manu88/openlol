@@ -56,7 +56,7 @@ static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  gameCtx->showBigDialog = 1;
+  GameContextSetState(gameCtx, GameState_GrowDialogBox);
   return 1;
 }
 
@@ -152,9 +152,9 @@ static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);
-  // int16_t p1 = EMCStateStackVal(state, 1);
+  int16_t p1 = EMCStateStackVal(state, 1);
   const char *f = EMCStateGetDataString(state, p0);
-  interp->callbacks.EMCInterpreterCallbacks_LoadBitmap(interp, f);
+  interp->callbacks.EMCInterpreterCallbacks_LoadBitmap(interp, f, p1);
   return 1;
 }
 static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
@@ -216,9 +216,8 @@ static uint16_t fadeSequencePalette(EMCInterpreter *interp, EMCState *state) {
 static uint16_t initSceneWindowDialogue(EMCInterpreter *interp,
                                         EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);
-  printf("[UNIMPLEMENTED] initSceneWindowDialogue %x\n", p0);
-  // ASSERT_UNIMPLEMENTED;
-  return 0;
+  interp->callbacks.EMCInterpreterCallbacks_InitSceneDialog(interp, p0);
+  return 1;
 }
 
 static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
@@ -229,7 +228,16 @@ static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
 }
 
 static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] copyRegion\n");
+  uint16_t srcX = EMCStateStackVal(state, 0);
+  uint16_t srcY = EMCStateStackVal(state, 1);
+  uint16_t destX = EMCStateStackVal(state, 2);
+  uint16_t destY = EMCStateStackVal(state, 3);
+  uint16_t w = EMCStateStackVal(state, 4);
+  uint16_t h = EMCStateStackVal(state, 5);
+  uint16_t srcPage = EMCStateStackVal(state, 6);
+  uint16_t dstPage = EMCStateStackVal(state, 6);
+  interp->callbacks.EMCInterpreterCallbacks_CopyPage(
+      interp, srcX, srcY, destX, destY, w, h, srcPage, dstPage);
   return 1;
 }
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {

@@ -177,11 +177,11 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 
     break;
   case TIM_COMMAND_ID_WSA_DISPLAY_FRAME: {
-    int frameIndex = instrParams[0];
+    int animIndex = instrParams[0];
     int frame = instrParams[1];
     if (interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame) {
       interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame(
-          interp, frameIndex, frame);
+          interp, animIndex, frame);
     }
     break;
   }

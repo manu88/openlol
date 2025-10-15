@@ -18,7 +18,7 @@ static int runScript(GameContext *gameCtx, INFScript *script);
 
 int GameContextInit(GameContext *gameCtx) {
   memset(gameCtx, 0, sizeof(GameContext));
-
+  gameCtx->state = GameState_PlayGame;
   {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PLAYFLD.CPS"));
@@ -81,11 +81,19 @@ int GameContextInit(GameContext *gameCtx) {
     return 1;
   }
 
-  gameCtx->pixBuf = SDL_CreateTexture(
+  gameCtx->backgroundPixBuf = SDL_CreateTexture(
       gameCtx->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
       PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  if (gameCtx->pixBuf == NULL) {
+  if (gameCtx->backgroundPixBuf == NULL) {
     printf("Error: %s\n", SDL_GetError());
+    return 1;
+  }
+  gameCtx->foregroundPixBuf = SDL_CreateTexture(
+      gameCtx->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
+      PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+  if (gameCtx->foregroundPixBuf == NULL) {
+    printf("Error: %s\n", SDL_GetError());
+    return 1;
   }
 
   GameFile f = {0};
@@ -96,7 +104,7 @@ int GameContextInit(GameContext *gameCtx) {
     printf("unable to get FONT6P.FNT data\n");
   }
 
-  GameTimAnimatorInit(gameCtx, gameCtx->pixBuf);
+  GameTimAnimatorInit(gameCtx, gameCtx->foregroundPixBuf);
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
 
@@ -121,7 +129,8 @@ void GameContextRelease(GameContext *gameCtx) {
   SDL_DestroyRenderer(gameCtx->renderer);
   SDL_DestroyWindow(gameCtx->window);
 
-  SDL_DestroyTexture(gameCtx->pixBuf);
+  SDL_DestroyTexture(gameCtx->backgroundPixBuf);
+  SDL_DestroyTexture(gameCtx->foregroundPixBuf);
 
   PAKFileRelease(&gameCtx->generalPak);
   CPSImageRelease(&gameCtx->playField);
@@ -233,6 +242,7 @@ void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag) {
 
 void GameContextSetState(GameContext *gameCtx, GameState newState) {
   printf("GameContextSetState from %i to %i\n", gameCtx->state, newState);
+  gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
   if (gameCtx->state == GameState_ShowInventory) {
     gameCtx->controlDisabled = 1;

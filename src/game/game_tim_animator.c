@@ -15,7 +15,8 @@ void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
                             int flags) {
   assert(animator);
   GameFile f = {0};
-  printf("----> GameTimAnimator load wsa file '%s'\n", wsaFile);
+  printf("----> GameTimAnimator load wsa file '%s' offscreen=%i\n", wsaFile,
+         offscreen);
   assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
   WSAHandleFromBuffer(&animator->wsa, f.buffer, f.bufferSize);
   if (animator->wsa.header.palette == NULL) {
@@ -64,6 +65,9 @@ static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
       uint8_t r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
       uint8_t g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
       uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
+      if (r == 0 && g == 0 && b == 0) {
+        continue;
+      }
       uint32_t *row =
           (unsigned int *)((char *)data + pitch * (animator->wsaY + y));
       // if (r && g && b) {
@@ -74,15 +78,19 @@ static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
   SDL_UnlockTexture(animator->pixBuf);
 }
 
-static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int frameIndex,
+static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
                                         int frame) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
 
-  printf("GameTimAnimator: callbackWSADisplayFrame frameIndex=%i fram=%i x=%i "
+  printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i fram=%i x=%i "
          "y=%i\n",
-         frameIndex, frame, animator->wsaX, animator->wsaY);
+         animIndex, frame, animator->wsaX, animator->wsaY);
+  if (frame >= animator->wsa.header.numFrames + 1) {
+    printf("WSADisplayFrame: unimplemented WSA loop, setting frame to 0\n");
+    frame = 0;
+  }
   WSAHandleGetFrame(&animator->wsa, frame, animator->wsaFrameBuffer,
                     animator->wsaFlags & WSA_XOR);
   assert(animator->wsaFrameBuffer);
@@ -155,7 +163,7 @@ static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
   assert(animator);
   printf("GameTimAnimator callbackInitSceneDialog controlMode=%X\n",
          controlMode);
-  gameCtx->showBigDialog = 1;
+  GameContextSetState(gameCtx, GameState_GrowDialogBox);
 }
 
 void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {

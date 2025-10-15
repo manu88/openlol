@@ -12,7 +12,7 @@ typedef struct {
                                           int flags);
   void (*TIMInterpreterCallbacks_WSARelease)(TIMInterpreter *interp, int index);
   void (*TIMInterpreterCallbacks_WSADisplayFrame)(TIMInterpreter *interp,
-                                                  int frameIndex, int frame);
+                                                  int animIndex, int frame);
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
                                                uint16_t strId, int argc,
                                                const uint16_t *argv);
