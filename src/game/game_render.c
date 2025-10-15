@@ -1,4 +1,5 @@
 #include "game_render.h"
+#include "SDL_render.h"
 #include "game_ctx.h"
 #include "geometry.h"
 #include "render.h"
@@ -47,12 +48,12 @@ void renderDialog(GameContext *gameCtx) {
   }
 }
 
-static void drawDisabledOverlay(GameContext *gameCtx, int x, int y, int w,
-                                int h) {
+static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
+                                int x, int y, int w, int h) {
   void *data;
   int pitch;
   SDL_Rect r = {.x = x, .y = y, .w = w, .h = h};
-  SDL_LockTexture(gameCtx->backgroundPixBuf, &r, &data, &pitch);
+  SDL_LockTexture(texture, &r, &data, &pitch);
   for (int x = 0; x < r.w; x++) {
     for (int y = 0; y < r.h; y++) {
       if (x % 2 == 0 && y % 2 == 0) {
@@ -62,7 +63,7 @@ static void drawDisabledOverlay(GameContext *gameCtx, int x, int y, int w,
       }
     }
   }
-  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+  SDL_UnlockTexture(texture);
 }
 
 void renderPlayField(GameContext *gameCtx) {
@@ -71,10 +72,12 @@ void renderPlayField(GameContext *gameCtx) {
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
   if (gameCtx->controlDisabled) {
-    drawDisabledOverlay(gameCtx, UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
+    drawDisabledOverlay(gameCtx, gameCtx->backgroundPixBuf,
+                        UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
                         UI_DIR_BUTTON_W * 3, UI_DIR_BUTTON_H * 2);
-    drawDisabledOverlay(gameCtx, UI_MENU_BUTTON_X, UI_MENU_BUTTON_Y,
-                        UI_MENU_INV_BUTTON_W * 2, UI_MENU_INV_BUTTON_H);
+    drawDisabledOverlay(gameCtx, gameCtx->backgroundPixBuf, UI_MENU_BUTTON_X,
+                        UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
+                        UI_MENU_INV_BUTTON_H);
   }
 }
 
@@ -232,6 +235,12 @@ static void renderExitButton(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->foregroundPixBuf);
   renderText(gameCtx, gameCtx->foregroundPixBuf, UI_SCENE_EXIT_BUTTON_X + 4,
              UI_SCENE_EXIT_BUTTON_Y + 2, UI_SCENE_EXIT_BUTTON_W, "EXIT");
+
+  if (gameCtx->exitSceneButtonDisabled) {
+    drawDisabledOverlay(gameCtx, gameCtx->foregroundPixBuf,
+                        UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
+                        UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H);
+  }
 }
 
 void GameRender(GameContext *gameCtx) {
@@ -263,7 +272,9 @@ void GameRender(GameContext *gameCtx) {
     showBigDialogZone(gameCtx);
   }
 
-  renderExitButton(gameCtx);
+  if (gameCtx->drawExitSceneButton) {
+    renderExitButton(gameCtx);
+  }
 
   renderDialog(gameCtx);
 }

@@ -129,6 +129,9 @@ typedef struct _GameContext {
   int dialogBoxFrames;
   int showBigDialog;
 
+  int drawExitSceneButton;
+  int exitSceneButtonDisabled;
+
   MouseEvent mouseEv;
   uint16_t currentBock;
   Point partyPos;
