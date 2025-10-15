@@ -198,8 +198,8 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   case TIM_COMMAND_ID_DIALOG_BOX: {
     uint16_t functionId = instrParams[0];
     printf("TIM_COMMAND_ID_DIALOG_BOX %X\n", instrParams[0]);
-    if (interp->callbacks.TIMInterpreterCallbacks_ShowDialogBox) {
-      interp->callbacks.TIMInterpreterCallbacks_ShowDialogBox(
+    if (interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons) {
+      interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons(
           interp, functionId, instrParams + 1);
     }
     break;

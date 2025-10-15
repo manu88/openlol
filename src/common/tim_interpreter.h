@@ -16,9 +16,9 @@ typedef struct {
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
                                                uint16_t strId, int argc,
                                                const uint16_t *argv);
-  void (*TIMInterpreterCallbacks_ShowDialogBox)(TIMInterpreter *interp,
-                                                uint16_t functionId,
-                                                const uint16_t buttonStrIds[3]);
+  void (*TIMInterpreterCallbacks_ShowDialogButtons)(
+      TIMInterpreter *interp, uint16_t functionId,
+      const uint16_t buttonStrIds[3]);
   void (*TIMInterpreterCallbacks_InitSceneDialog)(TIMInterpreter *interp,
                                                   int controlMode);
 

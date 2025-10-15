@@ -254,7 +254,7 @@ void TIMAnimatorInit(TIMAnimator *animator) {
       callbackWSADisplayFrame;
   animator->_interpreter.callbacks.TIMInterpreterCallbacks_PlayDialogue =
       callbackPlayDialogue;
-  animator->_interpreter.callbacks.TIMInterpreterCallbacks_ShowDialogBox =
+  animator->_interpreter.callbacks.TIMInterpreterCallbacks_ShowDialogButtons =
       callbackShowButtons;
   animator->_interpreter.callbacks.TIMInterpreterCallbacks_InitSceneDialog =
       callbackInitSceneDialog;

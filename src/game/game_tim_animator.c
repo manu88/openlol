@@ -128,29 +128,23 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 
-static void callbackTIM_ShowDialogBox(TIMInterpreter *interp,
-                                      uint16_t functionId,
-                                      const uint16_t buttonStrIds[3]) {
+char test[16] = "";
+static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
+                                          uint16_t functionId,
+                                          const uint16_t buttonStrIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
-  printf("GameTimAnimator ShowDialogBox  %X %X %X\n", buttonStrIds[0],
+  printf("GameTimAnimator ShowDialogButtons  %X %X %X\n", buttonStrIds[0],
          buttonStrIds[1], buttonStrIds[2]);
 
   for (int i = 0; i < 3; i++) {
     if (buttonStrIds[i] == 0XFFFF) {
       break;
     }
-    uint8_t useLevelFile = 0;
-    printf("LangGetString %i %X\n", i, buttonStrIds[i]);
-    int realId = LangGetString(buttonStrIds[i], &useLevelFile);
-    assert(realId != -1);
-    if (!useLevelFile) {
-      assert(0); // to implement :)
-    }
-    assert(realId);
 
-    printf("realID = %x\n", realId);
+    GameContextGetString(gameCtx, buttonStrIds[i], test, sizeof(test));
+    printf("button %i = %s\n", i, test);
     // LangHandleGetString(gameCtx->level->levelLang, realId,
     // animator->buttonText[i], 16); printf("Dialogue Button %i: '%s'\n", i,
     // animator->buttonText[i]);
@@ -178,8 +172,8 @@ void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
       callbackTIM_WSADisplayFrame;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_PlayDialogue =
       callbackTIM_PlayDialogue;
-  animator->timInterpreter.callbacks.TIMInterpreterCallbacks_ShowDialogBox =
-      callbackTIM_ShowDialogBox;
+  animator->timInterpreter.callbacks.TIMInterpreterCallbacks_ShowDialogButtons =
+      callbackTIM_ShowDialogButtons;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_InitSceneDialog =
       callbackTIM_InitSceneDialog;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSARelease =
