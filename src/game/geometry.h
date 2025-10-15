@@ -4,7 +4,7 @@
 
 #define MAZE_COORDS_X (int)112
 #define MAZE_COORDS_Y (int)0
-#define MAZE_COORDS_W (int)174
+#define MAZE_COORDS_W (int)176
 #define MAZE_COORDS_H (int)120
 
 #define INVENTORY_SCREEN_X MAZE_COORDS_X
