@@ -371,6 +371,7 @@ static int processMouse(GameContext *gameCtx) {
     return 0;
     break;
   case GameState_GrowDialogBox:
+  case GameState_ShrinkDialogBox:
   case GameState_Invalid:
     assert(0);
     break;
@@ -479,6 +480,7 @@ static void GameRunOnce(GameContext *gameCtx) {
     }
     break;
   case GameState_GrowDialogBox:
+  case GameState_ShrinkDialogBox:
     shouldUpdate = 1;
     break;
   case GameState_Invalid:

@@ -393,7 +393,7 @@ static void callbackCopyPage(EMCInterpreter *interp, uint16_t srcX,
 
 static void callbackInitSceneDialog(EMCInterpreter *interp, int param) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextSetState(gameCtx, GameState_GrowDialogBox);
+  GameContextInitSceneDialog(gameCtx);
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {

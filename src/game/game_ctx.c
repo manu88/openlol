@@ -277,3 +277,8 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
                                          uint16_t itemId) {
   return gameCtx->itemProperties[itemId].shapeId;
 }
+
+void GameContextInitSceneDialog(GameContext *gameCtx) {
+  GameContextSetState(gameCtx, GameState_GrowDialogBox);
+  gameCtx->controlDisabled = 1;
+}

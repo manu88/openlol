@@ -112,6 +112,7 @@ typedef enum {
   GameState_TimAnimation = 2,
   GameState_ShowInventory = 3,
   GameState_GrowDialogBox = 4,
+  GameState_ShrinkDialogBox = 5,
 } GameState;
 
 typedef struct {
@@ -212,3 +213,5 @@ uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
                               char *outBuffer, size_t outBufferSize);
 
 uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId);
+
+void GameContextInitSceneDialog(GameContext *gameCtx);

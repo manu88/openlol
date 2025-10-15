@@ -128,12 +128,13 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 
-static void callbackTIM_ShowButtons(TIMInterpreter *interp, uint16_t functionId,
-                                    const uint16_t buttonStrIds[3]) {
+static void callbackTIM_ShowDialogBox(TIMInterpreter *interp,
+                                      uint16_t functionId,
+                                      const uint16_t buttonStrIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
-  printf("GameTimAnimator callbackShowButtons  %X %X %X\n", buttonStrIds[0],
+  printf("GameTimAnimator ShowDialogBox  %X %X %X\n", buttonStrIds[0],
          buttonStrIds[1], buttonStrIds[2]);
 
   for (int i = 0; i < 3; i++) {
@@ -163,7 +164,7 @@ static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
   assert(animator);
   printf("GameTimAnimator callbackInitSceneDialog controlMode=%X\n",
          controlMode);
-  GameContextSetState(gameCtx, GameState_GrowDialogBox);
+  GameContextInitSceneDialog(gameCtx);
 }
 
 void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
@@ -177,8 +178,8 @@ void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
       callbackTIM_WSADisplayFrame;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_PlayDialogue =
       callbackTIM_PlayDialogue;
-  animator->timInterpreter.callbacks.TIMInterpreterCallbacks_ShowButtons =
-      callbackTIM_ShowButtons;
+  animator->timInterpreter.callbacks.TIMInterpreterCallbacks_ShowDialogBox =
+      callbackTIM_ShowDialogBox;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_InitSceneDialog =
       callbackTIM_InitSceneDialog;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSARelease =

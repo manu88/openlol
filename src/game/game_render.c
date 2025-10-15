@@ -137,12 +137,7 @@ static void renderCharFaces(GameContext *gameCtx) {
   }
 }
 
-static void animateDialogZone(GameContext *gameCtx) {
-  void *data;
-  int pitch;
-  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
-
+static void animateDialogZoneOnce(GameContext *gameCtx, void *data, int pitch) {
   // copy outline
   int offset = gameCtx->dialogBoxFrames;
   const int size = 20;
@@ -169,14 +164,57 @@ static void animateDialogZone(GameContext *gameCtx) {
       }
     }
   }
+}
 
-  if (gameCtx->dialogBoxFrames <= (DIALOG_BOX_H2 - DIALOG_BOX_H)) {
-    gameCtx->dialogBoxFrames++;
-  } else {
-    assert(gameCtx->prevState != GameState_Invalid);
-    gameCtx->state = gameCtx->prevState;
+static void showBigDialogZone(GameContext *gameCtx) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
+  for (int i = 0; i < 1 + DIALOG_BOX_H2 - DIALOG_BOX_H; i++) {
+    animateDialogZoneOnce(gameCtx, data, pitch);
   }
   SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+}
+
+static void growDialogBox(GameContext *gameCtx) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
+  animateDialogZoneOnce(gameCtx, data, pitch);
+  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+
+  if (gameCtx->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
+    gameCtx->dialogBoxFrames++;
+  } else {
+    // done
+    assert(gameCtx->prevState != GameState_Invalid);
+    gameCtx->state = gameCtx->prevState;
+    gameCtx->showBigDialog = 1;
+  }
+}
+
+static void shrinkDialogBox(GameContext *gameCtx) {
+  printf("shrinkDialogBox %i\n", gameCtx->dialogBoxFrames--);
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
+  for (int i = 0; i < 1 + DIALOG_BOX_H2 + gameCtx->dialogBoxFrames; i++) {
+    animateDialogZoneOnce(gameCtx, data, pitch);
+  }
+  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+
+  if (gameCtx->dialogBoxFrames > 0) {
+    gameCtx->dialogBoxFrames--;
+  } else {
+    printf("shrink is done \n");
+    // done
+    assert(gameCtx->prevState != GameState_Invalid);
+    gameCtx->state = gameCtx->prevState;
+    gameCtx->showBigDialog = 0;
+  }
 }
 
 void GameRender(GameContext *gameCtx) {
@@ -201,7 +239,11 @@ void GameRender(GameContext *gameCtx) {
   renderCharFaces(gameCtx);
 
   if (gameCtx->state == GameState_GrowDialogBox) {
-    animateDialogZone(gameCtx);
+    growDialogBox(gameCtx);
+  } else if (gameCtx->state == GameState_ShrinkDialogBox) {
+    shrinkDialogBox(gameCtx);
+  } else if (gameCtx->showBigDialog) {
+    showBigDialogZone(gameCtx);
   }
 
   renderDialog(gameCtx);

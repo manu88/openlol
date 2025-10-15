@@ -56,7 +56,6 @@ static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextSetState(gameCtx, GameState_GrowDialogBox);
   return 1;
 }
 
