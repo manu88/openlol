@@ -261,6 +261,24 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
   return 0;
 }
 
+static int processAnimationMouse(GameContext *gameCtx) {
+  if (gameCtx->mouseEv.pos.y >= DIALOG_BUTTON_Y_2 &&
+      gameCtx->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
+    if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON1_X &&
+        gameCtx->mouseEv.pos.x < DIALOG_BUTTON1_X + DIALOG_BUTTON_W) {
+      printf("button 1\n");
+    } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON2_X &&
+               gameCtx->mouseEv.pos.x < DIALOG_BUTTON2_X + DIALOG_BUTTON_W) {
+      printf("button 2\n");
+    } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON3_X &&
+               gameCtx->mouseEv.pos.x < DIALOG_BUTTON3_X + DIALOG_BUTTON_W) {
+      printf("button 3\n");
+    }
+  }
+  // printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+  return 0;
+}
+
 static int processCharInventoryMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
@@ -368,7 +386,7 @@ static int processMouse(GameContext *gameCtx) {
   case GameState_ShowInventory:
     return processCharInventoryMouse(gameCtx);
   case GameState_TimAnimation:
-    return 0;
+    return processAnimationMouse(gameCtx);
     break;
   case GameState_GrowDialogBox:
   case GameState_ShrinkDialogBox:
@@ -477,6 +495,12 @@ static void GameRunOnce(GameContext *gameCtx) {
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
       shouldUpdate = 1;
+    } else if (e.type == SDL_MOUSEBUTTONDOWN) {
+      assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
+      gameCtx->mouseEv.pending = 1;
+      gameCtx->mouseEv.pos.x = e.motion.x / SCREEN_FACTOR;
+      gameCtx->mouseEv.pos.y = e.motion.y / SCREEN_FACTOR;
+      gameCtx->mouseEv.isRightClick = e.button.button == 3;
     }
     break;
   case GameState_GrowDialogBox:
