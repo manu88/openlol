@@ -240,6 +240,9 @@ typedef struct _EMCInterpreterCallbacks {
                                            uint16_t destX, uint16_t destY,
                                            uint16_t w, uint16_t h,
                                            uint16_t srcPage, uint16_t dstPage);
+
+  void (*EMCInterpreterCallbacks_DrawExitButton)(EMCInterpreter *interp,
+                                                 uint16_t p0, uint16_t p1);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

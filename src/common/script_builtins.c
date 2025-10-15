@@ -292,8 +292,9 @@ static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
 }
 
 static uint16_t drawExitButton(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] drawExitButton\n");
-  // ASSERT_UNIMPLEMENTED;
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  interp->callbacks.EMCInterpreterCallbacks_DrawExitButton(interp, p0, p1);
   return 1;
 }
 

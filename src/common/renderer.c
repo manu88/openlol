@@ -211,9 +211,9 @@ void drawChar2(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c, int xOff,
     uint8_t col = getColor(0);
     for (int i = 0; i < charWidth; ++i) {
       if (col != 0) {
-        uint8_t r = col;
-        uint8_t g = 0;
-        uint8_t b = 0;
+        uint8_t r = 235; // col;
+        uint8_t g = 223;
+        uint8_t b = 44;
         drawPix(data, pitch, r, g, b, x, y);
       }
       x++;
@@ -233,9 +233,9 @@ void drawChar2(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c, int xOff,
         col = getColor(b & 0xF);
       }
       if (col != 0) {
-        uint8_t r = col;
-        uint8_t g = 0;
-        uint8_t b = 0;
+        uint8_t r = 235; // col;
+        uint8_t g = 223;
+        uint8_t b = 44;
         uint32_t *row = (unsigned int *)((char *)data + pitch * y);
         row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
       }
@@ -249,9 +249,9 @@ void drawChar2(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c, int xOff,
     uint8_t col = getColor(0);
     for (int i = 0; i < charWidth; ++i) {
       if (col != 0) {
-        uint8_t r = col;
-        uint8_t g = 0;
-        uint8_t b = 0;
+        uint8_t r = 235; // col;
+        uint8_t g = 223;
+        uint8_t b = 44;
         uint32_t *row = (unsigned int *)((char *)data + pitch * y);
         row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
       }

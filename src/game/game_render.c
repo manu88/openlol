@@ -20,8 +20,8 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
               destX, destY, w, h, 320, 200);
 }
 
-void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
-                const char *text) {
+void renderText(GameContext *gameCtx, SDL_Texture *texture, int xOff, int yOff,
+                int width, const char *text) {
   if (!text) {
     return;
   }
@@ -31,7 +31,7 @@ void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
     if (!isprint(text[i])) {
       continue;
     }
-    drawChar2(gameCtx->backgroundPixBuf, &gameCtx->defaultFont, text[i], x, y);
+    drawChar2(texture, &gameCtx->defaultFont, text[i], x, y);
     x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
     if (x - xOff >= width) {
       x = xOff;
@@ -42,8 +42,8 @@ void renderText(GameContext *gameCtx, int xOff, int yOff, int width,
 
 void renderDialog(GameContext *gameCtx) {
   if (gameCtx->dialogText) {
-    renderText(gameCtx, DIALOG_BOX_X + 5, DIALOG_BOX_Y + 2, DIALOG_BOX_W - 5,
-               gameCtx->dialogText);
+    renderText(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BOX_X + 5,
+               DIALOG_BOX_Y + 2, DIALOG_BOX_W - 5, gameCtx->dialogText);
   }
 }
 
@@ -97,9 +97,10 @@ static void renderCharInventory(GameContext *gameCtx) {
               200);
   char c[10] = "";
   LangHandleGetString(&gameCtx->lang, 51, c, sizeof(c));
-  renderText(gameCtx, 277, 104, 50, c);
+  renderText(gameCtx, gameCtx->backgroundPixBuf, 277, 104, 50, c);
 
-  renderText(gameCtx, 250, 10, 50, gameCtx->chars[gameCtx->selectedChar].name);
+  renderText(gameCtx, gameCtx->backgroundPixBuf, 250, 10, 50,
+             gameCtx->chars[gameCtx->selectedChar].name);
 }
 
 static void renderInventory(GameContext *gameCtx) {
@@ -217,6 +218,22 @@ static void shrinkDialogBox(GameContext *gameCtx) {
   }
 }
 
+static void renderExitButton(GameContext *gameCtx) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
+                   UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H};
+  SDL_LockTexture(gameCtx->foregroundPixBuf, &rect, &data, &pitch);
+  for (int x = 0; x < UI_SCENE_EXIT_BUTTON_W; x++) {
+    for (int y = 0; y < UI_SCENE_EXIT_BUTTON_H; y++) {
+      drawPix(data, pitch, 60, 45, 37, x, y);
+    }
+  }
+  SDL_UnlockTexture(gameCtx->foregroundPixBuf);
+  renderText(gameCtx, gameCtx->foregroundPixBuf, UI_SCENE_EXIT_BUTTON_X + 4,
+             UI_SCENE_EXIT_BUTTON_Y + 2, UI_SCENE_EXIT_BUTTON_W, "EXIT");
+}
+
 void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   // SDL_RenderClear(gameCtx->renderer);
@@ -245,6 +262,8 @@ void GameRender(GameContext *gameCtx) {
   } else if (gameCtx->showBigDialog) {
     showBigDialogZone(gameCtx);
   }
+
+  renderExitButton(gameCtx);
 
   renderDialog(gameCtx);
 }

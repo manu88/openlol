@@ -380,6 +380,11 @@ static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
                          flags);
 }
 
+static void callbackDrawExitButton(EMCInterpreter *interp, uint16_t p0,
+                                   uint16_t p1) {
+  printf("callbackDrawExitButton %X %X\n", p0, p1);
+}
+
 static void callbackCopyPage(EMCInterpreter *interp, uint16_t srcX,
                              uint16_t srcY, uint16_t destX, uint16_t destY,
                              uint16_t w, uint16_t h, uint16_t srcPage,
@@ -445,4 +450,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_InitSceneDialog =
       callbackInitSceneDialog;
   interp->callbacks.EMCInterpreterCallbacks_CopyPage = callbackCopyPage;
+  interp->callbacks.EMCInterpreterCallbacks_DrawExitButton =
+      callbackDrawExitButton;
 }
