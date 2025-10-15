@@ -58,6 +58,16 @@ static void processCommand(int argc, char *argv[]) {
     DBGMSGSetStateResponse resp;
     read(sock, &resp, sizeof(DBGMSGSetStateResponse));
     printf("reply %i\n", resp.response);
+  } else if (strcmp(cmd, "quit") == 0) {
+    DBGMsgHeader header = {.type = DBGMsgType_QuitRequest, 0};
+    write(sock, &header, sizeof(DBGMsgHeader));
+
+    read(sock, &header, sizeof(DBGMsgHeader));
+    assert(header.type == DBGMsgType_QuitResponse);
+    DBGMSGQuitResponse resp;
+    read(sock, &resp, sizeof(DBGMSGQuitResponse));
+    printf("reply %i\n", resp.response);
+    shouldStop = 1;
   } else {
     printf("unknown command '%s'\n", cmd);
   }

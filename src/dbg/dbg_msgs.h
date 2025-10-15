@@ -15,6 +15,9 @@ typedef enum {
 
   DBGMsgType_SetStateRequest,
   DBGMsgType_SetStateResponse,
+
+  DBGMsgType_QuitRequest,
+  DBGMsgType_QuitResponse,
 } DBGMsgType;
 
 typedef struct {
@@ -41,3 +44,7 @@ typedef struct {
 typedef struct {
   uint16_t response;
 } DBGMSGSetStateResponse;
+
+typedef struct {
+  uint16_t response;
+} DBGMSGQuitResponse;

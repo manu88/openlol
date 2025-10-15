@@ -78,6 +78,18 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
     write(cltSocket, &resp, sizeof(DBGMSGGiveItemResponse));
     return 1;
   };
+  case DBGMsgType_QuitRequest: {
+    printf("received DBGMSGQuitRequest\n");
+    gameCtx->_shouldRun = 0;
+
+    DBGMsgHeader outHeader = {.type = DBGMsgType_QuitResponse,
+                              sizeof(DBGMSGQuitResponse)};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMSGQuitResponse resp;
+    resp.response = 1;
+    write(cltSocket, &resp, sizeof(DBGMSGQuitResponse));
+    return 1;
+  }
   case DBGMsgType_SetStateRequest: {
     const DBGMSGSetStateRequest *req = (const DBGMSGSetStateRequest *)buffer;
     printf("received DBGMSGSetStateRequest 0X%0X\n", req->state);
