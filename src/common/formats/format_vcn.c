@@ -20,10 +20,7 @@ int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
                            size_t size) {
   assert(handle);
   assert(buffer);
-  printf("size VCN file=%zi\n", size);
   const VCNCompressionHeader *header = (const VCNCompressionHeader *)buffer;
-  printf("fileSize=%i comp=%i outSize=%i\n", header->fileSize,
-         header->compressionType, header->uncompressedSize);
 
   uint8_t *dest = malloc(header->uncompressedSize);
   if (!dest) {

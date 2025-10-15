@@ -20,9 +20,6 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
                                  int16_t mode, uint16_t strId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
-  printf("callbacksPlayDialogue charId=%i, mode=%i stringID=%i\n", charId, mode,
-         strId);
-
   GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;
 }
@@ -31,9 +28,6 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
                                  uint16_t strId, uint16_t soundId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
-  printf("callbacksPrintMessage type=%i stringID=%i soundID=%i\n", type, strId,
-         soundId);
-
   GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;
 }
@@ -42,7 +36,6 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
                                      uint16_t a) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
-  printf("callbacks GetGlobalVar id=%i\n", id);
   switch (id) {
   case EMCGlobalVarID_CurrentBlock:
     return ctx->currentBock;
@@ -70,12 +63,10 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
 static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
                                      uint16_t a, uint16_t b) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
-  printf("callbacks SetGlobalVar id=%i %i %i\n", id, a, b);
 
   switch (id) {
   case EMCGlobalVarID_CurrentBlock: {
     ctx->currentBock = b;
-    printf("set current block to %X\n", ctx->currentBock);
     GetGameCoordsFromBlock(ctx->currentBock, &ctx->partyPos.x,
                            &ctx->partyPos.y);
     break;
@@ -103,7 +94,6 @@ static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
 
 static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadLangFile '%s'\n", file);
   GameFile langFile = {0};
   assert(GameEnvironmentGetLangFile(&langFile, file));
   if (!langFile.buffer) {
@@ -112,12 +102,12 @@ static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
   if (!LangHandleFromBuffer(&gameCtx->level->levelLang, langFile.buffer,
                             langFile.bufferSize)) {
     printf("LangHandleFromBuffer error\n");
+    assert(0);
   }
 }
 
 static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadCMZ '%s'\n", file);
   GameFile f = {0};
   assert(GameEnvironmentGetFile(&f, file));
   assert(
@@ -127,14 +117,12 @@ static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
 static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
                                     const char *datFile) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadLevelShapes '%s' '%s'\n", shpFile, datFile);
   char pakFile[12] = "";
   strncpy(pakFile, shpFile, 12);
 
   pakFile[strlen(pakFile) - 1] = 'K';
   pakFile[strlen(pakFile) - 2] = 'A';
   pakFile[strlen(pakFile) - 3] = 'P';
-  printf("using pak file '%s'\n", pakFile);
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFileFromPak(&f, shpFile, pakFile));
@@ -152,7 +140,6 @@ static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
 static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
                               uint16_t startBlock, uint16_t startDir) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadLevel %i %X %X\n", levelNum, startBlock, startDir);
   gameCtx->currentBock = startBlock;
   gameCtx->orientation = startDir;
   gameCtx->levelId = levelNum;
@@ -162,7 +149,6 @@ static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
 static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
                                 uint16_t val) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackGameFlag Set %X %X\n", flag, val);
   if (val) {
     GameContextSetGameFlag(gameCtx, flag, val);
   } else {
@@ -172,14 +158,12 @@ static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
 
 static uint16_t callbackTestGameFlag(EMCInterpreter *interp, uint16_t flag) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackGameFlag Test %X\n", flag);
   return GameContextGetGameFlag(gameCtx, flag);
 }
 
 static void callbackLoadLevelGraphics(EMCInterpreter *interp,
                                       const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadLevelGraphics '%s'\n", file);
   char pakFile[12] = "";
   snprintf(pakFile, 12, "%s.PAK", file);
   char fileName[12] = "";
@@ -205,7 +189,6 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
 
 static void callbackLoadBitmap(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadBitmap %s\n", file);
   GameFile f = {0};
   assert(GameEnvironmentGetFile(&f, file));
 
@@ -216,7 +199,6 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
                                    uint16_t p1, uint16_t p2, uint16_t p3,
                                    uint16_t p4) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("loadDoorShapes '%s' %X %X %X %X\n", file, p1, p2, p3, p4);
   assert(p1 == 0);
   assert(p2 == 0);
   assert(p3 == 0);
@@ -230,7 +212,6 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
 static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
                                       uint16_t monsterId, uint16_t p2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("load monster shapes %s %i %i\n", file, monsterId, p2);
   assert(monsterId < MAX_MONSTERS);
   assert(p2 == 0);
   GameFile f;
@@ -247,7 +228,7 @@ static void callbackClearDialogField(EMCInterpreter *interp) {
 static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,
                                               uint16_t monsterType) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackCheckMonsterHostility %x\n", monsterType);
+  printf("[UNIMPLEMENTED] callbackCheckMonsterHostility %x\n", monsterType);
   return 0;
   for (int i = 0; i < MAX_MONSTERS; i++) {
     if (gameCtx->level->monsters[i].type != monsterType &&
@@ -283,14 +264,12 @@ static void callbackLoadMonster(EMCInterpreter *interp, uint16_t monsterId,
 static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                   const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackLoadTimScript %x :'%s'.TIM\n", scriptId, file);
   GameTimAnimatorLoadTim(&gameCtx->timAnimator, scriptId, file);
 }
 
 static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                  uint16_t loop) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackRunTimScript scriptId=%X loop=%X\n", scriptId, loop);
   if (!gameCtx->timAnimator.tim[scriptId].avtl) {
     printf("NO TIM loaded\n");
     return;
@@ -302,8 +281,6 @@ static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
 static void callbackReleaseTimScript(EMCInterpreter *interp,
                                      uint16_t scriptId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackReleaseTimScript script=%X\n", scriptId);
-
   GameTimAnimatorReleaseTim(&gameCtx->timAnimator, scriptId);
 }
 
@@ -315,7 +292,6 @@ static uint16_t callbackGetItemInHand(EMCInterpreter *interp) {
 static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,
                                      EMCGetItemParam how) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackGetItemParam %X %X\n", itemId, how);
   const Item *item = &gameCtx->itemsInGame[itemId];
   const ItemProperty *p = &gameCtx->itemProperties[item->itemPropertyIndex];
   switch (how) {
@@ -384,15 +360,12 @@ static void callbackEnableControls(EMCInterpreter *interp) {
 static void callbackSetGlobalScriptVar(EMCInterpreter *interp, uint16_t index,
                                        uint16_t val) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackSetGlobalScriptVar %X %X\n", index, val);
   gameCtx->globalScriptVars[index] = val;
 }
 
 static uint16_t callbackGetGlobalScriptVar(EMCInterpreter *interp,
                                            uint16_t index) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackGetGlobalScriptVar %X (val=%X)\n", index,
-         gameCtx->globalScriptVars[index]);
   return gameCtx->globalScriptVars[index];
 }
 

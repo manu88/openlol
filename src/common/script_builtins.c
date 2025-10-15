@@ -359,8 +359,6 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
     paletteFile = EMCStateGetDataString(state, p5);
   }
 
-  printf("loadLevelGraphics '%s' %X %X %X %X %X %s\n", file, specialColor,
-         weight, vcnLen, vmpLen, p5, paletteFile);
   interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);
   return 1;
 }
@@ -368,7 +366,8 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
 static uint16_t setPaletteBrightness(EMCInterpreter *interp, EMCState *state) {
   uint16_t brightness = EMCStateStackVal(state, 0);
   uint16_t otherParam = EMCStateStackVal(state, 1);
-  printf("setPaletteBrightness %X %X\n", brightness, otherParam);
+  printf("[UNIMPLEMENTED] setPaletteBrightness %X %X\n", brightness,
+         otherParam);
   return 1;
 }
 

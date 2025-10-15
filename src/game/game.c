@@ -131,7 +131,6 @@ int cmdGame(int argc, char *argv[]) {
     if (charId == 0) {
       continue;
     }
-    printf("character %i=%i\n", i, charId);
     snprintf(faceFile, 11, "FACE%02i.SHP", charId);
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, faceFile));

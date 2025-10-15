@@ -164,11 +164,7 @@ static int runCompleteScript(GameContext *ctx, const char *name) {
 }
 
 int GameContextStartup(GameContext *ctx) {
-  printf("Game: startup\n");
-
-  printf("loading and running ONETIME.INF script\n");
-  runCompleteScript(ctx, "ONETIME.INF");
-  return 1;
+  return runCompleteScript(ctx, "ONETIME.INF");
 }
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum) {
@@ -198,9 +194,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     assert(INFScriptFromBuffer(&ctx->script, f.buffer, f.bufferSize));
   }
 
-  printf("START runINIScript\n");
   runScript(ctx, &ctx->iniScript);
-  printf("DONE runINIScript\n");
   GameContextRunLevelInitScript(ctx);
 
   return 1;

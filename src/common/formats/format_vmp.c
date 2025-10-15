@@ -16,10 +16,7 @@ void VMPHandleRelease(VMPHandle *handle) { free(handle->originalBuffer); }
 
 int VMPHandleFromLCWBuffer(VMPHandle *handle, const uint8_t *buffer,
                            size_t size) {
-  printf("size VMP file=%zi\n", size);
   const VMPCompressionHeader *header = (const VMPCompressionHeader *)buffer;
-  printf("fileSize=%i comp=%i outSize=%i\n", header->fileSize,
-         header->compressionType, header->uncompressedSize);
 
   uint8_t *uncompressedData = malloc(header->uncompressedSize);
   if (!uncompressedData) {
