@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
@@ -128,7 +129,6 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
 
-char test[16] = "";
 static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
                                           uint16_t functionId,
                                           const uint16_t buttonStrIds[3]) {
@@ -142,12 +142,11 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
     if (buttonStrIds[i] == 0XFFFF) {
       break;
     }
-
-    GameContextGetString(gameCtx, buttonStrIds[i], test, sizeof(test));
-    printf("button %i = %s\n", i, test);
-    // LangHandleGetString(gameCtx->level->levelLang, realId,
-    // animator->buttonText[i], 16); printf("Dialogue Button %i: '%s'\n", i,
-    // animator->buttonText[i]);
+    if (gameCtx->buttonText[i] == NULL) {
+      gameCtx->buttonText[i] = malloc(16);
+    }
+    GameContextGetString(gameCtx, buttonStrIds[i], gameCtx->buttonText[i], 16);
+    printf("button %i = %s\n", i, gameCtx->buttonText[i]);
   }
 }
 

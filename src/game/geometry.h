@@ -45,6 +45,16 @@
 #define UI_SCENE_EXIT_BUTTON_W 30
 #define UI_SCENE_EXIT_BUTTON_H 10
 
+#define DIALOG_BUTTON1_X 86
+#define DIALOG_BUTTON2_X 162
+#define DIALOG_BUTTON3_X 240
+#define DIALOG_BUTTON_Y 132
+
+#define DIALOG_BUTTON_Y_2 167
+
+#define DIALOG_BUTTON_W 72
+#define DIALOG_BUTTON_H 10
+
 // one character in the gang
 #define CHAR_FACE_0_1_X 167
 #define CHAR_FACE_Y 144

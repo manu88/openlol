@@ -132,6 +132,8 @@ typedef struct _GameContext {
   int drawExitSceneButton;
   int exitSceneButtonDisabled;
 
+  char *buttonText[3];
+
   MouseEvent mouseEv;
   uint16_t currentBock;
   Point partyPos;

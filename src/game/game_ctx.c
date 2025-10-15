@@ -137,6 +137,12 @@ void GameContextRelease(GameContext *gameCtx) {
   INFScriptRelease(&gameCtx->script);
   free(gameCtx->dialogTextBuffer);
   SDL_FreeCursor(gameCtx->cursor);
+
+  for (int i = 0; i < 3; i++) {
+    if (gameCtx->buttonText[i]) {
+      free(gameCtx->buttonText[i]);
+    }
+  }
 }
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
