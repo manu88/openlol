@@ -9,6 +9,7 @@
 #include "formats/format_cps.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
+#include "formats/format_wll.h"
 #include "game_callbacks.h"
 #include "game_ctx.h"
 #include "game_envir.h"
@@ -321,26 +322,31 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
 }
 
 static int tryMove(GameContext *gameCtx, Direction dir) {
-  uint16_t newBlock = 0;
+  Orientation orientation = 0;
   switch (dir) {
   case Front:
-    newBlock = BlockCalcNewPosition(
-        gameCtx->currentBock, absOrientation(gameCtx->orientation, North));
+    orientation = absOrientation(gameCtx->orientation, North);
     break;
   case Left:
-    newBlock = BlockCalcNewPosition(gameCtx->currentBock,
-                                    absOrientation(gameCtx->orientation, West));
+    orientation = absOrientation(gameCtx->orientation, West);
     break;
   case Back:
-    newBlock = BlockCalcNewPosition(
-        gameCtx->currentBock, absOrientation(gameCtx->orientation, South));
+    orientation = absOrientation(gameCtx->orientation, South);
     break;
   case Right:
-    newBlock = BlockCalcNewPosition(gameCtx->currentBock,
-                                    absOrientation(gameCtx->orientation, East));
+    orientation = absOrientation(gameCtx->orientation, East);
     break;
   }
-  gameCtx->currentBock = newBlock;
+  uint16_t newBlock = BlockCalcNewPosition(gameCtx->currentBock, orientation);
+  Orientation facingOrientation = (orientation + 2) % 4;
+  const MazeBlock *block =
+      gameCtx->level->mazHandle.maze->wallMappingIndices + newBlock;
+  uint8_t wmi = block->face[facingOrientation];
+  const WllWallMapping *mapping =
+      WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
+  if (mapping == NULL || mapping->wallType == 3) {
+    gameCtx->currentBock = newBlock;
+  }
   return 1;
 }
 
