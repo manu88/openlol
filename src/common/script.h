@@ -247,6 +247,19 @@ typedef struct _EMCInterpreterCallbacks {
       EMCInterpreter *interp, int controlMode);
   void (*EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog)(
       EMCInterpreter *interp, int redraw);
+
+  uint16_t (*EMCInterpreterCallbacks_GetWallType)(EMCInterpreter *interp,
+                                                  uint16_t index,
+                                                  uint16_t index2);
+  uint16_t (*EMCInterpreterCallbacks_CheckRectForMousePointer)(
+      EMCInterpreter *interp, uint16_t xMin, uint16_t yMin, uint16_t xMax,
+      uint16_t yMax);
+
+  void (*EMCInterpreterCallbacks_SetupDialogueButtons)(EMCInterpreter *interp,
+                                                       uint16_t numStrs,
+                                                       uint16_t strIds[3]);
+
+  uint16_t (*EMCInterpreterCallbacks_ProcessDialog)(EMCInterpreter *interp);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

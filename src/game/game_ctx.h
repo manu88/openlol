@@ -115,6 +115,12 @@ typedef enum {
   GameState_ShrinkDialogBox = 5,
 } GameState;
 
+typedef enum {
+  DialogState_None,
+  DialogState_InProgress,
+  DialogState_Done,
+} DialogState;
+
 typedef struct {
   Point pos;
   uint8_t pending;
@@ -195,6 +201,8 @@ typedef struct _GameContext {
 
   CPSImage loadedbitMap;
   int _shouldRun;
+
+  DialogState dialogState;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

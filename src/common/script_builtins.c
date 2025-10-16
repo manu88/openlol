@@ -31,10 +31,12 @@ static uint16_t setItemProperty(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
-  printf("getWallType\n");
-  ASSERT_UNIMPLEMENTED;
-  return 1;
+  uint16_t index = EMCStateStackVal(state, 0);
+  uint16_t index2 = EMCStateStackVal(state, 1);
+  return interp->callbacks.EMCInterpreterCallbacks_GetWallType(interp, index,
+                                                               index2);
 }
+
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
   int16_t pageNum = EMCStateStackVal(state, 0);
   printf("drawScene %X\n", pageNum);
@@ -121,10 +123,14 @@ static uint16_t getDirection(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t checkRectForMousePointer(EMCInterpreter *interp,
                                          EMCState *state) {
-  printf("checkRectForMousePointer\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t xMin = EMCStateStackVal(state, 0);
+  uint16_t yMin = EMCStateStackVal(state, 1);
+  uint16_t xMax = EMCStateStackVal(state, 2);
+  uint16_t yMax = EMCStateStackVal(state, 3);
+  return interp->callbacks.EMCInterpreterCallbacks_CheckRectForMousePointer(
+      interp, xMin, yMin, xMax, yMax);
 }
+
 static uint16_t clearDialogueField(EMCInterpreter *interp, EMCState *state) {
   interp->callbacks.EMCInterpreterCallbacks_ClearDialogField(interp);
   return 1;
@@ -258,6 +264,25 @@ static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
       interp, srcX, srcY, destX, destY, w, h, srcPage, dstPage);
   return 1;
 }
+
+static uint16_t setupDialogueButtons(EMCInterpreter *interp, EMCState *state) {
+  uint16_t numStr = EMCStateStackVal(state, 0);
+  uint16_t strIds[3] = {EMCStateStackVal(state, 1), EMCStateStackVal(state, 2),
+                        EMCStateStackVal(state, 3)};
+  interp->callbacks.EMCInterpreterCallbacks_SetupDialogueButtons(interp, numStr,
+                                                                 strIds);
+  return 1;
+}
+
+static uint16_t processDialogue(EMCInterpreter *interp, EMCState *state) {
+  return interp->callbacks.EMCInterpreterCallbacks_ProcessDialog(interp);
+}
+
+static uint16_t update(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] update\n");
+  return 1;
+}
+
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] moveMonster\n");
   return 1;
@@ -698,7 +723,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {moveMonster, "moveMonster"},
-    {NULL},
+    {setupDialogueButtons, "setupDialogueButtons"},
     {NULL},
     {NULL},
     {NULL},
@@ -720,7 +745,7 @@ static ScriptFunDesc functions[] = {
     {giveItemToMonster, "giveItemToMonster"},
     {loadLangFile, "loadLangFile"},
     {playSoundEffect, "playSoundEffect"},
-    {NULL},
+    {processDialogue, "processDialogue"},
     {stopTimScript, "stopTimScript"},
     // 0X5A
     {NULL},
@@ -728,7 +753,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {playCharacterScriptChat, "playCharacterScriptChat"},
-    {NULL},
+    {update, "update"},
 
     // 0X60
     {NULL},

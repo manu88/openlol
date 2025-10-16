@@ -1,6 +1,11 @@
 #include "geometry.h"
 #include <assert.h>
 
+Orientation absOrientation(Orientation partyOrientation,
+                           Orientation orientation) {
+  return (orientation + partyOrientation) % 4;
+}
+
 Orientation OrientationTurnLeft(Orientation orientation) {
   orientation -= 1;
   if ((int)orientation < 0) {

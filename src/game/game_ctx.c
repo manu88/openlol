@@ -290,7 +290,10 @@ void GameContextInitSceneDialog(GameContext *gameCtx) {
 }
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
-  GameContextSetState(gameCtx, GameState_ShrinkDialogBox);
+  printf("GameContextCleanupSceneDialog\n");
+  if (gameCtx->showBigDialog) {
+    GameContextSetState(gameCtx, GameState_ShrinkDialogBox);
+  }
   gameCtx->controlDisabled = 0;
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {
@@ -298,4 +301,5 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
       gameCtx->buttonText[i] = NULL;
     }
   }
+  gameCtx->dialogText = NULL;
 }

@@ -279,26 +279,28 @@ void GameRender(GameContext *gameCtx) {
   } else if (gameCtx->showBigDialog) {
     showBigDialogZone(gameCtx);
   }
-
   if (gameCtx->drawExitSceneButton) {
     renderExitButton(gameCtx);
   }
 
-  if (gameCtx->buttonText[0]) {
-    drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON1_X,
-               DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-               gameCtx->buttonText[0]);
-  }
+  if (gameCtx->state != GameState_GrowDialogBox &&
+      gameCtx->state != GameState_ShrinkDialogBox) {
+    if (gameCtx->buttonText[0]) {
+      drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON1_X,
+                 DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                 gameCtx->buttonText[0]);
+    }
 
-  if (gameCtx->buttonText[1]) {
-    drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON2_X,
-               DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-               gameCtx->buttonText[1]);
+    if (gameCtx->buttonText[1]) {
+      drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON2_X,
+                 DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                 gameCtx->buttonText[1]);
+    }
+    if (gameCtx->buttonText[2]) {
+      drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON3_X,
+                 DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                 gameCtx->buttonText[2]);
+    }
+    renderDialog(gameCtx);
   }
-  if (gameCtx->buttonText[2]) {
-    drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON3_X,
-               DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-               gameCtx->buttonText[2]);
-  }
-  renderDialog(gameCtx);
 }

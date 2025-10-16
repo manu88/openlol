@@ -177,11 +177,6 @@ typedef enum {
   CELL_Q,
 } CELL_ID;
 
-Orientation absOrientation(Orientation partyOrientation,
-                           Orientation orientation) {
-  return (orientation + partyOrientation) % 4;
-}
-
 /*
 
  9 7 3 7 9

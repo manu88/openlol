@@ -5,9 +5,11 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
+#include "geometry.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,6 +25,7 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   assert(ctx);
   GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;
+  printf("callbackPlayDialogue: '%s'\n", ctx->dialogText);
 }
 
 static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
@@ -224,8 +227,9 @@ static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
 }
 
 static void callbackClearDialogField(EMCInterpreter *interp) {
+  printf("callbackClearDialogField\n");
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  gameCtx->dialogText = 0;
+  gameCtx->dialogText = NULL;
 }
 
 static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,
@@ -391,6 +395,55 @@ static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
   GameContextCleanupSceneDialog(gameCtx);
 }
 
+static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
+                                    uint16_t index2) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackGetWallType 0X%X\n", index);
+
+  const MazeBlock *block =
+      gameCtx->level->mazHandle.maze->wallMappingIndices + index;
+  uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
+  return WllHandleGetWallType(&gameCtx->level->wllHandle, wmi) & 3;
+}
+
+static void callbackSetupDialogueButtons(EMCInterpreter *interp,
+                                         uint16_t numStrs, uint16_t strIds[3]) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->dialogState = DialogState_InProgress;
+  GameContextInitSceneDialog(gameCtx);
+  printf("callbackSetupDialogueButtons %i %X %X %X\n", numStrs, strIds[0],
+         strIds[1], strIds[2]);
+  for (int i = 0; i < numStrs; i++) {
+    assert(strIds[i] != 0XFFFF);
+    gameCtx->buttonText[i] = malloc(16);
+    assert(gameCtx->buttonText[i]);
+    memset(gameCtx->buttonText[i], 0, 16);
+    GameContextGetString(gameCtx, strIds[i], gameCtx->buttonText[i], 16);
+  }
+}
+
+static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackProcessDialog\n");
+  return gameCtx->dialogState == DialogState_Done;
+}
+
+static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
+                                                 uint16_t xMin, uint16_t yMin,
+                                                 uint16_t xMax, uint16_t yMax) {
+  printf("callbackCheckRectForMousePointer %i %i %i %i\n", xMin, yMin, xMax,
+         yMax);
+  int x;
+  int y;
+  SDL_GetMouseState(&x, &y);
+  x /= SCREEN_FACTOR;
+  y /= SCREEN_FACTOR;
+
+  uint16_t ret = x >= xMin && x < xMax && y >= yMin && y < yMax;
+  printf("Click at %i %i returns %i\n", x, y, ret);
+  return ret;
+}
+
 static void callbackDrawExitButton(EMCInterpreter *interp, uint16_t p0,
                                    uint16_t p1) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -469,4 +522,11 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackRestoreAfterSceneDialog;
   interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog =
       callbackRestoreAfterSceneWindowDialog;
+  interp->callbacks.EMCInterpreterCallbacks_GetWallType = callbackGetWallType;
+  interp->callbacks.EMCInterpreterCallbacks_CheckRectForMousePointer =
+      callbackCheckRectForMousePointer;
+  interp->callbacks.EMCInterpreterCallbacks_SetupDialogueButtons =
+      callbackSetupDialogueButtons;
+  interp->callbacks.EMCInterpreterCallbacks_ProcessDialog =
+      callbackProcessDialog;
 }
