@@ -380,6 +380,17 @@ static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
                          flags);
 }
 
+static void callbackRestoreAfterSceneDialog(EMCInterpreter *interp, int mode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextCleanupSceneDialog(gameCtx);
+}
+
+static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
+                                                  int redraw) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextCleanupSceneDialog(gameCtx);
+}
+
 static void callbackDrawExitButton(EMCInterpreter *interp, uint16_t p0,
                                    uint16_t p1) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -454,4 +465,8 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_CopyPage = callbackCopyPage;
   interp->callbacks.EMCInterpreterCallbacks_DrawExitButton =
       callbackDrawExitButton;
+  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneDialog =
+      callbackRestoreAfterSceneDialog;
+  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog =
+      callbackRestoreAfterSceneWindowDialog;
 }

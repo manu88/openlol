@@ -292,4 +292,10 @@ void GameContextInitSceneDialog(GameContext *gameCtx) {
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   GameContextSetState(gameCtx, GameState_ShrinkDialogBox);
   gameCtx->controlDisabled = 0;
+  for (int i = 0; i < 3; i++) {
+    if (gameCtx->buttonText[i]) {
+      free(gameCtx->buttonText[i]);
+      gameCtx->buttonText[i] = NULL;
+    }
+  }
 }

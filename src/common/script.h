@@ -243,6 +243,10 @@ typedef struct _EMCInterpreterCallbacks {
 
   void (*EMCInterpreterCallbacks_DrawExitButton)(EMCInterpreter *interp,
                                                  uint16_t p0, uint16_t p1);
+  void (*EMCInterpreterCallbacks_RestoreAfterSceneDialog)(
+      EMCInterpreter *interp, int controlMode);
+  void (*EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog)(
+      EMCInterpreter *interp, int redraw);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

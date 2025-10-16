@@ -200,7 +200,6 @@ static void growDialogBox(GameContext *gameCtx) {
 }
 
 static void shrinkDialogBox(GameContext *gameCtx) {
-  printf("shrinkDialogBox %i\n", gameCtx->dialogBoxFrames--);
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
@@ -213,8 +212,6 @@ static void shrinkDialogBox(GameContext *gameCtx) {
   if (gameCtx->dialogBoxFrames > 0) {
     gameCtx->dialogBoxFrames--;
   } else {
-    printf("shrink is done \n");
-    // done
     assert(gameCtx->prevState != GameState_Invalid);
     gameCtx->state = gameCtx->prevState;
     gameCtx->showBigDialog = 0;

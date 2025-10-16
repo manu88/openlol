@@ -61,9 +61,10 @@ static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t restoreAfterDialogueSequence(EMCInterpreter *interp,
                                              EMCState *state) {
-  printf("restoreAfterDialogueSequence\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t mode = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneDialog(interp,
+                                                                    mode);
+  return 1;
 }
 
 static uint16_t resetPortraitsAndDisableSysTimer(EMCInterpreter *interp,
@@ -130,6 +131,16 @@ static uint16_t clearDialogueField(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
                                              EMCState *state) {
+  uint16_t animIndex = EMCStateStackVal(state, 0);
+  uint16_t part = EMCStateStackVal(state, 1);
+  uint16_t firstFrame = EMCStateStackVal(state, 2);
+  uint16_t lastFrame = EMCStateStackVal(state, 3);
+  uint16_t cycles = EMCStateStackVal(state, 4);
+  uint16_t nextPart = EMCStateStackVal(state, 5);
+  uint16_t partDelay = EMCStateStackVal(state, 6);
+  uint16_t field = EMCStateStackVal(state, 7);
+  uint16_t sfxIndex = EMCStateStackVal(state, 8);
+  uint16_t sfxFrame = EMCStateStackVal(state, 9);
   printf("setupBackgroundAnimationPart\n");
   ASSERT_UNIMPLEMENTED;
   return 0;
@@ -214,8 +225,16 @@ static uint16_t fadeSequencePalette(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t initSceneWindowDialogue(EMCInterpreter *interp,
                                         EMCState *state) {
-  int16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p0 = EMCStateStackVal(state, 0);
   interp->callbacks.EMCInterpreterCallbacks_InitSceneDialog(interp, p0);
+  return 1;
+}
+
+static uint16_t restoreAfterSceneWindowDialogue(EMCInterpreter *interp,
+                                                EMCState *state) {
+  uint16_t redraw = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog(
+      interp, redraw);
   return 1;
 }
 
@@ -240,9 +259,8 @@ static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
-  printf("moveMonster\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  printf("[UNIMPLEMENTED] moveMonster\n");
+  return 1;
 }
 
 static uint16_t loadTimScript(EMCInterpreter *interp, EMCState *state) {
@@ -696,7 +714,7 @@ static ScriptFunDesc functions[] = {
     // 0X50
     {releaseTimScript, "releaseTimScript"},
     {initSceneWindowDialogue, "initSceneWindowDialogue"},
-    {NULL},
+    {restoreAfterSceneWindowDialogue, "restoreAfterSceneWindowDialogue"},
     {getItemInHand, "getItemInHand"},
     {NULL},
     {giveItemToMonster, "giveItemToMonster"},

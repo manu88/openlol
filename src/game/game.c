@@ -7,7 +7,6 @@
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
-#include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_callbacks.h"
@@ -16,7 +15,6 @@
 #include "game_render.h"
 #include "geometry.h"
 #include "render.h"
-#include "renderer.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
@@ -118,7 +116,7 @@ int cmdGame(int argc, char *argv[]) {
     gameCtx.chars[0].id = -9; // Ak'shel for the win
     snprintf(gameCtx.chars[0].name, 11, "Ak'shel");
     // temp until we get the value from script/tim
-    gameCtx.currentBock = 0X22D;
+    gameCtx.currentBock = 0X24D;
     gameCtx.orientation = North;
     gameCtx.inventory[0] = 216;
     gameCtx.inventory[1] = 217;
