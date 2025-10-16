@@ -287,10 +287,10 @@ void GameRender(GameContext *gameCtx) {
     renderExitButton(gameCtx);
   }
 
-  if (gameCtx->buttonText[2]) {
+  if (gameCtx->buttonText[0]) {
     drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON1_X,
                DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-               gameCtx->buttonText[2]);
+               gameCtx->buttonText[0]);
   }
 
   if (gameCtx->buttonText[1]) {
@@ -298,10 +298,10 @@ void GameRender(GameContext *gameCtx) {
                DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
                gameCtx->buttonText[1]);
   }
-  if (gameCtx->buttonText[0]) {
+  if (gameCtx->buttonText[2]) {
     drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON3_X,
                DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-               gameCtx->buttonText[0]);
+               gameCtx->buttonText[2]);
   }
   renderDialog(gameCtx);
 }

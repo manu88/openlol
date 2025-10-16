@@ -266,13 +266,16 @@ static int processAnimationMouse(GameContext *gameCtx) {
       gameCtx->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
     if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON1_X &&
         gameCtx->mouseEv.pos.x < DIALOG_BUTTON1_X + DIALOG_BUTTON_W) {
-      printf("button 1\n");
+      TIMInterpreterButtonClicked(&gameCtx->timAnimator.timInterpreter, 0);
+      printf("button 0\n");
     } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON2_X &&
                gameCtx->mouseEv.pos.x < DIALOG_BUTTON2_X + DIALOG_BUTTON_W) {
-      printf("button 2\n");
+      printf("button 1\n");
+      TIMInterpreterButtonClicked(&gameCtx->timAnimator.timInterpreter, 1);
     } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON3_X &&
                gameCtx->mouseEv.pos.x < DIALOG_BUTTON3_X + DIALOG_BUTTON_W) {
-      printf("button 3\n");
+      printf("button 2\n");
+      TIMInterpreterButtonClicked(&gameCtx->timAnimator.timInterpreter, 2);
     }
   }
   // printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
