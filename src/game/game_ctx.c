@@ -288,3 +288,8 @@ void GameContextInitSceneDialog(GameContext *gameCtx) {
   GameContextSetState(gameCtx, GameState_GrowDialogBox);
   gameCtx->controlDisabled = 1;
 }
+
+void GameContextCleanupSceneDialog(GameContext *gameCtx) {
+  GameContextSetState(gameCtx, GameState_ShrinkDialogBox);
+  gameCtx->controlDisabled = 0;
+}

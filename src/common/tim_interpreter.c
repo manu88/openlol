@@ -96,11 +96,12 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     }
     break;
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
-    printf("\t TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE %i params\n",
-           numParams);
+    interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog(
+        interp, params[0]);
     break;
   case TIM_OPCODE_GIVE_ITEM:
-    printf("\t TIM_OPCODE_GIVE_ITEM %i params\n", numParams);
+    interp->callbacks.TIMInterpreterCallbacks_GiveItem(interp, params[0],
+                                                       params[1], params[2]);
     break;
   case TIM_OPCODE_SET_PARTY_POS:
     printf("\t TIM_OPCODE_SET_PARTY_POS %i params\n", numParams);
@@ -174,7 +175,8 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     break;
   }
   case TIM_COMMAND_ID_WSA_RELEASE:
-
+    interp->callbacks.TIMInterpreterCallbacks_WSARelease(interp,
+                                                         instrParams[0]);
     break;
   case TIM_COMMAND_ID_WSA_DISPLAY_FRAME: {
     int animIndex = instrParams[0];

@@ -22,8 +22,14 @@ typedef struct {
   void (*TIMInterpreterCallbacks_InitSceneDialog)(TIMInterpreter *interp,
                                                   int controlMode);
 
+  void (*TIMInterpreterCallbacks_RestoreAfterSceneDialog)(
+      TIMInterpreter *interp, int controlMode);
+
   void (*TIMInterpreterCallbacks_FadeClearWindow)(TIMInterpreter *interp,
                                                   uint16_t param);
+  uint16_t (*TIMInterpreterCallbacks_GiveItem)(TIMInterpreter *interp,
+                                               uint16_t param0, uint16_t param1,
+                                               uint16_t param2);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {

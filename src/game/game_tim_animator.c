@@ -108,6 +108,13 @@ static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
   gameCtx->fadeOutFrames = 10;
 }
 
+static uint16_t callbackTIM_GiveItem(TIMInterpreter *interp, uint16_t p0,
+                                     uint16_t p1, uint16_t p2) {
+  printf("callbackTIM_GiveItem: p0=%x p1=%x p2=%x\n", p0, p1, p2);
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  return GameContextAddItemToInventory(gameCtx, p0);
+}
+
 static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   printf("GameTimAnimator: callbackWSARelease index=%i\n", index);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -153,11 +160,17 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
 static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
                                         int controlMode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
-  assert(animator);
   printf("GameTimAnimator callbackInitSceneDialog controlMode=%X\n",
          controlMode);
   GameContextInitSceneDialog(gameCtx);
+}
+
+static void callbackTIM_RestoreAfterSceneDialog(TIMInterpreter *interp,
+                                                int controlMode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("GameTimAnimator callbackInitSceneDialog controlMode=%X\n",
+         controlMode);
+  GameContextCleanupSceneDialog(gameCtx);
 }
 
 void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
@@ -179,7 +192,11 @@ void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
       callbackTIM_WSARelease;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_FadeClearWindow =
       callbackTIM_FadeClearWindow;
-
+  animator->timInterpreter.callbacks.TIMInterpreterCallbacks_GiveItem =
+      callbackTIM_GiveItem;
+  animator->timInterpreter.callbacks
+      .TIMInterpreterCallbacks_RestoreAfterSceneDialog =
+      callbackTIM_RestoreAfterSceneDialog;
   animator->pixBuf = pixBuf;
 }
 

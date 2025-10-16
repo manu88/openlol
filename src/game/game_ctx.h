@@ -220,3 +220,4 @@ uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
 uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId);
 
 void GameContextInitSceneDialog(GameContext *gameCtx);
+void GameContextCleanupSceneDialog(GameContext *gameCtx);
