@@ -202,6 +202,8 @@ typedef struct _GameContext {
   int _shouldRun;
 
   DialogState dialogState;
+
+  int _noClip;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

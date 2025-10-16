@@ -102,6 +102,14 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
     write(cltSocket, &resp, sizeof(DBGMSGSetStateResponse));
     return 1;
   };
+  case DBGMsgType_NoClipRequest: {
+    gameCtx->_noClip = !gameCtx->_noClip;
+    printf("received NoClipRequest, setting no clip to %i\n", gameCtx->_noClip);
+    DBGMsgHeader outHeader = {.type = DBGMsgType_NoClipResponse, 0};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    return 1;
+  }
+  case DBGMsgType_NoClipResponse:
   case DBGMsgType_SetStateResponse:
   case DBGMsgType_GiveItemResponse:
   case DBGMsgType_StatusResponse:

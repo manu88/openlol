@@ -338,6 +338,11 @@ static int tryMove(GameContext *gameCtx, Direction dir) {
     break;
   }
   uint16_t newBlock = BlockCalcNewPosition(gameCtx->currentBock, orientation);
+  if (gameCtx->_noClip) {
+    gameCtx->currentBock = newBlock;
+    return 1;
+  }
+
   Orientation facingOrientation = (orientation + 2) % 4;
   const MazeBlock *block =
       gameCtx->level->mazHandle.maze->wallMappingIndices + newBlock;

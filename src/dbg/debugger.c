@@ -68,6 +68,11 @@ static void processCommand(int argc, char *argv[]) {
     read(sock, &resp, sizeof(DBGMSGQuitResponse));
     printf("reply %i\n", resp.response);
     shouldStop = 1;
+  } else if (strcmp(cmd, "noclip") == 0) {
+    DBGMsgHeader header = {.type = DBGMsgType_NoClipRequest, 0};
+    write(sock, &header, sizeof(DBGMsgHeader));
+    read(sock, &header, sizeof(DBGMsgHeader));
+    assert(header.type == DBGMsgType_NoClipResponse);
   } else {
     printf("unknown command '%s'\n", cmd);
   }

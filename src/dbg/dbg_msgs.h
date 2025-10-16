@@ -18,6 +18,9 @@ typedef enum {
 
   DBGMsgType_QuitRequest,
   DBGMsgType_QuitResponse,
+
+  DBGMsgType_NoClipRequest,
+  DBGMsgType_NoClipResponse,
 } DBGMsgType;
 
 typedef struct {
