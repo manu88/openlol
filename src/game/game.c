@@ -321,22 +321,26 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
 }
 
 static int tryMove(GameContext *gameCtx, Direction dir) {
-  Point newPos = {0};
+  uint16_t newBlock = 0;
   switch (dir) {
   case Front:
-    newPos = PointGoFront(&gameCtx->partyPos, gameCtx->orientation, 1);
+    newBlock = BlockCalcNewPosition(
+        gameCtx->currentBock, absOrientation(gameCtx->orientation, North));
     break;
   case Left:
-    newPos = PointGoLeft(&gameCtx->partyPos, gameCtx->orientation, 1);
+    newBlock = BlockCalcNewPosition(gameCtx->currentBock,
+                                    absOrientation(gameCtx->orientation, West));
     break;
   case Back:
-    newPos = PointGoBack(&gameCtx->partyPos, gameCtx->orientation, 1);
+    newBlock = BlockCalcNewPosition(
+        gameCtx->currentBock, absOrientation(gameCtx->orientation, South));
     break;
   case Right:
-    newPos = PointGoRight(&gameCtx->partyPos, gameCtx->orientation, 1);
+    newBlock = BlockCalcNewPosition(gameCtx->currentBock,
+                                    absOrientation(gameCtx->orientation, East));
     break;
   }
-  gameCtx->partyPos = newPos;
+  gameCtx->currentBock = newBlock;
   return 1;
 }
 
@@ -517,12 +521,7 @@ static void GameRunOnce(GameContext *gameCtx) {
     if (processGameInputs(gameCtx, &e)) {
       shouldUpdate = 1;
     }
-    if (shouldUpdate) {
-      uint16_t gameX = 0;
-      uint16_t gameY = 0;
-      GetGameCoords(gameCtx->partyPos.x, gameCtx->partyPos.y, &gameX, &gameY);
-      gameCtx->currentBock = BlockFromCoords(gameX, gameY);
-    }
+
     break;
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {

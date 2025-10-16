@@ -71,8 +71,6 @@ static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   switch (id) {
   case EMCGlobalVarID_CurrentBlock: {
     ctx->currentBock = b;
-    GetGameCoordsFromBlock(ctx->currentBock, &ctx->partyPos.x,
-                           &ctx->partyPos.y);
     break;
   }
   case EMCGlobalVarID_CurrentDir:

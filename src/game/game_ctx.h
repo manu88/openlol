@@ -142,7 +142,6 @@ typedef struct _GameContext {
 
   MouseEvent mouseEv;
   uint16_t currentBock;
-  Point partyPos;
   Orientation orientation;
 
   LevelContext *level;

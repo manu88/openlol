@@ -136,13 +136,6 @@ void GetRealCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut) {
   *yOut = (y & 0XFF00) >> 8;
 }
 
-void GetGameCoordsFromBlock(uint16_t block, uint16_t *xOut, uint16_t *yOut) {
-  uint16_t x = 0;
-  uint16_t y = 0;
-  BlockGetCoordinates(&x, &y, block, 0x80, 0x80);
-  GetRealCoords(x, y, xOut, yOut);
-}
-
 void GetGameCoords(uint16_t x, uint16_t y, uint16_t *xOut, uint16_t *yOut) {
   assert(xOut);
   assert(yOut);

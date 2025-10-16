@@ -251,8 +251,12 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   memset(gameCtx->viewConeEntries, 0,
          sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
-    Point p = PointGo(&gameCtx->partyPos, gameCtx->orientation,
-                      viewConeCell[i].frontDist, viewConeCell[i].leftDist);
+
+    Point p;
+    BlockGetCoordinates(&p.x, &p.y, gameCtx->currentBock, 0x80, 0x80);
+    GetRealCoords(p.x, p.y, &p.x, &p.y);
+    p = PointGo(&p, gameCtx->orientation, viewConeCell[i].frontDist,
+                viewConeCell[i].leftDist);
     if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
       gameCtx->viewConeEntries[i].coords = p;
       gameCtx->viewConeEntries[i].valid = 1;
