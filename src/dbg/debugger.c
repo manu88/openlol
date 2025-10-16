@@ -45,7 +45,7 @@ static void processCommand(int argc, char *argv[]) {
     read(sock, &status, sizeof(DBGMsgStatus));
     printf("received %i %i current block %X\n", header.type, header.dataSize,
            status.currentBock);
-  } else if (strcmp(cmd, "state") == 0) {
+  } else if ((strcmp(cmd, "state") == 0) && argc > 1) {
     DBGMsgHeader header = {.type = DBGMsgType_SetStateRequest,
                            sizeof(DBGMSGSetStateRequest)};
     write(sock, &header, sizeof(DBGMsgHeader));
