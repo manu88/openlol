@@ -85,13 +85,18 @@ typedef enum {
   West = 3,
 } Orientation;
 
+typedef enum {
+  Front,
+  Left,
+  Back,
+  Right,
+} Direction;
+
 Orientation OrientationTurnRight(Orientation orientation);
 Orientation OrientationTurnLeft(Orientation orientation);
 
-
 Orientation absOrientation(Orientation partyOrientation,
                            Orientation orientation);
-
 
 Point PointGoFront(const Point *pos, Orientation orientation, int distance);
 Point PointGoLeft(const Point *pos, Orientation orientation, int distance);

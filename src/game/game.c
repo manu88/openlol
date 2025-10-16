@@ -320,6 +320,26 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
   return 0;
 }
 
+static int tryMove(GameContext *gameCtx, Direction dir) {
+  Point newPos = {0};
+  switch (dir) {
+  case Front:
+    newPos = PointGoFront(&gameCtx->partyPos, gameCtx->orientation, 1);
+    break;
+  case Left:
+    newPos = PointGoLeft(&gameCtx->partyPos, gameCtx->orientation, 1);
+    break;
+  case Back:
+    newPos = PointGoBack(&gameCtx->partyPos, gameCtx->orientation, 1);
+    break;
+  case Right:
+    newPos = PointGoRight(&gameCtx->partyPos, gameCtx->orientation, 1);
+    break;
+  }
+  gameCtx->partyPos = newPos;
+  return 1;
+}
+
 static int processPlayGameMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
@@ -336,21 +356,17 @@ static int processPlayGameMouse(GameContext *gameCtx) {
         if (buttonX == 0) {
           gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
         } else if (buttonX == 1) {
-          gameCtx->partyPos =
-              PointGoFront(&gameCtx->partyPos, gameCtx->orientation, 1);
+          tryMove(gameCtx, Front);
         } else if (buttonX == 2) {
           gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
         }
       } else if (buttonY == 1) {
         if (buttonX == 0) {
-          gameCtx->partyPos =
-              PointGoLeft(&gameCtx->partyPos, gameCtx->orientation, 1);
+          tryMove(gameCtx, Left);
         } else if (buttonX == 1) {
-          gameCtx->partyPos =
-              PointGoBack(&gameCtx->partyPos, gameCtx->orientation, 1);
+          tryMove(gameCtx, Back);
         } else if (buttonX == 2) {
-          gameCtx->partyPos =
-              PointGoRight(&gameCtx->partyPos, gameCtx->orientation, 1);
+          tryMove(gameCtx, Right);
         }
       }
       return 1;
@@ -427,26 +443,22 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     case SDLK_z:
       // go front
       shouldUpdate = 1;
-      gameCtx->partyPos =
-          PointGoFront(&gameCtx->partyPos, gameCtx->orientation, 1);
+      tryMove(gameCtx, Front);
       break;
     case SDLK_s:
       // go back
       shouldUpdate = 1;
-      gameCtx->partyPos =
-          PointGoBack(&gameCtx->partyPos, gameCtx->orientation, 1);
+      tryMove(gameCtx, Back);
       break;
     case SDLK_q:
       // go left
       shouldUpdate = 1;
-      gameCtx->partyPos =
-          PointGoLeft(&gameCtx->partyPos, gameCtx->orientation, 1);
+      tryMove(gameCtx, Left);
       break;
     case SDLK_d:
       // go right
       shouldUpdate = 1;
-      gameCtx->partyPos =
-          PointGoRight(&gameCtx->partyPos, gameCtx->orientation, 1);
+      tryMove(gameCtx, Right);
       break;
     case SDLK_a:
       // turn anti-clockwise
