@@ -165,11 +165,62 @@ void LevelContextRelease(LevelContext *levelCtx) {
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
+static void inspectFrontWall(GameContext *gameCtx) {
+  uint16_t nextBlock =
+      BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
+  const MazeBlock *block =
+      gameCtx->level->mazHandle.maze->wallMappingIndices + nextBlock;
+  uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
+  const WllWallMapping *mapping =
+      WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
+  if (mapping) {
+    printf("clickOnFrontWall WallType wallType=0X%X decorationId=%X "
+           "specialType=%X "
+           "flags=%X automapData=%X\n",
+           mapping->wallType, mapping->decorationId, mapping->specialType,
+           mapping->flags, mapping->automapData);
+  }
+}
+
 static void clickOnFrontWall(GameContext *gameCtx) {
   uint16_t nextBlock =
       BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
+  const MazeBlock *block =
+      gameCtx->level->mazHandle.maze->wallMappingIndices + nextBlock;
+  uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
+  const WllWallMapping *mapping =
+      WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
+  if (!mapping) {
+    return;
+  }
+  switch (mapping->specialType) {
 
-  GameContextRunScript(gameCtx, nextBlock);
+  case WallSpecialType_None:
+    printf("WallSpecialType_None\n");
+    break;
+  case WallSpecialType_WallShape:
+    printf("WallSpecialType_WallShape\n");
+    GameContextRunScript(gameCtx, nextBlock);
+    break;
+  case WallSpecialType_LeverOn:
+    printf("WallSpecialType_LeverOn\n");
+    break;
+  case WallSpecialType_LeverOff:
+    printf("WallSpecialType_LeverOff\n");
+    break;
+  case WallSpecialType_OnlyScript:
+    printf("WallSpecialType_OnlyScript\n");
+    GameContextRunScript(gameCtx, nextBlock);
+    break;
+  case WallSpecialType_DoorSwitch:
+    printf("WallSpecialType_DoorSwitch\n");
+    break;
+  case WallSpecialType_Niche:
+    printf("WallSpecialType_Niche\n");
+    break;
+  default:
+    assert(0);
+  }
 }
 
 static int charPortraitClicked(const GameContext *gameCtx) {
@@ -485,6 +536,9 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       // turn clockwise
       shouldUpdate = 1;
       gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
+      break;
+    case SDLK_p:
+      inspectFrontWall(gameCtx);
       break;
     case SDLK_SPACE:
       shouldUpdate = 1;
