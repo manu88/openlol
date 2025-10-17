@@ -57,7 +57,7 @@ static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   return 1;
 }
 
@@ -405,14 +405,17 @@ static uint16_t setSpecialSceneButtons(EMCInterpreter *interp,
 
 static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
+#if 0  
   uint16_t specialColor = EMCStateStackVal(state, 1);
   uint16_t weight = EMCStateStackVal(state, 2);
   uint16_t vcnLen = EMCStateStackVal(state, 3);
   uint16_t vmpLen = EMCStateStackVal(state, 4);
+#endif
   uint16_t p5 = EMCStateStackVal(state, 5);
-  const char *paletteFile = NULL;
+  // const char *paletteFile = NULL;
   if (p5 != 0XFFFF) {
-    paletteFile = EMCStateGetDataString(state, p5);
+    // paletteFile = EMCStateGetDataString(state, p5);
+    assert(0); // investigate
   }
 
   interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);

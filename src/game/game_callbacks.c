@@ -297,7 +297,7 @@ static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,
                                      EMCGetItemParam how) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   const Item *item = &gameCtx->itemsInGame[itemId];
-  const ItemProperty *p = &gameCtx->itemProperties[item->itemPropertyIndex];
+  // const ItemProperty *p = &gameCtx->itemProperties[item->itemPropertyIndex];
   switch (how) {
   case EMCGetItemParam_Block:
   case EMCGetItemParam_X:

@@ -225,9 +225,9 @@ void GameTimAnimatorReleaseTim(GameTimAnimator *animator, uint16_t scriptId) {
 
 int GameTimAnimatorRender(GameTimAnimator *animator) {
   printf("GameTimAnimatorRender\n");
-  int timeToWait = 0;
+  // int timeToWait = 0;
   if (TIMInterpreterIsRunning(&animator->timInterpreter)) {
-    timeToWait = TIMInterpreterUpdate(&animator->timInterpreter);
+    TIMInterpreterUpdate(&animator->timInterpreter);
   } else {
     printf("TIM anim is done\n");
     return 0;
