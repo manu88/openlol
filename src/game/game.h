@@ -9,4 +9,3 @@
 
 void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);
-int GameContextRunScript(GameContext *gameCtx, int function);
