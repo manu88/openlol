@@ -11,7 +11,9 @@ typedef struct {
   uint8_t showDisamComment;
 } EMCDisassembler;
 
+#ifndef PRINTFLIKE
 #define PRINTFLIKE(n, m) __attribute__((format(printf, n, m)))
+#endif
 
 void EMCDisassemblerInit(EMCDisassembler *disassembler);
 void EMCDisassemblerRelease(EMCDisassembler *disassembler);
