@@ -135,6 +135,7 @@ static uint16_t clearDialogueField(EMCInterpreter *interp, EMCState *state) {
   interp->callbacks.EMCInterpreterCallbacks_ClearDialogField(interp);
   return 1;
 }
+
 static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
                                              EMCState *state) {
   uint16_t animIndex = EMCStateStackVal(state, 0);
@@ -147,10 +148,12 @@ static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
   uint16_t field = EMCStateStackVal(state, 7);
   uint16_t sfxIndex = EMCStateStackVal(state, 8);
   uint16_t sfxFrame = EMCStateStackVal(state, 9);
-  printf("setupBackgroundAnimationPart\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  interp->callbacks.EMCInterpreterCallbacks_SetupBackgroundAnimationPart(
+      interp, animIndex, part, firstFrame, lastFrame, cycles, nextPart,
+      partDelay, field, sfxIndex, sfxFrame);
+  return 1;
 }
+
 static uint16_t hideMouse(EMCInterpreter *interp, EMCState *state) {
   printf("hideMouse\n");
   ASSERT_UNIMPLEMENTED;
@@ -246,7 +249,9 @@ static uint16_t restoreAfterSceneWindowDialogue(EMCInterpreter *interp,
 
 static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
                                          EMCState *state) {
-  printf("startBackgroundAnimation\n");
+  uint16_t animIndex = EMCStateStackVal(state, 0);
+  uint16_t part = EMCStateStackVal(state, 1);
+  printf("startBackgroundAnimation animIndex=%x part=%x\n", animIndex, part);
   ASSERT_UNIMPLEMENTED;
   return 0;
 }

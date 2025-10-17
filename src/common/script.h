@@ -260,6 +260,12 @@ typedef struct _EMCInterpreterCallbacks {
                                                        uint16_t strIds[3]);
 
   uint16_t (*EMCInterpreterCallbacks_ProcessDialog)(EMCInterpreter *interp);
+
+  void (*EMCInterpreterCallbacks_SetupBackgroundAnimationPart)(
+      EMCInterpreter *interp, uint16_t animIndex, uint16_t part,
+      uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles,
+      uint16_t nextPart, uint16_t partDelay, uint16_t field, uint16_t sfxIndex,
+      uint16_t sfxFrame);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

@@ -5,7 +5,7 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
-#include "geometry.h"
+#include "game_tim_animator.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -25,7 +25,6 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   assert(ctx);
   GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   ctx->dialogText = ctx->dialogTextBuffer;
-  printf("callbackPlayDialogue: '%s'\n", ctx->dialogText);
 }
 
 static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
@@ -396,12 +395,11 @@ static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
 static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
                                     uint16_t index2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("callbackGetWallType 0X%X\n", index);
-
   const MazeBlock *block =
       gameCtx->level->mazHandle.maze->wallMappingIndices + index;
-  uint8_t wmi = block->face[absOrientation(gameCtx->orientation, East)];
-  return WllHandleGetWallType(&gameCtx->level->wllHandle, wmi) & 3;
+  uint8_t wmi = block->face[index2];
+  uint16_t type = WllHandleGetWallType(&gameCtx->level->wllHandle, wmi);
+  return type;
 }
 
 static void callbackSetupDialogueButtons(EMCInterpreter *interp,
@@ -418,6 +416,23 @@ static void callbackSetupDialogueButtons(EMCInterpreter *interp,
     memset(gameCtx->buttonText[i], 0, 16);
     GameContextGetString(gameCtx, strIds[i], gameCtx->buttonText[i], 16);
   }
+}
+
+static void callbackSetupBackgroundAnimationPart(
+    EMCInterpreter *interp, uint16_t animIndex, uint16_t part,
+    uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles, uint16_t nextPart,
+    uint16_t partDelay, uint16_t field, uint16_t sfxIndex, uint16_t sfxFrame) {
+
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("setupBackgroundAnimationPart animIndex=%x part=%x firstFrame=%x "
+         "lastFrame=%x cycles=%x nextPart=%x partDelay=%x field=%x sfxIndex=%x "
+         "sfxFrame%x\n",
+         animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
+         field, sfxIndex, sfxFrame);
+
+  GameTimAnimatorSetupPart(&gameCtx->timAnimator, animIndex, part, firstFrame,
+                           lastFrame, cycles, nextPart, partDelay, field,
+                           sfxIndex, sfxFrame);
 }
 
 static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
@@ -527,4 +542,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackSetupDialogueButtons;
   interp->callbacks.EMCInterpreterCallbacks_ProcessDialog =
       callbackProcessDialog;
+  interp->callbacks.EMCInterpreterCallbacks_SetupBackgroundAnimationPart =
+      callbackSetupBackgroundAnimationPart;
 }
