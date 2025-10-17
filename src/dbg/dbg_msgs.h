@@ -5,7 +5,7 @@
 
 typedef enum {
   DBGMsgType_Hello = 0,
-  DBGMsgType_Goodbye = 0,
+  DBGMsgType_Goodbye,
 
   DBGMsgType_StatusRequest,
   DBGMsgType_StatusResponse,
@@ -21,6 +21,10 @@ typedef enum {
 
   DBGMsgType_NoClipRequest,
   DBGMsgType_NoClipResponse,
+
+  DBGMsgType_SetLoggerRequest,
+  DBGMsgType_SetLoggerResponse,
+
 } DBGMsgType;
 
 typedef struct {

@@ -1,6 +1,7 @@
 #include "dbg_server.h"
 #include "dbg_msgs.h"
 #include "game_ctx.h"
+#include "logger.h"
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -101,7 +102,7 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
     resp.response = 1;
     write(cltSocket, &resp, sizeof(DBGMSGSetStateResponse));
     return 1;
-  };
+  }
   case DBGMsgType_NoClipRequest: {
     gameCtx->_noClip = !gameCtx->_noClip;
     printf("received NoClipRequest, setting no clip to %i\n", gameCtx->_noClip);
@@ -109,10 +110,24 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
     return 1;
   }
+  case DBGMsgType_SetLoggerRequest: {
+
+    if (LoggerGetOutput() == NULL) {
+      printf("Enable std logger\n");
+      LoggerSetOutput(LoggerStdOut);
+    } else {
+      printf("Disable std logger\n");
+      LoggerSetOutput(NULL);
+    }
+    DBGMsgHeader outHeader = {.type = DBGMsgType_SetLoggerResponse, 0};
+    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    return 1;
+  }
   case DBGMsgType_NoClipResponse:
   case DBGMsgType_SetStateResponse:
   case DBGMsgType_GiveItemResponse:
   case DBGMsgType_StatusResponse:
+  case DBGMsgType_SetLoggerResponse:
   case DBGMsgType_Hello:
   default:
     assert(0);

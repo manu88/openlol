@@ -73,6 +73,13 @@ static void processCommand(int argc, char *argv[]) {
     write(sock, &header, sizeof(DBGMsgHeader));
     read(sock, &header, sizeof(DBGMsgHeader));
     assert(header.type == DBGMsgType_NoClipResponse);
+  } else if (strcmp(cmd, "log") == 0) {
+    DBGMsgHeader header = {.type = DBGMsgType_SetLoggerRequest, 0};
+    write(sock, &header, sizeof(DBGMsgHeader));
+
+    read(sock, &header, sizeof(DBGMsgHeader));
+    assert(header.type == DBGMsgType_SetLoggerResponse);
+
   } else {
     printf("unknown command '%s'\n", cmd);
   }
