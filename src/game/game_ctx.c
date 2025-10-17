@@ -152,7 +152,7 @@ int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
 
   for (int i = 0; i < INVENTORY_SIZE; i++) {
     if (ctx->inventory[i] == 0) {
-      ctx->inventory[i] = itemId;
+      ctx->inventory[i] = GameContextCreateItem(ctx, itemId);
       return 1;
     }
   }
@@ -301,4 +301,8 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
     }
   }
   gameCtx->dialogText = NULL;
+}
+
+uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
+  return itemType;
 }

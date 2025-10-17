@@ -119,9 +119,9 @@ int cmdGame(int argc, char *argv[]) {
     // temp until we get the value from script/tim
     gameCtx.currentBock = 0X24D;
     gameCtx.orientation = North;
-    gameCtx.inventory[0] = 216;
-    gameCtx.inventory[1] = 217;
-    gameCtx.inventory[2] = 218;
+    gameCtx.inventory[0] = GameContextCreateItem(&gameCtx, 216);
+    gameCtx.inventory[1] = GameContextCreateItem(&gameCtx, 217);
+    gameCtx.inventory[2] = GameContextCreateItem(&gameCtx, 218);
   }
 
   char faceFile[11] = "";
