@@ -33,11 +33,18 @@
 typedef struct {
   uint8_t level;
   uint16_t itemPropertyIndex;
+
 } Item;
 
 typedef struct {
   uint16_t stringId;
   uint16_t shapeId;
+  uint16_t type;
+  uint16_t scriptFun;
+  uint16_t might;
+  uint16_t skill;
+  uint16_t protection;
+  uint16_t flags;
 } ItemProperty;
 
 typedef struct {

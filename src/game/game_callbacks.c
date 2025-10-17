@@ -332,7 +332,6 @@ static void callbackAllocItemProperties(EMCInterpreter *interp, uint16_t size) {
   gameCtx->itemsCount = size;
 }
 
-static char c[128] = "";
 static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
                                     uint16_t stringId, uint16_t shapeId,
                                     uint16_t type, uint16_t scriptFun,
@@ -343,11 +342,12 @@ static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
 
   gameCtx->itemProperties[index].shapeId = shapeId;
   gameCtx->itemProperties[index].stringId = stringId;
-  uint8_t useLevelFile = 0;
-  int realStringId = LangGetString(stringId, &useLevelFile);
-  assert(useLevelFile == 0);
-
-  LangHandleGetString(&gameCtx->lang, realStringId, c, sizeof(c));
+  gameCtx->itemProperties[index].type = type;
+  gameCtx->itemProperties[index].scriptFun = scriptFun;
+  gameCtx->itemProperties[index].might = might;
+  gameCtx->itemProperties[index].skill = skill;
+  gameCtx->itemProperties[index].protection = protection;
+  gameCtx->itemProperties[index].flags = flags;
 }
 
 static void callbackDisableControls(EMCInterpreter *interp, uint16_t mode) {
