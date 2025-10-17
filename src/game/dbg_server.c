@@ -20,7 +20,7 @@ int recvDataSize;
 static uint8_t recvBuf[1024];
 
 void DBGServerRelease(void) {
-  printf("DBGServerRelease");
+  printf("DBGServerRelease\n");
   if (cltSocket != -1) {
     DBGMsgHeader outHeader = {.type = DBGMsgType_Goodbye, sizeof(DBGMsgStatus)};
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
