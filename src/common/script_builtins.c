@@ -1,5 +1,6 @@
 #include "script_builtins.h"
 #include "game_ctx.h"
+#include "logger.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -885,5 +886,6 @@ void EMCInterpreterExecFunction(EMCInterpreter *interp, EMCState *state,
     printf("unimplemented func %X\n", funcNum);
     assert(0);
   }
+  Log("SCRIPT", "CALL %s", desc.name);
   state->retValue = desc.fun(interp, state);
 }
