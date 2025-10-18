@@ -56,36 +56,16 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "tim"
+            argument = "game"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "anim"
+            argument = "-d"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/GUARD2.TIM"
+            argument = "data/cd"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL01.FRE"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.VMP"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/LEVEL1.WLL"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.DAT"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/KEEP.SHP"
-            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

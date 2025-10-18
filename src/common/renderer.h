@@ -4,7 +4,6 @@
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
-#include "game_ctx.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>
 #include <stdint.h>
