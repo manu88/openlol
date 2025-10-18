@@ -39,7 +39,6 @@ static void processCommand(int argc, char *argv[]) {
   } else if (strcmp(cmd, "status") == 0) {
     DBGMsgHeader header = {.type = DBGMsgType_StatusRequest, 0};
     write(sock, &header, sizeof(DBGMsgHeader));
-
     read(sock, &header, sizeof(DBGMsgHeader));
     DBGMsgStatus status;
     read(sock, &status, sizeof(DBGMsgStatus));

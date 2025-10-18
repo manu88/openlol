@@ -56,12 +56,15 @@ int DBGServerInit(void) {
   return 0;
 }
 
+static void printGameState(const GameContext *gameCtx) {
+  printf("itemInHand %X\n", gameCtx->itemInHand);
+}
 static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
                           uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {
   case DBGMsgType_StatusRequest: {
-
     printf("received StatusRequest\n");
+    printGameState(gameCtx);
     DBGMsgHeader outHeader = {.type = DBGMsgType_StatusResponse,
                               sizeof(DBGMsgStatus)};
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
