@@ -713,20 +713,18 @@ static int cmdSAVShow(const char *filepath) {
       continue;
     }
     const GameObject *obj = slot->gameObjects + gameObjIndex;
-    printf("%i: 0X%X 0X%X\n", i, gameObjIndex, obj->itemId);
+    printf("%i: gameObjIndex=%03i itemPropertyIndex=0X%X\n", i, gameObjIndex,
+           obj->itemPropertyIndex);
   }
 
   printf("+Objects\n");
   for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
     const GameObject *obj = slot->gameObjects + i;
-    if (obj->itemId == 0) {
+    if (obj->itemPropertyIndex == 0) {
       continue;
     }
-    printf("%03i %04X", i, obj->itemId);
-    printf("\t");
-    for (int j = 0; j < 14; j++) {
-      printf("%02X ", obj->rest[j]);
-    }
+    printf("gameObjIndex=%03i itemPropertyIndex=%04X x=%i y=%i block=%X", i,
+           obj->itemPropertyIndex, obj->x, obj->y, obj->block);
     printf("\n");
   }
 

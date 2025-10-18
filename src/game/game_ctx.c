@@ -116,9 +116,9 @@ int GameContextInit(GameContext *gameCtx) {
     gameCtx->defaultPalette = img.palette;
   }
 
-  gameCtx->itemsInGame = malloc(MAX_IN_GAME_ITEMS * sizeof(Item));
+  gameCtx->itemsInGame = malloc(MAX_IN_GAME_ITEMS * sizeof(GameObject));
   assert(gameCtx->itemsInGame);
-  memset(gameCtx->itemsInGame, 0, MAX_IN_GAME_ITEMS * sizeof(Item));
+  memset(gameCtx->itemsInGame, 0, MAX_IN_GAME_ITEMS * sizeof(GameObject));
 
   DBGServerInit();
   return 1;
@@ -304,5 +304,17 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
 }
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
+  int slot = -1;
+  for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
+    GameObject *item = gameCtx->itemsInGame + i;
+    if (item->itemPropertyIndex == 0) {
+      slot = i;
+      break;
+    }
+  }
+  printf("GameContextCreateItem: add %X at slot %i\n", itemType, slot);
+  assert(slot != -1 && slot != MAX_IN_GAME_ITEMS);
+  GameObject *item = gameCtx->itemsInGame + slot;
+  item->itemPropertyIndex = itemType;
   return itemType;
 }

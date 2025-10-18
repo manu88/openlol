@@ -1,4 +1,5 @@
 #pragma once
+#include <_static_assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -79,11 +80,19 @@ typedef struct {
 #define INVENTORY_SIZE 48
 #define MAX_ITEM_ID 0X89
 
-typedef struct {
-
-  uint8_t rest[14];
-  uint16_t itemId;
+typedef struct __attribute__((__packed__)) {
+  uint16_t nextAssignedObject;
+  uint16_t nextDrawObject;
+  uint8_t flyingHeight;
+  uint16_t block;
+  uint16_t x;
+  uint16_t y;
+  uint8_t level;
+  uint16_t itemPropertyIndex;
+  uint16_t shpCurFrame_flg;
 } GameObject;
+
+static_assert(sizeof(GameObject) == 16, "");
 
 #define NUM_CHARACTERS 3
 

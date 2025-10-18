@@ -31,12 +31,6 @@
 #define NUM_GLOBAL_SCRIPT_VARS 24
 
 typedef struct {
-  uint8_t level;
-  uint16_t itemPropertyIndex;
-
-} Item;
-
-typedef struct {
   uint16_t stringId;
   uint16_t shapeId;
   uint16_t type;
@@ -203,7 +197,7 @@ typedef struct _GameContext {
   SDL_Cursor *cursor;
 
   ItemProperty *itemProperties;
-  Item *itemsInGame;
+  GameObject *itemsInGame;
   uint16_t itemsCount;
 
   CPSImage loadedbitMap;

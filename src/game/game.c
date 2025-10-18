@@ -103,9 +103,10 @@ int cmdGame(int argc, char *argv[]) {
         continue;
       }
       const GameObject *obj = savHandle.slot.gameObjects + gameObjIndex;
-      gameCtx.inventory[i] = obj->itemId;
+      gameCtx.inventory[i] = obj->itemPropertyIndex;
     }
-
+    memcpy(savHandle.slot.gameObjects, gameCtx.itemsInGame,
+           sizeof(GameObject) * MAX_IN_GAME_ITEMS);
     for (int i = 0; i < NUM_CHARACTERS; i++) {
       memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
              sizeof(SAVCharacter));
