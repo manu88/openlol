@@ -65,6 +65,14 @@ typedef struct {
 } SAVGeneral;
 
 typedef struct {
+  uint8_t brightness;
+  uint8_t lampOilStatus;
+  uint8_t lampEffect;
+  uint8_t _;
+  uint16_t credits;
+} SAVGeneral2;
+
+typedef struct {
   char name[46];
 } SAVHeader;
 
@@ -84,6 +92,7 @@ typedef struct {
   SAVCharacter *characters[NUM_CHARACTERS];
 
   SAVGeneral *general;
+  SAVGeneral2 *general2;
 
   uint16_t *inventory; // size is INVENTORY_SIZE
 

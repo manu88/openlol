@@ -704,6 +704,7 @@ static int cmdSAVShow(const char *filepath) {
   printf("orientation=%X compass=%X\n", slot->general->currentDirection,
          slot->general->compassDirection);
   printf("level %i\n", slot->general->currentLevel);
+  printf("credits %i\n", slot->general2->credits);
   printf("selected char %i\n", slot->general->selectedChar);
   printf("+INVENTORY\n");
   for (int i = 0; i < INVENTORY_SIZE; i++) {
