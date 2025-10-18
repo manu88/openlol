@@ -617,7 +617,6 @@ static void GameRunOnce(GameContext *gameCtx) {
   }
   if (shouldUpdate) {
     GameRender(gameCtx);
-    shouldUpdate = 0;
   }
 
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,

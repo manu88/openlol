@@ -44,8 +44,7 @@ int VCNHandleFromLCWBuffer(VCNHandle *handle, const uint8_t *buffer,
   dest += 3 * 128;
 
   VCNBlock *blocks = (VCNBlock *)dest;
-  dest += handle->nbBlocks * sizeof(VCNBlock);
-
+  
   handle->palette = palette;
   handle->blocks = blocks;
   return 1;

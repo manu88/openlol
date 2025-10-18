@@ -461,9 +461,6 @@ static int cmdCPSExtractPal(const char *filepath) {
   }
   if (image.paletteSize == 0) {
     printf("no palette found\n");
-    if (freeBuffer) {
-      free(buffer);
-    }
     CPSImageRelease(&image);
     return 1;
   }
@@ -476,9 +473,7 @@ static int cmdCPSExtractPal(const char *filepath) {
   assert(image.palette);
   writeBinaryFile(destFilePath, image.palette, image.paletteSize);
   free(destFilePath);
-  if (freeBuffer) {
-    free(buffer);
-  }
+
   CPSImageRelease(&image);
   return 0;
 }

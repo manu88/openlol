@@ -412,14 +412,12 @@ void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
       }
 
       int xx = x + xPos;
-      int yy = y + yPos;
+      int yy = y + yPos + MAZE_COORDS_Y;
 
       if (xFlip) {
         xx = MAZE_COORDS_W - xx;
       }
 
-      yy = y + yPos;
-      yy += MAZE_COORDS_Y;
       drawMazePix(data, pitch, r, g, b, xx, yy);
     }
   }
