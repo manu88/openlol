@@ -97,16 +97,17 @@ int cmdGame(int argc, char *argv[]) {
     }
 
     gameCtx.levelId = savHandle.slot.general->currentLevel;
+    memcpy(gameCtx.itemsInGame, savHandle.slot.gameObjects,
+           sizeof(GameObject) * MAX_IN_GAME_ITEMS);
     for (int i = 0; i < INVENTORY_SIZE; i++) {
       uint16_t gameObjIndex = savHandle.slot.inventory[i];
       if (gameObjIndex == 0) {
         continue;
       }
-      const GameObject *obj = savHandle.slot.gameObjects + gameObjIndex;
+      const GameObject *obj = gameCtx.itemsInGame + gameObjIndex;
       gameCtx.inventory[i] = obj->itemPropertyIndex;
     }
-    memcpy(savHandle.slot.gameObjects, gameCtx.itemsInGame,
-           sizeof(GameObject) * MAX_IN_GAME_ITEMS);
+
     for (int i = 0; i < NUM_CHARACTERS; i++) {
       memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
              sizeof(SAVCharacter));
