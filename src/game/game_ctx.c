@@ -116,7 +116,9 @@ int GameContextInit(GameContext *gameCtx) {
     assert(GameEnvironmentGetFileFromPak(&f, "GERIM.CPS", "O01A.PAK"));
     CPSImage img = {0};
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
-    gameCtx->defaultPalette = img.palette;
+    gameCtx->defaultPalette = malloc(img.paletteSize);
+    memcpy(gameCtx->defaultPalette, img.palette, img.paletteSize);
+    CPSImageRelease(&img);
   }
 
   gameCtx->itemsInGame = malloc(MAX_IN_GAME_ITEMS * sizeof(GameObject));
@@ -146,6 +148,8 @@ void GameContextRelease(GameContext *gameCtx) {
       free(gameCtx->buttonText[i]);
     }
   }
+
+  free(gameCtx->defaultPalette);
 }
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
