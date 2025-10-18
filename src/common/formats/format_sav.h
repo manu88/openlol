@@ -67,6 +67,9 @@ typedef struct {
   uint8_t currentLevel;
 
   uint16_t inventory[INVENTORY_SIZE];
+  uint16_t inventoryCurrentItem;
+  uint16_t itemIndexInHand;
+  uint16_t lastMouseRegion;
 } SAVGeneral;
 
 #define NUM_GLOBAL_SCRIPT_VARS2 8

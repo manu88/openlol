@@ -116,6 +116,7 @@ int cmdGame(int argc, char *argv[]) {
     gameCtx.currentBock = savHandle.slot.general->currentBlock;
     gameCtx.orientation = savHandle.slot.general->currentDirection;
     gameCtx.credits = savHandle.slot.general2->credits;
+    gameCtx.itemIndexInHand = savHandle.slot.general->itemIndexInHand;
   } else {
     gameCtx.levelId = 1;
     gameCtx.credits = 41;
@@ -152,7 +153,10 @@ int cmdGame(int argc, char *argv[]) {
                               f.bufferSize));
   }
 
-  createCursorForItem(&gameCtx, 0);
+  uint16_t itemId =
+      gameCtx.itemsInGame[gameCtx.itemIndexInHand].itemPropertyIndex;
+  uint16_t frameId = GameContextGetItemSHPFrameIndex(&gameCtx, itemId);
+  createCursorForItem(&gameCtx, frameId);
 
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);

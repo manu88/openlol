@@ -1,5 +1,4 @@
 #include "format_sav.h"
-#include "geometry.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

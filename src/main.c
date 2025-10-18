@@ -705,6 +705,8 @@ static int cmdSAVShow(const char *filepath) {
          slot->general->compassDirection);
   printf("level %i\n", slot->general->currentLevel);
   printf("credits %i\n", slot->general2->credits);
+  printf("inventoryCurrentItem %X\n", slot->general->inventoryCurrentItem);
+  printf("item in hand %X\n", slot->general->itemIndexInHand);
   printf("+GLOBAL SCRIPT VARS2\n");
   for (int i = 0; i < NUM_GLOBAL_SCRIPT_VARS2; i++) {
     printf("%i 0X%X\n", i, slot->general2->globalScriptVars[i]);
