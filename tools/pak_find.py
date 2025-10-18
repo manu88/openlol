@@ -15,7 +15,7 @@ parser.add_argument("-e", action="store_true", help="extract file")
 
 
 def extract(file: str, pak: str):
-    argv = ["./lol", "-p", f"{pak}", "pak", "extract", file]
+    argv = ["./lol", "-p", pak, "pak", "extract", file]
     proc_output = subprocess.run(
         argv, stdout=subprocess.PIPE).stdout.decode()
     print(f"extracted {file}")
@@ -26,7 +26,7 @@ def main():
     file_to_find = args.file
     print(f"Looking for {file_to_find} in {pak_path}")
     for pak_file in pak_files:
-        argv = ["./lol", "-p", f"{pak_file}", "pak", "list"]
+        argv = ["./lol", "-p", pak_file, "pak", "list"]
         proc_output = subprocess.run(
             argv, stdout=subprocess.PIPE).stdout.decode()
         for l in proc_output.splitlines():
