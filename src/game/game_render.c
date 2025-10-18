@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
@@ -123,6 +124,13 @@ static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
   SHPFrameGetImageData(&frame);
   drawSHPFrame(gameCtx->backgroundPixBuf, &frame, x, CHAR_FACE_Y,
                gameCtx->defaultPalette);
+}
+
+static void renderLeftUIPart(GameContext *gameCtx) {
+  char t[8] = "";
+  snprintf(t, 8, "%i", gameCtx->credits);
+  renderText(gameCtx, gameCtx->backgroundPixBuf, UI_CREDITS_X + 5,
+             UI_CREDITS_Y + 2, 20, t);
 }
 
 static void renderCharFaces(GameContext *gameCtx) {
@@ -271,6 +279,7 @@ void GameRender(GameContext *gameCtx) {
 
   renderInventory(gameCtx);
   renderCharFaces(gameCtx);
+  renderLeftUIPart(gameCtx);
 
   if (gameCtx->state == GameState_GrowDialogBox) {
     growDialogBox(gameCtx);
