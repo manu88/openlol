@@ -267,6 +267,7 @@ void GameRender(GameContext *gameCtx) {
   // SDL_RenderClear(gameCtx->renderer);
   renderPlayField(gameCtx);
 
+  renderLeftUIPart(gameCtx);
   if (gameCtx->fadeOutFrames) {
     gameCtx->fadeOutFrames--;
     // clearMazeZone(gameCtx);
@@ -282,7 +283,6 @@ void GameRender(GameContext *gameCtx) {
 
   renderInventory(gameCtx);
   renderCharFaces(gameCtx);
-  renderLeftUIPart(gameCtx);
 
   if (gameCtx->state == GameState_GrowDialogBox) {
     growDialogBox(gameCtx);
