@@ -348,7 +348,7 @@ static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
-  return interp->callbacks.EMCInterpreterCallbacks_GetItemInHand(interp);
+  return interp->callbacks.EMCInterpreterCallbacks_GetItemIndexInHand(interp);
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] playSoundEffect\n");

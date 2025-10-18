@@ -288,7 +288,7 @@ static void callbackReleaseTimScript(EMCInterpreter *interp,
   GameTimAnimatorReleaseTim(&gameCtx->timAnimator, scriptId);
 }
 
-static uint16_t callbackGetItemInHand(EMCInterpreter *interp) {
+static uint16_t callbackGetItemIndexInHand(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   return gameCtx->itemIndexInHand;
 }
@@ -500,8 +500,8 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_RunTimScript = callbackRunTimScript;
   interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript =
       callbackReleaseTimScript;
-  interp->callbacks.EMCInterpreterCallbacks_GetItemInHand =
-      callbackGetItemInHand;
+  interp->callbacks.EMCInterpreterCallbacks_GetItemIndexInHand =
+      callbackGetItemIndexInHand;
   interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties =
       callbackAllocItemProperties;
   interp->callbacks.EMCInterpreterCallbacks_SetItemProperty =
