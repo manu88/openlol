@@ -305,16 +305,15 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
   int slot = -1;
-  for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
+  for (int i = 1; i < MAX_IN_GAME_ITEMS; i++) {
     GameObject *item = gameCtx->itemsInGame + i;
     if (item->itemPropertyIndex == 0) {
       slot = i;
       break;
     }
   }
-  printf("GameContextCreateItem: add %X at slot %i\n", itemType, slot);
   assert(slot != -1 && slot != MAX_IN_GAME_ITEMS);
   GameObject *item = gameCtx->itemsInGame + slot;
   item->itemPropertyIndex = itemType;
-  return itemType;
+  return slot;
 }

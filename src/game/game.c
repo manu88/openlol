@@ -99,14 +99,15 @@ int cmdGame(int argc, char *argv[]) {
     gameCtx.levelId = savHandle.slot.general->currentLevel;
     memcpy(gameCtx.itemsInGame, savHandle.slot.gameObjects,
            sizeof(GameObject) * MAX_IN_GAME_ITEMS);
-    for (int i = 0; i < INVENTORY_SIZE; i++) {
-      uint16_t gameObjIndex = savHandle.slot.inventory[i];
-      if (gameObjIndex == 0) {
+
+    for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
+      const GameObject *obj = gameCtx.itemsInGame + i;
+      if (obj->itemPropertyIndex == 0) {
         continue;
       }
-      const GameObject *obj = gameCtx.itemsInGame + gameObjIndex;
-      gameCtx.inventory[i] = obj->itemPropertyIndex;
     }
+    memcpy(gameCtx.inventory, savHandle.slot.inventory,
+           INVENTORY_SIZE * sizeof(uint16_t));
 
     for (int i = 0; i < NUM_CHARACTERS; i++) {
       memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
@@ -260,20 +261,23 @@ static int charPortraitClicked(const GameContext *gameCtx) {
 
 static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
   int realIndex = (gameCtx->inventoryIndex + index) % INVENTORY_SIZE;
-  uint16_t itemId = gameCtx->inventory[realIndex];
-  if (gameCtx->itemInHand == 0 && itemId) {
+  uint16_t itemIndex = gameCtx->inventory[realIndex];
+  if (gameCtx->itemIndexInHand == 0 && itemIndex) {
     gameCtx->inventory[realIndex] = 0;
   } else {
-    gameCtx->inventory[realIndex] = gameCtx->itemInHand;
+    gameCtx->inventory[realIndex] = gameCtx->itemIndexInHand;
   }
-  gameCtx->itemInHand = itemId;
+
+  gameCtx->itemIndexInHand = itemIndex;
+
+  uint16_t itemId = gameCtx->itemsInGame[itemIndex].itemPropertyIndex;
   createCursorForItem(
-      gameCtx, itemId ? GameContextGetItemSHPFrameIndex(gameCtx, itemId) : 0);
-  if (gameCtx->itemInHand == 0) {
+      gameCtx,
+      itemIndex ? GameContextGetItemSHPFrameIndex(gameCtx, itemId) : 0);
+  if (itemId == 0) {
     return;
   }
-  uint16_t stringId = gameCtx->itemProperties[gameCtx->itemInHand].stringId;
-
+  uint16_t stringId = gameCtx->itemProperties[itemId].stringId;
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   gameCtx->dialogText = gameCtx->dialogTextBuffer;

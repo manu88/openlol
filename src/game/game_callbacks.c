@@ -290,7 +290,7 @@ static void callbackReleaseTimScript(EMCInterpreter *interp,
 
 static uint16_t callbackGetItemInHand(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  return gameCtx->itemInHand;
+  return gameCtx->itemIndexInHand;
 }
 
 static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,

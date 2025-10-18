@@ -57,7 +57,7 @@ int DBGServerInit(void) {
 }
 
 static void printGameState(const GameContext *gameCtx) {
-  printf("itemInHand %X\n", gameCtx->itemInHand);
+  printf("itemIndexInHand %X\n", gameCtx->itemIndexInHand);
 }
 static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
                           uint8_t *buffer) {

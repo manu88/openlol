@@ -110,11 +110,14 @@ static void renderCharInventory(GameContext *gameCtx) {
 static void renderInventory(GameContext *gameCtx) {
   for (int i = 0; i < 9; i++) {
     uint16_t index = (gameCtx->inventoryIndex + i) % INVENTORY_SIZE;
-    uint16_t itemId = gameCtx->inventory[index];
-    if (itemId) {
-      renderInventorySlot(gameCtx, i,
-                          GameContextGetItemSHPFrameIndex(gameCtx, itemId));
+    uint16_t gameObjIndex = gameCtx->inventory[index];
+    if (gameObjIndex == 0) {
+      continue;
     }
+    const GameObject *obj = gameCtx->itemsInGame + gameObjIndex;
+    renderInventorySlot(
+        gameCtx, i,
+        GameContextGetItemSHPFrameIndex(gameCtx, obj->itemPropertyIndex));
   }
 }
 
