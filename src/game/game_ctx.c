@@ -8,6 +8,7 @@
 #include "formats/format_shp.h"
 #include "game_envir.h"
 #include "game_tim_animator.h"
+#include "render.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -320,4 +321,20 @@ uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
 
 void GameContextDeleteItem(GameContext *gameCtx, uint16_t itemIndex) {
   memset(&gameCtx->itemsInGame[itemIndex], 0, sizeof(GameObject));
+}
+
+void GameContextUpdateCursor(GameContext *gameCtx) {
+  uint16_t itemId =
+      gameCtx->itemsInGame[gameCtx->itemIndexInHand].itemPropertyIndex;
+  uint16_t frameId =
+      itemId ? GameContextGetItemSHPFrameIndex(gameCtx, itemId) : 0;
+  createCursorForItem(gameCtx, frameId);
+
+  if (itemId == 0) {
+    return;
+  }
+  uint16_t stringId = gameCtx->itemProperties[itemId].stringId;
+  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
+                       DIALOG_BUFFER_SIZE);
+  gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }

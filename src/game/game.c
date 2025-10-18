@@ -153,10 +153,7 @@ int cmdGame(int argc, char *argv[]) {
                               f.bufferSize));
   }
 
-  uint16_t itemId =
-      gameCtx.itemsInGame[gameCtx.itemIndexInHand].itemPropertyIndex;
-  uint16_t frameId = GameContextGetItemSHPFrameIndex(&gameCtx, itemId);
-  createCursorForItem(&gameCtx, frameId);
+  GameContextUpdateCursor(&gameCtx);
 
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
@@ -273,18 +270,7 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
   }
 
   gameCtx->itemIndexInHand = itemIndex;
-
-  uint16_t itemId = gameCtx->itemsInGame[itemIndex].itemPropertyIndex;
-  createCursorForItem(
-      gameCtx,
-      itemIndex ? GameContextGetItemSHPFrameIndex(gameCtx, itemId) : 0);
-  if (itemId == 0) {
-    return;
-  }
-  uint16_t stringId = gameCtx->itemProperties[itemId].stringId;
-  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
-                       DIALOG_BUFFER_SIZE);
-  gameCtx->dialogText = gameCtx->dialogTextBuffer;
+  GameContextUpdateCursor(gameCtx);
 }
 
 static int mouseIsInInventoryStrip(GameContext *gameCtx) {

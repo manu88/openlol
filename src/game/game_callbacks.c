@@ -6,7 +6,6 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "game_tim_animator.h"
-#include "render.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -452,7 +451,7 @@ static void callbackDeleteHandItem(EMCInterpreter *interp) {
   printf("callbackDeleteHandItem\n");
   GameContextDeleteItem(gameCtx, gameCtx->itemIndexInHand);
   gameCtx->itemIndexInHand = 0;
-  createCursorForItem(gameCtx, 0);
+  GameContextUpdateCursor(gameCtx);
 }
 
 static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
