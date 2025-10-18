@@ -51,6 +51,13 @@ static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
                                                                index2);
 }
 
+static uint16_t getWallFlags(EMCInterpreter *interp, EMCState *state) {
+  uint16_t index = EMCStateStackVal(state, 0);
+  uint16_t index2 = EMCStateStackVal(state, 1);
+  return interp->callbacks.EMCInterpreterCallbacks_GetWallFlags(interp, index,
+                                                                index2);
+}
+
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
   int16_t pageNum = EMCStateStackVal(state, 0);
   printf("drawScene %X\n", pageNum);
@@ -104,13 +111,6 @@ static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t deleteHandItem(EMCInterpreter *interp, EMCState *state) {
   interp->callbacks.EMCInterpreterCallbacks_DeleteHandItem(interp);
-  return 1;
-}
-
-static uint16_t getWallFlags(EMCInterpreter *interp, EMCState *state) {
-  uint16_t blockId = EMCStateStackVal(state, 0);
-  uint16_t wallId = EMCStateStackVal(state, 1);
-  printf("getWallFlags %X %X\n", blockId, wallId);
   return 1;
 }
 

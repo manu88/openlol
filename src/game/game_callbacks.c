@@ -403,6 +403,17 @@ static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
   return type;
 }
 
+static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,
+                                     uint16_t index2) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  const MazeBlock *block =
+      gameCtx->level->mazHandle.maze->wallMappingIndices + index;
+  uint8_t wmi = block->face[index2];
+  const WllWallMapping *mapping =
+      WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
+  return mapping->flags;
+}
+
 static void callbackSetupDialogueButtons(EMCInterpreter *interp,
                                          uint16_t numStrs, uint16_t strIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -545,6 +556,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog =
       callbackRestoreAfterSceneWindowDialog;
   interp->callbacks.EMCInterpreterCallbacks_GetWallType = callbackGetWallType;
+  interp->callbacks.EMCInterpreterCallbacks_GetWallFlags = callbackGetWallFlags;
   interp->callbacks.EMCInterpreterCallbacks_CheckRectForMousePointer =
       callbackCheckRectForMousePointer;
   interp->callbacks.EMCInterpreterCallbacks_SetupDialogueButtons =
