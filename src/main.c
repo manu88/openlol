@@ -705,10 +705,14 @@ static int cmdSAVShow(const char *filepath) {
          slot->general->compassDirection);
   printf("level %i\n", slot->general->currentLevel);
   printf("credits %i\n", slot->general2->credits);
+  printf("+GLOBAL SCRIPT VARS2\n");
+  for (int i = 0; i < NUM_GLOBAL_SCRIPT_VARS2; i++) {
+    printf("%i 0X%X\n", i, slot->general2->globalScriptVars[i]);
+  }
   printf("selected char %i\n", slot->general->selectedChar);
   printf("+INVENTORY\n");
   for (int i = 0; i < INVENTORY_SIZE; i++) {
-    uint16_t gameObjIndex = slot->inventory[i];
+    uint16_t gameObjIndex = slot->general->inventory[i];
     if (gameObjIndex == 0) {
       continue;
     }

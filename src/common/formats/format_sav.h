@@ -42,6 +42,8 @@ typedef struct {
 
 #define SAVCharacterSize 0X82
 
+#define INVENTORY_SIZE 48
+
 typedef struct {
   uint16_t currentBlock;
   uint16_t posX;
@@ -63,7 +65,11 @@ typedef struct {
   uint8_t selectedChar;
 
   uint8_t currentLevel;
+
+  uint16_t inventory[INVENTORY_SIZE];
 } SAVGeneral;
+
+#define NUM_GLOBAL_SCRIPT_VARS2 8
 
 typedef struct {
   uint8_t brightness;
@@ -71,13 +77,14 @@ typedef struct {
   uint8_t lampEffect;
   uint8_t _;
   uint16_t credits;
+
+  uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS2];
 } SAVGeneral2;
 
 typedef struct {
   char name[46];
 } SAVHeader;
 
-#define INVENTORY_SIZE 48
 #define MAX_ITEM_ID 0X89
 
 typedef struct __attribute__((__packed__)) {
@@ -103,8 +110,6 @@ typedef struct {
   SAVGeneral *general;
   SAVGeneral2 *general2;
 
-  uint16_t *inventory; // size is INVENTORY_SIZE
-
   GameObject *gameObjects;
 } SAVSlot;
 
@@ -116,4 +121,3 @@ typedef struct {
 } SAVHandle;
 
 int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize);
-void SAVHandleGetNewGame(SAVHandle *handle);

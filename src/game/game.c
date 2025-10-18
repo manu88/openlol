@@ -106,7 +106,7 @@ int cmdGame(int argc, char *argv[]) {
         continue;
       }
     }
-    memcpy(gameCtx.inventory, savHandle.slot.inventory,
+    memcpy(gameCtx.inventory, savHandle.slot.general->inventory,
            INVENTORY_SIZE * sizeof(uint16_t));
 
     for (int i = 0; i < NUM_CHARACTERS; i++) {
