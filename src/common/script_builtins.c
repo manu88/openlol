@@ -31,6 +31,19 @@ static uint16_t setItemProperty(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t triggerDoorSwitch(EMCInterpreter *interp, EMCState *state) {
+  uint16_t block = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  printf("triggerDoorSwitch %X %X\n", block, p1);
+  return 1;
+}
+
+static uint16_t delay(EMCInterpreter *interp, EMCState *state) {
+  uint16_t delayTicks = EMCStateStackVal(state, 0);
+  printf("delay for %i\n", delayTicks);
+  return 1;
+}
+
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
   uint16_t index = EMCStateStackVal(state, 0);
   uint16_t index2 = EMCStateStackVal(state, 1);
@@ -87,6 +100,18 @@ static uint16_t setGameFlag(EMCInterpreter *interp, EMCState *state) {
 static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
   uint16_t p = EMCStateStackVal(state, 0);
   return interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p);
+}
+
+static uint16_t deleteHandItem(EMCInterpreter *interp, EMCState *state) {
+  printf("deleteHandItem\n");
+  return 1;
+}
+
+static uint16_t getWallFlags(EMCInterpreter *interp, EMCState *state) {
+  uint16_t blockId = EMCStateStackVal(state, 0);
+  uint16_t wallId = EMCStateStackVal(state, 1);
+  printf("getWallFlags %X %X\n", blockId, wallId);
+  return 1;
 }
 
 static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
@@ -657,14 +682,14 @@ static ScriptFunDesc functions[] = {
     {rollDice, "rollDice"},
     {moveParty, "moveParty"},
     {NULL},
-    {NULL},
+    {delay, "delay"},
     {setGameFlag, "setGameFlag"},
     {testGameFlag, "testGameFlag"},
     {loadLevelGraphics, "loadLevelGraphics"},
     // 0X0A
     {loadBlockProperties, "loadBlockProperties"},
     {loadMonsterShapes, "loadMonsterShapes"},
-    {NULL},
+    {deleteHandItem, "deleteHandItem"},
     {allocItemProperties, "allocItemProperties"},
     {setItemProperty, "setItemProperty"},
     {makeItem, "makeItem"},
@@ -709,7 +734,7 @@ static ScriptFunDesc functions[] = {
 
     // 0X30
     {setGlobalVar, "setGlobalVar"},
-    {NULL},
+    {triggerDoorSwitch, "triggerDoorSwitch"},
     {NULL},
     {NULL},
     {NULL},
@@ -757,7 +782,7 @@ static ScriptFunDesc functions[] = {
     {processDialogue, "processDialogue"},
     {stopTimScript, "stopTimScript"},
     // 0X5A
-    {NULL},
+    {getWallFlags, "getWallFlags"},
     {NULL},
     {NULL},
     {NULL},
