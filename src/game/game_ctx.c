@@ -317,3 +317,7 @@ uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
   item->itemPropertyIndex = itemType;
   return slot;
 }
+
+void GameContextDeleteItem(GameContext *gameCtx, uint16_t itemIndex) {
+  memset(&gameCtx->itemsInGame[itemIndex], 0, sizeof(GameObject));
+}

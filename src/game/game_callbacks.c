@@ -6,6 +6,7 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "game_tim_animator.h"
+#include "render.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -435,6 +436,14 @@ static void callbackSetupBackgroundAnimationPart(
                            sfxIndex, sfxFrame);
 }
 
+static void callbackDeleteHandItem(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackDeleteHandItem\n");
+  GameContextDeleteItem(gameCtx, gameCtx->itemIndexInHand);
+  gameCtx->itemIndexInHand = 0;
+  createCursorForItem(gameCtx, 0);
+}
+
 static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackProcessDialog\n");
@@ -544,4 +553,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackProcessDialog;
   interp->callbacks.EMCInterpreterCallbacks_SetupBackgroundAnimationPart =
       callbackSetupBackgroundAnimationPart;
+  interp->callbacks.EMCInterpreterCallbacks_DeleteHandItem =
+      callbackDeleteHandItem;
 }

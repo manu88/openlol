@@ -103,7 +103,7 @@ static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t deleteHandItem(EMCInterpreter *interp, EMCState *state) {
-  printf("deleteHandItem\n");
+  interp->callbacks.EMCInterpreterCallbacks_DeleteHandItem(interp);
   return 1;
 }
 

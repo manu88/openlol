@@ -234,3 +234,4 @@ void GameContextInitSceneDialog(GameContext *gameCtx);
 void GameContextCleanupSceneDialog(GameContext *gameCtx);
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType);
+void GameContextDeleteItem(GameContext *gameCtx, uint16_t itemIndex);
