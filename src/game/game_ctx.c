@@ -10,8 +10,10 @@
 #include "game_tim_animator.h"
 #include "render.h"
 #include "script.h"
+#include <_string.h>
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -333,8 +335,17 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
   if (itemId == 0) {
     return;
   }
+
+  GameContextGetString(gameCtx, STR_TAKEN_INDEX, gameCtx->dialogTextBuffer,
+                       DIALOG_BUFFER_SIZE);
+  char *format = strdup(gameCtx->dialogTextBuffer);
+
   uint16_t stringId = gameCtx->itemProperties[itemId].stringId;
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
+
+  snprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format,
+           gameCtx->dialogTextBuffer);
+  free(format);
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
