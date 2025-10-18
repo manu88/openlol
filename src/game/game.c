@@ -400,6 +400,9 @@ static int tryMove(GameContext *gameCtx, Direction dir) {
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   if (mapping == NULL || mapping->wallType == 3) {
     gameCtx->currentBock = newBlock;
+  } else {
+    GameContextGetString(gameCtx, STR_CANT_GO_THAT_WAY_INDEX,
+                         gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   }
   return 1;
 }

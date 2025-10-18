@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define STR_TAKEN_INDEX 0X403E            // "%s taken"
+#define STR_CANT_GO_THAT_WAY_INDEX 0X403F // "You can't go that way!"
+
 typedef enum {
   Language_EN = 0,
   Language_FR,
