@@ -1,5 +1,6 @@
 #include "game_envir.h"
 #include "formats/format_lang.h"
+#include "logger.h"
 #include "pak_file.h"
 #include <assert.h>
 #include <ctype.h>
@@ -155,6 +156,7 @@ static int getFile(PAKFile *pak, GameFile *file, const char *name) {
   }
   size_t size = pak->entries[index].fileSize;
   if (size) {
+    Log("GAME_ENVIR", "get file %s", name);
     file->buffer = PakFileGetEntryData(pak, index);
     file->bufferSize = PakFileGetEntrySize(pak, index);
     return 1;
@@ -295,6 +297,7 @@ int GameEnvironmentGetFileFromPak(GameFile *file, const char *filename,
   if (fIndex == -1) {
     return 0;
   }
+  Log("GAME_ENVIR", "get file %s from pak %s", filename, pakFileName);
   file->buffer = PakFileGetEntryData(pak, fIndex);
   file->bufferSize = PakFileGetEntrySize(pak, fIndex);
   return 1;
