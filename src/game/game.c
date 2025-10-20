@@ -35,6 +35,20 @@ static void usageGame(void) {
   printf("game [-d datadir] [-l langId]  [savefile.dat]\n");
 }
 
+static int newGame(GameContext *gameCtx) {
+  gameCtx->levelId = 1;
+  gameCtx->credits = 41;
+  gameCtx->chars[0].id = -9; // Ak'shel for the win
+  snprintf(gameCtx->chars[0].name, 11, "Ak'shel");
+  // temp until we get the value from script/tim
+  gameCtx->currentBock = 0X24D;
+  gameCtx->orientation = North;
+  gameCtx->inventory[0] = GameContextCreateItem(gameCtx, 216); // salve
+  gameCtx->inventory[1] = GameContextCreateItem(gameCtx, 217); // aloe
+  gameCtx->inventory[2] = GameContextCreateItem(gameCtx, 218); // Ginseng
+  return 1;
+}
+
 static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
@@ -124,16 +138,7 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
   } else {
-    gameCtx.levelId = 1;
-    gameCtx.credits = 41;
-    gameCtx.chars[0].id = -9; // Ak'shel for the win
-    snprintf(gameCtx.chars[0].name, 11, "Ak'shel");
-    // temp until we get the value from script/tim
-    gameCtx.currentBock = 0X24D;
-    gameCtx.orientation = North;
-    gameCtx.inventory[0] = GameContextCreateItem(&gameCtx, 216);
-    gameCtx.inventory[1] = GameContextCreateItem(&gameCtx, 217);
-    gameCtx.inventory[2] = GameContextCreateItem(&gameCtx, 218);
+    newGame(&gameCtx);
   }
 
   char faceFile[11] = "";
