@@ -293,6 +293,10 @@ uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
                              outBufferSize);
 }
 
+uint16_t GameContextGetLevelName(const GameContext *gameCtx, char *outBuffer, size_t outBufferSize){
+  return GameContextGetString(gameCtx, STR_FIST_LEVEL_NAME_INDEX + gameCtx->levelId -1,outBuffer, outBufferSize);
+}
+
 uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
                                          uint16_t itemId) {
   return gameCtx->itemProperties[itemId].shapeId;

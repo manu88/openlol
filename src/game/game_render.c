@@ -73,14 +73,15 @@ static void renderMap(GameContext *gameCtx) {
             gameCtx->mapBackground.imageSize, gameCtx->mapBackground.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
-  char c[10] = "";
+  char c[20] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
   renderText(gameCtx, gameCtx->backgroundPixBuf, MAP_SCREEN_EXIT_BUTTON_X + 2,
              MAP_SCREEN_BUTTONS_Y + 4, 50, c);
 
-  snprintf(c, sizeof(c), "map-name");
+  GameContextGetLevelName(gameCtx, c, sizeof(c));
   renderText(gameCtx, gameCtx->backgroundPixBuf, MAP_SCREEN_NAME_X,
-             MAP_SCREEN_NAME_Y, 50, c);
+             MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y, c);
+  printf("%i\n", gameCtx->levelId);
 }
 
 static void renderPlayField(GameContext *gameCtx) {
