@@ -241,7 +241,7 @@ static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
                                  uint8_t xFlip) {
   const WllWallMapping *mapping = WllHandleGetWallMapping(&ctx->wllHandle, wmi);
   if (mapping && mapping->decorationId != 0 &&
-      mapping->decorationId <= ctx->datHandle.nbrDecorations) {
+      mapping->decorationId < ctx->datHandle.nbrDecorations) {
     renderDecoration(pixBuf, ctx, DecorationIndex, mapping->decorationId,
                      destXOffset, destYOffset, xFlip);
   }
