@@ -156,6 +156,7 @@ typedef struct _GameContext {
 
   CPSImage playField;
   SHPHandle itemShapes;
+  Language language;
   LangHandle lang;
 
   SHPHandle charFaces[NUM_CHARACTERS];
@@ -209,7 +210,7 @@ typedef struct _GameContext {
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
-int GameContextInit(GameContext *gameCtx);
+int GameContextInit(GameContext *gameCtx, Language lang);
 int GameContextStartup(GameContext *ctx);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum);

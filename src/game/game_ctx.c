@@ -19,8 +19,9 @@
 
 static int runScript(GameContext *gameCtx, INFScript *script);
 
-int GameContextInit(GameContext *gameCtx) {
+int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
+  gameCtx->language = lang;
   gameCtx->state = GameState_PlayGame;
   {
     GameFile f = {0};
@@ -41,10 +42,11 @@ int GameContextInit(GameContext *gameCtx) {
   }
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetStartupFile(&f, "LANDS.ENG"));
-    // assert(GameEnvironmentGetGeneralLangFile(&f));
+    assert(GameEnvironmentGetStartupFileWithExt(
+        &f, "LANDS", LanguageGetExtension(gameCtx->language)));
     if (LangHandleFromBuffer(&gameCtx->lang, f.buffer, f.bufferSize) == 0) {
-      printf("unable to get LANDS.ENG\n");
+      printf("unable to get LANDS.%s\n",
+             LanguageGetExtension(gameCtx->language));
       assert(0);
     }
   }

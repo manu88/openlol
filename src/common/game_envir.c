@@ -71,11 +71,11 @@ static int loadPak(PAKFile *f, const char *pakfile) {
   return 1;
 }
 
-int GameEnvironmentInit(const char *dataDir) {
+int GameEnvironmentInit(const char *dataDir, Language lang) {
   assert(dataDir);
   memset(&_envir, 0, sizeof(GameEnvironment));
   _envir.dataDir = strdup(dataDir);
-  _envir.lang = Language_EN;
+  _envir.lang = lang;
   printf("GameEnvironmentInit dataDir='%s' lang=%s\n", dataDir,
          LanguageGetExtension(_envir.lang));
 
@@ -125,7 +125,15 @@ void GameEnvironmentRelease(void) {
   free(_envir.cache);
 }
 
-char *strtoupper(char *dest, const char *src) {
+static char *genNameWithExt(const char *name, const char *ext) {
+  const size_t fullNameSize = strlen(name) + sizeof(ext) + 2; // dot and null
+  char *fullName = malloc(fullNameSize);
+  assert(fullName);
+  assert(snprintf(fullName, fullNameSize, "%s.%s", name, ext) < fullNameSize);
+  return fullName;
+}
+
+static char *strtoupper(char *dest, const char *src) {
   char *result = dest;
   while ((*dest++ = toupper(*src++)))
     ;
@@ -154,6 +162,19 @@ static int getFile(PAKFile *pak, GameFile *file, const char *name) {
   }
   return 0;
 }
+
+int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,
+                                         const char *ext) {
+  assert(file);
+  assert(name);
+  assert(ext);
+  char *fullName = genNameWithExt(name, ext);
+  assert(fullName);
+  int ret = GameEnvironmentGetStartupFile(file, fullName);
+  free(fullName);
+  return ret;
+}
+
 int GameEnvironmentGetStartupFile(GameFile *file, const char *name) {
   return getFile(&_envir.pakStartup, file, name);
 }
@@ -213,14 +234,6 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
     return 1;
   }
   return 0;
-}
-
-static char *genNameWithExt(const char *name, const char *ext) {
-  const size_t fullNameSize = strlen(name) + sizeof(ext) + 2; // dot and null
-  char *fullName = malloc(fullNameSize);
-  assert(fullName);
-  assert(snprintf(fullName, fullNameSize, "%s.%s", name, ext) < fullNameSize);
-  return fullName;
 }
 
 int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,

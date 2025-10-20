@@ -7,6 +7,7 @@
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
+#include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "formats/format_wll.h"
@@ -30,7 +31,9 @@
 
 static SAVHandle savHandle = {0};
 static int GameRun(GameContext *gameCtx);
-static void usageGame(void) { printf("game [-d datadir] [savefile.dat]\n"); }
+static void usageGame(void) {
+  printf("game [-d datadir] [-l langId]  [savefile.dat]\n");
+}
 
 static int loadSaveFile(const char *filepath) {
 
@@ -50,9 +53,10 @@ static int loadSaveFile(const char *filepath) {
 static GameContext gameCtx = {0};
 int cmdGame(int argc, char *argv[]) {
   const char *dataDir = NULL;
+  Language lang = Language_EN;
   optind = 0;
   char c;
-  while ((c = getopt(argc, argv, "hd:")) != -1) {
+  while ((c = getopt(argc, argv, "hd:l:")) != -1) {
     switch (c) {
     case 'h':
       usageGame();
@@ -60,9 +64,13 @@ int cmdGame(int argc, char *argv[]) {
     case 'd':
       dataDir = optarg;
       break;
+    case 'l':
+      lang = atoi(optarg);
+      break;
     }
   }
 
+  printf("using lang %s\n", LanguageGetExtension(lang));
   argc = argc - optind;
   argv = argv + optind;
 
@@ -72,13 +80,13 @@ int cmdGame(int argc, char *argv[]) {
     savFile = argv[0];
   }
 
-  assert(GameEnvironmentInit(dataDir ? dataDir : "data"));
+  assert(GameEnvironmentInit(dataDir ? dataDir : "data", lang));
 
   GameEnvironmentLoadPak("O01A.PAK");
   GameEnvironmentLoadPak("O01E.PAK");
   GameEnvironmentLoadPak("O01D.PAK");
 
-  if (!GameContextInit(&gameCtx)) {
+  if (!GameContextInit(&gameCtx, lang)) {
     return 1;
   }
 

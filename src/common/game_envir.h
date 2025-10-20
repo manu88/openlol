@@ -1,4 +1,5 @@
 #pragma once
+#include "formats/format_lang.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -27,7 +28,7 @@ typedef struct {
   size_t bufferSize;
 } GameFile;
 
-int GameEnvironmentInit(const char *dataDir);
+int GameEnvironmentInit(const char *dataDir, Language lang);
 void GameEnvironmentRelease(void);
 
 int GameEnvironmentLoadLevel(uint8_t index);
@@ -36,6 +37,7 @@ int GameEnvironmentLoadPak(const char* name);
 int GameEnvironmentGetFile(GameFile *file, const char *name);
 int GameEnvironmentGetGeneralFile(GameFile *file, const char *name);
 int GameEnvironmentGetStartupFile(GameFile *file, const char *name);
+int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,const char *ext);
 int GameEnvironmentGetGeneralFileWithExt(GameFile *file, const char *name,
                                          const char *ext);
 int GameEnvironmentGetGeneralLangFile(GameFile *file);
