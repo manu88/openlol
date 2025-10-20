@@ -577,8 +577,8 @@ static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t restorePage5(EMCInterpreter *interp, EMCState *state) {
-  printf("restorePage5\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] restorePage5\n");
+  // ASSERT_UNIMPLEMENTED;
   return 0;
 }
 
@@ -610,9 +610,25 @@ static uint16_t createHandItem(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
-  printf("prepareSpecialScene\n");
+  uint16_t fieldType = EMCStateStackVal(state, 0);
+  uint16_t hasDialogue = EMCStateStackVal(state, 1);
+  uint16_t suspendGUI = EMCStateStackVal(state, 2);
+  uint16_t allowSceneUpdate = EMCStateStackVal(state, 3);
+  uint16_t controlMode = EMCStateStackVal(state, 4);
+  uint16_t fadeFlag = EMCStateStackVal(state, 5);
+
+  printf("prepareSpecialScene fieldType %X hasDialogue %X suspendGUI %X "
+         "allowSceneUpdate %X controlMode%X  fadeFlag%X \n",
+         fieldType, hasDialogue, suspendGUI, allowSceneUpdate, controlMode,
+         fadeFlag);
   ASSERT_UNIMPLEMENTED;
-  return 0;
+  return 1;
+}
+
+static uint16_t restoreAfterSpecialScene(EMCInterpreter *interp,
+                                         EMCState *state) {
+  printf("[unimplemented] restoreAfterSpecialScene\n");
+  return 1;
 }
 
 static uint16_t makeItem(EMCInterpreter *interp, EMCState *state) {
@@ -851,7 +867,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {prepareSpecialScene, "prepareSpecialScene"},
-    {NULL},
+    {restoreAfterSpecialScene, "restoreAfterSpecialScene"},
     {assignCustomSfx, "assignCustomSfx"},
     {NULL},
     {NULL},

@@ -43,7 +43,6 @@
 		59A9824A2E8306F800A6A596 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A982342E8306F800A6A596 /* main.c */; };
 		59A9824C2E8306F800A6A596 /* renderer.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A9821A2E8306F800A6A596 /* renderer.c */; };
 		59A982502E8306F800A6A596 /* script.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A9821C2E8306F800A6A596 /* script.c */; };
-		59A982562E8306F800A6A596 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = 59A982232E8306F800A6A596 /* tests.c */; };
 		59A982582E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59A982572E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib */; };
 		59E91FED2E6A271200D1D45C /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59E91FEC2E6A271200D1D45C /* libSDL2-2.0.0.dylib */; };
 		59E91FEF2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59E91FEE2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib */; };
@@ -134,8 +133,6 @@
 		59A9821E2E8306F800A6A596 /* script_builtins.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = script_builtins.c; sourceTree = "<group>"; };
 		59A9821F2E8306F800A6A596 /* script_disassembler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = script_disassembler.h; sourceTree = "<group>"; };
 		59A982202E8306F800A6A596 /* script_disassembler.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = script_disassembler.c; sourceTree = "<group>"; };
-		59A982222E8306F800A6A596 /* tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
-		59A982232E8306F800A6A596 /* tests.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tests.c; sourceTree = "<group>"; };
 		59A982342E8306F800A6A596 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		59A982572E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_ttf-2.0.0.dylib"; path = "../../../../../opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib/libSDL2_ttf-2.0.0.dylib"; sourceTree = "<group>"; };
 		59E91F992E6A267E00D1D45C /* LandsOfLore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LandsOfLore; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -230,8 +227,6 @@
 				59A9821E2E8306F800A6A596 /* script_builtins.c */,
 				59A9821F2E8306F800A6A596 /* script_disassembler.h */,
 				59A982202E8306F800A6A596 /* script_disassembler.c */,
-				59A982222E8306F800A6A596 /* tests.h */,
-				59A982232E8306F800A6A596 /* tests.c */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -384,7 +379,6 @@
 				596F800B2EA3EFDE00CC2266 /* format_vcn.c in Sources */,
 				596F800C2EA3EFDE00CC2266 /* format_tim.c in Sources */,
 				596F800D2EA3EFDE00CC2266 /* format_vmp.c in Sources */,
-				59A982562E8306F800A6A596 /* tests.c in Sources */,
 				596F80202EA3F03500CC2266 /* game_ctx.c in Sources */,
 				596F80212EA3F03500CC2266 /* render.c in Sources */,
 				596F80222EA3F03500CC2266 /* game.c in Sources */,
