@@ -58,14 +58,12 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
       assert(0);
     }
   }
-
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 0;
   }
-
   gameCtx->window =
       SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
                        SDL_WINDOWPOS_UNDEFINED, PIX_BUF_WIDTH * SCREEN_FACTOR,
@@ -149,7 +147,6 @@ void GameContextRelease(GameContext *gameCtx) {
       free(gameCtx->buttonText[i]);
     }
   }
-
   free(gameCtx->defaultPalette);
 }
 

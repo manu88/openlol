@@ -19,7 +19,6 @@
 #include "renderer.h"
 #include "script.h"
 #include "script_disassembler.h"
-#include "tests.h"
 #include "tim_animator.h"
 #include "tim_interpreter.h"
 #include <assert.h>
@@ -1023,7 +1022,7 @@ static int cmdLang(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map|script|inf|tests|wll|render|game|dat|shp|lang "
+  printf("%s: pak|cmz|map|script|inf|wll|render|game|dat|shp|lang "
          "subcommand "
          "...\n",
          progName);
@@ -1046,8 +1045,6 @@ static int doCMD(int argc, char *argv[]) {
     return cmdMap(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "script") == 0) {
     return cmdScript(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "tests") == 0) {
-    return UnitTests();
   } else if (strcmp(argv[1], "game") == 0) {
     return cmdGame(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "dat") == 0) {
