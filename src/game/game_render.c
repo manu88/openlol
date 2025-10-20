@@ -1,5 +1,6 @@
 #include "game_render.h"
 #include "SDL_render.h"
+#include "formats/format_lang.h"
 #include "game_ctx.h"
 #include "geometry.h"
 #include "render.h"
@@ -67,7 +68,22 @@ static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
   SDL_UnlockTexture(texture);
 }
 
-void renderPlayField(GameContext *gameCtx) {
+static void renderMap(GameContext *gameCtx) {
+  renderCPS(gameCtx->backgroundPixBuf, gameCtx->mapBackground.data,
+            gameCtx->mapBackground.imageSize, gameCtx->mapBackground.palette,
+            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  char c[10] = "";
+  GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
+  renderText(gameCtx, gameCtx->backgroundPixBuf, MAP_SCREEN_EXIT_BUTTON_X + 2,
+             MAP_SCREEN_BUTTONS_Y + 4, 50, c);
+
+  snprintf(c, sizeof(c), "map-name");
+  renderText(gameCtx, gameCtx->backgroundPixBuf, MAP_SCREEN_NAME_X,
+             MAP_SCREEN_NAME_Y, 50, c);
+}
+
+static void renderPlayField(GameContext *gameCtx) {
   renderCPS(gameCtx->backgroundPixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
@@ -104,7 +120,7 @@ static void renderCharInventory(GameContext *gameCtx) {
               INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320,
               200);
   char c[10] = "";
-  LangHandleGetString(&gameCtx->lang, 51, c, sizeof(c));
+  GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
   renderText(gameCtx, gameCtx->backgroundPixBuf, 277, 104, 50, c);
 
   renderText(gameCtx, gameCtx->backgroundPixBuf, 250, 10, 50,
@@ -269,6 +285,10 @@ static void renderExitButton(GameContext *gameCtx) {
 void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   // SDL_RenderClear(gameCtx->renderer);
+  if (gameCtx->state == GameState_ShowMap) {
+    renderMap(gameCtx);
+    return;
+  }
   renderPlayField(gameCtx);
 
   renderLeftUIPart(gameCtx);

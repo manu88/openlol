@@ -3,10 +3,9 @@
 #include "game_ctx.h"
 
 void renderDialog(GameContext *gameCtx);
-void renderText(GameContext *gameCtx, SDL_Texture* texture, int xOff, int yOff, int width,
-                const char *text);
+void renderText(GameContext *gameCtx, SDL_Texture *texture, int xOff, int yOff,
+                int width, const char *text);
 
-void renderPlayField(GameContext *gameCtx);
 void GameRender(GameContext *gameCtx);
 
 void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,

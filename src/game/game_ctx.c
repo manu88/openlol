@@ -263,7 +263,8 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   printf("GameContextSetState from %i to %i\n", gameCtx->state, newState);
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
-  if (gameCtx->state == GameState_ShowInventory) {
+  if (gameCtx->state == GameState_ShowInventory ||
+      gameCtx->state == GameState_ShowMap) {
     gameCtx->controlDisabled = 1;
   } else {
     gameCtx->controlDisabled = 0;

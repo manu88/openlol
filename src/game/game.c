@@ -353,6 +353,31 @@ static int processAnimationMouse(GameContext *gameCtx) {
   return 0;
 }
 
+static int zoneClicked(const Point *p, int minX, int minY, int width,
+                       int height) {
+  return p->x >= minX && p->x < minX + width && p->y >= minY &&
+         p->y < minY + height;
+}
+
+static int processMapViewMouse(GameContext *gameCtx) {
+  if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_EXIT_BUTTON_X,
+                  MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_EXIT_BUTTON_W,
+                  MAP_SCREEN_EXIT_BUTTON_H)) {
+    GameContextSetState(gameCtx, GameState_PlayGame);
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_PREV_BUTTON_X,
+                         MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_PREV_NEXT_BUTTON_W,
+                         MAP_SCREEN_PREV_NEXT_BUTTON_H)) {
+    printf("PREV\n");
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_NEXT_BUTTON_X,
+                         MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_PREV_NEXT_BUTTON_W,
+                         MAP_SCREEN_PREV_NEXT_BUTTON_H)) {
+    printf("NEXT\n");
+  } else {
+    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+  }
+  return 1;
+}
+
 static int processCharInventoryMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
       gameCtx->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
@@ -418,12 +443,9 @@ static int tryMove(GameContext *gameCtx, Direction dir) {
 }
 
 static int processPlayGameMouse(GameContext *gameCtx) {
-  if (gameCtx->mouseEv.pos.x >= UI_TURN_LEFT_BUTTON_X &&
-      gameCtx->mouseEv.pos.y >= UI_TURN_LEFT_BUTTON_Y &&
-      gameCtx->mouseEv.pos.x <
-          (UI_TURN_LEFT_BUTTON_X + (UI_DIR_BUTTON_W * 3)) &&
-      gameCtx->mouseEv.pos.y <
-          (UI_TURN_LEFT_BUTTON_Y + (UI_DIR_BUTTON_W * 2))) {
+  if (zoneClicked(&gameCtx->mouseEv.pos, UI_TURN_LEFT_BUTTON_X,
+                  UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,
+                  UI_DIR_BUTTON_W * 2)) {
     int x = gameCtx->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
     int y = gameCtx->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
     int buttonX = (int)(x / UI_DIR_BUTTON_W);
@@ -448,12 +470,9 @@ static int processPlayGameMouse(GameContext *gameCtx) {
       }
       return 1;
     }
-  } else if (gameCtx->mouseEv.pos.x >= UI_MENU_BUTTON_X &&
-             gameCtx->mouseEv.pos.y >= UI_MENU_BUTTON_Y &&
-             gameCtx->mouseEv.pos.x <
-                 (UI_MENU_BUTTON_X + (UI_MENU_INV_BUTTON_W * 2)) &&
-             gameCtx->mouseEv.pos.y <
-                 (UI_MENU_BUTTON_Y + (UI_MENU_INV_BUTTON_H * 1))) {
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MENU_BUTTON_X,
+                         UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
+                         UI_MENU_INV_BUTTON_H)) {
     int x = gameCtx->mouseEv.pos.x - UI_MENU_BUTTON_X;
     int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
     if (buttonX == 0) {
@@ -463,20 +482,17 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     }
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
-  } else if (gameCtx->mouseEv.pos.x >= MAZE_COORDS_X &&
-             gameCtx->mouseEv.pos.y >= MAZE_COORDS_Y &&
-             (gameCtx->mouseEv.pos.x < (MAZE_COORDS_X + MAZE_COORDS_W)) &&
-             (gameCtx->mouseEv.pos.y < (MAZE_COORDS_Y + MAZE_COORDS_H))) {
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAZE_COORDS_X, MAZE_COORDS_Y,
+                         MAZE_COORDS_W, MAZE_COORDS_H)) {
     int x = gameCtx->mouseEv.pos.x - MAZE_COORDS_X;
     int y = gameCtx->mouseEv.pos.y - MAZE_COORDS_Y;
     printf("maze click %i %i\n", x, y);
     clickOnFrontWall(gameCtx);
     return 1;
-  } else if (gameCtx->mouseEv.pos.x >= UI_MAP_BUTTON_X &&
-             gameCtx->mouseEv.pos.x < UI_MAP_BUTTON_X + UI_MAP_BUTTON_W &&
-             gameCtx->mouseEv.pos.y >= UI_MAP_BUTTON_Y &&
-             gameCtx->mouseEv.pos.y < UI_MAP_BUTTON_Y + UI_MAP_BUTTON_H) {
-    printf("CLICK MAP\n");
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MAP_BUTTON_X,
+                         UI_MAP_BUTTON_Y, UI_MAP_BUTTON_W, UI_MAP_BUTTON_H)) {
+    GameContextSetState(gameCtx, GameState_ShowMap);
+    return 1;
   } else {
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
@@ -498,6 +514,8 @@ static int processMouse(GameContext *gameCtx) {
       processAnimationMouse(gameCtx);
     }
     return processPlayGameMouse(gameCtx);
+  case GameState_ShowMap:
+    return processMapViewMouse(gameCtx);
   case GameState_ShowInventory:
     return processCharInventoryMouse(gameCtx);
   case GameState_TimAnimation:
@@ -599,6 +617,7 @@ static void GameRunOnce(GameContext *gameCtx) {
   switch (gameCtx->state) {
   case GameState_PlayGame:
   case GameState_ShowInventory:
+  case GameState_ShowMap:
     if (processGameInputs(gameCtx, &e)) {
       shouldUpdate = 1;
     }
@@ -638,7 +657,8 @@ static void GameRunOnce(GameContext *gameCtx) {
                    PIX_BUF_HEIGHT * SCREEN_FACTOR};
   assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->backgroundPixBuf, NULL,
                         &dest) == 0);
-  if (gameCtx->state != GameState_ShowInventory) {
+  if (gameCtx->state != GameState_ShowInventory &&
+      gameCtx->state != GameState_ShowMap) {
 
     SDL_Rect source = {MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
                        MAZE_COORDS_H};

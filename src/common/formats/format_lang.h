@@ -6,6 +6,7 @@
 
 #define STR_TAKEN_INDEX 0X403E            // "%s taken"
 #define STR_CANT_GO_THAT_WAY_INDEX 0X403F // "You can't go that way!"
+#define STR_EXIT_INDEX 0X4033 // "EXIT"
 
 typedef enum {
   Language_EN = 0,

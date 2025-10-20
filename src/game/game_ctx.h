@@ -114,6 +114,8 @@ typedef enum {
   GameState_ShowInventory = 3,
   GameState_GrowDialogBox = 4,
   GameState_ShrinkDialogBox = 5,
+
+  GameState_ShowMap = 6,
 } GameState;
 
 typedef enum {
