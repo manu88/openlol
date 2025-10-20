@@ -7,6 +7,7 @@
 #include "renderer.h"
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 void createCursorForItem(GameContext *ctx, uint16_t frameId) {
   SDL_Cursor *prevCursor = ctx->cursor;
@@ -35,6 +36,41 @@ void createCursorForItem(GameContext *ctx, uint16_t frameId) {
   }
 }
 
+void renderCPSPart(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
+                   const uint8_t *paletteBuffer, int destX, int destY,
+                   int sourceX, int sourceY, int imageW, int imageH,
+                   int sourceImageWidth) {
+
+  void *data;
+  int pitch;
+  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
+  for (int x = 0; x < imageW; x++) {
+    for (int y = 0; y < imageH; y++) {
+      int offset = (sourceImageWidth * (y + sourceY)) + x + sourceX;
+      if (offset >= dataSize) {
+        // printf("Offset %i >= %zu\n", offset, dataSize);
+        continue;
+      }
+      uint8_t paletteIdx = *(imgData + offset);
+      uint8_t r;
+      uint8_t g;
+      uint8_t b;
+      if (paletteBuffer) {
+        r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
+        g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
+        b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
+      } else {
+        r = paletteIdx;
+        g = paletteIdx;
+        b = paletteIdx;
+      }
+
+      drawPix(data, pitch, r, g, b, destX + x, destY + y);
+    }
+  }
+  SDL_UnlockTexture(pixBuf);
+}
+
 void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
                  const uint8_t *paletteBuffer, int destX, int destY,
                  int sourceW, int sourceH, int imageW, int imageH) {
@@ -49,8 +85,6 @@ void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
         // printf("Offset %i >= %zu\n", offset, dataSize);
         continue;
       }
-
-      //      assert(offset < dataSize);
       uint8_t paletteIdx = *(imgData + offset);
       uint8_t r;
       uint8_t g;

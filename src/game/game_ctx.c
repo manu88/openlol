@@ -24,6 +24,15 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   gameCtx->state = GameState_PlayGame;
   {
     GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, "PARCH.CPS"));
+
+    if (CPSImageFromBuffer(&gameCtx->mapBackground, f.buffer, f.bufferSize) ==
+        0) {
+      printf("unable to get mapBackground Data\n");
+    }
+  }
+  {
+    GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PLAYFLD.CPS"));
 
     if (CPSImageFromBuffer(&gameCtx->playField, f.buffer, f.bufferSize) == 0) {

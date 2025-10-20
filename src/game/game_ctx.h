@@ -165,6 +165,7 @@ typedef struct _GameContext {
   CPSImage inventoryBackground;
   CPSImage playField;
   CPSImage loadedbitMap;
+  CPSImage mapBackground;
 
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;

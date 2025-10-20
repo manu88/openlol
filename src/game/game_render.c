@@ -72,6 +72,10 @@ void renderPlayField(GameContext *gameCtx) {
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
+  renderCPSPart(gameCtx->backgroundPixBuf, gameCtx->playField.data,
+                gameCtx->playField.imageSize, gameCtx->playField.palette,
+                UI_MAP_BUTTON_X, UI_MAP_BUTTON_Y, 114, 65, UI_MAP_BUTTON_W,
+                UI_MAP_BUTTON_H, 320);
   if (gameCtx->controlDisabled) {
     drawDisabledOverlay(gameCtx, gameCtx->backgroundPixBuf,
                         UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
