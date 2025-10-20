@@ -177,7 +177,8 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_ClearDialogField)(EMCInterpreter *interp);
   // files: VCF VCN VMP
   void (*EMCInterpreterCallbacks_LoadLevelGraphics)(EMCInterpreter *interp,
-                                                    const char *file);
+                                                    const char *file,
+                                                    const char *paletteFile);
   void (*EMCInterpreterCallbacks_LoadLevel)(EMCInterpreter *interp,
                                             uint16_t levelNum,
                                             uint16_t startBlock,

@@ -162,8 +162,8 @@ static uint16_t callbackTestGameFlag(EMCInterpreter *interp, uint16_t flag) {
   return GameContextGetGameFlag(gameCtx, flag);
 }
 
-static void callbackLoadLevelGraphics(EMCInterpreter *interp,
-                                      const char *file) {
+static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
+                                      const char *paletteFile) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   char pakFile[12] = "";
   snprintf(pakFile, 12, "%s.PAK", file);
@@ -185,6 +185,10 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp,
     // assert(GameEnvironmentGetFileWithExt(&f, file, "VMP"));
     assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
                                   f.bufferSize));
+  }
+  if (paletteFile) {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, paletteFile));
   }
 }
 

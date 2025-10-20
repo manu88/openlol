@@ -438,13 +438,14 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
   uint16_t vmpLen = EMCStateStackVal(state, 4);
 #endif
   uint16_t p5 = EMCStateStackVal(state, 5);
-  // const char *paletteFile = NULL;
+  const char *paletteFile = NULL;
   if (p5 != 0XFFFF) {
-    // paletteFile = EMCStateGetDataString(state, p5);
-    assert(0); // investigate
+    paletteFile = EMCStateGetDataString(state, p5);
+    printf("Got palette file %s\n", paletteFile);
   }
 
-  interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file);
+  interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file,
+                                                              paletteFile);
   return 1;
 }
 
