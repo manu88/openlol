@@ -35,8 +35,7 @@ static void usageGame(void) {
   printf("game [-d datadir] [-l langId]  [savefile.dat]\n");
 }
 
-static int loadSaveFile(const char *filepath) {
-
+static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
@@ -47,6 +46,27 @@ static int loadSaveFile(const char *filepath) {
     return 0;
   }
 
+  gameCtx->levelId = savHandle.slot.general->currentLevel;
+  memcpy(gameCtx->itemsInGame, savHandle.slot.gameObjects,
+         sizeof(GameObject) * MAX_IN_GAME_ITEMS);
+
+  for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
+    const GameObject *obj = gameCtx->itemsInGame + i;
+    if (obj->itemPropertyIndex == 0) {
+      continue;
+    }
+  }
+  memcpy(gameCtx->inventory, savHandle.slot.general->inventory,
+         INVENTORY_SIZE * sizeof(uint16_t));
+
+  for (int i = 0; i < NUM_CHARACTERS; i++) {
+    memcpy(&gameCtx->chars[i], savHandle.slot.characters[i],
+           sizeof(SAVCharacter));
+  }
+  gameCtx->currentBock = savHandle.slot.general->currentBlock;
+  gameCtx->orientation = savHandle.slot.general->currentDirection;
+  gameCtx->credits = savHandle.slot.general2->credits;
+  gameCtx->itemIndexInHand = savHandle.slot.general->itemIndexInHand;
   return 1;
 }
 
@@ -99,32 +119,10 @@ int cmdGame(int argc, char *argv[]) {
 
   if (savFile) {
     printf("Loading sav file '%s'\n", savFile);
-    if (loadSaveFile(savFile) == 0) {
+    if (loadSaveFile(&gameCtx, savFile) == 0) {
       printf("Error while reading file '%s'\n", savFile);
       return 1;
     }
-
-    gameCtx.levelId = savHandle.slot.general->currentLevel;
-    memcpy(gameCtx.itemsInGame, savHandle.slot.gameObjects,
-           sizeof(GameObject) * MAX_IN_GAME_ITEMS);
-
-    for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
-      const GameObject *obj = gameCtx.itemsInGame + i;
-      if (obj->itemPropertyIndex == 0) {
-        continue;
-      }
-    }
-    memcpy(gameCtx.inventory, savHandle.slot.general->inventory,
-           INVENTORY_SIZE * sizeof(uint16_t));
-
-    for (int i = 0; i < NUM_CHARACTERS; i++) {
-      memcpy(&gameCtx.chars[i], savHandle.slot.characters[i],
-             sizeof(SAVCharacter));
-    }
-    gameCtx.currentBock = savHandle.slot.general->currentBlock;
-    gameCtx.orientation = savHandle.slot.general->currentDirection;
-    gameCtx.credits = savHandle.slot.general2->credits;
-    gameCtx.itemIndexInHand = savHandle.slot.general->itemIndexInHand;
   } else {
     gameCtx.levelId = 1;
     gameCtx.credits = 41;
