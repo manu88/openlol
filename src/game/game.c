@@ -472,6 +472,11 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     printf("maze click %i %i\n", x, y);
     clickOnFrontWall(gameCtx);
     return 1;
+  } else if (gameCtx->mouseEv.pos.x >= UI_MAP_BUTTON_X &&
+             gameCtx->mouseEv.pos.x < UI_MAP_BUTTON_X + UI_MAP_BUTTON_W &&
+             gameCtx->mouseEv.pos.y >= UI_MAP_BUTTON_Y &&
+             gameCtx->mouseEv.pos.y < UI_MAP_BUTTON_Y + UI_MAP_BUTTON_H) {
+    printf("CLICK MAP\n");
   } else {
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
