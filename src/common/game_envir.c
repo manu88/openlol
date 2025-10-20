@@ -1,7 +1,6 @@
 #include "game_envir.h"
 #include "formats/format_lang.h"
 #include "pak_file.h"
-#include <_string.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stddef.h>

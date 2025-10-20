@@ -10,7 +10,6 @@
 #include "game_tim_animator.h"
 #include "render.h"
 #include "script.h"
-#include <_string.h>
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

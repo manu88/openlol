@@ -16,7 +16,6 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "geometry.h"
-#include "render.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
