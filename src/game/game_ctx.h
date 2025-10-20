@@ -154,7 +154,6 @@ typedef struct _GameContext {
   SDL_Window *window;
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
 
-  CPSImage playField;
   SHPHandle itemShapes;
   Language language;
   LangHandle lang;
@@ -164,6 +163,8 @@ typedef struct _GameContext {
   uint8_t selectedChar;
 
   CPSImage inventoryBackground;
+  CPSImage playField;
+  CPSImage loadedbitMap;
 
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;
@@ -201,7 +202,6 @@ typedef struct _GameContext {
   GameObject *itemsInGame;
   uint16_t itemsCount;
 
-  CPSImage loadedbitMap;
   int _shouldRun;
 
   DialogState dialogState;
