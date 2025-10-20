@@ -264,6 +264,44 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   }
 }
 
+typedef struct {
+  CELL_ID cellId;
+  Orientation orientation;
+  WallRenderIndex wallRenderIndex;
+  DecorationIndex decoIndex;
+  int x;
+  int y;
+  int xFlip;
+} RenderWall;
+
+static RenderWall renderWalls[] = {
+    {CELL_A, East, A_east},                                       //
+    {CELL_B, East, B_east},                                       //
+    {CELL_C, East, C_east},                                       //
+    {CELL_E, East, E_west},                                       //
+    {CELL_F, West, F_west},                                       //
+    {CELL_G, West, G_west},                                       //
+    {CELL_B, South, B_south},                                     //
+    {CELL_C, South, C_south},                                     //
+    {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0}, //
+    {CELL_E, South, E_south},                                     //
+    {CELL_F, South, F_south},                                     //
+    {CELL_H, East, H_east},                                       //
+    {CELL_I, West, I_east},                                       //
+    {CELL_K, West, K_west},                                       //
+    {CELL_L, West, L_west},                                       //
+    {CELL_I, South, I_south},                                     //
+    {CELL_J, South, J_south, DecorationIndex_J_SOUTH, 48, 20, 0}, //
+    {CELL_K, South, K_south},                                     //
+    {CELL_M, East, M_east, DecorationIndex_M_WEST, 24, 10, 0},    //
+    {CELL_O, West, O_west, DecorationIndex_O_EAST, 24, 10, 1},    //
+    {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 0, 0, 0},   //
+    {CELL_O, South, O_south},                                     //
+    {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8, 0},  //
+    {CELL_P, East, P_east, DecorationIndex_P_EAST, 0, 0, 0},      //
+    {CELL_Q, West, Q_west, DecorationIndex_Q_WEST, 0, 0, 1},      //
+};
+
 void GameRenderMaze(GameContext *gameCtx) {
   clearMazeZone(gameCtx);
   for (int x = 0; x < 32; x++) {
@@ -274,6 +312,44 @@ void GameRenderMaze(GameContext *gameCtx) {
   LevelContext *level = gameCtx->level;
   drawCeilingAndFloor(gameCtx->foregroundPixBuf, &level->vcnHandle,
                       &level->vmpHandle);
+
+  SDL_Texture *texture = gameCtx->foregroundPixBuf;
+
+  for (int i = 0; i < sizeof(renderWalls) / sizeof(RenderWall); i++) {
+    const RenderWall *r = renderWalls + i;
+    const ViewConeEntry *entry = gameCtx->viewConeEntries + r->cellId;
+    if (!entry) {
+      continue;
+    }
+    int index = entry->coords.y * 32 + entry->coords.x;
+    const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
+    uint8_t wmi =
+        block->face[absOrientation(gameCtx->orientation, r->orientation)];
+    if (!wmi) {
+      continue;
+    }
+    uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
+    if (wallType) {
+      drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
+               r->wallRenderIndex);
+      if (r->orientation == South && r->cellId == CELL_N &&
+          wallType == 3) { // door
+        SHPFrame frame = {0};
+        assert(gameCtx->level->doors.originalBuffer);
+        SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+        SHPFrameGetImageData(&frame);
+        drawSHPMazeFrame(texture, &frame, 52, 16,
+                         gameCtx->level->vcnHandle.palette, 0);
+      }
+    }
+    if (r->decoIndex == 0) {
+      continue;
+    }
+    renderWallDecoration(texture, level, r->decoIndex, wmi, r->x, r->y,
+                         r->xFlip);
+  }
+}
+#if 0
 
   const ViewConeEntry *aEntry = gameCtx->viewConeEntries + CELL_A;
   const ViewConeEntry *bEntry = gameCtx->viewConeEntries + CELL_B;
@@ -293,7 +369,6 @@ void GameRenderMaze(GameContext *gameCtx) {
   const ViewConeEntry *pEntry = gameCtx->viewConeEntries + CELL_P;
   const ViewConeEntry *qEntry = gameCtx->viewConeEntries + CELL_Q;
 
-  SDL_Texture *texture = gameCtx->foregroundPixBuf;
   if (aEntry->valid) {
     int index = aEntry->coords.y * 32 + aEntry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
@@ -641,4 +716,6 @@ void GameRenderMaze(GameContext *gameCtx) {
                            1);
     }
   }
+
 }
+#endif
