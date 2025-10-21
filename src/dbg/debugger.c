@@ -88,14 +88,21 @@ static void processCommand(int argc, char *argv[]) {
   }
 }
 
-static void readCommand(void) {
+static void readCommand(const char *cmd) {
   printf(">: ");
   fflush(stdout);
-  ssize_t ret = read(STDIN_FILENO, cmdInputBuffer, sizeof(cmdInputBuffer));
-  if (ret <= 0) {
-    perror("read input");
+  if (cmd) {
+    printf("%s\n", cmd);
+    strncpy(cmdInputBuffer, cmd, strlen(cmd));
+    cmdInputBuffer[strlen(cmd)] = 0;
+  } else {
+    ssize_t ret = read(STDIN_FILENO, cmdInputBuffer, sizeof(cmdInputBuffer));
+    if (ret <= 0) {
+      perror("read input");
+    }
+    cmdInputBuffer[ret - 1] = 0;
   }
-  cmdInputBuffer[ret - 1] = 0;
+
   char *str = (char *)cmdInputBuffer;
   char *tok = NULL;
   int argc = 0;
@@ -157,8 +164,16 @@ const char defaultIP[] = "127.0.0.1";
 
 int cmdDbg(int argc, char *argv[]) {
   const char *host = defaultIP;
-  if (argc > 0) {
+
+  if (argc > 0 && strcmp(argv[0], "--") != 0) {
     host = argv[0];
+    argc -= 1;
+    argv += 1;
+  }
+
+  if (argc > 0 && strcmp(argv[0], "--") == 0) {
+    argc -= 1;
+    argv += 1;
   }
   printf("connect to %s:%i\n", host, DBG_PORT);
 
@@ -180,8 +195,11 @@ int cmdDbg(int argc, char *argv[]) {
   }
 
   shouldStop = 0;
+  for (int i = 0; i < argc; i++) {
+    readCommand(argv[i]);
+  }
   while (!shouldStop) {
-    readCommand();
+    readCommand(NULL);
   }
 
   close(sock);
