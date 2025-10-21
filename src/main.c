@@ -14,6 +14,7 @@
 #include "formats/format_vmp.h"
 #include "formats/format_wll.h"
 #include "formats/format_wsa.h"
+#include "formats/format_xxx.h"
 #include "game.h"
 #include "pak_file.h"
 #include "renderer.h"
@@ -987,6 +988,47 @@ static int cmdTim(int argc, char *argv[]) {
   return 1;
 }
 
+static void usageXXX(void) { printf("xxx subcommands: show file\n"); }
+
+static int cmdXXXShow(const char *filepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+
+  printf("xxx data size = %zi -> %zi\n", dataSize, dataSize / 12);
+  XXXHandle handle = {0};
+  XXXHandleFromBuffer(&handle, buffer, dataSize);
+
+  for (int i = 0; i < handle.numEntries; i++) {
+    const LegendEntry *entry = handle.entries + i;
+    printf("%i x=%02i y=%02i shapeid=%02i p3=%02X p4=%02X strid=%X\n", i,
+           entry->x, entry->y, entry->shapeId << 2, entry->p3, entry->p4,
+           entry->stringId);
+  }
+  if (freeBuffer) {
+    free(buffer);
+  }
+  return 0;
+}
+
+static int cmdXXX(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("xxx command, missing arguments\n");
+    usageXXX();
+    return 0;
+  }
+  const char *filepath = argv[1];
+  if (strcmp(argv[0], "show") == 0) {
+    return cmdXXXShow(filepath);
+  }
+  usageXXX();
+  return 0;
+}
+
 static void usageLang(void) { printf("lang subcommands: show file\n"); }
 
 static int cmdLangShow(const char *filepath) {
@@ -1053,6 +1095,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdShp(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "lang") == 0) {
     return cmdLang(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "xxx") == 0) {
+    return cmdXXX(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "tim") == 0) {
     return cmdTim(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "wsa") == 0) {
