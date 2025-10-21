@@ -60,6 +60,15 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   }
   {
     GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, "AUTOBUT.SHP"));
+    if (SHPHandleFromCompressedBuffer(&gameCtx->automapShapes, f.buffer,
+                                      f.bufferSize) == 0) {
+      printf("unable to get AUTOBUT.SHP\n");
+      assert(0);
+    }
+  }
+  {
+    GameFile f = {0};
     assert(GameEnvironmentGetStartupFile(&f, "ITEM.INF"));
     if (INFScriptFromBuffer(&gameCtx->itemScript, f.buffer, f.bufferSize) ==
         0) {
@@ -293,8 +302,11 @@ uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
                              outBufferSize);
 }
 
-uint16_t GameContextGetLevelName(const GameContext *gameCtx, char *outBuffer, size_t outBufferSize){
-  return GameContextGetString(gameCtx, STR_FIST_LEVEL_NAME_INDEX + gameCtx->levelId -1,outBuffer, outBufferSize);
+uint16_t GameContextGetLevelName(const GameContext *gameCtx, char *outBuffer,
+                                 size_t outBufferSize) {
+  return GameContextGetString(gameCtx,
+                              STR_FIST_LEVEL_NAME_INDEX + gameCtx->levelId - 1,
+                              outBuffer, outBufferSize);
 }
 
 uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,

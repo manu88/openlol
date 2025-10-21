@@ -164,6 +164,8 @@ typedef struct _GameContext {
   SAVCharacter chars[NUM_CHARACTERS];
   uint8_t selectedChar;
 
+  SHPHandle automapShapes;
+
   CPSImage inventoryBackground;
   CPSImage playField;
   CPSImage loadedbitMap;
