@@ -190,7 +190,8 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
 
-    gameCtx->timAnimator.defaultPalette = gameCtx->level->vcnHandle.palette;
+    gameCtx->timAnimator.animator.defaultPalette =
+        gameCtx->level->vcnHandle.palette;
   }
   {
     GameFile f = {0};
@@ -487,9 +488,9 @@ static void callbackSetupBackgroundAnimationPart(
       animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
       field, sfxIndex, sfxFrame);
 
-  GameTimAnimatorSetupPart(&gameCtx->timAnimator, animIndex, part, firstFrame,
-                           lastFrame, cycles, nextPart, partDelay, field,
-                           sfxIndex, sfxFrame);
+  AnimatorSetupPart(&gameCtx->timAnimator.animator, animIndex, part, firstFrame,
+                    lastFrame, cycles, nextPart, partDelay, field, sfxIndex,
+                    sfxFrame);
 }
 
 static void callbackDeleteHandItem(EMCInterpreter *interp) {
@@ -556,7 +557,8 @@ static void callbackPlayAnimationPart(EMCInterpreter *interp,
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
   GameContextSetState(gameCtx, GameState_TimAnimation);
-  GameTimAnimatorRunTim(&gameCtx->timAnimator, animIndex);
+  AnimatorPlayPart(&gameCtx->timAnimator.animator, animIndex, firstFrame,
+                   lastFrame, delay);
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {

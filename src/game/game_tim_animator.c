@@ -1,4 +1,5 @@
 #include "game_tim_animator.h"
+#include "animator.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
 #include "game_ctx.h"
@@ -19,24 +20,8 @@ void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
   printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
          wsaFile, index, offscreen);
   assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
-  WSAHandleFromBuffer(&animator->wsa, f.buffer, f.bufferSize);
-  if (animator->wsa.header.palette == NULL) {
-    printf("WSA has no palette, using the game level one\n");
-    animator->wsa.header.palette = animator->defaultPalette;
-  }
-  animator->wsaX = x;
-  animator->wsaY = y;
-  animator->wsaFlags = flags;
-  printf("WSA w=%i h=%i\n", animator->wsa.header.width,
-         animator->wsa.header.height);
-  if (animator->wsaFrameBuffer) {
-    free(animator->wsaFrameBuffer);
-  }
-  animator->wsaFrameBuffer =
-      malloc(animator->wsa.header.width * animator->wsa.header.height);
-  memset(animator->wsaFrameBuffer, 0,
-         animator->wsa.header.width * animator->wsa.header.height);
-  assert(animator->wsaFrameBuffer);
+  AnimatorInitWSA(&animator->animator, f.buffer, f.bufferSize, x, y, offscreen,
+                  flags);
 }
 
 static void callbackTIM_WSAInit(TIMInterpreter *interp, uint16_t index,
@@ -47,38 +32,6 @@ static void callbackTIM_WSAInit(TIMInterpreter *interp, uint16_t index,
   GameTimAnimatorWSAInit(animator, index, wsaFile, x, y, offscreen, flags);
 }
 
-static void renderWSAFrame(GameTimAnimator *animator, const uint8_t *imgData,
-                           size_t dataSize, const uint8_t *paletteBuffer, int w,
-                           int h) {
-  assert(animator->pixBuf);
-  void *data;
-  int pitch;
-  SDL_LockTexture(animator->pixBuf, NULL, &data, &pitch);
-  for (int x = 0; x < w; x++) {
-    for (int y = 0; y < h; y++) {
-      int offset = (w * y) + x;
-      if (offset >= dataSize) {
-        printf("Offset %i >= %zu\n", offset, dataSize);
-      }
-      assert(offset < dataSize);
-      uint8_t paletteIdx = *(imgData + offset);
-
-      uint8_t r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
-      uint8_t g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
-      uint8_t b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
-      if (r == 0 && g == 0 && b == 0) {
-        continue;
-      }
-      uint32_t *row =
-          (unsigned int *)((char *)data + pitch * (animator->wsaY + y));
-      // if (r && g && b) {
-      row[animator->wsaX + x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
-      //}
-    }
-  }
-  SDL_UnlockTexture(animator->pixBuf);
-}
-
 static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
                                         int frame) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -87,18 +40,16 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
 
   printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i fram=%i x=%i "
          "y=%i\n",
-         animIndex, frame, animator->wsaX, animator->wsaY);
-  if (frame >= animator->wsa.header.numFrames + 1) {
+         animIndex, frame, animator->animator.wsaX, animator->animator.wsaY);
+  if (frame >= animator->animator.wsa.header.numFrames + 1) {
     printf("WSADisplayFrame: unimplemented WSA loop, setting frame to 0\n");
     frame = 0;
   }
-  WSAHandleGetFrame(&animator->wsa, frame, animator->wsaFrameBuffer,
-                    animator->wsaFlags & WSA_XOR);
-  assert(animator->wsaFrameBuffer);
-  size_t fullSize = animator->wsa.header.width * animator->wsa.header.height;
-  renderWSAFrame(animator, animator->wsaFrameBuffer, fullSize,
-                 animator->wsa.header.palette, animator->wsa.header.width,
-                 animator->wsa.header.height);
+  WSAHandleGetFrame(&animator->animator.wsa, frame,
+                    animator->animator.wsaFrameBuffer,
+                    animator->animator.wsaFlags & WSA_XOR);
+  assert(animator->animator.wsaFrameBuffer);
+  AnimatorRenderWSAFrame(&animator->animator);
 }
 
 static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
@@ -120,7 +71,7 @@ static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
-  WSAHandleRelease(&animator->wsa);
+  WSAHandleRelease(&animator->animator.wsa);
 }
 
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
@@ -197,14 +148,12 @@ void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
   animator->timInterpreter.callbacks
       .TIMInterpreterCallbacks_RestoreAfterSceneDialog =
       callbackTIM_RestoreAfterSceneDialog;
-  animator->pixBuf = pixBuf;
+  animator->animator.pixBuf = pixBuf;
 }
 
 void GameTimAnimatorRelease(GameTimAnimator *animator) {
   TIMInterpreterRelease(&animator->timInterpreter);
-  if (animator->wsaFrameBuffer) {
-    free(animator->wsaFrameBuffer);
-  }
+  AnimatorRelease(&animator->animator);
 }
 
 void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
@@ -232,7 +181,6 @@ int GameTimAnimatorRender(GameTimAnimator *animator) {
     printf("TIM anim is done\n");
     return 0;
   }
-
   return 1;
 }
 
@@ -241,4 +189,13 @@ void GameTimAnimatorSetupPart(GameTimAnimator *animator, uint16_t animIndex,
                               uint16_t lastFrame, uint16_t cycles,
                               uint16_t nextPart, uint16_t partDelay,
                               uint16_t field, uint16_t sfxIndex,
-                              uint16_t sfxFrame) {}
+                              uint16_t sfxFrame) {
+  printf("GameTimAnimatorSetupPart\n");
+}
+
+void GameTimAnimatorPlayPart(GameTimAnimator *animator, uint16_t animIndex,
+                             uint16_t firstFrame, uint16_t lastFrame,
+                             uint16_t delay) {
+  printf("GameTimAnimatorPlayPart %x\n", animIndex);
+  assert(animator->animator.wsa.originalBuffer);
+}
