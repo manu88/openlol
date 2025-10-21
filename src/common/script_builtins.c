@@ -131,9 +131,13 @@ static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] playAnimationPart\n");
-  // ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t animIndex = EMCStateStackVal(state, 0);
+  uint16_t firstFrame = EMCStateStackVal(state, 1);
+  uint16_t lastFrame = EMCStateStackVal(state, 2);
+  uint16_t delay = EMCStateStackVal(state, 3);
+  interp->callbacks.EMCInterpreterCallbacks_PlayAnimationPart(
+      interp, animIndex, firstFrame, lastFrame, delay);
+  return 1;
 }
 
 static uint16_t setNextFunc(EMCInterpreter *interp, EMCState *state) {

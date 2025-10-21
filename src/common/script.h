@@ -275,6 +275,13 @@ typedef struct _EMCInterpreterCallbacks {
       uint16_t sfxFrame);
 
   void (*EMCInterpreterCallbacks_DeleteHandItem)(EMCInterpreter *interp);
+
+  void (*EMCInterpreterCallbacks_PlayAnimationPart)(EMCInterpreter *interp,
+                                                    uint16_t animIndex,
+                                                    uint16_t firstFrame,
+                                                    uint16_t lastFrame,
+                                                    uint16_t delay);
+
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

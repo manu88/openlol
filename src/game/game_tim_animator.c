@@ -16,8 +16,8 @@ void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
                             int flags) {
   assert(animator);
   GameFile f = {0};
-  printf("----> GameTimAnimator load wsa file '%s' offscreen=%i\n", wsaFile,
-         offscreen);
+  printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
+         wsaFile, index, offscreen);
   assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
   WSAHandleFromBuffer(&animator->wsa, f.buffer, f.bufferSize);
   if (animator->wsa.header.palette == NULL) {
