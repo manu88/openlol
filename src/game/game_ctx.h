@@ -1,5 +1,6 @@
 #pragma once
 #include "SDL_render.h"
+#include "animator.h"
 #include "formats/format_cmz.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
@@ -191,6 +192,7 @@ typedef struct _GameContext {
   uint8_t gameFlags[100];
 
   GameTimAnimator timAnimator;
+  Animator animator;
 
   uint16_t inventory[INVENTORY_SIZE];
   uint16_t inventoryIndex;

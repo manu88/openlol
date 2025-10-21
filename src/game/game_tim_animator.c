@@ -20,7 +20,7 @@ void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
   printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
          wsaFile, index, offscreen);
   assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
-  AnimatorInitWSA(&animator->animator, f.buffer, f.bufferSize, x, y, offscreen,
+  AnimatorInitWSA(animator->animator, f.buffer, f.bufferSize, x, y, offscreen,
                   flags);
 }
 
@@ -40,16 +40,16 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
 
   printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i fram=%i x=%i "
          "y=%i\n",
-         animIndex, frame, animator->animator.wsaX, animator->animator.wsaY);
-  if (frame >= animator->animator.wsa.header.numFrames + 1) {
+         animIndex, frame, animator->animator->wsaX, animator->animator->wsaY);
+  if (frame >= animator->animator->wsa.header.numFrames + 1) {
     printf("WSADisplayFrame: unimplemented WSA loop, setting frame to 0\n");
     frame = 0;
   }
-  WSAHandleGetFrame(&animator->animator.wsa, frame,
-                    animator->animator.wsaFrameBuffer,
-                    animator->animator.wsaFlags & WSA_XOR);
-  assert(animator->animator.wsaFrameBuffer);
-  AnimatorRenderWSAFrame(&animator->animator);
+  WSAHandleGetFrame(&animator->animator->wsa, frame,
+                    animator->animator->wsaFrameBuffer,
+                    animator->animator->wsaFlags & WSA_XOR);
+  assert(animator->animator->wsaFrameBuffer);
+  AnimatorRenderWSAFrame(animator->animator);
 }
 
 static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
@@ -71,7 +71,7 @@ static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameTimAnimator *animator = &gameCtx->timAnimator;
   assert(animator);
-  WSAHandleRelease(&animator->animator.wsa);
+  WSAHandleRelease(&animator->animator->wsa);
 }
 
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
@@ -124,11 +124,11 @@ static void callbackTIM_RestoreAfterSceneDialog(TIMInterpreter *interp,
   GameContextCleanupSceneDialog(gameCtx);
 }
 
-void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
-  GameTimAnimator *animator = &gameCtx->timAnimator;
+void GameTimAnimatorInit(GameTimAnimator *animator,
+                         Animator *animator_) {
   memset(animator, 0, sizeof(GameTimAnimator));
+  animator->animator = animator_;
   TIMInterpreterInit(&animator->timInterpreter);
-  animator->timInterpreter.callbackCtx = gameCtx;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSAInit =
       callbackTIM_WSAInit;
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSADisplayFrame =
@@ -148,12 +148,12 @@ void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf) {
   animator->timInterpreter.callbacks
       .TIMInterpreterCallbacks_RestoreAfterSceneDialog =
       callbackTIM_RestoreAfterSceneDialog;
-  animator->animator.pixBuf = pixBuf;
+  
 }
 
 void GameTimAnimatorRelease(GameTimAnimator *animator) {
   TIMInterpreterRelease(&animator->timInterpreter);
-  AnimatorRelease(&animator->animator);
+  AnimatorRelease(animator->animator);
 }
 
 void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
@@ -197,5 +197,5 @@ void GameTimAnimatorPlayPart(GameTimAnimator *animator, uint16_t animIndex,
                              uint16_t firstFrame, uint16_t lastFrame,
                              uint16_t delay) {
   printf("GameTimAnimatorPlayPart %x\n", animIndex);
-  assert(animator->animator.wsa.originalBuffer);
+  assert(animator->animator->wsa.originalBuffer);
 }

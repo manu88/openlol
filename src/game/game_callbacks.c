@@ -190,7 +190,7 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
 
-    gameCtx->timAnimator.animator.defaultPalette =
+    gameCtx->timAnimator.animator->defaultPalette =
         gameCtx->level->vcnHandle.palette;
   }
   {
@@ -488,7 +488,7 @@ static void callbackSetupBackgroundAnimationPart(
       animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
       field, sfxIndex, sfxFrame);
 
-  AnimatorSetupPart(&gameCtx->timAnimator.animator, animIndex, part, firstFrame,
+  AnimatorSetupPart(gameCtx->timAnimator.animator, animIndex, part, firstFrame,
                     lastFrame, cycles, nextPart, partDelay, field, sfxIndex,
                     sfxFrame);
 }
@@ -557,7 +557,7 @@ static void callbackPlayAnimationPart(EMCInterpreter *interp,
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
   GameContextSetState(gameCtx, GameState_TimAnimation);
-  AnimatorPlayPart(&gameCtx->timAnimator.animator, animIndex, firstFrame,
+  AnimatorPlayPart(gameCtx->timAnimator.animator, animIndex, firstFrame,
                    lastFrame, delay);
 }
 

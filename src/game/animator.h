@@ -16,7 +16,7 @@ typedef struct {
 
 } Animator;
 
-void AnimatorInit(Animator *animator);
+void AnimatorInit(Animator *animator,SDL_Texture *pixBuf);
 void AnimatorRelease(Animator *animator);
 
 void AnimatorInitWSA(Animator *animator, const uint8_t *buffer,

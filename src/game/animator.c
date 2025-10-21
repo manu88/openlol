@@ -3,7 +3,10 @@
 #include <assert.h>
 #include <string.h>
 
-void AnimatorInit(Animator *animator) { memset(animator, 0, sizeof(Animator)); }
+void AnimatorInit(Animator *animator, SDL_Texture *pixBuf) {
+  memset(animator, 0, sizeof(Animator));
+  animator->pixBuf = pixBuf;
+}
 
 void AnimatorRelease(Animator *animator) {
   if (animator->wsaFrameBuffer) {

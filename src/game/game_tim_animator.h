@@ -16,13 +16,12 @@ typedef struct {
   uint16_t currentTimScriptId;
 
   TIMHandle tim[NUM_TIM_ANIMATIONS];
-
-  Animator animator;
+  Animator *animator;
 } GameTimAnimator;
 
 typedef struct _GameContext GameContext;
 
-void GameTimAnimatorInit(GameContext *gameCtx, SDL_Texture *pixBuf);
+void GameTimAnimatorInit(GameTimAnimator *animator, Animator *animator_);
 void GameTimAnimatorRelease(GameTimAnimator *animator);
 void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
                             const char *file);
