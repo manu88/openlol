@@ -114,13 +114,23 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
     return 1;
   }
   case DBGMsgType_SetLoggerRequest: {
-
-    if (LoggerGetOutput() == NULL) {
-      printf("Enable std logger\n");
-      LoggerSetOutput(LoggerStdOut);
+    const DBGMSGEnableLoggerRequest *req =
+        (const DBGMSGEnableLoggerRequest *)buffer;
+    printf("Set logger request for prefix '%s' %i\n", req->prefix, req->enable);
+    if (strcmp(req->prefix, "*") == 0) {
+      if (req->enable) {
+        printf("Enable std logger\n");
+        LoggerSetOutput(LoggerStdOut);
+      } else {
+        printf("Disable std logger\n");
+        LoggerSetOutput(NULL);
+      }
     } else {
-      printf("Disable std logger\n");
-      LoggerSetOutput(NULL);
+      if (req->enable) {
+        LogEnablePrefix(req->prefix);
+      } else {
+        LogDisablePrefix(req->prefix);
+      }
     }
     DBGMsgHeader outHeader = {.type = DBGMsgType_SetLoggerResponse, 0};
     write(cltSocket, &outHeader, sizeof(DBGMsgHeader));

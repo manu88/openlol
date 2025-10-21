@@ -72,10 +72,14 @@ static void processCommand(int argc, char *argv[]) {
     write(sock, &header, sizeof(DBGMsgHeader));
     read(sock, &header, sizeof(DBGMsgHeader));
     assert(header.type == DBGMsgType_NoClipResponse);
-  } else if (strcmp(cmd, "log") == 0) {
-    DBGMsgHeader header = {.type = DBGMsgType_SetLoggerRequest, 0};
+  } else if (strcmp(cmd, "log") == 0 && argc > 2) {
+    DBGMsgHeader header = {.type = DBGMsgType_SetLoggerRequest,
+                           sizeof(DBGMSGEnableLoggerRequest)};
     write(sock, &header, sizeof(DBGMsgHeader));
-
+    DBGMSGEnableLoggerRequest req = {0};
+    strncpy(req.prefix, argv[1], sizeof(req.prefix));
+    req.enable = atoi(argv[2]);
+    write(sock, &req, sizeof(DBGMSGEnableLoggerRequest));
     read(sock, &header, sizeof(DBGMsgHeader));
     assert(header.type == DBGMsgType_SetLoggerResponse);
 

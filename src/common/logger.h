@@ -16,3 +16,5 @@ extern Logger *LoggerStdOut;
 void LoggerSetOutput(Logger *log);
 const Logger *LoggerGetOutput(void);
 void Log(const char *prefix, const char *fmt, ...) PRINTFLIKE(2, 3);
+void LogEnablePrefix(const char *prefix);
+void LogDisablePrefix(const char *prefix);

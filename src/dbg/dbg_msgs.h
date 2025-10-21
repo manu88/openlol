@@ -55,3 +55,12 @@ typedef struct {
 typedef struct {
   uint16_t response;
 } DBGMSGQuitResponse;
+
+typedef struct {
+  char prefix[32]; // '*' means enable disable log output
+  uint8_t enable;  // enable/disable the prefix
+} DBGMSGEnableLoggerRequest;
+
+typedef struct {
+  uint16_t response;
+} DBGMSGEnableLoggerResponse;
