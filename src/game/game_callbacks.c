@@ -294,7 +294,7 @@ static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                   const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadTimScript %x %s", scriptId, file);
-  GameTimAnimatorLoadTim(&gameCtx->timAnimator, scriptId, file);
+  GameTimInterpreterLoadTim(&gameCtx->timAnimator, scriptId, file);
 }
 
 static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
@@ -306,14 +306,14 @@ static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
     return;
   }
   GameContextSetState(gameCtx, GameState_TimAnimation);
-  GameTimAnimatorRunTim(&gameCtx->timAnimator, scriptId);
+  GameTimInterpreterRunTim(&gameCtx->timAnimator, scriptId);
 }
 
 static void callbackReleaseTimScript(EMCInterpreter *interp,
                                      uint16_t scriptId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackReleaseTimScript %i", scriptId);
-  GameTimAnimatorReleaseTim(&gameCtx->timAnimator, scriptId);
+  GameTimInterpreterReleaseTim(&gameCtx->timAnimator, scriptId);
 }
 
 static uint16_t callbackGetItemIndexInHand(EMCInterpreter *interp) {
@@ -417,8 +417,8 @@ static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackWSAInit %x %s %i %i %i %i", index, wsaFile, x, y,
       offscreen, flags);
-  GameTimAnimatorWSAInit(&gameCtx->timAnimator, index, wsaFile, x, y, offscreen,
-                         flags);
+  GameTimInterpreterWSAInit(&gameCtx->timAnimator, index, wsaFile, x, y,
+                            offscreen, flags);
 }
 
 static void callbackRestoreAfterSceneDialog(EMCInterpreter *interp, int mode) {

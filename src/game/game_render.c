@@ -301,7 +301,7 @@ void GameRender(GameContext *gameCtx) {
   } else if (gameCtx->state == GameState_PlayGame) {
     GameRenderMaze(gameCtx);
   } else if (gameCtx->state == GameState_TimAnimation) {
-    if (GameTimAnimatorRender(&gameCtx->timAnimator) == 0) {
+    if (GameTimInterpreterRender(&gameCtx->timAnimator) == 0) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
   }

@@ -4,7 +4,6 @@
 #include "formats/format_wsa.h"
 #include "game_ctx.h"
 #include "game_envir.h"
-#include "renderer.h"
 #include "tim_interpreter.h"
 #include <assert.h>
 #include <stdint.h>
@@ -12,9 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-void GameTimAnimatorWSAInit(GameTimAnimator *animator, uint16_t index,
-                            const char *wsaFile, int x, int y, int offscreen,
-                            int flags) {
+void GameTimInterpreterWSAInit(GameTimInterpreter *animator, uint16_t index,
+                               const char *wsaFile, int x, int y, int offscreen,
+                               int flags) {
   assert(animator);
   GameFile f = {0};
   printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
@@ -28,14 +27,14 @@ static void callbackTIM_WSAInit(TIMInterpreter *interp, uint16_t index,
                                 const char *wsaFile, int x, int y,
                                 int offscreen, int flags) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
-  GameTimAnimatorWSAInit(animator, index, wsaFile, x, y, offscreen, flags);
+  GameTimInterpreter *animator = &gameCtx->timAnimator;
+  GameTimInterpreterWSAInit(animator, index, wsaFile, x, y, offscreen, flags);
 }
 
 static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
                                         int frame) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
+  GameTimInterpreter *animator = &gameCtx->timAnimator;
   assert(animator);
 
   printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i fram=%i x=%i "
@@ -69,7 +68,7 @@ static uint16_t callbackTIM_GiveItem(TIMInterpreter *interp, uint16_t p0,
 static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   printf("GameTimAnimator: callbackWSARelease index=%i\n", index);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
+  GameTimInterpreter *animator = &gameCtx->timAnimator;
   assert(animator);
   WSAHandleRelease(&animator->animator->wsa);
 }
@@ -77,7 +76,7 @@ static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
                                      int argc, const uint16_t *argv) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
+  GameTimInterpreter *animator = &gameCtx->timAnimator;
   assert(animator);
   printf("GameTimAnimator callbackPlayDialogue stringId=%i argc=%i\n", stringId,
          argc);
@@ -91,7 +90,7 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
                                           uint16_t functionId,
                                           const uint16_t buttonStrIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimAnimator *animator = &gameCtx->timAnimator;
+  GameTimInterpreter *animator = &gameCtx->timAnimator;
   assert(animator);
   printf("GameTimAnimator ShowDialogButtons  %X %X %X\n", buttonStrIds[0],
          buttonStrIds[1], buttonStrIds[2]);
@@ -124,9 +123,8 @@ static void callbackTIM_RestoreAfterSceneDialog(TIMInterpreter *interp,
   GameContextCleanupSceneDialog(gameCtx);
 }
 
-void GameTimAnimatorInit(GameTimAnimator *animator,
-                         Animator *animator_) {
-  memset(animator, 0, sizeof(GameTimAnimator));
+void GameTimInterpreterInit(GameTimInterpreter *animator, Animator *animator_) {
+  memset(animator, 0, sizeof(GameTimInterpreter));
   animator->animator = animator_;
   TIMInterpreterInit(&animator->timInterpreter);
   animator->timInterpreter.callbacks.TIMInterpreterCallbacks_WSAInit =
@@ -148,31 +146,31 @@ void GameTimAnimatorInit(GameTimAnimator *animator,
   animator->timInterpreter.callbacks
       .TIMInterpreterCallbacks_RestoreAfterSceneDialog =
       callbackTIM_RestoreAfterSceneDialog;
-  
 }
 
-void GameTimAnimatorRelease(GameTimAnimator *animator) {
+void GameTimInterpreterRelease(GameTimInterpreter *animator) {
   TIMInterpreterRelease(&animator->timInterpreter);
   AnimatorRelease(animator->animator);
 }
 
-void GameTimAnimatorLoadTim(GameTimAnimator *animator, uint16_t scriptId,
-                            const char *file) {
+void GameTimInterpreterLoadTim(GameTimInterpreter *animator, uint16_t scriptId,
+                               const char *file) {
   GameFile f = {0};
   assert(GameEnvironmentGetFileWithExt(&f, file, "TIM"));
   assert(TIMHandleFromBuffer(&animator->tim[scriptId], f.buffer, f.bufferSize));
 }
 
-void GameTimAnimatorRunTim(GameTimAnimator *animator, uint16_t scriptId) {
+void GameTimInterpreterRunTim(GameTimInterpreter *animator, uint16_t scriptId) {
   printf("GameTimAnimatorRunTim start %x\n", scriptId);
   TIMInterpreterStart(&animator->timInterpreter, &animator->tim[scriptId]);
 }
 
-void GameTimAnimatorReleaseTim(GameTimAnimator *animator, uint16_t scriptId) {
+void GameTimInterpreterReleaseTim(GameTimInterpreter *animator,
+                                  uint16_t scriptId) {
   TIMHandleInit(&animator->tim[scriptId]);
 }
 
-int GameTimAnimatorRender(GameTimAnimator *animator) {
+int GameTimInterpreterRender(GameTimInterpreter *animator) {
   printf("GameTimAnimatorRender\n");
   // int timeToWait = 0;
   if (TIMInterpreterIsRunning(&animator->timInterpreter)) {
@@ -184,7 +182,7 @@ int GameTimAnimatorRender(GameTimAnimator *animator) {
   return 1;
 }
 
-void GameTimAnimatorSetupPart(GameTimAnimator *animator, uint16_t animIndex,
+void GameTimAnimatorSetupPart(GameTimInterpreter *animator, uint16_t animIndex,
                               uint16_t part, uint16_t firstFrame,
                               uint16_t lastFrame, uint16_t cycles,
                               uint16_t nextPart, uint16_t partDelay,
@@ -193,7 +191,7 @@ void GameTimAnimatorSetupPart(GameTimAnimator *animator, uint16_t animIndex,
   printf("GameTimAnimatorSetupPart\n");
 }
 
-void GameTimAnimatorPlayPart(GameTimAnimator *animator, uint16_t animIndex,
+void GameTimAnimatorPlayPart(GameTimInterpreter *animator, uint16_t animIndex,
                              uint16_t firstFrame, uint16_t lastFrame,
                              uint16_t delay) {
   printf("GameTimAnimatorPlayPart %x\n", animIndex);
