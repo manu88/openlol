@@ -2,9 +2,11 @@
 #include "game_ctx.h"
 #include "logger.h"
 #include "script.h"
+#include <_stdlib.h>
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define ASSERT_UNIMPLEMENTED assert(0)
@@ -81,9 +83,9 @@ static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
 static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
   int16_t times = EMCStateStackVal(state, 0);
   int16_t max = EMCStateStackVal(state, 1);
-  printf("rollDice times=%i max=%i\n", times, max);
-  ASSERT_UNIMPLEMENTED;
-  return 1;
+  uint16_t r = (uint16_t)arc4random() % max;
+  printf("rollDice times=%i max=%i -> %i\n", times, max, r);
+  return r;
 }
 
 static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
