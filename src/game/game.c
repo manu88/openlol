@@ -328,7 +328,7 @@ static int processAnimationMouse(GameContext *gameCtx) {
       if (gameCtx->dialogState == DialogState_InProgress) {
         gameCtx->dialogState = DialogState_Done;
       } else {
-        TIMInterpreterButtonClicked(&gameCtx->timAnimator.timInterpreter, 0);
+        TIMInterpreterButtonClicked(&gameCtx->timInterpreter.timInterpreter, 0);
       }
 
     } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON2_X &&
@@ -337,7 +337,7 @@ static int processAnimationMouse(GameContext *gameCtx) {
       if (gameCtx->dialogState == DialogState_InProgress) {
         assert(0);
       } else {
-        TIMInterpreterButtonClicked(&gameCtx->timAnimator.timInterpreter, 1);
+        TIMInterpreterButtonClicked(&gameCtx->timInterpreter.timInterpreter, 1);
       }
     } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON3_X &&
                gameCtx->mouseEv.pos.x < DIALOG_BUTTON3_X + DIALOG_BUTTON_W) {
@@ -345,7 +345,7 @@ static int processAnimationMouse(GameContext *gameCtx) {
       if (gameCtx->dialogState == DialogState_InProgress) {
         assert(0);
       } else {
-        TIMInterpreterButtonClicked(&gameCtx->timAnimator.timInterpreter, 2);
+        TIMInterpreterButtonClicked(&gameCtx->timInterpreter.timInterpreter, 2);
       }
     }
   }

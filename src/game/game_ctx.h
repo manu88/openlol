@@ -191,7 +191,7 @@ typedef struct _GameContext {
   FNTHandle defaultFont;
   uint8_t gameFlags[100];
 
-  GameTimInterpreter timAnimator;
+  GameTimInterpreter timInterpreter;
   Animator animator;
 
   uint16_t inventory[INVENTORY_SIZE];

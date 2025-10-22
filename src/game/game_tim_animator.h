@@ -28,7 +28,3 @@ void GameTimInterpreterReleaseTim(GameTimInterpreter *animator,
                                   uint16_t scriptId);
 
 int GameTimInterpreterRender(GameTimInterpreter *animator);
-
-void GameTimInterpreterWSAInit(GameTimInterpreter *animator, uint16_t index,
-                               const char *wsaFile, int x, int y, int offscreen,
-                               int flags);

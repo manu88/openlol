@@ -190,8 +190,7 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
 
-    gameCtx->timAnimator.animator->defaultPalette =
-        gameCtx->level->vcnHandle.palette;
+    gameCtx->animator.defaultPalette = gameCtx->level->vcnHandle.palette;
   }
   {
     GameFile f = {0};
@@ -294,26 +293,26 @@ static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                   const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadTimScript %x %s", scriptId, file);
-  GameTimInterpreterLoadTim(&gameCtx->timAnimator, scriptId, file);
+  GameTimInterpreterLoadTim(&gameCtx->timInterpreter, scriptId, file);
 }
 
 static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
                                  uint16_t loop) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRunTimScript %x %i", scriptId, loop);
-  if (!gameCtx->timAnimator.tim[scriptId].avtl) {
+  if (!gameCtx->timInterpreter.tim[scriptId].avtl) {
     printf("NO TIM loaded\n");
     return;
   }
   GameContextSetState(gameCtx, GameState_TimAnimation);
-  GameTimInterpreterRunTim(&gameCtx->timAnimator, scriptId);
+  GameTimInterpreterRunTim(&gameCtx->timInterpreter, scriptId);
 }
 
 static void callbackReleaseTimScript(EMCInterpreter *interp,
                                      uint16_t scriptId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackReleaseTimScript %i", scriptId);
-  GameTimInterpreterReleaseTim(&gameCtx->timAnimator, scriptId);
+  GameTimInterpreterReleaseTim(&gameCtx->timInterpreter, scriptId);
 }
 
 static uint16_t callbackGetItemIndexInHand(EMCInterpreter *interp) {
@@ -417,8 +416,12 @@ static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackWSAInit %x %s %i %i %i %i", index, wsaFile, x, y,
       offscreen, flags);
-  GameTimInterpreterWSAInit(&gameCtx->timAnimator, index, wsaFile, x, y,
-                            offscreen, flags);
+  GameFile f = {0};
+  printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
+         wsaFile, index, offscreen);
+  assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
+  AnimatorInitWSA(&gameCtx->animator, f.buffer, f.bufferSize, x, y, offscreen,
+                  flags);
 }
 
 static void callbackRestoreAfterSceneDialog(EMCInterpreter *interp, int mode) {
@@ -488,9 +491,9 @@ static void callbackSetupBackgroundAnimationPart(
       animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
       field, sfxIndex, sfxFrame);
 
-  AnimatorSetupPart(gameCtx->timAnimator.animator, animIndex, part, firstFrame,
-                    lastFrame, cycles, nextPart, partDelay, field, sfxIndex,
-                    sfxFrame);
+  AnimatorSetupPart(gameCtx->timInterpreter.animator, animIndex, part,
+                    firstFrame, lastFrame, cycles, nextPart, partDelay, field,
+                    sfxIndex, sfxFrame);
 }
 
 static void callbackDeleteHandItem(EMCInterpreter *interp) {
@@ -557,7 +560,7 @@ static void callbackPlayAnimationPart(EMCInterpreter *interp,
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
   GameContextSetState(gameCtx, GameState_TimAnimation);
-  AnimatorPlayPart(gameCtx->timAnimator.animator, animIndex, firstFrame,
+  AnimatorPlayPart(gameCtx->timInterpreter.animator, animIndex, firstFrame,
                    lastFrame, delay);
 }
 

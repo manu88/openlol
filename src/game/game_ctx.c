@@ -125,8 +125,8 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   }
 
   AnimatorInit(&gameCtx->animator, gameCtx->foregroundPixBuf);
-  GameTimInterpreterInit(&gameCtx->timAnimator, &gameCtx->animator);
-  gameCtx->timAnimator.timInterpreter.callbackCtx = gameCtx;
+  GameTimInterpreterInit(&gameCtx->timInterpreter, &gameCtx->animator);
+  gameCtx->timInterpreter.timInterpreter.callbackCtx = gameCtx;
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(gameCtx->dialogTextBuffer);
 

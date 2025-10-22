@@ -11,30 +11,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-void GameTimInterpreterWSAInit(GameTimInterpreter *animator, uint16_t index,
-                               const char *wsaFile, int x, int y, int offscreen,
-                               int flags) {
-  assert(animator);
-  GameFile f = {0};
-  printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
-         wsaFile, index, offscreen);
-  assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
-  AnimatorInitWSA(animator->animator, f.buffer, f.bufferSize, x, y, offscreen,
-                  flags);
-}
-
 static void callbackTIM_WSAInit(TIMInterpreter *interp, uint16_t index,
                                 const char *wsaFile, int x, int y,
                                 int offscreen, int flags) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimInterpreter *animator = &gameCtx->timAnimator;
-  GameTimInterpreterWSAInit(animator, index, wsaFile, x, y, offscreen, flags);
+  GameFile f = {0};
+  printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
+         wsaFile, index, offscreen);
+  assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
+  AnimatorInitWSA(&gameCtx->animator, f.buffer, f.bufferSize, x, y, offscreen,
+                  flags);
 }
 
 static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
                                         int frame) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimInterpreter *animator = &gameCtx->timAnimator;
+  GameTimInterpreter *animator = &gameCtx->timInterpreter;
   assert(animator);
 
   printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i fram=%i x=%i "
@@ -68,18 +60,12 @@ static uint16_t callbackTIM_GiveItem(TIMInterpreter *interp, uint16_t p0,
 static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   printf("GameTimAnimator: callbackWSARelease index=%i\n", index);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimInterpreter *animator = &gameCtx->timAnimator;
-  assert(animator);
-  WSAHandleRelease(&animator->animator->wsa);
+  WSAHandleRelease(&gameCtx->animator.wsa);
 }
 
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
                                      int argc, const uint16_t *argv) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimInterpreter *animator = &gameCtx->timAnimator;
-  assert(animator);
-  printf("GameTimAnimator callbackPlayDialogue stringId=%i argc=%i\n", stringId,
-         argc);
 
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
@@ -90,8 +76,6 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
                                           uint16_t functionId,
                                           const uint16_t buttonStrIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameTimInterpreter *animator = &gameCtx->timAnimator;
-  assert(animator);
   printf("GameTimAnimator ShowDialogButtons  %X %X %X\n", buttonStrIds[0],
          buttonStrIds[1], buttonStrIds[2]);
 
