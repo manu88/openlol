@@ -111,7 +111,6 @@ int GameEnvironmentInit(const char *dataDir, Language lang) {
 }
 
 int GameEnvironmentLoadLevel(uint8_t index) {
-  assert(index < 9);
   const size_t fullPathSize =
       strlen(_envir.dataDir) +
       14; // / sizeof('CHAPTER') + INDEX sizeof('.PAK') + NULL
