@@ -180,6 +180,8 @@ typedef struct _GameContext {
   INFScript iniScript;
   INFScript itemScript;
 
+  uint16_t nextFunc;
+
   EMCInterpreter interp;
   EMCState interpState;
 

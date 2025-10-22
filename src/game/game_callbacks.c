@@ -455,6 +455,13 @@ static uint16_t callbackCheckForCertainPartyMember(EMCInterpreter *interp,
   return 0;
 }
 
+static void callbackSetNextFunc(EMCInterpreter *interp, uint16_t func) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  Log(LOG_PREFIX, "callbackSetNextFunc %x", func);
+  assert(gameCtx->nextFunc == 0);
+  gameCtx->nextFunc = func;
+}
+
 static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
                                     uint16_t index2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -671,4 +678,5 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackCreateHandItem;
   interp->callbacks.EMCInterpreterCallbacks_CheckForCertainPartyMember =
       callbackCheckForCertainPartyMember;
+  interp->callbacks.EMCInterpreterCallbacks_SetNextFunc = callbackSetNextFunc;
 }

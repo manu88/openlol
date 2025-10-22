@@ -289,6 +289,9 @@ typedef struct _EMCInterpreterCallbacks {
 
   uint16_t (*EMCInterpreterCallbacks_CheckForCertainPartyMember)(
       EMCInterpreter *interp, uint16_t charId);
+
+  void (*EMCInterpreterCallbacks_SetNextFunc)(EMCInterpreter *interp,
+                                              uint16_t func);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

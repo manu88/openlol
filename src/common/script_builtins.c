@@ -156,10 +156,9 @@ static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t setNextFunc(EMCInterpreter *interp, EMCState *state) {
-  uint16_t p = EMCStateStackVal(state, 0);
-  printf("setNextFunc %x\n", p);
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t func = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_SetNextFunc(interp, func);
+  return 1;
 }
 
 static uint16_t getDirection(EMCInterpreter *interp, EMCState *state) {

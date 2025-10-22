@@ -601,6 +601,11 @@ static int GamePreUpdate(GameContext *gameCtx) {
       return 1;
     }
   }
+  if (gameCtx->nextFunc) {
+    printf("Exec next func %X\n", gameCtx->nextFunc);
+    GameContextRunScript(gameCtx, gameCtx->nextFunc);
+    gameCtx->nextFunc = 0;
+  }
   return shouldUpdate;
 }
 
