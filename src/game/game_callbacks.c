@@ -7,6 +7,7 @@
 #include "game_render.h"
 #include "game_tim_animator.h"
 #include "logger.h"
+#include "render.h"
 #include "script.h"
 #include <assert.h>
 #include <stdint.h>
@@ -504,6 +505,21 @@ static void callbackDeleteHandItem(EMCInterpreter *interp) {
   GameContextUpdateCursor(gameCtx);
 }
 
+static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
+                                       uint16_t itemType, uint16_t p1,
+                                       uint16_t p2) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  Log(LOG_PREFIX, "callbackCreateHandItem");
+  if (gameCtx->itemIndexInHand) {
+    return 0;
+  }
+  gameCtx->itemIndexInHand = GameContextCreateItem(gameCtx, itemType);
+  uint16_t frameId =
+      itemType ? GameContextGetItemSHPFrameIndex(gameCtx, itemType) : 0;
+  createCursorForItem(gameCtx, frameId);
+  return 1;
+}
+
 static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackProcessDialog\n");
@@ -633,4 +649,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackDeleteHandItem;
   interp->callbacks.EMCInterpreterCallbacks_PlayAnimationPart =
       callbackPlayAnimationPart;
+  interp->callbacks.EMCInterpreterCallbacks_CreateHandItem =
+      callbackCreateHandItem;
 }

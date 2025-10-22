@@ -608,9 +608,13 @@ static uint16_t checkInventoryFull(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t createHandItem(EMCInterpreter *interp, EMCState *state) {
-  printf("createHandItem\n");
-  ASSERT_UNIMPLEMENTED;
-  return 1;
+  uint16_t itemType = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  printf("createHandItem %X %X %X\n", itemType, p1, p2);
+
+  return interp->callbacks.EMCInterpreterCallbacks_CreateHandItem(
+      interp, itemType, p1, p2);
 }
 
 static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
