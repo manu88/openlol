@@ -900,7 +900,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
 
     // 0X9A
-    {resetPortraitsAndDisableSysTimer, "resetPortraitsAndDisableSysTimer"},
+    {resetPortraitsAndDisableSysTimer, "resetPortraitsDisableSysTimer"},
     {enableSysTimer, "enableSysTimer"},
     {NULL},
     {NULL},
@@ -941,7 +941,6 @@ size_t getNumBuiltinFunctions(void) { return numFunctions; }
 
 void EMCInterpreterExecFunction(EMCInterpreter *interp, EMCState *state,
                                 uint8_t funcNum) {
-
   if (funcNum >= numFunctions) {
     printf("unimplemented func %X\n", funcNum);
     assert(0);

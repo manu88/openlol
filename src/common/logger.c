@@ -1,5 +1,4 @@
 #include "logger.h"
-#include "formats/format_sav.h"
 #include <_string.h>
 #include <stddef.h>
 #include <stdio.h>
