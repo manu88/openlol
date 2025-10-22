@@ -73,6 +73,9 @@ static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
          INVENTORY_SIZE * sizeof(uint16_t));
 
   for (int i = 0; i < NUM_CHARACTERS; i++) {
+    if (!savHandle.slot.characters[i]->flags) {
+      continue;
+    }
     memcpy(&gameCtx->chars[i], savHandle.slot.characters[i],
            sizeof(SAVCharacter));
   }
@@ -206,7 +209,6 @@ static void clickOnFrontWall(GameContext *gameCtx) {
     return;
   }
   switch (mapping->specialType) {
-
   case WallSpecialType_None:
     printf("WallSpecialType_None\n");
     break;

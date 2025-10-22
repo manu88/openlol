@@ -674,7 +674,7 @@ static int cmdSAVShow(const char *filepath) {
   const SAVSlot *slot = &handle.slot;
   printf("Slot name '%s'\n", slot->header->name);
   printf("+CHARACTERS\n");
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < NUM_CHARACTERS; i++) {
     const SAVCharacter *ch = slot->characters[i];
     if (!ch->flags) {
       continue;
