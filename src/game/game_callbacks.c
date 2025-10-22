@@ -438,6 +438,23 @@ static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
   GameContextCleanupSceneDialog(gameCtx);
 }
 
+static void callbackSetWallType(EMCInterpreter *interp, uint16_t p0,
+                                uint16_t p1, uint16_t p2) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  Log(LOG_PREFIX, "callbackSetWallType %x %x %x", p0, p1, p2);
+}
+
+static uint16_t callbackCheckForCertainPartyMember(EMCInterpreter *interp,
+                                                   uint16_t charId) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  for (int i = 0; i < NUM_CHARACTERS; i++) {
+    if (abs(gameCtx->chars[i].id) == charId) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
                                     uint16_t index2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -636,6 +653,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog =
       callbackRestoreAfterSceneWindowDialog;
   interp->callbacks.EMCInterpreterCallbacks_GetWallType = callbackGetWallType;
+  interp->callbacks.EMCInterpreterCallbacks_SetWallType = callbackSetWallType;
   interp->callbacks.EMCInterpreterCallbacks_GetWallFlags = callbackGetWallFlags;
   interp->callbacks.EMCInterpreterCallbacks_CheckRectForMousePointer =
       callbackCheckRectForMousePointer;
@@ -651,4 +669,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackPlayAnimationPart;
   interp->callbacks.EMCInterpreterCallbacks_CreateHandItem =
       callbackCreateHandItem;
+  interp->callbacks.EMCInterpreterCallbacks_CheckForCertainPartyMember =
+      callbackCheckForCertainPartyMember;
 }

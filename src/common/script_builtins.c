@@ -51,6 +51,21 @@ static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
                                                                index2);
 }
 
+static uint16_t setWallType(EMCInterpreter *interp, EMCState *state) {
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  interp->callbacks.EMCInterpreterCallbacks_SetWallType(interp, p0, p1, p2);
+  return 1;
+}
+
+static uint16_t checkForCertainPartyMember(EMCInterpreter *interp,
+                                           EMCState *state) {
+  uint16_t charId = EMCStateStackVal(state, 0);
+  return interp->callbacks.EMCInterpreterCallbacks_CheckForCertainPartyMember(
+      interp, charId);
+}
+
 static uint16_t getWallFlags(EMCInterpreter *interp, EMCState *state) {
   uint16_t index = EMCStateStackVal(state, 0);
   uint16_t index2 = EMCStateStackVal(state, 1);
@@ -701,7 +716,7 @@ static uint16_t paletteFlash(EMCInterpreter *interp, EMCState *state) {
 static uint16_t return1(EMCInterpreter *interp, EMCState *state) { return 1; }
 
 static ScriptFunDesc functions[] = {
-    {NULL},
+    {setWallType, "setWallType"},
     {getWallType, "getWallType"},
     {drawScene, "drawScene"},
     {rollDice, "rollDice"},
@@ -830,7 +845,7 @@ static ScriptFunDesc functions[] = {
     {setPaletteBrightness, "setPaletteBrightness"},
     {NULL},
     {getInflictedDamage, "getInflictedDamage"},
-    {NULL},
+    {checkForCertainPartyMember, "checkForCertainPartyMember"},
     {printMessage, "printMessage"},
 
     // 0X70

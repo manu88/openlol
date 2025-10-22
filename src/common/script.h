@@ -253,7 +253,9 @@ typedef struct _EMCInterpreterCallbacks {
   uint16_t (*EMCInterpreterCallbacks_GetWallType)(EMCInterpreter *interp,
                                                   uint16_t index,
                                                   uint16_t index2);
-
+  void (*EMCInterpreterCallbacks_SetWallType)(EMCInterpreter *interp,
+                                              uint16_t p0, uint16_t p1,
+                                              uint16_t p2);
   uint16_t (*EMCInterpreterCallbacks_GetWallFlags)(EMCInterpreter *interp,
                                                    uint16_t index,
                                                    uint16_t index2);
@@ -285,6 +287,8 @@ typedef struct _EMCInterpreterCallbacks {
                                                     uint16_t lastFrame,
                                                     uint16_t delay);
 
+  uint16_t (*EMCInterpreterCallbacks_CheckForCertainPartyMember)(
+      EMCInterpreter *interp, uint16_t charId);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
