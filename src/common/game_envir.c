@@ -10,6 +10,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+static const char *pakFiles[] = {
+    "CATWALK.PAK", "CAVE1.PAK", "CIMMERIA.PAK", "DRIVERS.PAK", "FOREST1.PAK",
+    "GENERAL.PAK", "KEEP.PAK",  "L01.PAK",      "L02.PAK",     "L03.PAK",
+    "L04.PAK",     "L05.PAK",   "L06.PAK",      "L07.PAK",     "L08.PAK",
+    "L09.PAK",     "L10.PAK",   "L11.PAK",      "L12.PAK",     "L13.PAK",
+    "L14.PAK",     "L15.PAK",   "L16.PAK",      "L17.PAK",     "L18.PAK",
+    "L19.PAK",     "L20.PAK",   "L21.PAK",      "L22.PAK",     "L23.PAK",
+    "L24.PAK",     "L25.PAK",   "L26.PAK",      "L27.PAK",     "L28.PAK",
+    "L29.PAK",     "MANOR.PAK", "MINE1.PAK",    "MONSTER.PAK", "MUSIC.PAK",
+    "O00A.PAK",    "O01A.PAK",  "O01B.PAK",     "O01C.PAK",    "O01D.PAK",
+    "O01E.PAK",    "O02A.PAK",  "O02B.PAK",     "O03A.PAK",    "O03B.PAK",
+    "O03C.PAK",    "O04A.PAK",  "O07A.PAK",     "O08A.PAK",    "O10A.PAK",
+    "O11A.PAK",    "O12A.PAK",  "O14A.PAK",     "O16A.PAK",    "O17A.PAK",
+    "O18A.PAK",    "O19A.PAK",  "O21A.PAK",     "O22A.PAK",    "O22B.PAK",
+    "O22C.PAK",    "O22D.PAK",  "O23A.PAK",     "O23B.PAK",    "O24A.PAK",
+    "O26A.PAK",    "O27A.PAK",  "O28A.PAK",     "O29A.PAK",    "RUIN.PAK",
+    "STARTUP.PAK", "SWAMP.PAK", "TOWER1.PAK",   "URBISH.PAK",  "VOC.PAK",
+    "YVEL.PAK",    NULL,
+};
+
 typedef struct {
   PAKFile file;
   char *name;
@@ -184,11 +204,6 @@ int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {
   return getFile(&_envir.pakGeneral, file, name);
 }
 
-int GameEnvironmentGetGeneralLangFile(GameFile *file) {
-  return GameEnvironmentGetGeneralFileWithExt(
-      file, "LANDS", LanguageGetExtension(_envir.lang));
-}
-
 int GameEnvironmentLoadPak(const char *pakFileName) {
   int cacheIndex = GetCacheIndex(pakFileName);
   if (cacheIndex != -1) {
@@ -234,7 +249,33 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
   if (getFile(&_envir.pakStartup, file, name)) {
     return 1;
   }
+  int pakIndex = GameEnvironmentFindPak(name);
+  if (pakIndex != -1) {
+    printf("Load pak %s %i\n", pakFiles[pakIndex], pakIndex);
+    GameEnvironmentLoadPak(pakFiles[pakIndex]);
+    return GameEnvironmentGetFile(file, name);
+  }
   return 0;
+}
+
+int GameEnvironmentFindPak(const char *filename) {
+  int i = 0;
+  const char *pakFile = pakFiles[0];
+  while (pakFile != NULL) {
+    PAKFile f;
+    PAKFileInit(&f);
+    char *fullP = resolvePakName(pakFile);
+    PAKFileRead(&f, fullP);
+    free(fullP);
+    int index = PakFileGetEntryIndex(&f, filename);
+    PAKFileRelease(&f);
+    if (index != -1) {
+      return i;
+    }
+    i++;
+    pakFile = pakFiles[i];
+  }
+  return -1;
 }
 
 int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,
@@ -245,18 +286,6 @@ int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,
   char *fullName = genNameWithExt(name, ext);
   assert(fullName);
   int ret = GameEnvironmentGetFile(file, fullName);
-  free(fullName);
-  return ret;
-}
-
-int GameEnvironmentGetGeneralFileWithExt(GameFile *file, const char *name,
-                                         const char *ext) {
-  assert(file);
-  assert(name);
-  assert(ext);
-  char *fullName = genNameWithExt(name, ext);
-  assert(fullName);
-  int ret = GameEnvironmentGetGeneralFile(file, fullName);
   free(fullName);
   return ret;
 }

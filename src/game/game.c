@@ -115,10 +115,6 @@ int cmdGame(int argc, char *argv[]) {
 
   assert(GameEnvironmentInit(dataDir ? dataDir : "data", lang));
 
-  GameEnvironmentLoadPak("O01A.PAK");
-  GameEnvironmentLoadPak("O01E.PAK");
-  GameEnvironmentLoadPak("O01D.PAK");
-
   if (!GameContextInit(&gameCtx, lang)) {
     return 1;
   }

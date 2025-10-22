@@ -33,14 +33,14 @@ void GameEnvironmentRelease(void);
 
 int GameEnvironmentLoadLevel(uint8_t index);
 
-int GameEnvironmentLoadPak(const char* name);
+int GameEnvironmentLoadPak(const char *name);
 int GameEnvironmentGetFile(GameFile *file, const char *name);
+int GameEnvironmentFindPak(const char *filename);
+
 int GameEnvironmentGetGeneralFile(GameFile *file, const char *name);
 int GameEnvironmentGetStartupFile(GameFile *file, const char *name);
-int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,const char *ext);
-int GameEnvironmentGetGeneralFileWithExt(GameFile *file, const char *name,
+int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,
                                          const char *ext);
-int GameEnvironmentGetGeneralLangFile(GameFile *file);
 
 int GameEnvironmentGetFileFromPak(GameFile *file, const char *filename,
                                   const char *pakFile);
