@@ -61,15 +61,6 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
     }
     handle->numTextStrings = i;
   }
-  handle->numFunctions = handle->avtlSize < TIM_NUM_FUNCTIONS
-                             ? handle->avtlSize
-                             : TIM_NUM_FUNCTIONS;
-  for (int i = 0; i < handle->numFunctions; i++) {
-    uint16_t offset = handle->avtl[i];
-
-    handle->functions[i].avtl = handle->avtl + offset;
-  }
-
   return 1;
 }
 
