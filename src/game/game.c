@@ -16,6 +16,7 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "geometry.h"
+#include "logger.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
@@ -31,7 +32,7 @@
 static SAVHandle savHandle = {0};
 static int GameRun(GameContext *gameCtx);
 static void usageGame(void) {
-  printf("game [-d datadir] [-l langId]  [savefile.dat]\n");
+  printf("game [-d datadir] [-l langId] [-a] [savefile.dat]\n");
 }
 
 static int newGame(GameContext *gameCtx) {
@@ -92,11 +93,15 @@ int cmdGame(int argc, char *argv[]) {
   Language lang = Language_EN;
   optind = 0;
   char c;
-  while ((c = getopt(argc, argv, "hd:l:")) != -1) {
+  int doLogs = 0;
+  while ((c = getopt(argc, argv, "ahd:l:")) != -1) {
     switch (c) {
     case 'h':
       usageGame();
       return 0;
+    case 'a':
+      doLogs = 1;
+      break;
     case 'd':
       dataDir = optarg;
       break;
@@ -104,6 +109,9 @@ int cmdGame(int argc, char *argv[]) {
       lang = atoi(optarg);
       break;
     }
+  }
+  if (doLogs) {
+    LoggerSetOutput(LoggerStdOut);
   }
 
   printf("using lang %s\n", LanguageGetExtension(lang));
