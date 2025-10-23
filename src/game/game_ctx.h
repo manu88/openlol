@@ -131,6 +131,8 @@ typedef struct {
   uint8_t isRightClick;
 } MouseEvent;
 
+#define NUM_GAME_FLAGS 100
+
 typedef struct _GameContext {
   GameState state;
   GameState prevState;
@@ -191,7 +193,7 @@ typedef struct _GameContext {
   uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS];
 
   FNTHandle defaultFont;
-  uint8_t gameFlags[100];
+  uint8_t gameFlags[NUM_GAME_FLAGS];
 
   GameTimInterpreter timInterpreter;
   Animator animator;
@@ -227,7 +229,7 @@ int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
 
 uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag);
-void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag, uint16_t val);
+void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag);
 void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag);
 
 void GameContextSetState(GameContext *gameCtx, GameState newState);

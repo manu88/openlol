@@ -260,7 +260,7 @@ uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag) {
   return ((gameCtx->gameFlags[flag >> 3] >> (flag & 7)) & 1);
 }
 
-void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag, uint16_t val) {
+void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag) {
   assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
   gameCtx->gameFlags[flag >> 3] |= (1 << (flag & 7));
 }
