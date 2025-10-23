@@ -718,6 +718,10 @@ static int cmdSAVShow(const char *filepath) {
            obj->itemPropertyIndex);
   }
 
+  printf("+Game flags\n");
+  for (int i = 0; i < NUM_FLAGS; i++) {
+    printf("%i %X\n", i, slot->general->flags[i]);
+  }
   printf("+Objects\n");
   for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
     const GameObject *obj = slot->gameObjects + i;

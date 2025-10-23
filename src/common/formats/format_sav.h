@@ -44,6 +44,8 @@ typedef struct {
 
 #define INVENTORY_SIZE 48
 
+#define NUM_FLAGS 40
+
 typedef struct {
   uint16_t currentBlock;
   uint16_t posX;
@@ -70,6 +72,9 @@ typedef struct {
   uint16_t inventoryCurrentItem;
   uint16_t itemIndexInHand;
   uint16_t lastMouseRegion;
+
+  uint16_t flags[NUM_FLAGS]; // this gets transformed into gameFlags using
+                             // SAVHandleGetGameFlags
 } SAVGeneral;
 
 #define NUM_GLOBAL_SCRIPT_VARS2 8
@@ -124,3 +129,5 @@ typedef struct {
 } SAVHandle;
 
 int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize);
+void SAVHandleGetGameFlags(const SAVHandle *handle, uint8_t *gameFlags,
+                           size_t numGameFlags);
