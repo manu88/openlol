@@ -45,7 +45,7 @@ int SHPHandleFromBuffer(SHPHandle *handle, uint8_t *buffer, size_t size) {
 uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
                            size_t index) {
   assert(index <= handle->framesCount);
-  uint16_t offset = handle->frameOffsets[index];
+  uint32_t offset = handle->frameOffsets[index];
   uint8_t *frameStart = handle->originalBuffer + 2 + offset;
 
   frame->header.flags[0] = *frameStart;
@@ -93,7 +93,6 @@ int SHPFrameGetImageData(SHPFrame *frame) {
   uint8_t shouldFreeImageBuffer = 0;
   if (noLCW == 0) {
     imageBuffer = malloc(frame->header.zeroCompressedSize);
-
     LCWDecompress(frame->undecodedImageData, compressedSize, imageBuffer,
                   frame->header.zeroCompressedSize);
     shouldFreeImageBuffer = 1;
