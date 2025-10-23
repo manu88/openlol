@@ -210,11 +210,18 @@ static uint16_t showMouse(EMCInterpreter *interp, EMCState *state) {
   ASSERT_UNIMPLEMENTED;
   return 0;
 }
+
 static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
   printf("fadeToBlack\n");
   ASSERT_UNIMPLEMENTED;
   return 0;
 }
+
+static uint16_t fadePalette(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] fadePalette\n");
+  return 0;
+}
+
 static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
   int16_t p0 = EMCStateStackVal(state, 0);
   int16_t p1 = EMCStateStackVal(state, 1);
@@ -224,8 +231,7 @@ static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
                                         EMCState *state) {
-  printf("stopBackgroundAnimation\n");
-  ASSERT_UNIMPLEMENTED;
+  printf("[UNIMPLEMENTED] stopBackgroundAnimation\n");
   return 0;
 }
 
@@ -641,11 +647,11 @@ static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
   uint16_t controlMode = EMCStateStackVal(state, 4);
   uint16_t fadeFlag = EMCStateStackVal(state, 5);
 
-  printf("prepareSpecialScene fieldType %X hasDialogue %X suspendGUI %X "
+  printf("[UNIMPLEMENTED] prepareSpecialScene fieldType %X hasDialogue %X "
+         "suspendGUI %X "
          "allowSceneUpdate %X controlMode%X  fadeFlag%X \n",
          fieldType, hasDialogue, suspendGUI, allowSceneUpdate, controlMode,
          fadeFlag);
-  ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -763,7 +769,7 @@ static ScriptFunDesc functions[] = {
     {hideMouse, "hideMouse"},
     {showMouse, "showMouse"},
     {fadeToBlack, "fadeToBlack"},
-    {NULL},
+    {fadePalette, "fadePalette"},
     {loadBitmap, "loadBitmap"},
     // 0X2A
     {stopBackgroundAnimation, "stopBackgroundAnimation"},

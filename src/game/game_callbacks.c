@@ -160,11 +160,11 @@ static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
 }
 
 static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
-                                uint16_t val) {
+                                uint16_t set) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  Log(LOG_PREFIX, "callbackSetGameFlag %x %x", flag, val);
-  if (val) {
-    GameContextSetGameFlag(gameCtx, flag, val);
+  Log(LOG_PREFIX, "callbackSetGameFlag %x %x", flag, set);
+  if (set) {
+    GameContextSetGameFlag(gameCtx, flag);
   } else {
     GameContextResetGameFlag(gameCtx, flag);
   }
@@ -440,7 +440,6 @@ static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
 
 static void callbackSetWallType(EMCInterpreter *interp, uint16_t p0,
                                 uint16_t p1, uint16_t p2) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetWallType %x %x %x", p0, p1, p2);
 }
 
