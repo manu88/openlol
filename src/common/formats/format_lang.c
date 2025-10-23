@@ -10,6 +10,8 @@ const char *LanguageGetExtension(Language lang) {
     return "ENG";
   case Language_FR:
     return "FRE";
+  case Language_GR:
+    return "GER";
   }
   assert(0);
 }

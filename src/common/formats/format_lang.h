@@ -13,6 +13,7 @@
 typedef enum {
   Language_EN = 0,
   Language_FR,
+  Language_GR,
 } Language;
 
 const char *LanguageGetExtension(Language lang);
