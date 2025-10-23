@@ -6,8 +6,6 @@
 #define DECORATION_NUM_ENTRIES 10
 #define DECORATION_EMPTY_INDEX (uint16_t)0XFFFF
 
-#define DatDecorationFlag_Flip_Bit
-
 typedef enum {
   DatDecorationFlags_Mirror = 1 << 0,
 } DatDecorationFlags;
