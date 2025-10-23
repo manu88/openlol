@@ -250,7 +250,6 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
   }
   int pakIndex = GameEnvironmentFindPak(name);
   if (pakIndex != -1) {
-    printf("Load pak %s %i\n", pakFiles[pakIndex], pakIndex);
     GameEnvironmentLoadPak(pakFiles[pakIndex]);
     return GameEnvironmentGetFile(file, name);
   }
