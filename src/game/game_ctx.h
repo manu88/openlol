@@ -109,14 +109,14 @@ typedef struct {
 } LevelContext;
 
 typedef enum {
-  GameState_Invalid = 0,
-  GameState_PlayGame = 1,
-  GameState_TimAnimation = 2,
-  GameState_ShowInventory = 3,
-  GameState_GrowDialogBox = 4,
-  GameState_ShrinkDialogBox = 5,
+  GameState_Invalid,
+  GameState_PlayGame,
+  GameState_TimAnimation,
+  GameState_ShowInventory,
+  GameState_GrowDialogBox,
+  GameState_ShrinkDialogBox,
 
-  GameState_ShowMap = 6,
+  GameState_ShowMap,
 } GameState;
 
 typedef enum {
