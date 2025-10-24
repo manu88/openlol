@@ -483,7 +483,8 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     int x = gameCtx->mouseEv.pos.x - UI_MENU_BUTTON_X;
     int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
     if (buttonX == 0) {
-      printf("Menu button\n");
+      GameContextSetState(gameCtx, GameState_MainMenu);
+      return 1;
     } else if (buttonX == 1) {
       printf("sleep button\n");
     }
@@ -529,6 +530,9 @@ static int processMouse(GameContext *gameCtx) {
     return processAnimationMouse(gameCtx);
     break;
   case GameState_GrowDialogBox:
+  case GameState_MainMenu:
+    printf("MOUSE MENU\n");
+    break;
   case GameState_ShrinkDialogBox:
   case GameState_Invalid:
     assert(0);
@@ -585,6 +589,14 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       shouldUpdate = 1;
       clickOnFrontWall(gameCtx);
       break;
+    case SDLK_ESCAPE:
+      if (gameCtx->state == GameState_MainMenu) {
+        GameContextSetState(gameCtx, GameState_PlayGame);
+      } else {
+        GameContextSetState(gameCtx, GameState_MainMenu);
+      }
+      shouldUpdate = 1;
+      break;
     default:
       break;
     }
@@ -630,6 +642,7 @@ static void GameRunOnce(GameContext *gameCtx) {
   case GameState_PlayGame:
   case GameState_ShowInventory:
   case GameState_ShowMap:
+  case GameState_MainMenu:
     if (processGameInputs(gameCtx, &e)) {
       shouldUpdate = 1;
     }
@@ -670,7 +683,8 @@ static void GameRunOnce(GameContext *gameCtx) {
   assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->backgroundPixBuf, NULL,
                         &dest) == 0);
   if (gameCtx->state != GameState_ShowInventory &&
-      gameCtx->state != GameState_ShowMap) {
+      gameCtx->state != GameState_ShowMap &&
+      gameCtx->state != GameState_MainMenu) {
 
     SDL_Rect source = {MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
                        MAZE_COORDS_H};

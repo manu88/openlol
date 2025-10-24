@@ -24,6 +24,14 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   gameCtx->state = GameState_PlayGame;
   {
     GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));
+
+    if (CPSImageFromBuffer(&gameCtx->gameTitle, f.buffer, f.bufferSize) == 0) {
+      printf("unable to get Title.CPS Data\n");
+    }
+  }
+  {
+    GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PARCH.CPS"));
 
     if (CPSImageFromBuffer(&gameCtx->mapBackground, f.buffer, f.bufferSize) ==
@@ -158,6 +166,8 @@ void GameContextRelease(GameContext *gameCtx) {
 
   PAKFileRelease(&gameCtx->generalPak);
   CPSImageRelease(&gameCtx->playField);
+  CPSImageRelease(&gameCtx->gameTitle);
+  CPSImageRelease(&gameCtx->mapBackground);
   INFScriptRelease(&gameCtx->script);
   free(gameCtx->dialogTextBuffer);
   SDL_FreeCursor(gameCtx->cursor);

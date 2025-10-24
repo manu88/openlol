@@ -110,6 +110,7 @@ typedef struct {
 
 typedef enum {
   GameState_Invalid,
+  GameState_MainMenu,
   GameState_PlayGame,
   GameState_TimAnimation,
   GameState_ShowInventory,
@@ -173,6 +174,8 @@ typedef struct _GameContext {
   CPSImage playField;
   CPSImage loadedbitMap;
   CPSImage mapBackground;
+
+  CPSImage gameTitle;
 
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;

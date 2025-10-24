@@ -5,12 +5,12 @@
 #include "geometry.h"
 #include "render.h"
 #include "renderer.h"
+#include "ui.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "ui.h"
 
 void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
                   uint16_t destX, uint16_t destY, uint16_t w, uint16_t h,
@@ -23,7 +23,6 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
               gameCtx->loadedbitMap.imageSize, gameCtx->loadedbitMap.palette,
               destX, destY, w, h, 320, 200);
 }
-
 
 void renderDialog(GameContext *gameCtx) {
   if (gameCtx->dialogText) {
@@ -48,6 +47,24 @@ static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
     }
   }
   SDL_UnlockTexture(texture);
+}
+
+static void renderMainMenu(GameContext *gameCtx) {
+  renderCPS(gameCtx->backgroundPixBuf, gameCtx->gameTitle.data,
+            gameCtx->gameTitle.imageSize, gameCtx->gameTitle.palette,
+            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  drawMenuWindow(gameCtx, gameCtx->backgroundPixBuf, 86, 140, 128, 51);
+  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 144,
+                     "Start a new game");
+  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 153,
+                     "Introduction");
+  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 162,
+                     "Lore of the Lands");
+  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 171,
+                     "Load a new game");
+  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 180,
+                     "Exit game");
 }
 
 static void renderMap(GameContext *gameCtx) {
@@ -246,6 +263,10 @@ static void renderExitButton(GameContext *gameCtx) {
 void GameRender(GameContext *gameCtx) {
   SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   // SDL_RenderClear(gameCtx->renderer);
+  if (gameCtx->state == GameState_MainMenu) {
+    renderMainMenu(gameCtx);
+    return;
+  }
   if (gameCtx->state == GameState_ShowMap) {
     renderMap(gameCtx);
     return;
