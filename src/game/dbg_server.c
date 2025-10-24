@@ -22,8 +22,9 @@ static uint8_t recvBuf[1024];
 void DBGServerRelease(void) {
   printf("DBGServerRelease\n");
   if (cltSocket != -1) {
-    DBGMsgHeader outHeader = {.type = DBGMsgType_Goodbye, sizeof(DBGMsgStatus)};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMsg_Header outHeader = {.type = DBGMsgType_Goodbye,
+                               sizeof(DBGMsg_Status)};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
   }
   close(cltSocket);
 }
@@ -59,63 +60,63 @@ int DBGServerInit(void) {
 static void printGameState(const GameContext *gameCtx) {
   printf("itemIndexInHand %X\n", gameCtx->itemIndexInHand);
 }
-static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
+static int processRecvMsg(GameContext *gameCtx, const DBGMsg_Header *header,
                           uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {
   case DBGMsgType_StatusRequest: {
     printf("received StatusRequest\n");
     printGameState(gameCtx);
-    DBGMsgHeader outHeader = {.type = DBGMsgType_StatusResponse,
-                              sizeof(DBGMsgStatus)};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
-    DBGMsgStatus s = {.currentBock = gameCtx->currentBock};
-    write(cltSocket, &s, sizeof(DBGMsgStatus));
+    DBGMsg_Header outHeader = {.type = DBGMsgType_StatusResponse,
+                               sizeof(DBGMsg_Status)};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
+    DBGMsg_Status s = {.currentBock = gameCtx->currentBock};
+    write(cltSocket, &s, sizeof(DBGMsg_Status));
   } break;
   case DBGMsgType_GiveItemRequest: {
-    const DBGMSGGiveItemRequest *req = (const DBGMSGGiveItemRequest *)buffer;
+    const DBGMSG_GiveItemRequest *req = (const DBGMSG_GiveItemRequest *)buffer;
     printf("received GiveItemRequest 0X%0X\n", req->itemId);
-    DBGMsgHeader outHeader = {.type = DBGMsgType_GiveItemResponse,
-                              sizeof(DBGMSGGiveItemResponse)};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
-    DBGMSGGiveItemResponse resp;
+    DBGMsg_Header outHeader = {.type = DBGMsgType_GiveItemResponse,
+                               sizeof(DBGMSG_GiveItemResponse)};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
+    DBGMSG_GiveItemResponse resp;
     resp.response = GameContextAddItemToInventory(gameCtx, req->itemId);
-    write(cltSocket, &resp, sizeof(DBGMSGGiveItemResponse));
+    write(cltSocket, &resp, sizeof(DBGMSG_GiveItemResponse));
     return 1;
   };
   case DBGMsgType_QuitRequest: {
     printf("received DBGMSGQuitRequest\n");
     gameCtx->_shouldRun = 0;
 
-    DBGMsgHeader outHeader = {.type = DBGMsgType_QuitResponse,
-                              sizeof(DBGMSGQuitResponse)};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
-    DBGMSGQuitResponse resp;
+    DBGMsg_Header outHeader = {.type = DBGMsgType_QuitResponse,
+                               sizeof(DBGMSG_QuitResponse)};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
+    DBGMSG_QuitResponse resp;
     resp.response = 1;
-    write(cltSocket, &resp, sizeof(DBGMSGQuitResponse));
+    write(cltSocket, &resp, sizeof(DBGMSG_QuitResponse));
     return 1;
   }
   case DBGMsgType_SetStateRequest: {
-    const DBGMSGSetStateRequest *req = (const DBGMSGSetStateRequest *)buffer;
+    const DBGMSG_SetStateRequest *req = (const DBGMSG_SetStateRequest *)buffer;
     printf("received DBGMSGSetStateRequest 0X%0X\n", req->state);
     GameContextSetState(gameCtx, req->state);
-    DBGMsgHeader outHeader = {.type = DBGMsgType_SetStateResponse,
-                              sizeof(DBGMSGSetStateResponse)};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
-    DBGMSGSetStateResponse resp;
+    DBGMsg_Header outHeader = {.type = DBGMsgType_SetStateResponse,
+                               sizeof(DBGMSG_SetStateResponse)};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
+    DBGMSG_SetStateResponse resp;
     resp.response = 1;
-    write(cltSocket, &resp, sizeof(DBGMSGSetStateResponse));
+    write(cltSocket, &resp, sizeof(DBGMSG_SetStateResponse));
     return 1;
   }
   case DBGMsgType_NoClipRequest: {
     gameCtx->_noClip = !gameCtx->_noClip;
     printf("received NoClipRequest, setting no clip to %i\n", gameCtx->_noClip);
-    DBGMsgHeader outHeader = {.type = DBGMsgType_NoClipResponse, 0};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMsg_Header outHeader = {.type = DBGMsgType_NoClipResponse, 0};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
     return 1;
   }
   case DBGMsgType_SetLoggerRequest: {
-    const DBGMSGEnableLoggerRequest *req =
-        (const DBGMSGEnableLoggerRequest *)buffer;
+    const DBGMSG_EnableLoggerRequest *req =
+        (const DBGMSG_EnableLoggerRequest *)buffer;
     printf("Set logger request for prefix '%s' %i\n", req->prefix, req->enable);
     if (strcmp(req->prefix, "*") == 0) {
       if (req->enable) {
@@ -132,8 +133,8 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsgHeader *header,
         LogDisablePrefix(req->prefix);
       }
     }
-    DBGMsgHeader outHeader = {.type = DBGMsgType_SetLoggerResponse, 0};
-    write(cltSocket, &outHeader, sizeof(DBGMsgHeader));
+    DBGMsg_Header outHeader = {.type = DBGMsgType_SetLoggerResponse, 0};
+    write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
     return 1;
   }
   case DBGMsgType_NoClipResponse:
@@ -162,15 +163,15 @@ int DBGServerUpdate(GameContext *gameCtx) {
     }
     printf("new client\n");
     fcntl(cltSocket, F_SETFL, O_NONBLOCK);
-    DBGMsgHeader header = {0};
+    DBGMsg_Header header = {0};
     header.type = DBGMsgType_Hello;
     header.dataSize = 0;
 
-    write(cltSocket, &header, sizeof(DBGMsgHeader));
+    write(cltSocket, &header, sizeof(DBGMsg_Header));
   } else {
 
-    DBGMsgHeader header = {0};
-    ssize_t ret = read(cltSocket, &header, sizeof(DBGMsgHeader));
+    DBGMsg_Header header = {0};
+    ssize_t ret = read(cltSocket, &header, sizeof(DBGMsg_Header));
     if (ret == 0) {
       printf("Client connection closed\n");
       close(cltSocket);
@@ -183,12 +184,12 @@ int DBGServerUpdate(GameContext *gameCtx) {
       }
     } else {
       printf("received %zi bytes of header\n", ret);
-      assert(ret == sizeof(DBGMsgHeader));
+      assert(ret == sizeof(DBGMsg_Header));
       if (header.dataSize) {
         ssize_t r = read(cltSocket, recvBuf, header.dataSize);
         printf("read %zi bytes of data\n", r);
       }
-      if (ret >= sizeof(DBGMsgHeader)) {
+      if (ret >= sizeof(DBGMsg_Header)) {
         printf("received msg %i %i\n", header.type, header.dataSize);
         return processRecvMsg(gameCtx, &header,
                               header.dataSize ? recvBuf : NULL);

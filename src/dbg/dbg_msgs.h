@@ -30,37 +30,37 @@ typedef enum {
 typedef struct {
   uint8_t type;
   uint32_t dataSize;
-} DBGMsgHeader;
+} DBGMsg_Header;
 
 typedef struct {
   uint16_t currentBock;
-} DBGMsgStatus;
+} DBGMsg_Status;
 
 typedef struct {
   uint16_t itemId;
-} DBGMSGGiveItemRequest;
+} DBGMSG_GiveItemRequest;
 
 typedef struct {
   uint16_t response;
-} DBGMSGGiveItemResponse;
+} DBGMSG_GiveItemResponse;
 
 typedef struct {
   uint16_t state;
-} DBGMSGSetStateRequest;
+} DBGMSG_SetStateRequest;
 
 typedef struct {
   uint16_t response;
-} DBGMSGSetStateResponse;
+} DBGMSG_SetStateResponse;
 
 typedef struct {
   uint16_t response;
-} DBGMSGQuitResponse;
+} DBGMSG_QuitResponse;
 
 typedef struct {
   char prefix[32]; // '*' means enable disable log output
   uint8_t enable;  // enable/disable the prefix
-} DBGMSGEnableLoggerRequest;
+} DBGMSG_EnableLoggerRequest;
 
 typedef struct {
   uint16_t response;
-} DBGMSGEnableLoggerResponse;
+} DBGMSG_EnableLoggerResponse;

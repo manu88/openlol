@@ -24,63 +24,63 @@ static void processCommand(int argc, char *argv[]) {
       return;
     }
 
-    DBGMsgHeader header = {.type = DBGMsgType_GiveItemRequest,
-                           sizeof(DBGMSGGiveItemRequest)};
-    write(sock, &header, sizeof(DBGMsgHeader));
-    DBGMSGGiveItemRequest req;
+    DBGMsg_Header header = {.type = DBGMsgType_GiveItemRequest,
+                            sizeof(DBGMSG_GiveItemRequest)};
+    write(sock, &header, sizeof(DBGMsg_Header));
+    DBGMSG_GiveItemRequest req;
     req.itemId = atoi(argv[1]);
-    write(sock, &req, sizeof(DBGMSGGiveItemRequest));
+    write(sock, &req, sizeof(DBGMSG_GiveItemRequest));
 
-    read(sock, &header, sizeof(DBGMsgHeader));
+    read(sock, &header, sizeof(DBGMsg_Header));
     assert(header.type == DBGMsgType_GiveItemResponse);
-    DBGMSGGiveItemResponse resp;
-    read(sock, &resp, sizeof(DBGMSGGiveItemResponse));
+    DBGMSG_GiveItemResponse resp;
+    read(sock, &resp, sizeof(DBGMSG_GiveItemResponse));
     printf("reply %i\n", resp.response);
   } else if (strcmp(cmd, "status") == 0) {
-    DBGMsgHeader header = {.type = DBGMsgType_StatusRequest, 0};
-    write(sock, &header, sizeof(DBGMsgHeader));
-    read(sock, &header, sizeof(DBGMsgHeader));
-    DBGMsgStatus status;
-    read(sock, &status, sizeof(DBGMsgStatus));
+    DBGMsg_Header header = {.type = DBGMsgType_StatusRequest, 0};
+    write(sock, &header, sizeof(DBGMsg_Header));
+    read(sock, &header, sizeof(DBGMsg_Header));
+    DBGMsg_Status status;
+    read(sock, &status, sizeof(DBGMsg_Status));
     printf("received %i %i current block %X\n", header.type, header.dataSize,
            status.currentBock);
   } else if ((strcmp(cmd, "state") == 0) && argc > 1) {
-    DBGMsgHeader header = {.type = DBGMsgType_SetStateRequest,
-                           sizeof(DBGMSGSetStateRequest)};
-    write(sock, &header, sizeof(DBGMsgHeader));
+    DBGMsg_Header header = {.type = DBGMsgType_SetStateRequest,
+                            sizeof(DBGMSG_SetStateRequest)};
+    write(sock, &header, sizeof(DBGMsg_Header));
 
-    DBGMSGSetStateRequest req;
+    DBGMSG_SetStateRequest req;
     req.state = atoi(argv[1]);
-    write(sock, &req, sizeof(DBGMSGSetStateRequest));
-    read(sock, &header, sizeof(DBGMsgHeader));
+    write(sock, &req, sizeof(DBGMSG_SetStateRequest));
+    read(sock, &header, sizeof(DBGMsg_Header));
     assert(header.type == DBGMsgType_SetStateResponse);
-    DBGMSGSetStateResponse resp;
-    read(sock, &resp, sizeof(DBGMSGSetStateResponse));
+    DBGMSG_SetStateResponse resp;
+    read(sock, &resp, sizeof(DBGMSG_SetStateResponse));
     printf("reply %i\n", resp.response);
   } else if (strcmp(cmd, "quit") == 0) {
-    DBGMsgHeader header = {.type = DBGMsgType_QuitRequest, 0};
-    write(sock, &header, sizeof(DBGMsgHeader));
+    DBGMsg_Header header = {.type = DBGMsgType_QuitRequest, 0};
+    write(sock, &header, sizeof(DBGMsg_Header));
 
-    read(sock, &header, sizeof(DBGMsgHeader));
+    read(sock, &header, sizeof(DBGMsg_Header));
     assert(header.type == DBGMsgType_QuitResponse);
-    DBGMSGQuitResponse resp;
-    read(sock, &resp, sizeof(DBGMSGQuitResponse));
+    DBGMSG_QuitResponse resp;
+    read(sock, &resp, sizeof(DBGMSG_QuitResponse));
     printf("reply %i\n", resp.response);
     shouldStop = 1;
   } else if (strcmp(cmd, "noclip") == 0) {
-    DBGMsgHeader header = {.type = DBGMsgType_NoClipRequest, 0};
-    write(sock, &header, sizeof(DBGMsgHeader));
-    read(sock, &header, sizeof(DBGMsgHeader));
+    DBGMsg_Header header = {.type = DBGMsgType_NoClipRequest, 0};
+    write(sock, &header, sizeof(DBGMsg_Header));
+    read(sock, &header, sizeof(DBGMsg_Header));
     assert(header.type == DBGMsgType_NoClipResponse);
   } else if (strcmp(cmd, "log") == 0 && argc > 2) {
-    DBGMsgHeader header = {.type = DBGMsgType_SetLoggerRequest,
-                           sizeof(DBGMSGEnableLoggerRequest)};
-    write(sock, &header, sizeof(DBGMsgHeader));
-    DBGMSGEnableLoggerRequest req = {0};
+    DBGMsg_Header header = {.type = DBGMsgType_SetLoggerRequest,
+                            sizeof(DBGMSG_EnableLoggerRequest)};
+    write(sock, &header, sizeof(DBGMsg_Header));
+    DBGMSG_EnableLoggerRequest req = {0};
     strncpy(req.prefix, argv[1], sizeof(req.prefix));
     req.enable = atoi(argv[2]);
-    write(sock, &req, sizeof(DBGMSGEnableLoggerRequest));
-    read(sock, &header, sizeof(DBGMsgHeader));
+    write(sock, &req, sizeof(DBGMSG_EnableLoggerRequest));
+    read(sock, &header, sizeof(DBGMsg_Header));
     assert(header.type == DBGMsgType_SetLoggerResponse);
 
   } else {
@@ -144,7 +144,7 @@ static int connectToServer(const char *ip) {
   return 0;
 }
 
-static void processRecvMsg(const DBGMsgHeader *header, uint8_t *buffer) {
+static void processRecvMsg(const DBGMsg_Header *header, uint8_t *buffer) {
   switch ((DBGMsgType)header->type) {
 
   case DBGMsgType_Hello:
@@ -181,8 +181,8 @@ int cmdDbg(int argc, char *argv[]) {
     return 1;
   }
 
-  DBGMsgHeader header = {0};
-  assert(read(sock, &header, sizeof(DBGMsgHeader)) == sizeof(DBGMsgHeader));
+  DBGMsg_Header header = {0};
+  assert(read(sock, &header, sizeof(DBGMsg_Header)) == sizeof(DBGMsg_Header));
 
   printf("received type=%i size=%i\n", header.type, header.dataSize);
   if (header.dataSize) {
