@@ -468,8 +468,7 @@ static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
   const MazeBlock *block =
       gameCtx->level->mazHandle.maze->wallMappingIndices + index;
   uint8_t wmi = block->face[index2];
-  uint16_t type = WllHandleGetWallType(&gameCtx->level->wllHandle, wmi);
-  return type;
+  return wmi;
 }
 
 static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,
