@@ -88,7 +88,6 @@ static void renderPlayField(GameContext *gameCtx) {
   renderCPS(gameCtx->backgroundPixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-
   renderCPSPart(gameCtx->backgroundPixBuf, gameCtx->playField.data,
                 gameCtx->playField.imageSize, gameCtx->playField.palette,
                 UI_MAP_BUTTON_X, UI_MAP_BUTTON_Y, 114, 65, UI_MAP_BUTTON_W,

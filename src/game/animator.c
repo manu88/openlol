@@ -36,7 +36,6 @@ void AnimatorInitWSA(Animator *animator, const uint8_t *buffer,
 }
 
 void AnimatorRenderWSAFrame(Animator *animator) {
-
   const uint8_t *imgData = animator->wsaFrameBuffer;
   size_t dataSize = animator->wsa.header.width * animator->wsa.header.height;
   const uint8_t *paletteBuffer = animator->wsa.header.palette;

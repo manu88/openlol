@@ -233,7 +233,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 }
 
 int TIMInterpreterIsRunning(const TIMInterpreter *interp) {
-  return interp->pos < interp->_tim->avtlSize;
+  return interp->_tim && interp->pos < interp->_tim->avtlSize;
 }
 
 void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex) {

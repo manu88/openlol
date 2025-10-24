@@ -84,6 +84,8 @@ static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
   gameCtx->orientation = savHandle.slot.general->currentDirection;
   gameCtx->credits = savHandle.slot.general2->credits;
   gameCtx->itemIndexInHand = savHandle.slot.general->itemIndexInHand;
+
+  SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
   return 1;
 }
 
@@ -222,7 +224,6 @@ static void clickOnFrontWall(GameContext *gameCtx) {
     break;
   case WallSpecialType_WallShape:
     printf("WallSpecialType_WallShape\n");
-    GameContextRunScript(gameCtx, nextBlock);
     break;
   case WallSpecialType_LeverOn:
     printf("WallSpecialType_LeverOn\n");
@@ -232,7 +233,6 @@ static void clickOnFrontWall(GameContext *gameCtx) {
     break;
   case WallSpecialType_OnlyScript:
     printf("WallSpecialType_OnlyScript\n");
-    GameContextRunScript(gameCtx, nextBlock);
     break;
   case WallSpecialType_DoorSwitch:
     printf("WallSpecialType_DoorSwitch\n");
@@ -243,6 +243,7 @@ static void clickOnFrontWall(GameContext *gameCtx) {
   default:
     assert(0);
   }
+  GameContextRunScript(gameCtx, nextBlock);
 }
 
 static int charPortraitClicked(const GameContext *gameCtx) {

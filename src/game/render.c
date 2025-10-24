@@ -247,7 +247,8 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
   }
 
   SHPFrame frame = {0};
-  SHPHandleGetFrame(&ctx->shpHandle, &frame, deco->shapeIndex[decorationIndex]);
+  size_t index = deco->shapeIndex[decorationIndex];
+  SHPHandleGetFrame(&ctx->shpHandle, &frame, index);
   SHPFrameGetImageData(&frame);
   drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
                    deco->shapeY[decorationIndex] + destYOffset,
@@ -369,11 +370,12 @@ void GameRenderMaze(GameContext *gameCtx) {
       if (r->orientation == South && r->cellId == CELL_N &&
           wallType == 3) { // door
         SHPFrame frame = {0};
-        assert(gameCtx->level->doors.originalBuffer);
-        SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
-        SHPFrameGetImageData(&frame);
-        drawSHPMazeFrame(texture, &frame, 52, 16,
-                         gameCtx->level->vcnHandle.palette, 0);
+        if (gameCtx->level->doors.originalBuffer) {
+          SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+          SHPFrameGetImageData(&frame);
+          drawSHPMazeFrame(texture, &frame, 52, 16,
+                           gameCtx->level->vcnHandle.palette, 0);
+        }
       }
     }
     if (r->decoIndex == 0) {

@@ -25,6 +25,9 @@ typedef enum {
   DBGMsgType_SetLoggerRequest,
   DBGMsgType_SetLoggerResponse,
 
+  DBGMsgType_SetVarRequest,
+  DBGMsgType_SetVarResponse,
+
 } DBGMsgType;
 
 typedef struct {
