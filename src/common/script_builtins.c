@@ -291,6 +291,12 @@ static uint16_t initSceneWindowDialogue(EMCInterpreter *interp,
   return 1;
 }
 
+static uint16_t resetTimDialogueState(EMCInterpreter *interp, EMCState *state) {
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  printf("[UNIMPLEMENTED] resetTimDialogueState %X\n", p0);
+  return 1;
+}
+
 static uint16_t restoreAfterSceneWindowDialogue(EMCInterpreter *interp,
                                                 EMCState *state) {
   uint16_t redraw = EMCStateStackVal(state, 0);
@@ -882,7 +888,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {resetTimDialogueState, "resetTimDialogueState"},
     {NULL},
     {NULL},
     // 0X8A
