@@ -112,6 +112,7 @@ typedef enum {
   GameState_Invalid,
   GameState_MainMenu,
   GameState_PlayGame,
+  GameState_GameMenu,
   GameState_TimAnimation,
   GameState_ShowInventory,
   GameState_GrowDialogBox,

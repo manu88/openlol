@@ -276,7 +276,8 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
   if (gameCtx->state == GameState_ShowInventory ||
-      gameCtx->state == GameState_ShowMap) {
+      gameCtx->state == GameState_ShowMap ||
+      gameCtx->state == GameState_GameMenu) {
     gameCtx->controlDisabled = 1;
   } else {
     gameCtx->controlDisabled = 0;

@@ -90,9 +90,9 @@
 #define CHAR_FACE_1_2_X 216
 
 #define GAME_MENU_X 56
-#define GAME_MENU_Y 20
+#define GAME_MENU_Y 25
 #define GAME_MENU_W 207
-#define GAME_MENU_H 150
+#define GAME_MENU_H 155
 
 typedef struct {
   uint16_t x;

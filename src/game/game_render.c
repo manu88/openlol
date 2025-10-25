@@ -49,6 +49,42 @@ static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
   SDL_UnlockTexture(texture);
 }
 
+static void renderGameMenu(GameContext *gameCtx) {
+  drawMenuWindow(gameCtx, gameCtx->pixBuf, GAME_MENU_X, GAME_MENU_Y,
+                 GAME_MENU_W, GAME_MENU_H);
+
+  const int buttonH = 15;
+  int buttonY = 30;
+  renderTextCentered(gameCtx, gameCtx->pixBuf, GAME_MENU_X + GAME_MENU_W / 2,
+                     GAME_MENU_Y + 10, "Lands of Lore");
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15, GAME_MENU_Y + buttonY,
+             GAME_MENU_W - 30, buttonH, "Load a game");
+
+  buttonY += buttonH + 2;
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15, GAME_MENU_Y + buttonY,
+             GAME_MENU_W - 30, 15, "Save this game");
+
+  buttonY += buttonH + 2;
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15, GAME_MENU_Y + buttonY,
+             GAME_MENU_W - 30, 15, "Delete a game");
+
+  buttonY += buttonH + 2;
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15, GAME_MENU_Y + buttonY,
+             GAME_MENU_W - 30, 15, "Game controls");
+
+  buttonY += buttonH + 2;
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15, GAME_MENU_Y + buttonY,
+             GAME_MENU_W - 30, 15, "Audio controls");
+
+  buttonY += buttonH + 2;
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15, GAME_MENU_Y + buttonY,
+             GAME_MENU_W - 30, 15, "Exit Game");
+
+  buttonY += buttonH + 4;
+  drawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 87, GAME_MENU_Y + buttonY,
+             105, 15, "Resume Game");
+}
+
 static void renderMainMenu(GameContext *gameCtx) {
   renderCPS(gameCtx->pixBuf, gameCtx->gameTitle.data,
             gameCtx->gameTitle.imageSize, gameCtx->gameTitle.palette,
@@ -289,6 +325,11 @@ void GameRender(GameContext *gameCtx) {
   }
   renderInventory(gameCtx);
   renderCharFaces(gameCtx);
+
+  if (gameCtx->state == GameState_GameMenu) {
+    renderGameMenu(gameCtx);
+    return;
+  }
 
   if (gameCtx->state == GameState_GrowDialogBox) {
     growDialogBox(gameCtx);
