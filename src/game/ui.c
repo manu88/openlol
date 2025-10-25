@@ -53,8 +53,7 @@ void drawButton(GameContext *gameCtx, SDL_Texture *texture, int x, int y, int w,
     }
   }
   SDL_UnlockTexture(texture);
-
-  renderText(gameCtx, texture, x + 4, y + 2, w, text);
+  renderTextCentered(gameCtx, texture, x + w / 2, (y + h / 2) - 2, text);
 }
 
 void drawMenuWindow(GameContext *gameCtx, SDL_Texture *texture, int startX,
