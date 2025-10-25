@@ -154,8 +154,7 @@ typedef struct _GameContext {
   LevelContext *level;
   int levelId;
 
-  SDL_Texture *backgroundPixBuf;
-  SDL_Texture *foregroundPixBuf;
+  SDL_Texture *pixBuf;
   SDL_Renderer *renderer;
   SDL_Window *window;
   ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
@@ -179,7 +178,6 @@ typedef struct _GameContext {
 
   SDL_Surface *textSurface;
   SDL_Texture *textTexture;
-  PAKFile generalPak;
 
   INFScript script;
   INFScript iniScript;

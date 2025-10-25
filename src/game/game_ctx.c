@@ -109,17 +109,10 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
     return 1;
   }
 
-  gameCtx->backgroundPixBuf = SDL_CreateTexture(
+  gameCtx->pixBuf = SDL_CreateTexture(
       gameCtx->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
       PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  if (gameCtx->backgroundPixBuf == NULL) {
-    printf("Error: %s\n", SDL_GetError());
-    return 1;
-  }
-  gameCtx->foregroundPixBuf = SDL_CreateTexture(
-      gameCtx->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
-      PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  if (gameCtx->foregroundPixBuf == NULL) {
+  if (gameCtx->pixBuf == NULL) {
     printf("Error: %s\n", SDL_GetError());
     return 1;
   }
@@ -132,7 +125,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
     printf("unable to get FONT6P.FNT data\n");
   }
 
-  AnimatorInit(&gameCtx->animator, gameCtx->foregroundPixBuf);
+  AnimatorInit(&gameCtx->animator, gameCtx->pixBuf);
   GameTimInterpreterInit(&gameCtx->timInterpreter, &gameCtx->animator);
   gameCtx->timInterpreter.timInterpreter.callbackCtx = gameCtx;
   gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
@@ -161,10 +154,8 @@ void GameContextRelease(GameContext *gameCtx) {
   SDL_DestroyRenderer(gameCtx->renderer);
   SDL_DestroyWindow(gameCtx->window);
 
-  SDL_DestroyTexture(gameCtx->backgroundPixBuf);
-  SDL_DestroyTexture(gameCtx->foregroundPixBuf);
+  SDL_DestroyTexture(gameCtx->pixBuf);
 
-  PAKFileRelease(&gameCtx->generalPak);
   CPSImageRelease(&gameCtx->playField);
   CPSImageRelease(&gameCtx->gameTitle);
   CPSImageRelease(&gameCtx->mapBackground);

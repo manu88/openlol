@@ -19,15 +19,15 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
     return;
   }
   assert(gameCtx->loadedbitMap.data);
-  renderCPSAt(gameCtx->foregroundPixBuf, gameCtx->loadedbitMap.data,
+  renderCPSAt(gameCtx->pixBuf, gameCtx->loadedbitMap.data,
               gameCtx->loadedbitMap.imageSize, gameCtx->loadedbitMap.palette,
               destX, destY, w, h, 320, 200);
 }
 
 void renderDialog(GameContext *gameCtx) {
   if (gameCtx->dialogText) {
-    renderText(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BOX_X + 5,
-               DIALOG_BOX_Y + 2, DIALOG_BOX_W - 5, gameCtx->dialogText);
+    renderText(gameCtx, gameCtx->pixBuf, DIALOG_BOX_X + 5, DIALOG_BOX_Y + 2,
+               DIALOG_BOX_W - 5, gameCtx->dialogText);
   }
 }
 
@@ -50,52 +50,52 @@ static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
 }
 
 static void renderMainMenu(GameContext *gameCtx) {
-  renderCPS(gameCtx->backgroundPixBuf, gameCtx->gameTitle.data,
+  renderCPS(gameCtx->pixBuf, gameCtx->gameTitle.data,
             gameCtx->gameTitle.imageSize, gameCtx->gameTitle.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
-  drawMenuWindow(gameCtx, gameCtx->backgroundPixBuf, 86, 140, 128, 51);
-  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 144,
+  drawMenuWindow(gameCtx, gameCtx->pixBuf, 86, 140, 128, 51);
+  renderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 144,
                      "Start a new game");
-  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 153,
+  renderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 153,
                      "Introduction");
-  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 162,
+  renderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 162,
                      "Lore of the Lands");
-  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 171,
+  renderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 171,
                      "Load a new game");
-  renderTextCentered(gameCtx, gameCtx->backgroundPixBuf, 86 + (128 / 2), 180,
+  renderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 180,
                      "Exit game");
 }
 
 static void renderMap(GameContext *gameCtx) {
-  renderCPS(gameCtx->backgroundPixBuf, gameCtx->mapBackground.data,
+  renderCPS(gameCtx->pixBuf, gameCtx->mapBackground.data,
             gameCtx->mapBackground.imageSize, gameCtx->mapBackground.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
   char c[20] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  renderText(gameCtx, gameCtx->backgroundPixBuf, MAP_SCREEN_EXIT_BUTTON_X + 2,
+  renderText(gameCtx, gameCtx->pixBuf, MAP_SCREEN_EXIT_BUTTON_X + 2,
              MAP_SCREEN_BUTTONS_Y + 4, 50, c);
 
   GameContextGetLevelName(gameCtx, c, sizeof(c));
-  renderText(gameCtx, gameCtx->backgroundPixBuf, MAP_SCREEN_NAME_X,
-             MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y, c);
+  renderText(gameCtx, gameCtx->pixBuf, MAP_SCREEN_NAME_X, MAP_SCREEN_NAME_Y,
+             320 - MAP_SCREEN_NAME_Y, c);
   printf("%i\n", gameCtx->levelId);
 }
 
 static void renderPlayField(GameContext *gameCtx) {
-  renderCPS(gameCtx->backgroundPixBuf, gameCtx->playField.data,
+  renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  renderCPSPart(gameCtx->backgroundPixBuf, gameCtx->playField.data,
+  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
                 gameCtx->playField.imageSize, gameCtx->playField.palette,
                 UI_MAP_BUTTON_X, UI_MAP_BUTTON_Y, 114, 65, UI_MAP_BUTTON_W,
                 UI_MAP_BUTTON_H, 320);
   if (gameCtx->controlDisabled) {
-    drawDisabledOverlay(gameCtx, gameCtx->backgroundPixBuf,
-                        UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
-                        UI_DIR_BUTTON_W * 3, UI_DIR_BUTTON_H * 2);
-    drawDisabledOverlay(gameCtx, gameCtx->backgroundPixBuf, UI_MENU_BUTTON_X,
+    drawDisabledOverlay(gameCtx, gameCtx->pixBuf, UI_TURN_LEFT_BUTTON_X,
+                        UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,
+                        UI_DIR_BUTTON_H * 2);
+    drawDisabledOverlay(gameCtx, gameCtx->pixBuf, UI_MENU_BUTTON_X,
                         UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
                         UI_MENU_INV_BUTTON_H);
   }
@@ -107,22 +107,22 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   SHPFrame frame = {0};
   SHPHandleGetFrame(&gameCtx->itemShapes, &frame, frameId);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->backgroundPixBuf, &frame,
+  drawSHPFrame(gameCtx->pixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
                UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
 }
 
 static void renderCharInventory(GameContext *gameCtx) {
-  renderCPSAt(gameCtx->backgroundPixBuf, gameCtx->inventoryBackground.data,
+  renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
               gameCtx->inventoryBackground.imageSize,
               gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
               INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320,
               200);
   char c[10] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  renderText(gameCtx, gameCtx->backgroundPixBuf, 277, 104, 50, c);
+  renderText(gameCtx, gameCtx->pixBuf, 277, 104, 50, c);
 
-  renderText(gameCtx, gameCtx->backgroundPixBuf, 250, 10, 50,
+  renderText(gameCtx, gameCtx->pixBuf, 250, 10, 50,
              gameCtx->chars[gameCtx->selectedChar].name);
 }
 
@@ -144,15 +144,15 @@ static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
   SHPFrame frame = {0};
   assert(SHPHandleGetFrame(&gameCtx->charFaces[charId], &frame, 0));
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->backgroundPixBuf, &frame, x, CHAR_FACE_Y,
+  drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_FACE_Y,
                gameCtx->defaultPalette);
 }
 
 static void renderLeftUIPart(GameContext *gameCtx) {
   char t[8] = "";
   snprintf(t, 8, "%i", gameCtx->credits);
-  renderText(gameCtx, gameCtx->backgroundPixBuf, UI_CREDITS_X + 5,
-             UI_CREDITS_Y + 2, 20, t);
+  renderText(gameCtx, gameCtx->pixBuf, UI_CREDITS_X + 5, UI_CREDITS_Y + 2, 20,
+             t);
 }
 
 static void renderCharFaces(GameContext *gameCtx) {
@@ -204,20 +204,20 @@ static void showBigDialogZone(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
+  SDL_LockTexture(gameCtx->pixBuf, &rect, &data, &pitch);
   for (int i = 0; i < 1 + DIALOG_BOX_H2 - DIALOG_BOX_H; i++) {
     animateDialogZoneOnce(gameCtx, data, pitch);
   }
-  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+  SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
 static void growDialogBox(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
+  SDL_LockTexture(gameCtx->pixBuf, &rect, &data, &pitch);
   animateDialogZoneOnce(gameCtx, data, pitch);
-  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+  SDL_UnlockTexture(gameCtx->pixBuf);
 
   if (gameCtx->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
     gameCtx->dialogBoxFrames++;
@@ -233,11 +233,11 @@ static void shrinkDialogBox(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->backgroundPixBuf, &rect, &data, &pitch);
+  SDL_LockTexture(gameCtx->pixBuf, &rect, &data, &pitch);
   for (int i = 0; i < 1 + DIALOG_BOX_H2 + gameCtx->dialogBoxFrames; i++) {
     animateDialogZoneOnce(gameCtx, data, pitch);
   }
-  SDL_UnlockTexture(gameCtx->backgroundPixBuf);
+  SDL_UnlockTexture(gameCtx->pixBuf);
 
   if (gameCtx->dialogBoxFrames > 0) {
     gameCtx->dialogBoxFrames--;
@@ -249,14 +249,14 @@ static void shrinkDialogBox(GameContext *gameCtx) {
 }
 
 static void renderExitButton(GameContext *gameCtx) {
-  drawButton(gameCtx, gameCtx->foregroundPixBuf, UI_SCENE_EXIT_BUTTON_X,
+  drawButton(gameCtx, gameCtx->pixBuf, UI_SCENE_EXIT_BUTTON_X,
              UI_SCENE_EXIT_BUTTON_Y, UI_SCENE_EXIT_BUTTON_W,
              UI_SCENE_EXIT_BUTTON_H, "EXIT");
 
   if (gameCtx->exitSceneButtonDisabled) {
-    drawDisabledOverlay(gameCtx, gameCtx->foregroundPixBuf,
-                        UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
-                        UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H);
+    drawDisabledOverlay(gameCtx, gameCtx->pixBuf, UI_SCENE_EXIT_BUTTON_X,
+                        UI_SCENE_EXIT_BUTTON_Y, UI_SCENE_EXIT_BUTTON_W,
+                        UI_SCENE_EXIT_BUTTON_H);
   }
 }
 
@@ -279,14 +279,14 @@ void GameRender(GameContext *gameCtx) {
     // clearMazeZone(gameCtx);
   } else if (gameCtx->state == GameState_ShowInventory) {
     renderCharInventory(gameCtx);
-  } else if (gameCtx->state == GameState_PlayGame) {
+  } else {
     GameRenderMaze(gameCtx);
-  } else if (gameCtx->state == GameState_TimAnimation) {
-    if (GameTimInterpreterRender(&gameCtx->timInterpreter) == 0) {
-      GameContextSetState(gameCtx, GameState_PlayGame);
+    if (gameCtx->state == GameState_TimAnimation) {
+      if (GameTimInterpreterRender(&gameCtx->timInterpreter) == 0) {
+        GameContextSetState(gameCtx, GameState_PlayGame);
+      }
     }
   }
-
   renderInventory(gameCtx);
   renderCharFaces(gameCtx);
 
@@ -304,20 +304,17 @@ void GameRender(GameContext *gameCtx) {
   if (gameCtx->state != GameState_GrowDialogBox &&
       gameCtx->state != GameState_ShrinkDialogBox) {
     if (gameCtx->buttonText[0]) {
-      drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON1_X,
-                 DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                 gameCtx->buttonText[0]);
+      drawButton(gameCtx, gameCtx->pixBuf, DIALOG_BUTTON1_X, DIALOG_BUTTON_Y_2,
+                 DIALOG_BUTTON_W, DIALOG_BUTTON_H, gameCtx->buttonText[0]);
     }
 
     if (gameCtx->buttonText[1]) {
-      drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON2_X,
-                 DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                 gameCtx->buttonText[1]);
+      drawButton(gameCtx, gameCtx->pixBuf, DIALOG_BUTTON2_X, DIALOG_BUTTON_Y_2,
+                 DIALOG_BUTTON_W, DIALOG_BUTTON_H, gameCtx->buttonText[1]);
     }
     if (gameCtx->buttonText[2]) {
-      drawButton(gameCtx, gameCtx->backgroundPixBuf, DIALOG_BUTTON3_X,
-                 DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                 gameCtx->buttonText[2]);
+      drawButton(gameCtx, gameCtx->pixBuf, DIALOG_BUTTON3_X, DIALOG_BUTTON_Y_2,
+                 DIALOG_BUTTON_W, DIALOG_BUTTON_H, gameCtx->buttonText[2]);
     }
     renderDialog(gameCtx);
   }

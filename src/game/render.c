@@ -140,13 +140,13 @@ void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
 void clearMazeZone(GameContext *gameCtx) {
   void *data;
   int pitch;
-  SDL_LockTexture(gameCtx->foregroundPixBuf, NULL, &data, &pitch);
+  SDL_LockTexture(gameCtx->pixBuf, NULL, &data, &pitch);
   for (int x = 0; x < MAZE_COORDS_W; x++) {
     for (int y = 0; y < MAZE_COORDS_H; y++) {
       drawPix(data, pitch, 0, 0, 0, MAZE_COORDS_X + x, MAZE_COORDS_Y + y);
     }
   }
-  SDL_UnlockTexture(gameCtx->foregroundPixBuf);
+  SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
 typedef struct {
@@ -345,10 +345,9 @@ void GameRenderMaze(GameContext *gameCtx) {
     }
   }
   LevelContext *level = gameCtx->level;
-  drawCeilingAndFloor(gameCtx->foregroundPixBuf, &level->vcnHandle,
-                      &level->vmpHandle);
+  drawCeilingAndFloor(gameCtx->pixBuf, &level->vcnHandle, &level->vmpHandle);
 
-  SDL_Texture *texture = gameCtx->foregroundPixBuf;
+  SDL_Texture *texture = gameCtx->pixBuf;
 
   for (int i = 0; i < sizeof(renderWalls) / sizeof(RenderWall); i++) {
     const RenderWall *r = renderWalls + i;

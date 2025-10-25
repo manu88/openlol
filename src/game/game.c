@@ -680,21 +680,7 @@ static void GameRunOnce(GameContext *gameCtx) {
 
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                    PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->backgroundPixBuf, NULL,
-                        &dest) == 0);
-  if (gameCtx->state != GameState_ShowInventory &&
-      gameCtx->state != GameState_ShowMap &&
-      gameCtx->state != GameState_MainMenu) {
-
-    SDL_Rect source = {MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
-                       MAZE_COORDS_H};
-    dest.x = MAZE_COORDS_X * SCREEN_FACTOR;
-    dest.y = MAZE_COORDS_Y * SCREEN_FACTOR;
-    dest.w = MAZE_COORDS_W * SCREEN_FACTOR;
-    dest.h = MAZE_COORDS_H * SCREEN_FACTOR;
-    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->foregroundPixBuf, &source,
-                          &dest) == 0);
-  }
+  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
   SDL_RenderPresent(gameCtx->renderer);
 }
 
