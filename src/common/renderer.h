@@ -61,8 +61,7 @@ void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
 void FNTToPng(const FNTHandle *handle, const char *savePngPath);
 void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
               int xOff, int yOff);
-void drawChar2(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c, int xOff,
-               int yOff);
+
 void drawPix(void *data, int pitch, uint8_t r, uint8_t g, uint8_t b, int x,
              int y);
 void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,

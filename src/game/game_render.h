@@ -3,8 +3,8 @@
 #include "game_ctx.h"
 
 void renderDialog(GameContext *gameCtx);
-void renderText(GameContext *gameCtx, SDL_Texture *texture, int xOff, int yOff,
-                int width, const char *text);
+void UIRenderText(GameContext *gameCtx, SDL_Texture *texture, int xOff,
+                  int yOff, int width, const char *text);
 
 void GameRender(GameContext *gameCtx);
 

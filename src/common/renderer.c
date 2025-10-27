@@ -167,101 +167,11 @@ void blitBlock(SDL_Texture *pixBuf, const VCNHandle *handle, int blockId, int x,
   SDL_UnlockTexture(pixBuf);
 }
 
-static uint8_t colorMap[] = {
-    0,
-    255,
+static uint8_t defaultColorMap[2][3] = {
+    {0, 0, 0},
+    {0, 255, 0},
 
 };
-
-static uint8_t getColor(uint8_t p) {
-  if (p >= sizeof(colorMap)) {
-    printf("colormap missing index %i\n", p);
-    assert(0);
-  }
-
-  return colorMap[p];
-}
-void drawChar2(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c, int xOff,
-               int yOff) {
-  assert(pixBuf);
-  if (c >= font->numGlyphs) {
-    return;
-  }
-
-  if (!font->bitmapOffsets[c]) {
-    return;
-  }
-  const uint8_t *src = font->buffer + font->bitmapOffsets[c];
-  const uint8_t charWidth = font->widthTable[c];
-
-  if (!charWidth)
-    return;
-
-  void *data;
-  int pitch;
-  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
-
-  uint8_t charH1 = font->heightTable[c * 2 + 0];
-  uint8_t charH2 = font->heightTable[c * 2 + 1];
-  uint8_t charH0 = font->maxHeight - (charH1 + charH2);
-
-  int x = xOff;
-  int y = yOff;
-  while (charH1--) {
-    uint8_t col = getColor(0);
-    for (int i = 0; i < charWidth; ++i) {
-      if (col != 0) {
-        uint8_t r = 235; // col;
-        uint8_t g = 223;
-        uint8_t b = 44;
-        drawPix(data, pitch, r, g, b, x, y);
-      }
-      x++;
-    }
-    x = xOff;
-    y += 1;
-  }
-
-  while (charH2--) {
-    uint8_t b = 0;
-    for (int i = 0; i < charWidth; ++i) {
-      uint8_t col;
-      if (i & 1) {
-        col = getColor(b >> 4);
-      } else {
-        b = *src++;
-        col = getColor(b & 0xF);
-      }
-      if (col != 0) {
-        uint8_t r = 235; // col;
-        uint8_t g = 223;
-        uint8_t b = 44;
-        uint32_t *row = (unsigned int *)((char *)data + pitch * y);
-        row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
-      }
-      x += 1;
-    }
-    y += 1;
-    x = xOff;
-  }
-
-  while (charH0--) {
-    uint8_t col = getColor(0);
-    for (int i = 0; i < charWidth; ++i) {
-      if (col != 0) {
-        uint8_t r = 235; // col;
-        uint8_t g = 223;
-        uint8_t b = 44;
-        uint32_t *row = (unsigned int *)((char *)data + pitch * y);
-        row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
-      }
-      x += 1;
-    }
-    y += 1;
-    x = xOff;
-  }
-  SDL_UnlockTexture(pixBuf);
-}
 
 void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
               int xOff, int yOff) {
@@ -285,10 +195,10 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
   int x = xOff;
   int y = yOff;
   while (charH1--) {
-    uint8_t col = getColor(0);
+    uint8_t *col = defaultColorMap[0];
     for (int i = 0; i < charWidth; ++i) {
       if (col != 0) {
-        SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, col[0], col[1], col[2], 255);
         SDL_Rect r = {x, y, 1, 1};
         SDL_RenderFillRect(renderer, &r);
       }
@@ -301,15 +211,15 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
   while (charH2--) {
     uint8_t b = 0;
     for (int i = 0; i < charWidth; ++i) {
-      uint8_t col;
+      uint8_t *col;
       if (i & 1) {
-        col = getColor(b >> 4);
+        col = defaultColorMap[b >> 4];
       } else {
         b = *src++;
-        col = getColor(b & 0xF);
+        col = defaultColorMap[b & 0xF];
       }
       if (col != 0) {
-        SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, col[0], col[1], col[2], 255);
         SDL_Rect r = {x, y, 1, 1};
         SDL_RenderFillRect(renderer, &r);
       }
@@ -320,10 +230,10 @@ void drawChar(SDL_Renderer *renderer, const FNTHandle *font, uint16_t c,
   }
 
   while (charH0--) {
-    uint8_t col = getColor(0);
+    const uint8_t *col = defaultColorMap[0];
     for (int i = 0; i < charWidth; ++i) {
       if (col != 0) {
-        SDL_SetRenderDrawColor(renderer, col, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, col[0], col[1], col[2], 255);
         SDL_Rect r = {x, y, 1, 1};
         SDL_RenderFillRect(renderer, &r);
       }
