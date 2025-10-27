@@ -280,7 +280,7 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
     gameCtx->currentMenu = gameMenu;
   } else if (gameCtx->state == GameState_MainMenu) {
     gameCtx->currentMenu = mainMenu;
-  } else {
+  } else if (gameCtx->currentMenu) {
     GameMenuReset(gameCtx->currentMenu);
     gameCtx->currentMenu = NULL;
   }
