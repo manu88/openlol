@@ -4,9 +4,10 @@
 #include "geometry.h"
 #include <SDL2/SDL.h>
 
+typedef struct _GameContext GameContext;
+
 typedef enum {
   GameMenuState_GameMenu,
-
   GameMenuState_LoadGame,
   GameMenuState_SaveGame,
   GameMenuState_DeleteGame,
@@ -27,5 +28,5 @@ void GameMenuReset(GameMenu *menu);
 void GameMenuRender(GameMenu *menu, const FNTHandle *font,
                     SDL_Texture *texture);
 
-int GameMenuMouse(GameMenu *menu, const Point *pt);
-int GameMenuKeyDown(GameMenu *menu, const SDL_Event *e);
+int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt);
+int GameMenuKeyDown(GameMenu *menu, GameContext *context, const SDL_Event *e);

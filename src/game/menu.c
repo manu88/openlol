@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "game_ctx.h"
 #include "geometry.h"
 #include "ui.h"
 #include <assert.h>
@@ -93,23 +94,23 @@ void GameMenuRender(GameMenu *menu, const FNTHandle *font,
   }
 }
 
-static int Mouse_ExitGame(GameMenu *menu, const Point *pt) {
+static int Mouse_ExitGame(GameMenu *menu, GameContext *context,
+                          const Point *pt) {
 
   int startX = 16;
   int startY = 72;
-
   if (zoneClicked(pt, startX + 8, startY + 30, 72, 15)) {
-    printf("YES\n");
+    GameContextExitGame(context);
     return 1;
   } else if (zoneClicked(pt, startX + 208, startY + 30, 72, 15)) {
-    printf("NO\n");
     menu->state = GameMenuState_GameMenu;
     return 1;
   }
   return 0;
 }
 
-static int Mouse_MainMenu(GameMenu *menu, const Point *pt) {
+static int Mouse_MainMenu(GameMenu *menu, GameContext *context,
+                          const Point *pt) {
   int buttonY = GAME_MENU_BUTTONS_START_Y;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
@@ -169,24 +170,24 @@ static int Mouse_MainMenu(GameMenu *menu, const Point *pt) {
   return 0;
 }
 
-int GameMenuMouse(GameMenu *menu, const Point *pt) {
+int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt) {
   switch (menu->state) {
 
   case GameMenuState_GameMenu:
-    return Mouse_MainMenu(menu, pt);
+    return Mouse_MainMenu(menu, context, pt);
   case GameMenuState_LoadGame:
   case GameMenuState_SaveGame:
   case GameMenuState_DeleteGame:
   case GameMenuState_GameControls:
   case GameMenuState_AudioControls:
   case GameMenuState_ExitGame:
-    return Mouse_ExitGame(menu, pt);
+    return Mouse_ExitGame(menu, context, pt);
     break;
   }
   return 0;
 }
 
-int GameMenuKeyDown(GameMenu *menu, const SDL_Event *e) {
+int GameMenuKeyDown(GameMenu *menu, GameContext *context, const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
     if (menu->state == GameMenuState_GameMenu) {

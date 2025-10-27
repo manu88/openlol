@@ -390,3 +390,5 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
   free(format);
   gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
+
+void GameContextExitGame(GameContext *gameCtx) { gameCtx->_shouldRun = 0; }
