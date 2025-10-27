@@ -553,17 +553,17 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
     gameCtx->mouseEv.isRightClick = e->button.button == 3;
   } else {
-    if (e->type == SDL_KEYDOWN) {
-      if (gameCtx->state == GameState_GameMenu) {
-        GameMenuKeyDown(gameCtx->currentMenu, e);
-        if (gameCtx->currentMenu->returnToGame) {
-          GameContextSetState(gameCtx, GameState_PlayGame);
-        }
-      } else {
-        GameContextSetState(gameCtx, GameState_GameMenu);
+    if (e->type != SDL_KEYDOWN) {
+      return 0;
+    }
+    if (gameCtx->state == GameState_GameMenu) {
+      int ret = GameMenuKeyDown(gameCtx->currentMenu, e);
+      if (gameCtx->currentMenu->returnToGame) {
+        GameContextSetState(gameCtx, GameState_PlayGame);
       }
-      shouldUpdate = 1;
-    } else if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
+      return ret;
+    }
+    if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
       switch (e->key.keysym.sym) {
       case SDLK_z:
         // go front
@@ -589,7 +589,6 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
         // turn anti-clockwise
         shouldUpdate = 1;
         gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
-
         break;
       case SDLK_e:
         // turn clockwise
@@ -602,6 +601,10 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       case SDLK_SPACE:
         shouldUpdate = 1;
         clickOnFrontWall(gameCtx);
+        break;
+      case SDLK_ESCAPE:
+        GameContextSetState(gameCtx, GameState_GameMenu);
+        return 1;
         break;
       default:
         break;
