@@ -90,3 +90,62 @@ void GameMenuRender(GameMenu *menu, const FNTHandle *font,
     break;
   }
 }
+
+int GameMenuMouse(GameMenu *menu, const Point *pt) {
+  int buttonY = GAME_MENU_BUTTONS_START_Y;
+  if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    printf("Load game\n");
+    menu->state = GameMenuState_LoadGame;
+    return 1;
+  }
+
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    printf("Save this game\n");
+    menu->state = GameMenuState_SaveGame;
+    return 1;
+  }
+
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    printf("Delete a game\n");
+    menu->state = GameMenuState_DeleteGame;
+    return 1;
+  }
+
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    printf("Game controls\n");
+    menu->state = GameMenuState_GameControls;
+    return 1;
+  }
+
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    printf("Audio controls\n");
+    menu->state = GameMenuState_AudioControls;
+    return 1;
+  }
+
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    printf("Exit Game\n");
+    menu->state = GameMenuState_ExitGame;
+    return 1;
+  }
+
+  buttonY += GAME_MENU_BUTTON_H + 4;
+  if (zoneClicked(pt, GAME_MENU_RESUME_BUTTON_X, GAME_MENU_Y + buttonY,
+                  GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H)) {
+    // GameContextSetState(gameCtx, GameState_PlayGame);
+    return 1;
+  }
+
+  return 0;
+}

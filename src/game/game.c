@@ -327,73 +327,6 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
   return 0;
 }
 
-static int processGameMenuMouse(GameContext *gameCtx) {
-
-  int buttonY = GAME_MENU_BUTTONS_START_Y;
-
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_BUTTONS_START_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    printf("Load game\n");
-    gameCtx->currentMenu->state = GameMenuState_LoadGame;
-    return 1;
-  }
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_BUTTONS_START_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    printf("Save this game\n");
-    gameCtx->currentMenu->state = GameMenuState_SaveGame;
-    return 1;
-  }
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_BUTTONS_START_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    printf("Delete a game\n");
-    gameCtx->currentMenu->state = GameMenuState_DeleteGame;
-    return 1;
-  }
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_BUTTONS_START_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    printf("Game controls\n");
-    gameCtx->currentMenu->state = GameMenuState_GameControls;
-    return 1;
-  }
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_BUTTONS_START_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    printf("Audio controls\n");
-    gameCtx->currentMenu->state = GameMenuState_AudioControls;
-    return 1;
-  }
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_BUTTONS_START_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    printf("Exit Game\n");
-    gameCtx->currentMenu->state = GameMenuState_ExitGame;
-    return 1;
-  }
-
-  buttonY += GAME_MENU_BUTTON_H + 4;
-  if (zoneClicked(&gameCtx->mouseEv.pos, GAME_MENU_RESUME_BUTTON_X,
-                  GAME_MENU_Y + buttonY, GAME_MENU_RESUME_BUTTON_W,
-                  GAME_MENU_BUTTON_H)) {
-    GameContextSetState(gameCtx, GameState_PlayGame);
-    return 1;
-  }
-  return 0;
-}
-
 static int processAnimationMouse(GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.y >= DIALOG_BUTTON_Y_2 &&
       gameCtx->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
@@ -596,7 +529,7 @@ static int processMouse(GameContext *gameCtx) {
     printf("MOUSE MENU\n");
     break;
   case GameState_GameMenu:
-    return processGameMenuMouse(gameCtx);
+    return GameMenuMouse(gameCtx->currentMenu, &gameCtx->mouseEv.pos);
   case GameState_ShrinkDialogBox:
   case GameState_Invalid:
     assert(0);
