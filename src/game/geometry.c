@@ -1,6 +1,11 @@
 #include "geometry.h"
 #include <assert.h>
 
+int zoneClicked(const Point *p, int minX, int minY, int width, int height) {
+  return p->x >= minX && p->x < minX + width && p->y >= minY &&
+         p->y < minY + height;
+}
+
 Orientation absOrientation(Orientation partyOrientation,
                            Orientation orientation) {
   return (orientation + partyOrientation) % 4;

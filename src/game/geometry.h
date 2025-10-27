@@ -132,6 +132,8 @@ typedef enum {
   Right,
 } Direction;
 
+int zoneClicked(const Point *p, int minX, int minY, int width, int height);
+
 Orientation OrientationTurnRight(Orientation orientation);
 Orientation OrientationTurnLeft(Orientation orientation);
 

@@ -327,12 +327,6 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
   return 0;
 }
 
-static int zoneClicked(const Point *p, int minX, int minY, int width,
-                       int height) {
-  return p->x >= minX && p->x < minX + width && p->y >= minY &&
-         p->y < minY + height;
-}
-
 static int processGameMenuMouse(GameContext *gameCtx) {
 
   int buttonY = GAME_MENU_BUTTONS_START_Y;
