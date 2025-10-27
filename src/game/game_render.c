@@ -54,36 +54,44 @@ static void renderGameMenu(GameContext *gameCtx) {
   UISetStyle(UIStyle_GameMenu);
   UIDrawMenuWindow(gameCtx, gameCtx->pixBuf, GAME_MENU_X, GAME_MENU_Y,
                    GAME_MENU_W, GAME_MENU_H);
-  const int buttonH = 15;
-  int buttonY = 30;
+
   UIRenderTextCentered(gameCtx, gameCtx->pixBuf, GAME_MENU_X + GAME_MENU_W / 2,
                        GAME_MENU_Y + 10, "Lands of Lore");
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15,
-               GAME_MENU_Y + buttonY, GAME_MENU_W - 30, buttonH, "Load a game");
 
-  buttonY += buttonH + 2;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15,
-               GAME_MENU_Y + buttonY, GAME_MENU_W - 30, 15, "Save this game");
+  int buttonY = GAME_MENU_BUTTONS_START_Y;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
+               "Load a game");
 
-  buttonY += buttonH + 2;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15,
-               GAME_MENU_Y + buttonY, GAME_MENU_W - 30, 15, "Delete a game");
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
+               "Save this game");
 
-  buttonY += buttonH + 2;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15,
-               GAME_MENU_Y + buttonY, GAME_MENU_W - 30, 15, "Game controls");
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
+               "Delete a game");
 
-  buttonY += buttonH + 2;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15,
-               GAME_MENU_Y + buttonY, GAME_MENU_W - 30, 15, "Audio controls");
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
+               "Game controls");
 
-  buttonY += buttonH + 2;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 15,
-               GAME_MENU_Y + buttonY, GAME_MENU_W - 30, 15, "Exit Game");
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
+               "Audio controls");
 
-  buttonY += buttonH + 4;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_X + 87,
-               GAME_MENU_Y + buttonY, 105, 15, "Resume Game");
+  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
+               "Exit Game");
+
+  buttonY += GAME_MENU_BUTTON_H + 4;
+  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_RESUME_BUTTON_X,
+               GAME_MENU_Y + buttonY, GAME_MENU_RESUME_BUTTON_W,
+               GAME_MENU_BUTTON_H, "Resume Game");
 }
 
 static void renderMainMenu(GameContext *gameCtx) {
