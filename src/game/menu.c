@@ -10,7 +10,10 @@ static GameMenu _mainMenu = {0};
 GameMenu *gameMenu = &_gameMenu;
 GameMenu *mainMenu = &_mainMenu;
 
-void GameMenuReset(GameMenu *menu) { menu->state = GameMenuState_GameMenu; }
+void GameMenuReset(GameMenu *menu) {
+  menu->returnToGame = 0;
+  menu->state = GameMenuState_GameMenu;
+}
 static void Render_ExitGame(GameMenu *menu, const FNTHandle *font,
                             SDL_Texture *pixBuf) {
 
@@ -91,7 +94,7 @@ void GameMenuRender(GameMenu *menu, const FNTHandle *font,
   }
 }
 
-int GameMenuMouse(GameMenu *menu, const Point *pt) {
+static int Mouse_MainMenu(GameMenu *menu, const Point *pt) {
   int buttonY = GAME_MENU_BUTTONS_START_Y;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
@@ -143,9 +146,39 @@ int GameMenuMouse(GameMenu *menu, const Point *pt) {
   buttonY += GAME_MENU_BUTTON_H + 4;
   if (zoneClicked(pt, GAME_MENU_RESUME_BUTTON_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    // GameContextSetState(gameCtx, GameState_PlayGame);
+    menu->returnToGame = 1;
+    printf("resume\n");
     return 1;
   }
 
+  return 0;
+}
+
+int GameMenuMouse(GameMenu *menu, const Point *pt) {
+  switch (menu->state) {
+
+  case GameMenuState_GameMenu:
+    return Mouse_MainMenu(menu, pt);
+  case GameMenuState_LoadGame:
+  case GameMenuState_SaveGame:
+  case GameMenuState_DeleteGame:
+  case GameMenuState_GameControls:
+  case GameMenuState_AudioControls:
+  case GameMenuState_ExitGame:
+    break;
+  }
+  return 0;
+}
+
+int GameMenuKeyDown(GameMenu *menu, const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_ESCAPE:
+    if (menu->state == GameMenuState_GameMenu) {
+      menu->returnToGame = 1;
+    } else {
+      menu->state = GameMenuState_GameMenu;
+    }
+    return 1;
+  }
   return 0;
 }

@@ -17,6 +17,7 @@ typedef enum {
 
 typedef struct {
   GameMenuState state;
+  int returnToGame;
 } GameMenu;
 
 extern GameMenu *gameMenu;
@@ -26,5 +27,5 @@ void GameMenuReset(GameMenu *menu);
 void GameMenuRender(GameMenu *menu, const FNTHandle *font,
                     SDL_Texture *texture);
 
-int GameMenuMouse(GameMenu* menu, const Point *pt);
-
+int GameMenuMouse(GameMenu *menu, const Point *pt);
+int GameMenuKeyDown(GameMenu *menu, const SDL_Event *e);

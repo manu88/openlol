@@ -528,8 +528,14 @@ static int processMouse(GameContext *gameCtx) {
   case GameState_MainMenu:
     printf("MOUSE MENU\n");
     break;
-  case GameState_GameMenu:
-    return GameMenuMouse(gameCtx->currentMenu, &gameCtx->mouseEv.pos);
+  case GameState_GameMenu: {
+    int ret = GameMenuMouse(gameCtx->currentMenu, &gameCtx->mouseEv.pos);
+    if (gameCtx->currentMenu->returnToGame) {
+      GameContextSetState(gameCtx, GameState_PlayGame);
+    }
+    return ret;
+  }
+
   case GameState_ShrinkDialogBox:
   case GameState_Invalid:
     assert(0);
@@ -547,9 +553,12 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
     gameCtx->mouseEv.isRightClick = e->button.button == 3;
   } else {
-    if (e->key.keysym.sym == SDLK_ESCAPE && e->type == SDL_KEYDOWN) {
+    if (e->type == SDL_KEYDOWN) {
       if (gameCtx->state == GameState_GameMenu) {
-        GameContextSetState(gameCtx, GameState_PlayGame);
+        GameMenuKeyDown(gameCtx->currentMenu, e);
+        if (gameCtx->currentMenu->returnToGame) {
+          GameContextSetState(gameCtx, GameState_PlayGame);
+        }
       } else {
         GameContextSetState(gameCtx, GameState_GameMenu);
       }
