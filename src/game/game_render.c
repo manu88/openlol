@@ -3,6 +3,7 @@
 #include "formats/format_lang.h"
 #include "game_ctx.h"
 #include "geometry.h"
+#include "menu.h"
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
@@ -27,8 +28,8 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
 void renderDialog(GameContext *gameCtx) {
   UISetDefaultStyle();
   if (gameCtx->dialogText) {
-    UIRenderText(gameCtx, gameCtx->pixBuf, DIALOG_BOX_X + 5, DIALOG_BOX_Y + 2,
-                 DIALOG_BOX_W - 5, gameCtx->dialogText);
+    UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BOX_X + 5,
+                 DIALOG_BOX_Y + 2, DIALOG_BOX_W - 5, gameCtx->dialogText);
   }
 }
 
@@ -51,47 +52,7 @@ static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
 }
 
 static void renderGameMenu(GameContext *gameCtx) {
-  UISetStyle(UIStyle_GameMenu);
-  UIDrawMenuWindow(gameCtx, gameCtx->pixBuf, GAME_MENU_X, GAME_MENU_Y,
-                   GAME_MENU_W, GAME_MENU_H);
-
-  UIRenderTextCentered(gameCtx, gameCtx->pixBuf, GAME_MENU_X + GAME_MENU_W / 2,
-                       GAME_MENU_Y + 10, "Lands of Lore");
-
-  int buttonY = GAME_MENU_BUTTONS_START_Y;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
-               "Load a game");
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
-               "Save this game");
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
-               "Delete a game");
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
-               "Game controls");
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
-               "Audio controls");
-
-  buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_BUTTONS_START_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H,
-               "Exit Game");
-
-  buttonY += GAME_MENU_BUTTON_H + 4;
-  UIDrawButton(gameCtx, gameCtx->pixBuf, GAME_MENU_RESUME_BUTTON_X,
-               GAME_MENU_Y + buttonY, GAME_MENU_RESUME_BUTTON_W,
-               GAME_MENU_BUTTON_H, "Resume Game");
+  GameMenuRender(&gameCtx->defaultFont, gameCtx->pixBuf, gameCtx->currentMenu);
 }
 
 static void renderMainMenu(GameContext *gameCtx) {
@@ -99,17 +60,17 @@ static void renderMainMenu(GameContext *gameCtx) {
             gameCtx->gameTitle.imageSize, gameCtx->gameTitle.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
-  UIDrawMenuWindow(gameCtx, gameCtx->pixBuf, 86, 140, 128, 51);
-  UIRenderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 144,
-                       "Start a new game");
-  UIRenderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 153,
-                       "Introduction");
-  UIRenderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 162,
-                       "Lore of the Lands");
-  UIRenderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 171,
-                       "Load a new game");
-  UIRenderTextCentered(gameCtx, gameCtx->pixBuf, 86 + (128 / 2), 180,
-                       "Exit game");
+  UIDrawMenuWindow(gameCtx->pixBuf, 86, 140, 128, 51);
+  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
+                       144, "Start a new game");
+  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
+                       153, "Introduction");
+  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
+                       162, "Lore of the Lands");
+  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
+                       171, "Load a new game");
+  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
+                       180, "Exit game");
 }
 
 static void renderMap(GameContext *gameCtx) {
@@ -120,12 +81,12 @@ static void renderMap(GameContext *gameCtx) {
 
   char c[20] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  UIRenderText(gameCtx, gameCtx->pixBuf, MAP_SCREEN_EXIT_BUTTON_X + 2,
-               MAP_SCREEN_BUTTONS_Y + 4, 50, c);
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf,
+               MAP_SCREEN_EXIT_BUTTON_X + 2, MAP_SCREEN_BUTTONS_Y + 4, 50, c);
 
   GameContextGetLevelName(gameCtx, c, sizeof(c));
-  UIRenderText(gameCtx, gameCtx->pixBuf, MAP_SCREEN_NAME_X, MAP_SCREEN_NAME_Y,
-               320 - MAP_SCREEN_NAME_Y, c);
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, MAP_SCREEN_NAME_X,
+               MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y, c);
   printf("%i\n", gameCtx->levelId);
 }
 
@@ -167,9 +128,9 @@ static void renderCharInventory(GameContext *gameCtx) {
   char c[10] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
   UISetDefaultStyle();
-  UIRenderText(gameCtx, gameCtx->pixBuf, 277, 104, 50, c);
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 277, 104, 50, c);
 
-  UIRenderText(gameCtx, gameCtx->pixBuf, 250, 10, 50,
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 250, 10, 50,
                gameCtx->chars[gameCtx->selectedChar].name);
 }
 
@@ -199,8 +160,8 @@ static void renderLeftUIPart(GameContext *gameCtx) {
   char t[8] = "";
   UISetDefaultStyle();
   snprintf(t, 8, "%i", gameCtx->credits);
-  UIRenderText(gameCtx, gameCtx->pixBuf, UI_CREDITS_X + 5, UI_CREDITS_Y + 2, 20,
-               t);
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, UI_CREDITS_X + 5,
+               UI_CREDITS_Y + 2, 20, t);
 }
 
 static void renderCharFaces(GameContext *gameCtx) {
@@ -297,7 +258,7 @@ static void shrinkDialogBox(GameContext *gameCtx) {
 }
 
 static void renderExitButton(GameContext *gameCtx) {
-  UIDrawButton(gameCtx, gameCtx->pixBuf, UI_SCENE_EXIT_BUTTON_X,
+  UIDrawButton(&gameCtx->defaultFont, gameCtx->pixBuf, UI_SCENE_EXIT_BUTTON_X,
                UI_SCENE_EXIT_BUTTON_Y, UI_SCENE_EXIT_BUTTON_W,
                UI_SCENE_EXIT_BUTTON_H, "EXIT");
 
@@ -357,18 +318,18 @@ void GameRender(GameContext *gameCtx) {
   if (gameCtx->state != GameState_GrowDialogBox &&
       gameCtx->state != GameState_ShrinkDialogBox) {
     if (gameCtx->buttonText[0]) {
-      UIDrawButton(gameCtx, gameCtx->pixBuf, DIALOG_BUTTON1_X,
+      UIDrawButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON1_X,
                    DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
                    gameCtx->buttonText[0]);
     }
 
     if (gameCtx->buttonText[1]) {
-      UIDrawButton(gameCtx, gameCtx->pixBuf, DIALOG_BUTTON2_X,
+      UIDrawButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON2_X,
                    DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
                    gameCtx->buttonText[1]);
     }
     if (gameCtx->buttonText[2]) {
-      UIDrawButton(gameCtx, gameCtx->pixBuf, DIALOG_BUTTON3_X,
+      UIDrawButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON3_X,
                    DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
                    gameCtx->buttonText[2]);
     }

@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "SDL_pixels.h"
 #include "renderer.h"
+#include <assert.h>
 
 static UIStyle _currentStyle = UIStyle_Default;
 void UISetStyle(UIStyle style) { _currentStyle = style; }
@@ -110,7 +111,7 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
   SDL_UnlockTexture(pixBuf);
 }
 
-void UIRenderText(GameContext *gameCtx, SDL_Texture *texture, int xOff,
+void UIRenderText(const FNTHandle *font, SDL_Texture *texture, int xOff,
                   int yOff, int width, const char *text) {
   if (!text) {
     return;
@@ -121,16 +122,16 @@ void UIRenderText(GameContext *gameCtx, SDL_Texture *texture, int xOff,
     if (!isprint(text[i])) {
       continue;
     }
-    DrawChar(texture, &gameCtx->defaultFont, text[i], x, y);
-    x += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
+    DrawChar(texture, font, text[i], x, y);
+    x += font->widthTable[(uint8_t)text[i]];
     if (x - xOff >= width) {
       x = xOff;
-      y += gameCtx->defaultFont.maxHeight + 2;
+      y += font->maxHeight + 2;
     }
   }
 }
 
-void UIRenderTextCentered(GameContext *gameCtx, SDL_Texture *texture,
+void UIRenderTextCentered(const FNTHandle *font, SDL_Texture *texture,
                           int xCenter, int yCenter, const char *text) {
   if (!text) {
     return;
@@ -140,12 +141,12 @@ void UIRenderTextCentered(GameContext *gameCtx, SDL_Texture *texture,
     if (!isprint(text[i])) {
       continue;
     }
-    width += gameCtx->defaultFont.widthTable[(uint8_t)text[i]];
+    width += font->widthTable[(uint8_t)text[i]];
   }
-  UIRenderText(gameCtx, texture, xCenter - (width / 2), yCenter, width, text);
+  UIRenderText(font, texture, xCenter - (width / 2), yCenter, width, text);
 }
 
-void UIDrawButton(GameContext *gameCtx, SDL_Texture *texture, int x, int y,
+void UIDrawButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
                   int w, int h, const char *text) {
   const UIPalette *pal = getPalette();
   void *data;
@@ -173,11 +174,11 @@ void UIDrawButton(GameContext *gameCtx, SDL_Texture *texture, int x, int y,
     }
   }
   SDL_UnlockTexture(texture);
-  UIRenderTextCentered(gameCtx, texture, x + w / 2, (y + h / 2) - 2, text);
+  UIRenderTextCentered(font, texture, x + w / 2, (y + h / 2) - 2, text);
 }
 
-void UIDrawMenuWindow(GameContext *gameCtx, SDL_Texture *texture, int startX,
-                      int startY, int w, int h) {
+void UIDrawMenuWindow(SDL_Texture *texture, int startX, int startY, int w,
+                      int h) {
 
   const UIPalette *pal = getPalette();
   void *data;

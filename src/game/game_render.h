@@ -1,10 +1,7 @@
 #pragma once
-#include "SDL_render.h"
 #include "game_ctx.h"
 
 void renderDialog(GameContext *gameCtx);
-void UIRenderText(GameContext *gameCtx, SDL_Texture *texture, int xOff,
-                  int yOff, int width, const char *text);
 
 void GameRender(GameContext *gameCtx);
 

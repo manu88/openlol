@@ -14,7 +14,7 @@
 #include "formats/format_wll.h"
 #include "game_tim_animator.h"
 #include "geometry.h"
-#include "pak_file.h"
+#include "menu.h"
 #include "script.h"
 #include <stdint.h>
 
@@ -220,6 +220,8 @@ typedef struct _GameContext {
   DialogState dialogState;
 
   int _noClip;
+
+  GameMenu *currentMenu;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

@@ -8,6 +8,7 @@
 #include "formats/format_shp.h"
 #include "game_envir.h"
 #include "game_tim_animator.h"
+#include "menu.h"
 #include "render.h"
 #include "script.h"
 #include <assert.h>
@@ -275,6 +276,13 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   printf("GameContextSetState from %i to %i\n", gameCtx->state, newState);
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
+  if (gameCtx->state == GameState_GameMenu) {
+    gameCtx->currentMenu = gameMenu;
+  } else if (gameCtx->state == GameState_MainMenu) {
+    gameCtx->currentMenu = mainMenu;
+  } else {
+    gameCtx->currentMenu = NULL;
+  }
   if (gameCtx->state == GameState_ShowInventory ||
       gameCtx->state == GameState_ShowMap ||
       gameCtx->state == GameState_GameMenu) {

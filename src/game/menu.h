@@ -1,0 +1,25 @@
+#pragma once
+
+#include "formats/format_fnt.h"
+#include <SDL2/SDL.h>
+
+typedef enum {
+  GameMenuState_GameMenu,
+
+  GameMenuState_LoadGame,
+  GameMenuState_SaveGame,
+  GameMenuState_DeleteGame,
+  GameMenuState_GameControls,
+  GameMenuState_AudioControls,
+  GameMenuState_ExitGame,
+} GameMenuState;
+
+typedef struct {
+  GameMenuState state;
+} GameMenu;
+
+extern GameMenu *gameMenu;
+extern GameMenu *mainMenu;
+
+void GameMenuRender(const FNTHandle *font, SDL_Texture *texture,
+                    GameMenu *menu);
