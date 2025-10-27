@@ -21,5 +21,6 @@ typedef struct {
 extern GameMenu *gameMenu;
 extern GameMenu *mainMenu;
 
-void GameMenuRender(const FNTHandle *font, SDL_Texture *texture,
-                    GameMenu *menu);
+void GameMenuReset(GameMenu *menu);
+void GameMenuRender(GameMenu *menu, const FNTHandle *font,
+                    SDL_Texture *texture);
