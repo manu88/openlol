@@ -23,13 +23,18 @@ def extract(file: str, pak: str):
 
 def main():
     args = parser.parse_args()
-    file_to_find = args.file
+    file_to_find: str = args.file
     print(f"Looking for {file_to_find} in {pak_path}")
     for pak_file in pak_files:
         argv = ["./lol", "-p", pak_file, "pak", "list"]
         proc_output = subprocess.run(
             argv, stdout=subprocess.PIPE).stdout.decode()
         for l in proc_output.splitlines():
+            if file_to_find[0] == "*":
+                ext_to_find = file_to_find.split(".")[1]
+                file_ext = l.split(".")[1]
+                if (ext_to_find == file_ext):
+                    print(f"Found {l} in {pak_file}")
             if l == file_to_find:
                 print(f"Found {file_to_find} in {pak_file}")
                 if (args.e):
