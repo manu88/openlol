@@ -25,7 +25,7 @@ extern GameMenu *gameMenu;
 extern GameMenu *mainMenu;
 
 void GameMenuReset(GameMenu *menu);
-void GameMenuRender(GameMenu *menu, const FNTHandle *font,
+void GameMenuRender(GameMenu *menu,GameContext *context, const FNTHandle *font,
                     SDL_Texture *texture);
 
 int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt);

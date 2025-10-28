@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "formats/format_lang.h"
 #include "game_ctx.h"
 #include "geometry.h"
 #include "ui.h"
@@ -11,67 +12,84 @@ static GameMenu _mainMenu = {0};
 GameMenu *gameMenu = &_gameMenu;
 GameMenu *mainMenu = &_mainMenu;
 
+static char textBuf[128] = "";
+
 void GameMenuReset(GameMenu *menu) {
   menu->returnToGame = 0;
   menu->state = GameMenuState_GameMenu;
 }
-static void Render_ExitGame(GameMenu *menu, const FNTHandle *font,
-                            SDL_Texture *pixBuf) {
+
+static void Render_ExitGame(GameMenu *menu, GameContext *context,
+                            const FNTHandle *font, SDL_Texture *pixBuf) {
   int startX = 16;
   int startY = 72;
   int width = 288;
   int height = 52;
   UIDrawMenuWindow(pixBuf, startX, startY, width, height);
-  UIRenderTextCentered(font, pixBuf, startX + width / 2, startY + 8,
-                       "Do you really want to exit the kingdom?");
-  UIDrawButton(font, pixBuf, startX + 8, startY + 30, 72, 15, "yes");
-  UIDrawButton(font, pixBuf, startX + 208, startY + 30, 72, 15, "no");
+
+  GameContextGetString(context, 0X400A, textBuf, 128);
+  UIRenderTextCentered(font, pixBuf, startX + width / 2, startY + 8, textBuf);
+
+  GameContextGetString(context, STR_YES_INDEX, textBuf, 128);
+  UIDrawButton(font, pixBuf, startX + 8, startY + 30, 72, 15, textBuf);
+
+  GameContextGetString(context, STR_NO_INDEX, textBuf, 128);
+  UIDrawButton(font, pixBuf, startX + 208, startY + 30, 72, 15, textBuf);
 }
 
-static void Render_MainMenu(GameMenu *menu, const FNTHandle *font,
-                            SDL_Texture *pixBuf) {
+static void Render_MainMenu(GameMenu *menu, GameContext *context,
+                            const FNTHandle *font, SDL_Texture *pixBuf) {
   assert(menu == gameMenu);
   UIDrawMenuWindow(pixBuf, GAME_MENU_X, GAME_MENU_Y, GAME_MENU_W, GAME_MENU_H);
 
+  GameContextGetString(context, 0X4000, textBuf, 128);
   UIRenderTextCentered(font, pixBuf, GAME_MENU_X + GAME_MENU_W / 2,
-                       GAME_MENU_Y + 10, "Lands of Lore");
+                       GAME_MENU_Y + 10, textBuf);
 
   int buttonY = GAME_MENU_BUTTONS_START_Y;
+  GameContextGetString(context, 0X4001, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, "Load a game");
+               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  GameContextGetString(context, 0X4002, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, "Save this game");
+               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  GameContextGetString(context, 0X4003, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, "Delete a game");
+               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  // game controls
+  GameContextGetString(context, 0X4004, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, "Game controls");
+               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  GameContextGetString(context, 0X42D9, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, "Audio controls");
+               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
+  GameContextGetString(context, 0X4006, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, "Exit Game");
+               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTON_H + 4;
+  GameContextGetString(context, 0X4005, textBuf, 128);
   UIDrawButton(font, pixBuf, GAME_MENU_RESUME_BUTTON_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H, "Resume Game");
+               GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 }
 
-void GameMenuRender(GameMenu *menu, const FNTHandle *font,
+void GameMenuRender(GameMenu *menu, GameContext *context, const FNTHandle *font,
                     SDL_Texture *pixBuf) {
   UISetStyle(UIStyle_GameMenu);
   switch (menu->state) {
 
   case GameMenuState_GameMenu:
-    Render_MainMenu(menu, font, pixBuf);
+    Render_MainMenu(menu, context, font, pixBuf);
     break;
   case GameMenuState_LoadGame:
     printf("Render LoadGame\n");
@@ -89,7 +107,7 @@ void GameMenuRender(GameMenu *menu, const FNTHandle *font,
     printf("Render Audio controls\n");
     break;
   case GameMenuState_ExitGame:
-    Render_ExitGame(menu, font, pixBuf);
+    Render_ExitGame(menu, context, font, pixBuf);
     break;
   }
 }

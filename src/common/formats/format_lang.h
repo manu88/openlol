@@ -7,6 +7,8 @@
 #define STR_TAKEN_INDEX 0X403E            // "%s taken"
 #define STR_CANT_GO_THAT_WAY_INDEX 0X403F // "You can't go that way!"
 #define STR_EXIT_INDEX 0X4033             // "EXIT"
+#define STR_YES_INDEX 0X4007              // "Yes"
+#define STR_NO_INDEX 0X4008               // "No"
 
 #define STR_FIST_LEVEL_NAME_INDEX 0X4211 // this is level 1: Keep
 
