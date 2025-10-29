@@ -145,9 +145,8 @@ int cmdGame(int argc, char *argv[]) {
       return 1;
     }
     GameContextSetState(&gameCtx, GameState_PlayGame);
-  } else if (savFileOrDir) {
   }
-
+  GameContextSetSavDir(&gameCtx, savFileOrDir);
   GameContextLoadChars(&gameCtx);
 
   {

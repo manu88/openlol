@@ -223,12 +223,15 @@ typedef struct _GameContext {
 
   Menu *currentMenu;
   int shouldUpdate;
+
+  char *savDir;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
 int GameContextInit(GameContext *gameCtx, Language lang);
 int GameContextStartup(GameContext *ctx);
 
+int GameContextSetSavDir(GameContext *gameCtx,const char *path);
 int GameContextNewGame(GameContext *gameCtx);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum);

@@ -11,13 +11,35 @@
 #include "menu.h"
 #include "render.h"
 #include "script.h"
+#include <_string.h>
 #include <assert.h>
+#include <libgen.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 static int runScript(GameContext *gameCtx, INFScript *script);
+
+int GameContextSetSavDir(GameContext *gameCtx, const char *path) {
+  if (path == NULL) {
+    gameCtx->savDir = "./";
+  } else {
+    struct stat path_stat;
+    if (stat(path, &path_stat) < 0) {
+      assert(0);
+      return 0;
+    }
+    if (S_ISDIR(path_stat.st_mode)) {
+      gameCtx->savDir = (char *)path;
+    } else {
+      gameCtx->savDir = dirname((char *)path);
+    }
+  }
+  return 1;
+}
 
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
