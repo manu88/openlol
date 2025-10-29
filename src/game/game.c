@@ -542,8 +542,7 @@ static int processMouse(GameContext *gameCtx) {
   return 0;
 }
 
-static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
-  int shouldUpdate = 0;
+static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   if (e->type == SDL_MOUSEBUTTONDOWN) {
     assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
     gameCtx->mouseEv.pending = 1;
@@ -552,7 +551,7 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     gameCtx->mouseEv.isRightClick = e->button.button == 3;
   } else {
     if (e->type != SDL_KEYDOWN) {
-      return 0;
+      return;
     }
     if (gameCtx->state == GameState_GameMenu ||
         gameCtx->state == GameState_MainMenu) {
@@ -560,67 +559,66 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       if (gameCtx->currentMenu->returnToGame) {
         GameContextSetState(gameCtx, GameState_PlayGame);
       }
-      return ret;
+      gameCtx->shouldUpdate = ret;
+      return;
     }
     if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
       switch (e->key.keysym.sym) {
       case SDLK_z:
         // go front
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         tryMove(gameCtx, Front);
         break;
       case SDLK_s:
         // go back
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         tryMove(gameCtx, Back);
         break;
       case SDLK_q:
         // go left
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         tryMove(gameCtx, Left);
         break;
       case SDLK_d:
         // go right
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         tryMove(gameCtx, Right);
         break;
       case SDLK_a:
         // turn anti-clockwise
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
         break;
       case SDLK_e:
         // turn clockwise
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
         break;
       case SDLK_p:
         inspectFrontWall(gameCtx);
         break;
       case SDLK_SPACE:
-        shouldUpdate = 1;
+        gameCtx->shouldUpdate = 1;
         clickOnFrontWall(gameCtx);
         break;
       case SDLK_ESCAPE:
         GameContextSetState(gameCtx, GameState_GameMenu);
-        return 1;
-        break;
+        gameCtx->shouldUpdate = 1;
+        return;
       default:
         break;
       }
     }
   }
-  return shouldUpdate;
 }
 
-static int GamePreUpdate(GameContext *gameCtx) {
-  int shouldUpdate = 0;
+static void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
          EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
     EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
-    shouldUpdate = 1;
+    gameCtx->shouldUpdate = 1;
     if (gameCtx->dialogState == DialogState_InProgress) {
-      return 1;
+      return;
     }
   }
   if (gameCtx->nextFunc) {
@@ -628,18 +626,14 @@ static int GamePreUpdate(GameContext *gameCtx) {
     GameContextRunScript(gameCtx, gameCtx->nextFunc);
     gameCtx->nextFunc = 0;
   }
-  return shouldUpdate;
 }
 
 static void GameRunOnce(GameContext *gameCtx) {
-  int shouldUpdate = 0;
-  if (DBGServerUpdate(gameCtx)) {
-    shouldUpdate = 1;
-  }
 
-  if (GamePreUpdate(gameCtx)) {
-    shouldUpdate = 1;
+  if (DBGServerUpdate(gameCtx)) {
+    gameCtx->shouldUpdate = 1;
   }
+  GamePreUpdate(gameCtx);
 
   SDL_Event e;
   SDL_WaitEventTimeout(&e, 20);
@@ -653,14 +647,11 @@ static void GameRunOnce(GameContext *gameCtx) {
   case GameState_ShowMap:
   case GameState_MainMenu:
   case GameState_GameMenu:
-    if (processGameInputs(gameCtx, &e)) {
-      shouldUpdate = 1;
-    }
-
+    processGameInputs(gameCtx, &e);
     break;
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
-      shouldUpdate = 1;
+      gameCtx->shouldUpdate = 1;
     } else if (e.type == SDL_MOUSEBUTTONDOWN) {
       assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
       gameCtx->mouseEv.pending = 1;
@@ -671,7 +662,7 @@ static void GameRunOnce(GameContext *gameCtx) {
     break;
   case GameState_GrowDialogBox:
   case GameState_ShrinkDialogBox:
-    shouldUpdate = 1;
+    gameCtx->shouldUpdate = 1;
     break;
   case GameState_Invalid:
     assert(0);
@@ -680,12 +671,14 @@ static void GameRunOnce(GameContext *gameCtx) {
 
   if (gameCtx->mouseEv.pending) {
     if (processMouse(gameCtx)) {
-      shouldUpdate = 1;
+      gameCtx->shouldUpdate = 1;
     }
     gameCtx->mouseEv.pending = 0;
   }
-  if (shouldUpdate) {
+  if (gameCtx->shouldUpdate) {
+    printf("Render game\n");
     GameRender(gameCtx);
+    gameCtx->shouldUpdate = 0;
   }
 
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,

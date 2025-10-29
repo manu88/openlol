@@ -23,7 +23,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
-
+  gameCtx->shouldUpdate = 1;
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));

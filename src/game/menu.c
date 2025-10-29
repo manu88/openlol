@@ -75,19 +75,16 @@ int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
 static void MainMenuReset(Menu *menu) {}
 
 static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
-  printf("MainMenuMouse\n");
-  return 1;
+  return 0;
 }
 
 static int MainMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e) {
-  printf("MainMenuKeyDown\n");
-  return 1;
+  return 0;
 }
 
 static void MainMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
-  printf("render main menu\n");
   renderCPS(context->pixBuf, context->gameTitle.data,
             context->gameTitle.imageSize, context->gameTitle.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
