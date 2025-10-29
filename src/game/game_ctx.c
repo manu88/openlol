@@ -161,7 +161,13 @@ int GameContextNewGame(GameContext *gameCtx) {
   gameCtx->inventory[0] = GameContextCreateItem(gameCtx, 216); // salve
   gameCtx->inventory[1] = GameContextCreateItem(gameCtx, 217); // aloe
   gameCtx->inventory[2] = GameContextCreateItem(gameCtx, 218); // Ginseng
-  return 1;
+  GameContextLoadChars(gameCtx);
+  if (GameContextLoadLevel(gameCtx, gameCtx->levelId)) {
+
+    GameContextSetState(gameCtx, GameState_PlayGame);
+    return 1;
+  }
+  return 0;
 }
 
 void GameContextRelease(GameContext *gameCtx) {
@@ -252,6 +258,23 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   runScript(ctx, &ctx->iniScript);
   GameContextRunLevelInitScript(ctx);
 
+  return 1;
+}
+
+int GameContextLoadChars(GameContext *gameCtx) {
+  char faceFile[11] = "";
+  for (int i = 0; i < NUM_CHARACTERS; i++) {
+    uint8_t charId =
+        gameCtx->chars[i].id > 0 ? gameCtx->chars[i].id : -gameCtx->chars[i].id;
+    if (charId == 0) {
+      continue;
+    }
+    snprintf(faceFile, 11, "FACE%02i.SHP", charId);
+    GameFile f = {0};
+    assert(GameEnvironmentGetGeneralFile(&f, faceFile));
+    SHPHandleFromCompressedBuffer(&gameCtx->charFaces[i], f.buffer,
+                                  f.bufferSize);
+  }
   return 1;
 }
 

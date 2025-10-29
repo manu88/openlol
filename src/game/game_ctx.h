@@ -232,6 +232,7 @@ int GameContextStartup(GameContext *ctx);
 int GameContextNewGame(GameContext *gameCtx);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum);
+int GameContextLoadChars(GameContext *ctx);
 int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
 

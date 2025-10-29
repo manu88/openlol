@@ -259,6 +259,10 @@ static void MainMenuRender(MainMenu *menu, GameContext *context,
     MainMenuRender_MainMenu(menu, context, font, pixBuf);
     break;
   case MainMenuState_StartNew:
+    printf("Start new game\n");
+    GameContextNewGame(context);
+    menu->base.returnToGame = 1;
+    break;
   case MainMenuState_Introduction:
   case MainMenuState_LoreOfTheLands:
   case MainMenuState_LoadGame:

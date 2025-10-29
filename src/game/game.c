@@ -28,12 +28,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 static SAVHandle savHandle = {0};
 static int GameRun(GameContext *gameCtx);
+
 static void usageGame(void) {
-  printf("game [-d datadir] [-l langId] [-a] [savefile.dat]\n");
+  printf("game [-d datadir] [-l langId] [-a] [savefile-or-savedir]\n");
+}
+
+static int pathIsFile(const char *path) {
+  struct stat path_stat;
+  if (stat(path, &path_stat) < 0) {
+    return 1; // later read of the file will fail
+  }
+  return S_ISREG(path_stat.st_mode);
 }
 
 static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
@@ -73,6 +84,7 @@ static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
   gameCtx->itemIndexInHand = savHandle.slot.general->itemIndexInHand;
 
   SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
+  GameContextLoadLevel(gameCtx, gameCtx->levelId);
   return 1;
 }
 
@@ -107,10 +119,10 @@ int cmdGame(int argc, char *argv[]) {
   argc = argc - optind;
   argv = argv + optind;
 
-  char *savFile = NULL;
+  char *savFileOrDir = NULL;
 
   if (argc > 0) {
-    savFile = argv[0];
+    savFileOrDir = argv[0];
   }
 
   assert(GameEnvironmentInit(dataDir ? dataDir : "data", lang));
@@ -126,32 +138,17 @@ int cmdGame(int argc, char *argv[]) {
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
 
-  if (savFile) {
-    printf("Loading sav file '%s'\n", savFile);
-    if (loadSaveFile(&gameCtx, savFile) == 0) {
-      printf("Error while reading file '%s'\n", savFile);
+  if (savFileOrDir && pathIsFile(savFileOrDir)) {
+    printf("Loading sav file '%s'\n", savFileOrDir);
+    if (loadSaveFile(&gameCtx, savFileOrDir) == 0) {
+      printf("Error while reading file '%s'\n", savFileOrDir);
       return 1;
     }
     GameContextSetState(&gameCtx, GameState_PlayGame);
-  } else {
-    GameContextNewGame(&gameCtx);
+  } else if (savFileOrDir) {
   }
 
-  char faceFile[11] = "";
-  for (int i = 0; i < NUM_CHARACTERS; i++) {
-    uint8_t charId =
-        gameCtx.chars[i].id > 0 ? gameCtx.chars[i].id : -gameCtx.chars[i].id;
-    if (charId == 0) {
-      continue;
-    }
-    snprintf(faceFile, 11, "FACE%02i.SHP", charId);
-    GameFile f = {0};
-    assert(GameEnvironmentGetGeneralFile(&f, faceFile));
-    SHPHandleFromCompressedBuffer(&gameCtx.charFaces[i], f.buffer,
-                                  f.bufferSize);
-  }
-
-  GameContextLoadLevel(&gameCtx, gameCtx.levelId);
+  GameContextLoadChars(&gameCtx);
 
   {
     GameFile f = {0};
