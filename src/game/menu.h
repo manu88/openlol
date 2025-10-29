@@ -17,9 +17,13 @@ typedef enum {
 } GameMenuState;
 
 typedef struct {
-  GameMenuState state;
   int returnToGame;
 } Menu;
+
+typedef struct {
+  Menu base;
+  GameMenuState state;
+} GameMenu;
 
 extern Menu *gameMenu;
 extern Menu *mainMenu;
