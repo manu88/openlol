@@ -91,16 +91,26 @@ static void MainMenuRender(Menu *menu, GameContext *context,
 
   UISetStyle(UIStyle_MainMenu);
   UIDrawMenuWindow(context->pixBuf, 86, 140, 128, 51);
+
+  GameContextGetString(context, 0X4248, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       144, "Start a new game");
+                       144, textBuf);
+
+  GameContextGetString(context, 0X4249, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       153, "Introduction");
+                       153, textBuf);
+
+  GameContextGetString(context, 0X42DD, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       162, "Lore of the Lands");
+                       162, textBuf);
+
+  GameContextGetString(context, 0X4001, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       171, "Load a new game");
+                       171, textBuf);
+
+  GameContextGetString(context, 0X424A, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       180, "Exit game");
+                       180, textBuf);
 }
 
 /* Game Menu*/
