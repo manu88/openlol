@@ -75,6 +75,19 @@ int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
 static void MainMenuReset(Menu *menu) {}
 
 static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
+  const int width = 128;
+  const int height = 8;
+  if (zoneClicked(pt, 86, 144, width, height)) {
+    printf("Start a new game\n");
+  } else if (zoneClicked(pt, 86, 153, width, height)) {
+    printf("Introduction\n");
+  } else if (zoneClicked(pt, 86, 162, width, height)) {
+    printf("Lore of the lands\n");
+  } else if (zoneClicked(pt, 86, 171, width, height)) {
+    printf("Load a game\n");
+  } else if (zoneClicked(pt, 86, 180, width, height)) {
+    printf("Exit\n");
+  }
   return 0;
 }
 
@@ -92,25 +105,26 @@ static void MainMenuRender(Menu *menu, GameContext *context,
   UISetStyle(UIStyle_MainMenu);
   UIDrawMenuWindow(context->pixBuf, 86, 140, 128, 51);
 
+  const int xCenter = 86 + (128 / 2);
   GameContextGetString(context, 0X4248, textBuf, 128);
-  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       144, textBuf);
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 144,
+                       textBuf);
 
   GameContextGetString(context, 0X4249, textBuf, 128);
-  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       153, textBuf);
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 153,
+                       textBuf);
 
   GameContextGetString(context, 0X42DD, textBuf, 128);
-  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       162, textBuf);
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 162,
+                       textBuf);
 
   GameContextGetString(context, 0X4001, textBuf, 128);
-  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       171, textBuf);
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 171,
+                       textBuf);
 
   GameContextGetString(context, 0X424A, textBuf, 128);
-  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
-                       180, textBuf);
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 180,
+                       textBuf);
 }
 
 /* Game Menu*/
