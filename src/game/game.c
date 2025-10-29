@@ -676,7 +676,6 @@ static void GameRunOnce(GameContext *gameCtx) {
     gameCtx->mouseEv.pending = 0;
   }
   if (gameCtx->shouldUpdate) {
-    printf("Render game\n");
     GameRender(gameCtx);
     gameCtx->shouldUpdate = 0;
   }

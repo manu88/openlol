@@ -8,6 +8,7 @@ typedef struct _GameContext GameContext;
 
 typedef struct {
   int returnToGame;
+  int selectedIndex;
 } Menu;
 
 typedef enum {
@@ -33,6 +34,7 @@ typedef enum {
   MainMenuState_Introduction,
   MainMenuState_LoreOfTheLands,
   MainMenuState_LoadGame,
+  MainMenuState_Exit,
 } MainMenuState;
 
 typedef struct {

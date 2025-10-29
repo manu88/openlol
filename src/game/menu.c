@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "SDL_keycode.h"
 #include "formats/format_lang.h"
 #include "game_ctx.h"
 #include "geometry.h"
@@ -30,6 +31,7 @@ static char textBuf[128] = "";
 
 void MenuReset(Menu *menu) {
   menu->returnToGame = 0;
+  menu->selectedIndex = 0;
   if (menu == gameMenu) {
     GameMenuReset((GameMenu *)menu);
   } else if (menu == mainMenu) {
@@ -123,12 +125,57 @@ static int MainMenuMouse(MainMenu *menu, GameContext *context,
   case MainMenuState_LoreOfTheLands:
   case MainMenuState_LoadGame:
     return MainMenuMouse_UnimplementedMenu(menu, context, pt);
+  case MainMenuState_Exit:
+    break;
+  }
+  return 0;
+}
+
+static int MainMenuKeyDown_UnimplementedMenu(MainMenu *menu,
+                                             GameContext *context,
+                                             const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_RETURN:
+    menu->state = MainMenuState_GameMenu;
+    return 1;
+  }
+  return 0;
+}
+
+static int MainMenuKeyDown_GameMenu(MainMenu *menu, GameContext *context,
+                                    const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_UP:
+  case SDLK_DOWN:
+    menu->base.selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
+    if (menu->base.selectedIndex < 0) {
+      menu->base.selectedIndex = 5 + menu->base.selectedIndex;
+    } else if (menu->base.selectedIndex > 4) {
+      menu->base.selectedIndex %= 5;
+    }
+    return 1;
+  case SDLK_RETURN:
+
+    menu->state = menu->base.selectedIndex + 1;
+    return 1;
   }
   return 0;
 }
 
 static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
                            const SDL_Event *e) {
+  switch (menu->state) {
+
+  case MainMenuState_GameMenu:
+    return MainMenuKeyDown_GameMenu(menu, context, e);
+  case MainMenuState_StartNew:
+  case MainMenuState_Introduction:
+  case MainMenuState_LoreOfTheLands:
+  case MainMenuState_LoadGame:
+    return MainMenuKeyDown_UnimplementedMenu(menu, context, e);
+  case MainMenuState_Exit:
+    break;
+  }
   return 0;
 }
 
@@ -147,7 +194,9 @@ static void MainMenuRender_UnimplementedMenu(MainMenu *menu,
                        "unimplemented feature");
 
   GameContextGetString(context, STR_NO_INDEX, textBuf, 128);
+  UISetTextStyle(UITextStyle_Highlighted);
   UIDrawButton(font, pixBuf, startX + 208, startY + 30, 72, 15, "ok");
+  UIResetTextStyle();
 }
 
 static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
@@ -163,26 +212,44 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
   const int xCenter = 86 + (128 / 2);
 
   GameContextGetString(context, 0X4248, textBuf, 128);
-  UISetTextStyle(UITextStyle_Highlighted);
+  if (menu->base.selectedIndex == 0) {
+    UISetTextStyle(UITextStyle_Highlighted);
+  }
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 144,
                        textBuf);
   UIResetTextStyle();
 
+  if (menu->base.selectedIndex == 1) {
+    UISetTextStyle(UITextStyle_Highlighted);
+  }
   GameContextGetString(context, 0X4249, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 153,
                        textBuf);
+  UIResetTextStyle();
 
+  if (menu->base.selectedIndex == 2) {
+    UISetTextStyle(UITextStyle_Highlighted);
+  }
   GameContextGetString(context, 0X42DD, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 162,
                        textBuf);
+  UIResetTextStyle();
 
+  if (menu->base.selectedIndex == 3) {
+    UISetTextStyle(UITextStyle_Highlighted);
+  }
   GameContextGetString(context, 0X4001, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 171,
                        textBuf);
+  UIResetTextStyle();
 
+  if (menu->base.selectedIndex == 4) {
+    UISetTextStyle(UITextStyle_Highlighted);
+  }
   GameContextGetString(context, 0X424A, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 180,
                        textBuf);
+  UIResetTextStyle();
 }
 
 static void MainMenuRender(MainMenu *menu, GameContext *context,
@@ -195,8 +262,10 @@ static void MainMenuRender(MainMenu *menu, GameContext *context,
   case MainMenuState_Introduction:
   case MainMenuState_LoreOfTheLands:
   case MainMenuState_LoadGame:
-    printf("Render unimplemented\n");
     MainMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
+    break;
+  case MainMenuState_Exit:
+    GameContextExitGame(context);
     break;
   }
 }
