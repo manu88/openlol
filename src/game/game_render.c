@@ -61,6 +61,7 @@ static void renderMainMenu(GameContext *gameCtx) {
             gameCtx->gameTitle.imageSize, gameCtx->gameTitle.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
+  UISetStyle(UIStyle_MainMenu);
   UIDrawMenuWindow(gameCtx->pixBuf, 86, 140, 128, 51);
   UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
                        144, "Start a new game");

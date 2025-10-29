@@ -1,9 +1,11 @@
 #pragma once
 #include "formats/format_fnt.h"
 #include <SDL2/SDL.h>
+
 typedef enum {
   UIStyle_Default,
   UIStyle_GameMenu,
+  UIStyle_MainMenu,
 } UIStyle;
 
 void UISetStyle(UIStyle style);

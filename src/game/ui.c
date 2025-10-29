@@ -22,6 +22,14 @@ static UIPalette gameMenuPalette = {.background = {166, 89, 77},
                                         {247, 207, 121}, // font color
                                     }};
 
+static UIPalette mainMenuPalette = {.background = {174, 117, 60},
+                                    .topLayerColor = {247, 182, 105},
+                                    .bottomLayerColor = {97, 69, 52},
+                                    .textColorMap = {
+                                        {174, 117, 60}, // background
+                                        {223, 166, 97}, // font color
+                                    }};
+
 static UIPalette defaultPalette = {.background = {65, 44, 36},
                                    .topLayerColor = {207, 125, 101},
                                    .bottomLayerColor = {119, 50, 46},
@@ -37,7 +45,8 @@ static UIPalette *getPalette(void) {
     return &defaultPalette;
   case UIStyle_GameMenu:
     return &gameMenuPalette;
-    break;
+  case UIStyle_MainMenu:
+    return &mainMenuPalette;
   }
   assert(0);
 }
