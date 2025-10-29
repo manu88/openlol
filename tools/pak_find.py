@@ -4,7 +4,7 @@ import subprocess
 import sys
 import argparse
 
-pak_path = "data/cd"
+pak_path = "data"
 pak_files = [join(pak_path, f) for f in listdir(pak_path) if isfile(
     join(pak_path, f)) and f.endswith(".PAK")]
 # print(pak_files)
