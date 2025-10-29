@@ -22,7 +22,8 @@ static int runScript(GameContext *gameCtx, INFScript *script);
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
   gameCtx->language = lang;
-  gameCtx->state = GameState_MainMenu;
+  GameContextSetState(gameCtx, GameState_MainMenu);
+
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));

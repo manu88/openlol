@@ -2,6 +2,7 @@
 #include "formats/format_lang.h"
 #include "game_ctx.h"
 #include "geometry.h"
+#include "render.h"
 #include "ui.h"
 #include <assert.h>
 #include <string.h>
@@ -18,6 +19,12 @@ static int GameMenuKeyDown(GameMenu *menu, GameContext *context,
                            const SDL_Event *e);
 
 Menu *mainMenu = &_mainMenu;
+static void MainMenuReset(Menu *menu);
+static void MainMenuRender(Menu *menu, GameContext *context,
+                           const FNTHandle *font, SDL_Texture *pixBuf);
+static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt);
+static int MainMenuKeyDown(Menu *menu, GameContext *context,
+                           const SDL_Event *e);
 
 static char textBuf[128] = "";
 
@@ -25,19 +32,30 @@ void MenuReset(Menu *menu) {
   menu->returnToGame = 0;
   if (menu == gameMenu) {
     GameMenuReset((GameMenu *)menu);
+  } else if (menu == mainMenu) {
+    MainMenuReset(menu);
+  } else {
+    assert(0);
   }
 }
 
 void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font,
                 SDL_Texture *pixBuf) {
+  assert(menu);
   if (menu == gameMenu) {
     GameMenuRender((GameMenu *)menu, context, font, pixBuf);
+  } else if (menu == mainMenu) {
+    MainMenuRender(menu, context, font, pixBuf);
+  } else {
+    assert(0);
   }
 }
 
 int MenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   if (menu == gameMenu) {
     return GameMenuMouse((GameMenu *)menu, context, pt);
+  } else if (menu == mainMenu) {
+    return MainMenuMouse(menu, context, pt);
   }
   return 0;
 }
@@ -45,8 +63,47 @@ int MenuMouse(Menu *menu, GameContext *context, const Point *pt) {
 int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
   if (menu == gameMenu) {
     return GameMenuKeyDown((GameMenu *)menu, context, e);
+  } else if (menu == mainMenu) {
+    return MainMenuKeyDown(menu, context, e);
   }
+  assert(0);
   return 0;
+}
+
+/* Main Menu */
+
+static void MainMenuReset(Menu *menu) {}
+
+static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
+  printf("MainMenuMouse\n");
+  return 1;
+}
+
+static int MainMenuKeyDown(Menu *menu, GameContext *context,
+                           const SDL_Event *e) {
+  printf("MainMenuKeyDown\n");
+  return 1;
+}
+
+static void MainMenuRender(Menu *menu, GameContext *context,
+                           const FNTHandle *font, SDL_Texture *pixBuf) {
+  printf("render main menu\n");
+  renderCPS(context->pixBuf, context->gameTitle.data,
+            context->gameTitle.imageSize, context->gameTitle.palette,
+            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  UISetStyle(UIStyle_MainMenu);
+  UIDrawMenuWindow(context->pixBuf, 86, 140, 128, 51);
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
+                       144, "Start a new game");
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
+                       153, "Introduction");
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
+                       162, "Lore of the Lands");
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
+                       171, "Load a new game");
+  UIRenderTextCentered(&context->defaultFont, context->pixBuf, 86 + (128 / 2),
+                       180, "Exit game");
 }
 
 /* Game Menu*/

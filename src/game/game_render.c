@@ -57,22 +57,8 @@ static void renderGameMenu(GameContext *gameCtx) {
 }
 
 static void renderMainMenu(GameContext *gameCtx) {
-  renderCPS(gameCtx->pixBuf, gameCtx->gameTitle.data,
-            gameCtx->gameTitle.imageSize, gameCtx->gameTitle.palette,
-            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-
-  UISetStyle(UIStyle_MainMenu);
-  UIDrawMenuWindow(gameCtx->pixBuf, 86, 140, 128, 51);
-  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
-                       144, "Start a new game");
-  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
-                       153, "Introduction");
-  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
-                       162, "Lore of the Lands");
-  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
-                       171, "Load a new game");
-  UIRenderTextCentered(&gameCtx->defaultFont, gameCtx->pixBuf, 86 + (128 / 2),
-                       180, "Exit game");
+  MenuRender(gameCtx->currentMenu, gameCtx, &gameCtx->defaultFont,
+             gameCtx->pixBuf);
 }
 
 static void renderMap(GameContext *gameCtx) {
