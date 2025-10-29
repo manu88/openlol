@@ -19,14 +19,14 @@ typedef enum {
 typedef struct {
   GameMenuState state;
   int returnToGame;
-} GameMenu;
+} Menu;
 
-extern GameMenu *gameMenu;
-extern GameMenu *mainMenu;
+extern Menu *gameMenu;
+extern Menu *mainMenu;
 
-void GameMenuReset(GameMenu *menu);
-void GameMenuRender(GameMenu *menu,GameContext *context, const FNTHandle *font,
-                    SDL_Texture *texture);
+void MenuReset(Menu *menu);
+void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font,
+                SDL_Texture *texture);
 
-int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt);
-int GameMenuKeyDown(GameMenu *menu, GameContext *context, const SDL_Event *e);
+int MenuMouse(Menu *menu, GameContext *context, const Point *pt);
+int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e);

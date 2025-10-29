@@ -221,7 +221,7 @@ typedef struct _GameContext {
 
   int _noClip;
 
-  GameMenu *currentMenu;
+  Menu *currentMenu;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

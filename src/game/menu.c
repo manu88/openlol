@@ -6,20 +6,20 @@
 #include <assert.h>
 #include <string.h>
 
-static GameMenu _gameMenu = {0};
-static GameMenu _mainMenu = {0};
+static Menu _gameMenu = {0};
+static Menu _mainMenu = {0};
 
-GameMenu *gameMenu = &_gameMenu;
-GameMenu *mainMenu = &_mainMenu;
+Menu *gameMenu = &_gameMenu;
+Menu *mainMenu = &_mainMenu;
 
 static char textBuf[128] = "";
 
-void GameMenuReset(GameMenu *menu) {
+void MenuReset(Menu *menu) {
   menu->returnToGame = 0;
   menu->state = GameMenuState_GameMenu;
 }
 
-static void Render_ExitGame(GameMenu *menu, GameContext *context,
+static void Render_ExitGame(Menu *menu, GameContext *context,
                             const FNTHandle *font, SDL_Texture *pixBuf) {
   int startX = 16;
   int startY = 72;
@@ -37,7 +37,7 @@ static void Render_ExitGame(GameMenu *menu, GameContext *context,
   UIDrawButton(font, pixBuf, startX + 208, startY + 30, 72, 15, textBuf);
 }
 
-static void Render_MainMenu(GameMenu *menu, GameContext *context,
+static void Render_MainMenu(Menu *menu, GameContext *context,
                             const FNTHandle *font, SDL_Texture *pixBuf) {
   assert(menu == gameMenu);
   UIDrawMenuWindow(pixBuf, GAME_MENU_X, GAME_MENU_Y, GAME_MENU_W, GAME_MENU_H);
@@ -83,8 +83,8 @@ static void Render_MainMenu(GameMenu *menu, GameContext *context,
                GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
 }
 
-void GameMenuRender(GameMenu *menu, GameContext *context, const FNTHandle *font,
-                    SDL_Texture *pixBuf) {
+void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font,
+                SDL_Texture *pixBuf) {
   UISetStyle(UIStyle_GameMenu);
   switch (menu->state) {
 
@@ -112,8 +112,7 @@ void GameMenuRender(GameMenu *menu, GameContext *context, const FNTHandle *font,
   }
 }
 
-static int Mouse_ExitGame(GameMenu *menu, GameContext *context,
-                          const Point *pt) {
+static int Mouse_ExitGame(Menu *menu, GameContext *context, const Point *pt) {
 
   int startX = 16;
   int startY = 72;
@@ -127,8 +126,7 @@ static int Mouse_ExitGame(GameMenu *menu, GameContext *context,
   return 0;
 }
 
-static int Mouse_MainMenu(GameMenu *menu, GameContext *context,
-                          const Point *pt) {
+static int Mouse_MainMenu(Menu *menu, GameContext *context, const Point *pt) {
   int buttonY = GAME_MENU_BUTTONS_START_Y;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
@@ -188,7 +186,7 @@ static int Mouse_MainMenu(GameMenu *menu, GameContext *context,
   return 0;
 }
 
-int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt) {
+int MenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   switch (menu->state) {
 
   case GameMenuState_GameMenu:
@@ -205,7 +203,7 @@ int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt) {
   return 0;
 }
 
-int GameMenuKeyDown(GameMenu *menu, GameContext *context, const SDL_Event *e) {
+int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
     if (menu->state == GameMenuState_GameMenu) {

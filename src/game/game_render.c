@@ -52,8 +52,8 @@ static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
 }
 
 static void renderGameMenu(GameContext *gameCtx) {
-  GameMenuRender(gameCtx->currentMenu, gameCtx, &gameCtx->defaultFont,
-                 gameCtx->pixBuf);
+  MenuRender(gameCtx->currentMenu, gameCtx, &gameCtx->defaultFont,
+             gameCtx->pixBuf);
 }
 
 static void renderMainMenu(GameContext *gameCtx) {

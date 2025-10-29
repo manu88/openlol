@@ -529,8 +529,7 @@ static int processMouse(GameContext *gameCtx) {
     printf("MOUSE MENU\n");
     break;
   case GameState_GameMenu: {
-    int ret =
-        GameMenuMouse(gameCtx->currentMenu, gameCtx, &gameCtx->mouseEv.pos);
+    int ret = MenuMouse(gameCtx->currentMenu, gameCtx, &gameCtx->mouseEv.pos);
     if (gameCtx->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
@@ -558,7 +557,7 @@ static int processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       return 0;
     }
     if (gameCtx->state == GameState_GameMenu) {
-      int ret = GameMenuKeyDown(gameCtx->currentMenu, gameCtx, e);
+      int ret = MenuKeyDown(gameCtx->currentMenu, gameCtx, e);
       if (gameCtx->currentMenu->returnToGame) {
         GameContextSetState(gameCtx, GameState_PlayGame);
       }
