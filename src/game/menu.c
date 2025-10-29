@@ -161,9 +161,12 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
   UIDrawMenuWindow(context->pixBuf, 86, 140, 128, 51);
 
   const int xCenter = 86 + (128 / 2);
+
   GameContextGetString(context, 0X4248, textBuf, 128);
+  UISetTextStyle(UITextStyle_Highlighted);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 144,
                        textBuf);
+  UIResetTextStyle();
 
   GameContextGetString(context, 0X4249, textBuf, 128);
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 153,

@@ -8,7 +8,15 @@ typedef enum {
   UIStyle_MainMenu,
 } UIStyle;
 
+typedef enum{
+  UITextStyle_Default,
+  UITextStyle_Highlighted,
+} UITextStyle;
+
 void UISetStyle(UIStyle style);
+void UISetTextStyle(UITextStyle textStyle);
+void UIResetTextStyle(void);
+
 static inline void UISetDefaultStyle(void) { UISetStyle(UIStyle_Default); }
 
 void UIRenderText(const FNTHandle *font, SDL_Texture *texture, int xOff,

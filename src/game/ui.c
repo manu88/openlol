@@ -2,9 +2,14 @@
 #include "SDL_pixels.h"
 #include "renderer.h"
 #include <assert.h>
+#include <stdint.h>
 
 static UIStyle _currentStyle = UIStyle_Default;
+static UITextStyle _currentTextStyle = UITextStyle_Default;
 void UISetStyle(UIStyle style) { _currentStyle = style; }
+
+void UISetTextStyle(UITextStyle textStyle) { _currentTextStyle = textStyle; }
+void UIResetTextStyle(void) { _currentTextStyle = UITextStyle_Default; }
 
 typedef struct {
   SDL_Color background;
@@ -18,24 +23,24 @@ static UIPalette gameMenuPalette = {.background = {166, 89, 77},
                                     .topLayerColor = {207, 125, 101},
                                     .bottomLayerColor = {121, 52, 48},
                                     .textColorMap = {
-                                        {166, 89, 77},   // background
-                                        {247, 207, 121}, // font color
+                                        {247, 207, 121}, // default font color
+                                        {81, 200, 255},  // highlighted color
                                     }};
 
 static UIPalette mainMenuPalette = {.background = {174, 117, 60},
                                     .topLayerColor = {247, 182, 105},
                                     .bottomLayerColor = {97, 69, 52},
                                     .textColorMap = {
-                                        {174, 117, 60}, // background
-                                        {223, 166, 97}, // font color
+                                        {223, 166, 97}, // default font color
+                                        {81, 200, 255}, // highlighted color
                                     }};
 
 static UIPalette defaultPalette = {.background = {65, 44, 36},
                                    .topLayerColor = {207, 125, 101},
                                    .bottomLayerColor = {119, 50, 46},
                                    .textColorMap = {
-                                       {65, 44, 36},    // background
                                        {255, 255, 255}, // font color
+                                       {81, 200, 255},  // highlighted color
                                    }};
 
 static UIPalette *getPalette(void) {
@@ -49,6 +54,14 @@ static UIPalette *getPalette(void) {
     return &mainMenuPalette;
   }
   assert(0);
+}
+
+static SDL_Color getTextColor(uint8_t index) {
+  const UIPalette *pal = getPalette();
+  if (index == 0) {
+    return pal->background;
+  }
+  return pal->textColorMap[_currentTextStyle];
 }
 
 static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
@@ -79,7 +92,7 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
   int x = xOff;
   int y = yOff;
   while (charH1--) {
-    SDL_Color col = pal->textColorMap[0];
+    SDL_Color col = pal->background;
     for (int i = 0; i < charWidth; ++i) {
       drawPix(data, pitch, col.r, col.g, col.b, x, y);
       x++;
@@ -93,10 +106,10 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
     for (int i = 0; i < charWidth; ++i) {
       SDL_Color col;
       if (i & 1) {
-        col = pal->textColorMap[b >> 4];
+        col = getTextColor(b >> 4);
       } else {
         b = *src++;
-        col = pal->textColorMap[b & 0xF];
+        col = getTextColor(b & 0xF);
       }
 
       uint32_t *row = (unsigned int *)((char *)data + pitch * y);
@@ -108,7 +121,7 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
   }
 
   while (charH0--) {
-    SDL_Color col = pal->textColorMap[0];
+    SDL_Color col = pal->background;
     for (int i = 0; i < charWidth; ++i) {
       uint32_t *row = (unsigned int *)((char *)data + pitch * y);
       row[x] = 0XFF000000 + (col.r << 0X10) + (col.g << 0X8) + col.b;
