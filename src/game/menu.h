@@ -6,6 +6,10 @@
 
 typedef struct _GameContext GameContext;
 
+typedef struct {
+  int returnToGame;
+} Menu;
+
 typedef enum {
   GameMenuState_GameMenu,
   GameMenuState_LoadGame,
@@ -17,15 +21,25 @@ typedef enum {
 } GameMenuState;
 
 typedef struct {
-  int returnToGame;
-} Menu;
-
-typedef struct {
   Menu base;
   GameMenuState state;
 } GameMenu;
 
 extern Menu *gameMenu;
+
+typedef enum {
+  MainMenuState_GameMenu,
+  MainMenuState_StartNew,
+  MainMenuState_Introduction,
+  MainMenuState_LoreOfTheLands,
+  MainMenuState_LoadGame,
+} MainMenuState;
+
+typedef struct {
+  Menu base;
+  MainMenuState state;
+} MainMenu;
+
 extern Menu *mainMenu;
 
 void MenuReset(Menu *menu);
