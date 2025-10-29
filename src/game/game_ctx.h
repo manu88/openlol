@@ -229,6 +229,8 @@ void GameContextRelease(GameContext *gameCtx);
 int GameContextInit(GameContext *gameCtx, Language lang);
 int GameContextStartup(GameContext *ctx);
 
+int GameContextNewGame(GameContext *gameCtx);
+
 int GameContextLoadLevel(GameContext *ctx, int levelNum);
 int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
