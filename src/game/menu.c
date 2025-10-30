@@ -231,6 +231,7 @@ static int MainMenuKeyDown_LoadMenu(MainMenu *menu, GameContext *context,
   }
   return 0;
 }
+
 static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
                            const SDL_Event *e) {
   switch (menu->state) {
@@ -470,6 +471,26 @@ static void GameMenuRender_MainMenu(GameMenu *menu, GameContext *context,
                    GAME_MENU_BUTTON_H, textBuf);
 }
 
+static void GameMenuRender_UnimplementedMenu(GameMenu *menu,
+                                             GameContext *context,
+                                             const FNTHandle *font,
+                                             SDL_Texture *pixBuf) {
+  int startX = 16;
+  int startY = 30;
+  int width = 288;
+  int height = 52;
+  UIDrawMenuWindow(pixBuf, startX, startY, width, height);
+
+  GameContextGetString(context, 0X400A, textBuf, 128);
+  UIRenderTextCentered(font, pixBuf, startX + width / 2, startY + 8,
+                       "unimplemented feature");
+
+  GameContextGetString(context, STR_NO_INDEX, textBuf, 128);
+  UISetTextStyle(UITextStyle_Highlighted);
+  UIDrawTextButton(font, pixBuf, startX + 208, startY + 30, 72, 15, "ok");
+  UIResetTextStyle();
+}
+
 static void GameMenuRender(GameMenu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
   UISetStyle(UIStyle_GameMenu);
@@ -478,24 +499,15 @@ static void GameMenuRender(GameMenu *menu, GameContext *context,
   case GameMenuState_GameMenu:
     GameMenuRender_MainMenu(menu, context, font, pixBuf);
     break;
-  case GameMenuState_LoadGame:
-    printf("Render LoadGame\n");
-    break;
-  case GameMenuState_SaveGame:
-    printf("Render SaveGame\n");
-    break;
-  case GameMenuState_DeleteGame:
-    printf("Render DeleteGame\n");
-    break;
-  case GameMenuState_GameControls:
-    printf("Render Game controls\n");
-    break;
-  case GameMenuState_AudioControls:
-    printf("Render Audio controls\n");
-    break;
   case GameMenuState_ExitGame:
     GameMenuRender_ExitGame(menu, context, font, pixBuf);
     break;
+  case GameMenuState_LoadGame:
+  case GameMenuState_SaveGame:
+  case GameMenuState_DeleteGame:
+  case GameMenuState_GameControls:
+  case GameMenuState_AudioControls:
+    GameMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
   }
 }
 
@@ -575,25 +587,48 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   return 0;
 }
 
+static int GameMenuMouse_UnimplementedMenu(GameMenu *menu, GameContext *context,
+                                           const Point *pt) {
+  int startX = 16;
+  int startY = 30;
+  if (zoneClicked(pt, startX + 208, startY + 30, 72, 15)) {
+    menu->state = GameMenuState_GameMenu;
+    return 1;
+  }
+  return 0;
+}
+
 static int GameMenuMouse(GameMenu *menu, GameContext *context,
                          const Point *pt) {
   switch (menu->state) {
   case GameMenuState_GameMenu:
     return GameMenuMouse_MainMenu(menu, context, pt);
+  case GameMenuState_ExitGame:
+    return GameMenuMouse_ExitGame(menu, context, pt);
   case GameMenuState_LoadGame:
   case GameMenuState_SaveGame:
   case GameMenuState_DeleteGame:
   case GameMenuState_GameControls:
   case GameMenuState_AudioControls:
-  case GameMenuState_ExitGame:
-    return GameMenuMouse_ExitGame(menu, context, pt);
+    return GameMenuMouse_UnimplementedMenu(menu, context, pt);
     break;
   }
   return 0;
 }
 
-static int GameMenuKeyDown(GameMenu *menu, GameContext *context,
-                           const SDL_Event *e) {
+static int GameMenuKeyDown_UnimplementedMenu(GameMenu *menu,
+                                             GameContext *context,
+                                             const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_RETURN:
+    menu->state = GameMenuState_GameMenu;
+    return 1;
+  }
+  return 0;
+}
+
+static int GameMenuKeyDown_MainMenu(GameMenu *menu, GameContext *context,
+                                    const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
     if (menu->state == GameMenuState_GameMenu) {
@@ -603,5 +638,23 @@ static int GameMenuKeyDown(GameMenu *menu, GameContext *context,
     }
     return 1;
   }
+  return 0;
+}
+
+static int GameMenuKeyDown(GameMenu *menu, GameContext *context,
+                           const SDL_Event *e) {
+
+  switch (menu->state) {
+  case GameMenuState_GameMenu:
+    return GameMenuKeyDown_MainMenu(menu, context, e);
+  case GameMenuState_LoadGame:
+  case GameMenuState_SaveGame:
+  case GameMenuState_DeleteGame:
+  case GameMenuState_GameControls:
+  case GameMenuState_AudioControls:
+  case GameMenuState_ExitGame:
+    return GameMenuKeyDown_UnimplementedMenu(menu, context, e);
+  }
+
   return 0;
 }
