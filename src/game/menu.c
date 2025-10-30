@@ -9,31 +9,31 @@
 #include <stddef.h>
 #include <string.h>
 
-static GameMenu _gameMenu = {0};
-static MainMenu _mainMenu = {0};
+static Menu _gameMenu = {0};
+static Menu _mainMenu = {0};
 
-Menu *gameMenu = (Menu *)&_gameMenu;
-static void GameMenuReset(GameMenu *menu);
-static void GameMenuRender(GameMenu *menu, GameContext *context,
+Menu *gameMenu = &_gameMenu;
+static void GameMenuReset(Menu *menu);
+static void GameMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf);
-static int GameMenuMouse(GameMenu *menu, GameContext *context, const Point *pt);
-static int GameMenuKeyDown(GameMenu *menu, GameContext *context,
+static int GameMenuMouse(Menu *menu, GameContext *context, const Point *pt);
+static int GameMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e);
 
-Menu *mainMenu = (Menu *)&_mainMenu;
-static void MainMenuReset(MainMenu *menu);
-static void MainMenuRender(MainMenu *menu, GameContext *context,
+Menu *mainMenu = &_mainMenu;
+static void MainMenuReset(Menu *menu);
+static void MainMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf);
-static int MainMenuMouse(MainMenu *menu, GameContext *context, const Point *pt);
-static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
+static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt);
+static int MainMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e);
-void MainMenuSetState(MainMenu *menu, MainMenuState state) {
+void MainMenuSetState(Menu *menu, MenuState state) {
   menu->state = state;
-  menu->base.selectedIndex = 0;
-  if (menu->state != MainMenuState_LoadGame) {
-    SAVFilesRelease(menu->base.files, menu->base.numSavFiles);
-    menu->base.files = NULL;
-    menu->base.numSavFiles = 0;
+  menu->selectedIndex = 0;
+  if (menu->state != MenuState_LoadGame) {
+    SAVFilesRelease(menu->files, menu->numSavFiles);
+    menu->files = NULL;
+    menu->numSavFiles = 0;
   }
 }
 
@@ -43,9 +43,9 @@ void MenuReset(Menu *menu) {
   menu->returnToGame = 0;
   menu->selectedIndex = 0;
   if (menu == gameMenu) {
-    GameMenuReset((GameMenu *)menu);
+    GameMenuReset(menu);
   } else if (menu == mainMenu) {
-    MainMenuReset((MainMenu *)menu);
+    MainMenuReset(menu);
   } else {
     assert(0);
   }
@@ -55,9 +55,9 @@ void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font,
                 SDL_Texture *pixBuf) {
   assert(menu);
   if (menu == gameMenu) {
-    GameMenuRender((GameMenu *)menu, context, font, pixBuf);
+    GameMenuRender(menu, context, font, pixBuf);
   } else if (menu == mainMenu) {
-    MainMenuRender((MainMenu *)menu, context, font, pixBuf);
+    MainMenuRender(menu, context, font, pixBuf);
   } else {
     assert(0);
   }
@@ -65,18 +65,18 @@ void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font,
 
 int MenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   if (menu == gameMenu) {
-    return GameMenuMouse((GameMenu *)menu, context, pt);
+    return GameMenuMouse(menu, context, pt);
   } else if (menu == mainMenu) {
-    return MainMenuMouse((MainMenu *)menu, context, pt);
+    return MainMenuMouse(menu, context, pt);
   }
   return 0;
 }
 
 int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
   if (menu == gameMenu) {
-    return GameMenuKeyDown((GameMenu *)menu, context, e);
+    return GameMenuKeyDown(menu, context, e);
   } else if (menu == mainMenu) {
-    return MainMenuKeyDown((MainMenu *)menu, context, e);
+    return MainMenuKeyDown(menu, context, e);
   }
   assert(0);
   return 0;
@@ -84,27 +84,27 @@ int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
 
 /* Main Menu */
 
-static void MainMenuReset(MainMenu *menu) { menu->base.numSavFiles = 0; }
+static void MainMenuReset(Menu *menu) { menu->numSavFiles = 0; }
 
-static int MainMenuMouse_MainMenu(MainMenu *menu, GameContext *context,
+static int MainMenuMouse_MainMenu(Menu *menu, GameContext *context,
                                   const Point *pt) {
   const int width = 128;
   const int height = 8;
   if (zoneClicked(pt, 86, 144, width, height)) {
     printf("Start a new game\n");
-    MainMenuSetState(menu, MainMenuState_StartNew);
+    MainMenuSetState(menu, MenuState_StartNew);
     return 1;
   } else if (zoneClicked(pt, 86, 153, width, height)) {
     printf("Introduction\n");
-    MainMenuSetState(menu, MainMenuState_Introduction);
+    MainMenuSetState(menu, MenuState_Introduction);
     return 1;
   } else if (zoneClicked(pt, 86, 162, width, height)) {
     printf("Lore of the lands\n");
-    MainMenuSetState(menu, MainMenuState_LoreOfTheLands);
+    MainMenuSetState(menu, MenuState_LoreOfTheLands);
     return 1;
   } else if (zoneClicked(pt, 86, 171, width, height)) {
     printf("Load a game\n");
-    MainMenuSetState(menu, MainMenuState_LoadGame);
+    MainMenuSetState(menu, MenuState_LoadGame);
     return 1;
   } else if (zoneClicked(pt, 86, 180, width, height)) {
     printf("Exit\n");
@@ -113,119 +113,126 @@ static int MainMenuMouse_MainMenu(MainMenu *menu, GameContext *context,
   return 0;
 }
 
-static int MainMenuMouse_LoadMenu(MainMenu *menu, GameContext *context,
+static int MainMenuMouse_LoadMenu(Menu *menu, GameContext *context,
                                   const Point *pt) {
   const int winX = 23;
   const int winY = 30;
 
-  if (menu->base.selectedIndex > 0 && zoneClicked(pt, 150, 50, 24, 15)) {
-    menu->base.selectedIndex--;
-    if (menu->base.selectedIndex < 0) {
-      menu->base.selectedIndex = 0;
+  if (menu->selectedIndex > 0 && zoneClicked(pt, 150, 50, 24, 15)) {
+    menu->selectedIndex--;
+    if (menu->selectedIndex < 0) {
+      menu->selectedIndex = 0;
     }
     return 1;
   }
 
-  if (menu->base.selectedIndex < menu->base.numSavFiles - 4 &&
+  if (menu->selectedIndex < menu->numSavFiles - 4 &&
       zoneClicked(pt, 150, 148, 24, 15)) {
-    if (menu->base.selectedIndex < menu->base.numSavFiles - 4) {
-      menu->base.selectedIndex++;
+    if (menu->selectedIndex < menu->numSavFiles - 4) {
+      menu->selectedIndex++;
     }
     return 1;
   }
 
-  int maxButtons = menu->base.numSavFiles < 4 ? menu->base.numSavFiles : 4;
+  int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
   for (int i = 0; i < maxButtons; i++) {
     if (zoneClicked(pt, winX + 8, winY + 39 + (i * 17), 256, 15)) {
-      printf("Clicked slot %i -> %i\n", i, i + menu->base.selectedIndex);
+      printf("Clicked slot %i -> %i\n", i, i + menu->selectedIndex);
       if (GameContextLoadSaveFile(
-              context,
-              menu->base.files[i + menu->base.selectedIndex].fullpath)) {
+              context, menu->files[i + menu->selectedIndex].fullpath)) {
         GameContextLoadChars(context);
-        menu->base.returnToGame = 1;
+        menu->returnToGame = 1;
       }
       return 1;
     }
   }
   // cancel
   if (zoneClicked(pt, winX + 168, winY + 118, 96, 15)) {
-    MainMenuSetState(menu, MainMenuState_GameMenu);
+    MainMenuSetState(menu, MenuState_GameMenu);
     return 1;
   }
   return 0;
 }
 
-static int MainMenuMouse_UnimplementedMenu(MainMenu *menu, GameContext *context,
+static int MainMenuMouse_UnimplementedMenu(Menu *menu, GameContext *context,
                                            const Point *pt) {
   int startX = 16;
   int startY = 140;
   if (zoneClicked(pt, startX + 208, startY + 30, 72, 15)) {
-    MainMenuSetState(menu, MainMenuState_GameMenu);
+    MainMenuSetState(menu, MenuState_GameMenu);
     return 1;
   }
   return 0;
 }
 
-static int MainMenuMouse(MainMenu *menu, GameContext *context,
-                         const Point *pt) {
+static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   switch (menu->state) {
-  case MainMenuState_GameMenu:
+  case MenuState_GameMenu:
     return MainMenuMouse_MainMenu(menu, context, pt);
-  case MainMenuState_LoadGame:
+  case MenuState_LoadGame:
     return MainMenuMouse_LoadMenu(menu, context, pt);
-  case MainMenuState_StartNew:
-  case MainMenuState_Introduction:
-  case MainMenuState_LoreOfTheLands:
+  case MenuState_StartNew:
+  case MenuState_Introduction:
+  case MenuState_LoreOfTheLands:
     return MainMenuMouse_UnimplementedMenu(menu, context, pt);
-  case MainMenuState_Exit:
+  case MenuState_ExitGame:
     break;
+  case MenuState_SaveGame:
+  case MenuState_DeleteGame:
+  case MenuState_GameControls:
+  case MenuState_AudioControls:
+    assert(0);
   }
   return 0;
 }
 
-static int MainMenuKeyDown_UnimplementedMenu(MainMenu *menu,
-                                             GameContext *context,
+static int MainMenuKeyDown_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_RETURN:
-    MainMenuSetState(menu, MainMenuState_GameMenu);
+    MainMenuSetState(menu, MenuState_GameMenu);
     return 1;
   }
   return 0;
 }
 
-static int MainMenuKeyDown_GameMenu(MainMenu *menu, GameContext *context,
+static MenuState MainMenuStates[] = {
+    MenuState_StartNew, MenuState_Introduction, MenuState_LoreOfTheLands,
+    MenuState_LoadGame, MenuState_ExitGame,
+};
+
+static int MainMenuKeyDown_GameMenu(Menu *menu, GameContext *context,
                                     const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_UP:
   case SDLK_DOWN:
-    menu->base.selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
-    if (menu->base.selectedIndex < 0) {
-      menu->base.selectedIndex = 5 + menu->base.selectedIndex;
-    } else if (menu->base.selectedIndex > 4) {
-      menu->base.selectedIndex %= 5;
+    menu->selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
+    if (menu->selectedIndex < 0) {
+      menu->selectedIndex = 5 + menu->selectedIndex;
+    } else if (menu->selectedIndex > 4) {
+      menu->selectedIndex %= 5;
     }
     return 1;
   case SDLK_RETURN:
-    MainMenuSetState(menu, menu->base.selectedIndex + 1);
+    MainMenuSetState(menu, MainMenuStates[menu->selectedIndex]);
     return 1;
   }
   return 0;
 }
 
-static int MainMenuKeyDown_LoadMenu(MainMenu *menu, GameContext *context,
+static int MainMenuKeyDown_LoadMenu(Menu *menu, GameContext *context,
                                     const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
-    MainMenuSetState(menu, MainMenuState_GameMenu);
+    MainMenuSetState(menu, 0);
     return 1;
   case SDLK_UP:
   case SDLK_DOWN:
-    menu->base.selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
-    if (menu->base.selectedIndex < 0) {
-      menu->base.selectedIndex = 0;
-    } else if (menu->base.selectedIndex > menu->base.numSavFiles - 4) {
-      menu->base.selectedIndex = menu->base.numSavFiles - 4;
+    menu->selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
+    if (menu->selectedIndex < 0) {
+      menu->selectedIndex = 0;
+    } else if (menu->selectedIndex > menu->numSavFiles - 4) {
+      menu->selectedIndex = menu->numSavFiles - 4;
     }
 
     return 1;
@@ -233,24 +240,29 @@ static int MainMenuKeyDown_LoadMenu(MainMenu *menu, GameContext *context,
   return 0;
 }
 
-static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
+static int MainMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e) {
   switch (menu->state) {
-  case MainMenuState_GameMenu:
+  case MenuState_GameMenu:
     return MainMenuKeyDown_GameMenu(menu, context, e);
-  case MainMenuState_LoadGame:
+  case MenuState_LoadGame:
     return MainMenuKeyDown_LoadMenu(menu, context, e);
-  case MainMenuState_StartNew:
-  case MainMenuState_Introduction:
-  case MainMenuState_LoreOfTheLands:
+  case MenuState_StartNew:
+  case MenuState_Introduction:
+  case MenuState_LoreOfTheLands:
     return MainMenuKeyDown_UnimplementedMenu(menu, context, e);
-  case MainMenuState_Exit:
+  case MenuState_ExitGame:
     break;
+  case MenuState_SaveGame:
+  case MenuState_DeleteGame:
+  case MenuState_GameControls:
+  case MenuState_AudioControls:
+    assert(0);
   }
   return 0;
 }
 
-static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
+static void MainMenuRender_LoadMenu(Menu *menu, GameContext *context,
                                     const FNTHandle *font,
                                     SDL_Texture *pixBuf) {
   UIStyle current = UIGetCurrentStyle();
@@ -262,33 +274,31 @@ static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
   UIDrawMenuWindow(pixBuf, winX, winY, winW, winH);
 
   // up arrow
-  if (menu->base.selectedIndex > 0) {
+  if (menu->selectedIndex > 0) {
     UIDrawButton(context->pixBuf, 150, 50, 24, 15);
   }
 
   GameContextGetString(context, 0X400E, textBuf, 128);
   UIRenderTextCentered(font, pixBuf, winX + winW / 2, winY + 8, textBuf);
 
-  if (menu->base.files == NULL) {
-    menu->base.files =
-        GameContextListSavFiles(context, &menu->base.numSavFiles);
-    if (menu->base.numSavFiles) {
-      assert(menu->base.files);
+  if (menu->files == NULL) {
+    menu->files = GameContextListSavFiles(context, &menu->numSavFiles);
+    if (menu->numSavFiles) {
+      assert(menu->files);
     }
   }
-  int maxButtons = menu->base.numSavFiles < 4 ? menu->base.numSavFiles : 4;
+  int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
 
   for (int i = 0; i < maxButtons; i++) {
-    if (i + menu->base.selectedIndex >= menu->base.numSavFiles) {
+    if (i + menu->selectedIndex >= menu->numSavFiles) {
       break;
     }
     UIDrawTextButton(font, pixBuf, winX + 8, winY + 39 + (i * 17), 256, 15,
-                     menu->base.files[i + menu->base.selectedIndex].savName);
+                     menu->files[i + menu->selectedIndex].savName);
   }
 
   // down arrow
-  if (menu->base.numSavFiles > 0 &&
-      menu->base.selectedIndex < menu->base.numSavFiles - 4) {
+  if (menu->numSavFiles > 0 && menu->selectedIndex < menu->numSavFiles - 4) {
     UIDrawButton(context->pixBuf, 150, 148, 24, 15);
   }
 
@@ -299,8 +309,7 @@ static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
   UISetStyle(current);
 }
 
-static void MainMenuRender_UnimplementedMenu(MainMenu *menu,
-                                             GameContext *context,
+static void MainMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const FNTHandle *font,
                                              SDL_Texture *pixBuf) {
   int startX = 16;
@@ -319,7 +328,7 @@ static void MainMenuRender_UnimplementedMenu(MainMenu *menu,
   UIResetTextStyle();
 }
 
-static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
+static void MainMenuRender_MainMenu(Menu *menu, GameContext *context,
                                     const FNTHandle *font,
                                     SDL_Texture *pixBuf) {
   UISetStyle(UIStyle_MainMenu);
@@ -328,14 +337,14 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
   const int xCenter = 86 + (128 / 2);
 
   GameContextGetString(context, 0X4248, textBuf, 128);
-  if (menu->base.selectedIndex == 0) {
+  if (menu->selectedIndex == 0) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   UIRenderTextCentered(&context->defaultFont, context->pixBuf, xCenter, 144,
                        textBuf);
   UIResetTextStyle();
 
-  if (menu->base.selectedIndex == 1) {
+  if (menu->selectedIndex == 1) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X4249, textBuf, 128);
@@ -343,7 +352,7 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
                        textBuf);
   UIResetTextStyle();
 
-  if (menu->base.selectedIndex == 2) {
+  if (menu->selectedIndex == 2) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X42DD, textBuf, 128);
@@ -351,7 +360,7 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
                        textBuf);
   UIResetTextStyle();
 
-  if (menu->base.selectedIndex == 3) {
+  if (menu->selectedIndex == 3) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X4001, textBuf, 128);
@@ -359,7 +368,7 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
                        textBuf);
   UIResetTextStyle();
 
-  if (menu->base.selectedIndex == 4) {
+  if (menu->selectedIndex == 4) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X424A, textBuf, 128);
@@ -368,40 +377,43 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
   UIResetTextStyle();
 }
 
-static void MainMenuRender(MainMenu *menu, GameContext *context,
+static void MainMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
   renderCPS(context->pixBuf, context->gameTitle.data,
             context->gameTitle.imageSize, context->gameTitle.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
   switch (menu->state) {
-  case MainMenuState_GameMenu:
+  case MenuState_GameMenu:
     MainMenuRender_MainMenu(menu, context, font, pixBuf);
     break;
-  case MainMenuState_StartNew:
+  case MenuState_StartNew:
     GameContextNewGame(context);
-    menu->base.returnToGame = 1;
+    menu->returnToGame = 1;
     break;
-  case MainMenuState_LoadGame:
+  case MenuState_LoadGame:
     MainMenuRender_LoadMenu(menu, context, font, pixBuf);
     break;
-  case MainMenuState_Introduction:
-  case MainMenuState_LoreOfTheLands:
+  case MenuState_Introduction:
+  case MenuState_LoreOfTheLands:
 
     MainMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
     break;
-  case MainMenuState_Exit:
+  case MenuState_ExitGame:
     GameContextExitGame(context);
     break;
+  case MenuState_SaveGame:
+  case MenuState_DeleteGame:
+  case MenuState_GameControls:
+  case MenuState_AudioControls:
+    assert(0);
   }
 }
 
 /* Game Menu*/
 
-static void GameMenuReset(GameMenu *menu) {
-  menu->state = GameMenuState_GameMenu;
-}
+static void GameMenuReset(Menu *menu) { menu->state = MenuState_GameMenu; }
 
-static void GameMenuRender_ExitGame(GameMenu *menu, GameContext *context,
+static void GameMenuRender_ExitGame(Menu *menu, GameContext *context,
                                     const FNTHandle *font,
                                     SDL_Texture *pixBuf) {
   int startX = 16;
@@ -420,7 +432,7 @@ static void GameMenuRender_ExitGame(GameMenu *menu, GameContext *context,
   UIDrawTextButton(font, pixBuf, startX + 208, startY + 30, 72, 15, textBuf);
 }
 
-static void GameMenuRender_MainMenu(GameMenu *menu, GameContext *context,
+static void GameMenuRender_MainMenu(Menu *menu, GameContext *context,
                                     const FNTHandle *font,
                                     SDL_Texture *pixBuf) {
   UIDrawMenuWindow(pixBuf, GAME_MENU_X, GAME_MENU_Y, GAME_MENU_W, GAME_MENU_H);
@@ -473,8 +485,7 @@ static void GameMenuRender_MainMenu(GameMenu *menu, GameContext *context,
                    GAME_MENU_BUTTON_H, textBuf);
 }
 
-static void GameMenuRender_UnimplementedMenu(GameMenu *menu,
-                                             GameContext *context,
+static void GameMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const FNTHandle *font,
                                              SDL_Texture *pixBuf) {
   int startX = 16;
@@ -493,27 +504,31 @@ static void GameMenuRender_UnimplementedMenu(GameMenu *menu,
   UIResetTextStyle();
 }
 
-static void GameMenuRender(GameMenu *menu, GameContext *context,
+static void GameMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
   UISetStyle(UIStyle_GameMenu);
   switch (menu->state) {
-
-  case GameMenuState_GameMenu:
+  case MenuState_GameMenu:
     GameMenuRender_MainMenu(menu, context, font, pixBuf);
     break;
-  case GameMenuState_ExitGame:
+  case MenuState_ExitGame:
     GameMenuRender_ExitGame(menu, context, font, pixBuf);
     break;
-  case GameMenuState_LoadGame:
-  case GameMenuState_SaveGame:
-  case GameMenuState_DeleteGame:
-  case GameMenuState_GameControls:
-  case GameMenuState_AudioControls:
+  case MenuState_LoadGame:
+  case MenuState_SaveGame:
+  case MenuState_DeleteGame:
+  case MenuState_GameControls:
+  case MenuState_AudioControls:
     GameMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
+    break;
+  case MenuState_StartNew:
+  case MenuState_Introduction:
+  case MenuState_LoreOfTheLands:
+    assert(0);
   }
 }
 
-static int GameMenuMouse_ExitGame(GameMenu *menu, GameContext *context,
+static int GameMenuMouse_ExitGame(Menu *menu, GameContext *context,
                                   const Point *pt) {
 
   int startX = 16;
@@ -522,19 +537,19 @@ static int GameMenuMouse_ExitGame(GameMenu *menu, GameContext *context,
     GameContextExitGame(context);
     return 1;
   } else if (zoneClicked(pt, startX + 208, startY + 30, 72, 15)) {
-    menu->state = GameMenuState_GameMenu;
+    menu->state = MenuState_GameMenu;
     return 1;
   }
   return 0;
 }
 
-static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
+static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
                                   const Point *pt) {
   int buttonY = GAME_MENU_BUTTONS_START_Y;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
     printf("Load game\n");
-    menu->state = GameMenuState_LoadGame;
+    menu->state = MenuState_LoadGame;
     return 1;
   }
 
@@ -542,7 +557,7 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
     printf("Save this game\n");
-    menu->state = GameMenuState_SaveGame;
+    menu->state = MenuState_SaveGame;
     return 1;
   }
 
@@ -550,7 +565,7 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
     printf("Delete a game\n");
-    menu->state = GameMenuState_DeleteGame;
+    menu->state = MenuState_DeleteGame;
     return 1;
   }
 
@@ -558,7 +573,7 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
     printf("Game controls\n");
-    menu->state = GameMenuState_GameControls;
+    menu->state = MenuState_GameControls;
     return 1;
   }
 
@@ -566,7 +581,7 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
     printf("Audio controls\n");
-    menu->state = GameMenuState_AudioControls;
+    menu->state = MenuState_AudioControls;
     return 1;
   }
 
@@ -574,14 +589,14 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
     printf("Exit Game\n");
-    menu->state = GameMenuState_ExitGame;
+    menu->state = MenuState_ExitGame;
     return 1;
   }
 
   buttonY += GAME_MENU_BUTTON_H + 4;
   if (zoneClicked(pt, GAME_MENU_RESUME_BUTTON_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    menu->base.returnToGame = 1;
+    menu->returnToGame = 1;
     printf("resume\n");
     return 1;
   }
@@ -589,74 +604,80 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
   return 0;
 }
 
-static int GameMenuMouse_UnimplementedMenu(GameMenu *menu, GameContext *context,
+static int GameMenuMouse_UnimplementedMenu(Menu *menu, GameContext *context,
                                            const Point *pt) {
   int startX = 16;
   int startY = 30;
   if (zoneClicked(pt, startX + 208, startY + 30, 72, 15)) {
-    menu->state = GameMenuState_GameMenu;
+    menu->state = MenuState_GameMenu;
     return 1;
   }
   return 0;
 }
 
-static int GameMenuMouse(GameMenu *menu, GameContext *context,
-                         const Point *pt) {
+static int GameMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   switch (menu->state) {
-  case GameMenuState_GameMenu:
+  case MenuState_GameMenu:
     return GameMenuMouse_MainMenu(menu, context, pt);
-  case GameMenuState_ExitGame:
+  case MenuState_ExitGame:
     return GameMenuMouse_ExitGame(menu, context, pt);
-  case GameMenuState_LoadGame:
-  case GameMenuState_SaveGame:
-  case GameMenuState_DeleteGame:
-  case GameMenuState_GameControls:
-  case GameMenuState_AudioControls:
+  case MenuState_LoadGame:
+  case MenuState_SaveGame:
+  case MenuState_DeleteGame:
+  case MenuState_GameControls:
+  case MenuState_AudioControls:
     return GameMenuMouse_UnimplementedMenu(menu, context, pt);
     break;
+  case MenuState_StartNew:
+  case MenuState_Introduction:
+  case MenuState_LoreOfTheLands:
+    assert(0);
   }
   return 0;
 }
 
-static int GameMenuKeyDown_UnimplementedMenu(GameMenu *menu,
-                                             GameContext *context,
+static int GameMenuKeyDown_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_RETURN:
-    menu->state = GameMenuState_GameMenu;
+    menu->state = MenuState_GameMenu;
     return 1;
   }
   return 0;
 }
 
-static int GameMenuKeyDown_MainMenu(GameMenu *menu, GameContext *context,
+static int GameMenuKeyDown_MainMenu(Menu *menu, GameContext *context,
                                     const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
-    if (menu->state == GameMenuState_GameMenu) {
-      menu->base.returnToGame = 1;
+    if (menu->state == MenuState_GameMenu) {
+      menu->returnToGame = 1;
     } else {
-      menu->state = GameMenuState_GameMenu;
+      menu->state = MenuState_GameMenu;
     }
     return 1;
   }
   return 0;
 }
 
-static int GameMenuKeyDown(GameMenu *menu, GameContext *context,
+static int GameMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e) {
 
   switch (menu->state) {
-  case GameMenuState_GameMenu:
+  case MenuState_GameMenu:
     return GameMenuKeyDown_MainMenu(menu, context, e);
-  case GameMenuState_LoadGame:
-  case GameMenuState_SaveGame:
-  case GameMenuState_DeleteGame:
-  case GameMenuState_GameControls:
-  case GameMenuState_AudioControls:
-  case GameMenuState_ExitGame:
+  case MenuState_LoadGame:
+  case MenuState_SaveGame:
+  case MenuState_DeleteGame:
+  case MenuState_GameControls:
+  case MenuState_AudioControls:
+  case MenuState_ExitGame:
     return GameMenuKeyDown_UnimplementedMenu(menu, context, e);
+  // Those are part of the Main menu
+  case MenuState_StartNew:
+  case MenuState_Introduction:
+  case MenuState_LoreOfTheLands:
+    assert(0);
   }
-
   return 0;
 }
