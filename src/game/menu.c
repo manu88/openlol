@@ -30,6 +30,11 @@ static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
 void MainMenuSetState(MainMenu *menu, MainMenuState state) {
   menu->state = state;
   menu->base.selectedIndex = 0;
+  if (menu->state != MainMenuState_LoadGame) {
+    SAVFilesRelease(menu->files, menu->numSavFiles);
+    menu->files = NULL;
+    menu->numSavFiles = 0;
+  }
 }
 
 static char textBuf[128] = "";
@@ -133,6 +138,11 @@ static int MainMenuMouse_LoadMenu(MainMenu *menu, GameContext *context,
   for (int i = 0; i < maxButtons; i++) {
     if (zoneClicked(pt, winX + 8, winY + 39 + (i * 17), 256, 15)) {
       printf("Clicked slot %i -> %i\n", i, i + menu->base.selectedIndex);
+      if (GameContextLoadSaveFile(
+              context, menu->files[i + menu->base.selectedIndex].fullpath)) {
+        GameContextLoadChars(context);
+        menu->base.returnToGame = 1;
+      }
       return 1;
     }
   }
@@ -257,8 +267,12 @@ static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
   GameContextGetString(context, 0X400E, textBuf, 128);
   UIRenderTextCentered(font, pixBuf, winX + winW / 2, winY + 8, textBuf);
 
-  SAVFile *files = GameContextListSavFiles(context, &menu->numSavFiles);
-  assert(files);
+  if (menu->files == NULL) {
+    menu->files = GameContextListSavFiles(context, &menu->numSavFiles);
+    if (menu->numSavFiles) {
+      assert(menu->files);
+    }
+  }
   int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
 
   for (int i = 0; i < maxButtons; i++) {
@@ -266,11 +280,12 @@ static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
       break;
     }
     UIDrawTextButton(font, pixBuf, winX + 8, winY + 39 + (i * 17), 256, 15,
-                     files[i + menu->base.selectedIndex].savName);
+                     menu->files[i + menu->base.selectedIndex].savName);
   }
 
   // down arrow
-  if (menu->base.selectedIndex < menu->numSavFiles - 4) {
+  if (menu->numSavFiles > 0 &&
+      menu->base.selectedIndex < menu->numSavFiles - 4) {
     UIDrawButton(context->pixBuf, 150, 148, 24, 15);
   }
 
@@ -278,7 +293,6 @@ static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
   GameContextGetString(context, 0X4011, textBuf, 128);
   UIDrawTextButton(&context->defaultFont, context->pixBuf, winX + 168,
                    winY + 118, 96, 15, textBuf);
-  SAVFilesRelease(files, menu->numSavFiles);
   UISetStyle(current);
 }
 

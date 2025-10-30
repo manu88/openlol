@@ -6,6 +6,7 @@
 #include <stddef.h>
 
 typedef struct _GameContext GameContext;
+typedef struct _SAVFile SAVFile;
 
 typedef struct {
   int returnToGame;
@@ -42,6 +43,7 @@ typedef struct {
   Menu base;
   MainMenuState state;
   size_t numSavFiles;
+  SAVFile *files;
 } MainMenu;
 
 extern Menu *mainMenu;

@@ -234,7 +234,7 @@ int GameContextStartup(GameContext *ctx);
 
 int GameContextSetSavDir(GameContext *gameCtx, const char *path);
 
-typedef struct {
+typedef struct _SAVFile{
   char *fullpath;
   char *savName;
 } SAVFile;
@@ -274,3 +274,4 @@ void GameContextDeleteItem(GameContext *gameCtx, uint16_t itemIndex);
 
 void GameContextUpdateCursor(GameContext *gameCtx);
 void GameContextExitGame(GameContext *gameCtx);
+int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath);

@@ -4,7 +4,6 @@
 #include "SDL_keycode.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
-#include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
 #include "formats/format_lang.h"
@@ -32,7 +31,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static SAVHandle savHandle = {0};
 static int GameRun(GameContext *gameCtx);
 
 static void usageGame(void) {
@@ -47,48 +45,8 @@ static int pathIsFile(const char *path) {
   return S_ISREG(path_stat.st_mode);
 }
 
-static int loadSaveFile(GameContext *gameCtx, const char *filepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
-  if (!buffer) {
-    return 0;
-  }
-  if (!SAVHandleFromBuffer(&savHandle, buffer, readSize)) {
-    return 0;
-  }
-
-  gameCtx->levelId = savHandle.slot.general->currentLevel;
-  memcpy(gameCtx->itemsInGame, savHandle.slot.gameObjects,
-         sizeof(GameObject) * MAX_IN_GAME_ITEMS);
-
-  for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
-    const GameObject *obj = gameCtx->itemsInGame + i;
-    if (obj->itemPropertyIndex == 0) {
-      continue;
-    }
-  }
-  memcpy(gameCtx->inventory, savHandle.slot.general->inventory,
-         INVENTORY_SIZE * sizeof(uint16_t));
-
-  for (int i = 0; i < NUM_CHARACTERS; i++) {
-    if (!savHandle.slot.characters[i]->flags) {
-      continue;
-    }
-    memcpy(&gameCtx->chars[i], savHandle.slot.characters[i],
-           sizeof(SAVCharacter));
-  }
-  gameCtx->currentBock = savHandle.slot.general->currentBlock;
-  gameCtx->orientation = savHandle.slot.general->currentDirection;
-  gameCtx->credits = savHandle.slot.general2->credits;
-  gameCtx->itemIndexInHand = savHandle.slot.general->itemIndexInHand;
-
-  SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
-  GameContextLoadLevel(gameCtx, gameCtx->levelId);
-  return 1;
-}
-
 static GameContext gameCtx = {0};
+
 int cmdGame(int argc, char *argv[]) {
   const char *dataDir = NULL;
   Language lang = Language_EN;
@@ -140,7 +98,7 @@ int cmdGame(int argc, char *argv[]) {
 
   if (savFileOrDir && pathIsFile(savFileOrDir)) {
     printf("Loading sav file '%s'\n", savFileOrDir);
-    if (loadSaveFile(&gameCtx, savFileOrDir) == 0) {
+    if (GameContextLoadSaveFile(&gameCtx, savFileOrDir) == 0) {
       printf("Error while reading file '%s'\n", savFileOrDir);
       return 1;
     }
