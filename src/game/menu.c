@@ -31,9 +31,9 @@ void MainMenuSetState(MainMenu *menu, MainMenuState state) {
   menu->state = state;
   menu->base.selectedIndex = 0;
   if (menu->state != MainMenuState_LoadGame) {
-    SAVFilesRelease(menu->files, menu->numSavFiles);
-    menu->files = NULL;
-    menu->numSavFiles = 0;
+    SAVFilesRelease(menu->base.files, menu->base.numSavFiles);
+    menu->base.files = NULL;
+    menu->base.numSavFiles = 0;
   }
 }
 
@@ -84,7 +84,7 @@ int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
 
 /* Main Menu */
 
-static void MainMenuReset(MainMenu *menu) { menu->numSavFiles = 0; }
+static void MainMenuReset(MainMenu *menu) { menu->base.numSavFiles = 0; }
 
 static int MainMenuMouse_MainMenu(MainMenu *menu, GameContext *context,
                                   const Point *pt) {
@@ -126,20 +126,21 @@ static int MainMenuMouse_LoadMenu(MainMenu *menu, GameContext *context,
     return 1;
   }
 
-  if (menu->base.selectedIndex < menu->numSavFiles - 4 &&
+  if (menu->base.selectedIndex < menu->base.numSavFiles - 4 &&
       zoneClicked(pt, 150, 148, 24, 15)) {
-    if (menu->base.selectedIndex < menu->numSavFiles - 4) {
+    if (menu->base.selectedIndex < menu->base.numSavFiles - 4) {
       menu->base.selectedIndex++;
     }
     return 1;
   }
 
-  int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
+  int maxButtons = menu->base.numSavFiles < 4 ? menu->base.numSavFiles : 4;
   for (int i = 0; i < maxButtons; i++) {
     if (zoneClicked(pt, winX + 8, winY + 39 + (i * 17), 256, 15)) {
       printf("Clicked slot %i -> %i\n", i, i + menu->base.selectedIndex);
       if (GameContextLoadSaveFile(
-              context, menu->files[i + menu->base.selectedIndex].fullpath)) {
+              context,
+              menu->base.files[i + menu->base.selectedIndex].fullpath)) {
         GameContextLoadChars(context);
         menu->base.returnToGame = 1;
       }
@@ -223,8 +224,8 @@ static int MainMenuKeyDown_LoadMenu(MainMenu *menu, GameContext *context,
     menu->base.selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
     if (menu->base.selectedIndex < 0) {
       menu->base.selectedIndex = 0;
-    } else if (menu->base.selectedIndex > menu->numSavFiles - 4) {
-      menu->base.selectedIndex = menu->numSavFiles - 4;
+    } else if (menu->base.selectedIndex > menu->base.numSavFiles - 4) {
+      menu->base.selectedIndex = menu->base.numSavFiles - 4;
     }
 
     return 1;
@@ -268,25 +269,26 @@ static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
   GameContextGetString(context, 0X400E, textBuf, 128);
   UIRenderTextCentered(font, pixBuf, winX + winW / 2, winY + 8, textBuf);
 
-  if (menu->files == NULL) {
-    menu->files = GameContextListSavFiles(context, &menu->numSavFiles);
-    if (menu->numSavFiles) {
-      assert(menu->files);
+  if (menu->base.files == NULL) {
+    menu->base.files =
+        GameContextListSavFiles(context, &menu->base.numSavFiles);
+    if (menu->base.numSavFiles) {
+      assert(menu->base.files);
     }
   }
-  int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
+  int maxButtons = menu->base.numSavFiles < 4 ? menu->base.numSavFiles : 4;
 
   for (int i = 0; i < maxButtons; i++) {
-    if (i + menu->base.selectedIndex >= menu->numSavFiles) {
+    if (i + menu->base.selectedIndex >= menu->base.numSavFiles) {
       break;
     }
     UIDrawTextButton(font, pixBuf, winX + 8, winY + 39 + (i * 17), 256, 15,
-                     menu->files[i + menu->base.selectedIndex].savName);
+                     menu->base.files[i + menu->base.selectedIndex].savName);
   }
 
   // down arrow
-  if (menu->numSavFiles > 0 &&
-      menu->base.selectedIndex < menu->numSavFiles - 4) {
+  if (menu->base.numSavFiles > 0 &&
+      menu->base.selectedIndex < menu->base.numSavFiles - 4) {
     UIDrawButton(context->pixBuf, 150, 148, 24, 15);
   }
 

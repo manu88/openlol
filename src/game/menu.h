@@ -11,6 +11,9 @@ typedef struct _SAVFile SAVFile;
 typedef struct {
   int returnToGame;
   int selectedIndex;
+
+  size_t numSavFiles;
+  SAVFile *files;
 } Menu;
 
 typedef enum {
@@ -42,8 +45,6 @@ typedef enum {
 typedef struct {
   Menu base;
   MainMenuState state;
-  size_t numSavFiles;
-  SAVFile *files;
 } MainMenu;
 
 extern Menu *mainMenu;
