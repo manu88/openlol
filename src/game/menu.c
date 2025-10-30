@@ -6,6 +6,7 @@
 #include "render.h"
 #include "ui.h"
 #include <assert.h>
+#include <stddef.h>
 #include <string.h>
 
 static GameMenu _gameMenu = {0};
@@ -26,6 +27,10 @@ static void MainMenuRender(MainMenu *menu, GameContext *context,
 static int MainMenuMouse(MainMenu *menu, GameContext *context, const Point *pt);
 static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
                            const SDL_Event *e);
+void MainMenuSetState(MainMenu *menu, MainMenuState state) {
+  menu->state = state;
+  menu->base.selectedIndex = 0;
+}
 
 static char textBuf[128] = "";
 
@@ -74,7 +79,7 @@ int MenuKeyDown(Menu *menu, GameContext *context, const SDL_Event *e) {
 
 /* Main Menu */
 
-static void MainMenuReset(MainMenu *menu) {}
+static void MainMenuReset(MainMenu *menu) { menu->numSavFiles = 0; }
 
 static int MainMenuMouse_MainMenu(MainMenu *menu, GameContext *context,
                                   const Point *pt) {
@@ -82,23 +87,59 @@ static int MainMenuMouse_MainMenu(MainMenu *menu, GameContext *context,
   const int height = 8;
   if (zoneClicked(pt, 86, 144, width, height)) {
     printf("Start a new game\n");
-    menu->state = MainMenuState_StartNew;
+    MainMenuSetState(menu, MainMenuState_StartNew);
     return 1;
   } else if (zoneClicked(pt, 86, 153, width, height)) {
     printf("Introduction\n");
-    menu->state = MainMenuState_Introduction;
+    MainMenuSetState(menu, MainMenuState_Introduction);
     return 1;
   } else if (zoneClicked(pt, 86, 162, width, height)) {
     printf("Lore of the lands\n");
-    menu->state = MainMenuState_LoreOfTheLands;
+    MainMenuSetState(menu, MainMenuState_LoreOfTheLands);
     return 1;
   } else if (zoneClicked(pt, 86, 171, width, height)) {
     printf("Load a game\n");
-    menu->state = MainMenuState_LoadGame;
+    MainMenuSetState(menu, MainMenuState_LoadGame);
     return 1;
   } else if (zoneClicked(pt, 86, 180, width, height)) {
     printf("Exit\n");
     GameContextExitGame(context);
+  }
+  return 0;
+}
+
+static int MainMenuMouse_LoadMenu(MainMenu *menu, GameContext *context,
+                                  const Point *pt) {
+  const int winX = 23;
+  const int winY = 30;
+
+  if (menu->base.selectedIndex > 0 && zoneClicked(pt, 150, 50, 24, 15)) {
+    menu->base.selectedIndex--;
+    if (menu->base.selectedIndex < 0) {
+      menu->base.selectedIndex = 0;
+    }
+    return 1;
+  }
+
+  if (menu->base.selectedIndex < menu->numSavFiles - 4 &&
+      zoneClicked(pt, 150, 148, 24, 15)) {
+    if (menu->base.selectedIndex < menu->numSavFiles - 4) {
+      menu->base.selectedIndex++;
+    }
+    return 1;
+  }
+
+  int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
+  for (int i = 0; i < maxButtons; i++) {
+    if (zoneClicked(pt, winX + 8, winY + 39 + (i * 17), 256, 15)) {
+      printf("Clicked slot %i -> %i\n", i, i + menu->base.selectedIndex);
+      return 1;
+    }
+  }
+  // cancel
+  if (zoneClicked(pt, winX + 168, winY + 118, 96, 15)) {
+    MainMenuSetState(menu, MainMenuState_GameMenu);
+    return 1;
   }
   return 0;
 }
@@ -108,7 +149,7 @@ static int MainMenuMouse_UnimplementedMenu(MainMenu *menu, GameContext *context,
   int startX = 16;
   int startY = 140;
   if (zoneClicked(pt, startX + 208, startY + 30, 72, 15)) {
-    menu->state = MainMenuState_GameMenu;
+    MainMenuSetState(menu, MainMenuState_GameMenu);
     return 1;
   }
   return 0;
@@ -117,13 +158,13 @@ static int MainMenuMouse_UnimplementedMenu(MainMenu *menu, GameContext *context,
 static int MainMenuMouse(MainMenu *menu, GameContext *context,
                          const Point *pt) {
   switch (menu->state) {
-
   case MainMenuState_GameMenu:
     return MainMenuMouse_MainMenu(menu, context, pt);
+  case MainMenuState_LoadGame:
+    return MainMenuMouse_LoadMenu(menu, context, pt);
   case MainMenuState_StartNew:
   case MainMenuState_Introduction:
   case MainMenuState_LoreOfTheLands:
-  case MainMenuState_LoadGame:
     return MainMenuMouse_UnimplementedMenu(menu, context, pt);
   case MainMenuState_Exit:
     break;
@@ -136,7 +177,7 @@ static int MainMenuKeyDown_UnimplementedMenu(MainMenu *menu,
                                              const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_RETURN:
-    menu->state = MainMenuState_GameMenu;
+    MainMenuSetState(menu, MainMenuState_GameMenu);
     return 1;
   }
   return 0;
@@ -155,28 +196,90 @@ static int MainMenuKeyDown_GameMenu(MainMenu *menu, GameContext *context,
     }
     return 1;
   case SDLK_RETURN:
-
-    menu->state = menu->base.selectedIndex + 1;
+    MainMenuSetState(menu, menu->base.selectedIndex + 1);
     return 1;
   }
   return 0;
 }
 
+static int MainMenuKeyDown_LoadMenu(MainMenu *menu, GameContext *context,
+                                    const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_ESCAPE:
+    MainMenuSetState(menu, MainMenuState_GameMenu);
+    return 1;
+  case SDLK_UP:
+  case SDLK_DOWN:
+    menu->base.selectedIndex += e->key.keysym.sym == SDLK_UP ? -1 : 1;
+    if (menu->base.selectedIndex < 0) {
+      menu->base.selectedIndex = 0;
+    } else if (menu->base.selectedIndex > menu->numSavFiles - 4) {
+      menu->base.selectedIndex = menu->numSavFiles - 4;
+    }
+
+    return 1;
+  }
+  return 0;
+}
 static int MainMenuKeyDown(MainMenu *menu, GameContext *context,
                            const SDL_Event *e) {
   switch (menu->state) {
-
   case MainMenuState_GameMenu:
     return MainMenuKeyDown_GameMenu(menu, context, e);
+  case MainMenuState_LoadGame:
+    return MainMenuKeyDown_LoadMenu(menu, context, e);
   case MainMenuState_StartNew:
   case MainMenuState_Introduction:
   case MainMenuState_LoreOfTheLands:
-  case MainMenuState_LoadGame:
     return MainMenuKeyDown_UnimplementedMenu(menu, context, e);
   case MainMenuState_Exit:
     break;
   }
   return 0;
+}
+
+static void MainMenuRender_LoadMenu(MainMenu *menu, GameContext *context,
+                                    const FNTHandle *font,
+                                    SDL_Texture *pixBuf) {
+  UIStyle current = UIGetCurrentStyle();
+  UISetStyle(UIStyle_GameMenu);
+  const int winX = 23;
+  const int winY = 30;
+  const int winW = 272;
+  const int winH = 140;
+  UIDrawMenuWindow(pixBuf, winX, winY, winW, winH);
+
+  // up arrow
+  if (menu->base.selectedIndex > 0) {
+    UIDrawButton(context->pixBuf, 150, 50, 24, 15);
+  }
+
+  GameContextGetString(context, 0X400E, textBuf, 128);
+  UIRenderTextCentered(font, pixBuf, winX + winW / 2, winY + 8, textBuf);
+
+  SAVFile *files = GameContextListSavFiles(context, &menu->numSavFiles);
+  assert(files);
+  int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
+
+  for (int i = 0; i < maxButtons; i++) {
+    if (i + menu->base.selectedIndex >= menu->numSavFiles) {
+      break;
+    }
+    UIDrawTextButton(font, pixBuf, winX + 8, winY + 39 + (i * 17), 256, 15,
+                     files[i + menu->base.selectedIndex].savName);
+  }
+
+  // down arrow
+  if (menu->base.selectedIndex < menu->numSavFiles - 4) {
+    UIDrawButton(context->pixBuf, 150, 148, 24, 15);
+  }
+
+  // cancel
+  GameContextGetString(context, 0X4011, textBuf, 128);
+  UIDrawTextButton(&context->defaultFont, context->pixBuf, winX + 168,
+                   winY + 118, 96, 15, textBuf);
+  SAVFilesRelease(files, menu->numSavFiles);
+  UISetStyle(current);
 }
 
 static void MainMenuRender_UnimplementedMenu(MainMenu *menu,
@@ -195,17 +298,13 @@ static void MainMenuRender_UnimplementedMenu(MainMenu *menu,
 
   GameContextGetString(context, STR_NO_INDEX, textBuf, 128);
   UISetTextStyle(UITextStyle_Highlighted);
-  UIDrawButton(font, pixBuf, startX + 208, startY + 30, 72, 15, "ok");
+  UIDrawTextButton(font, pixBuf, startX + 208, startY + 30, 72, 15, "ok");
   UIResetTextStyle();
 }
 
 static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
                                     const FNTHandle *font,
                                     SDL_Texture *pixBuf) {
-  renderCPS(context->pixBuf, context->gameTitle.data,
-            context->gameTitle.imageSize, context->gameTitle.palette,
-            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-
   UISetStyle(UIStyle_MainMenu);
   UIDrawMenuWindow(context->pixBuf, 86, 140, 128, 51);
 
@@ -254,18 +353,23 @@ static void MainMenuRender_MainMenu(MainMenu *menu, GameContext *context,
 
 static void MainMenuRender(MainMenu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
+  renderCPS(context->pixBuf, context->gameTitle.data,
+            context->gameTitle.imageSize, context->gameTitle.palette,
+            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
   switch (menu->state) {
   case MainMenuState_GameMenu:
     MainMenuRender_MainMenu(menu, context, font, pixBuf);
     break;
   case MainMenuState_StartNew:
-    printf("Start new game\n");
     GameContextNewGame(context);
     menu->base.returnToGame = 1;
     break;
+  case MainMenuState_LoadGame:
+    MainMenuRender_LoadMenu(menu, context, font, pixBuf);
+    break;
   case MainMenuState_Introduction:
   case MainMenuState_LoreOfTheLands:
-  case MainMenuState_LoadGame:
+
     MainMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
     break;
   case MainMenuState_Exit:
@@ -293,10 +397,10 @@ static void GameMenuRender_ExitGame(GameMenu *menu, GameContext *context,
   UIRenderTextCentered(font, pixBuf, startX + width / 2, startY + 8, textBuf);
 
   GameContextGetString(context, STR_YES_INDEX, textBuf, 128);
-  UIDrawButton(font, pixBuf, startX + 8, startY + 30, 72, 15, textBuf);
+  UIDrawTextButton(font, pixBuf, startX + 8, startY + 30, 72, 15, textBuf);
 
   GameContextGetString(context, STR_NO_INDEX, textBuf, 128);
-  UIDrawButton(font, pixBuf, startX + 208, startY + 30, 72, 15, textBuf);
+  UIDrawTextButton(font, pixBuf, startX + 208, startY + 30, 72, 15, textBuf);
 }
 
 static void GameMenuRender_MainMenu(GameMenu *menu, GameContext *context,
@@ -310,39 +414,46 @@ static void GameMenuRender_MainMenu(GameMenu *menu, GameContext *context,
 
   int buttonY = GAME_MENU_BUTTONS_START_Y;
   GameContextGetString(context, 0X4001, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_BUTTONS_START_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   GameContextGetString(context, 0X4002, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_BUTTONS_START_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   GameContextGetString(context, 0X4003, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_BUTTONS_START_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   // game controls
   GameContextGetString(context, 0X4004, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_BUTTONS_START_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   GameContextGetString(context, 0X42D9, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_BUTTONS_START_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   GameContextGetString(context, 0X4006, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_BUTTONS_START_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 
   buttonY += GAME_MENU_BUTTON_H + 4;
   GameContextGetString(context, 0X4005, textBuf, 128);
-  UIDrawButton(font, pixBuf, GAME_MENU_RESUME_BUTTON_X, GAME_MENU_Y + buttonY,
-               GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H, textBuf);
+  UIDrawTextButton(font, pixBuf, GAME_MENU_RESUME_BUTTON_X,
+                   GAME_MENU_Y + buttonY, GAME_MENU_RESUME_BUTTON_W,
+                   GAME_MENU_BUTTON_H, textBuf);
 }
 
 static void GameMenuRender(GameMenu *menu, GameContext *context,
@@ -453,7 +564,6 @@ static int GameMenuMouse_MainMenu(GameMenu *menu, GameContext *context,
 static int GameMenuMouse(GameMenu *menu, GameContext *context,
                          const Point *pt) {
   switch (menu->state) {
-
   case GameMenuState_GameMenu:
     return GameMenuMouse_MainMenu(menu, context, pt);
   case GameMenuState_LoadGame:

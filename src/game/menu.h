@@ -3,6 +3,7 @@
 #include "formats/format_fnt.h"
 #include "geometry.h"
 #include <SDL2/SDL.h>
+#include <stddef.h>
 
 typedef struct _GameContext GameContext;
 
@@ -40,6 +41,7 @@ typedef enum {
 typedef struct {
   Menu base;
   MainMenuState state;
+  size_t numSavFiles;
 } MainMenu;
 
 extern Menu *mainMenu;

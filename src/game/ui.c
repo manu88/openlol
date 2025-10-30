@@ -7,7 +7,7 @@
 static UIStyle _currentStyle = UIStyle_Default;
 static UITextStyle _currentTextStyle = UITextStyle_Default;
 void UISetStyle(UIStyle style) { _currentStyle = style; }
-
+UIStyle UIGetCurrentStyle(void) { return _currentStyle; }
 void UISetTextStyle(UITextStyle textStyle) { _currentTextStyle = textStyle; }
 void UIResetTextStyle(void) { _currentTextStyle = UITextStyle_Default; }
 
@@ -168,8 +168,7 @@ void UIRenderTextCentered(const FNTHandle *font, SDL_Texture *texture,
   UIRenderText(font, texture, xCenter - (width / 2), yCenter, width, text);
 }
 
-void UIDrawButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
-                  int w, int h, const char *text) {
+void UIDrawButton(SDL_Texture *texture, int x, int y, int w, int h) {
   const UIPalette *pal = getPalette();
   void *data;
   int pitch;
@@ -196,6 +195,12 @@ void UIDrawButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
     }
   }
   SDL_UnlockTexture(texture);
+}
+
+void UIDrawTextButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
+                      int w, int h, const char *text) {
+
+  UIDrawButton(texture, x, y, w, h);
   UIRenderTextCentered(font, texture, x + w / 2, (y + h / 2) - 2, text);
 }
 

@@ -8,12 +8,13 @@ typedef enum {
   UIStyle_MainMenu,
 } UIStyle;
 
-typedef enum{
+typedef enum {
   UITextStyle_Default,
   UITextStyle_Highlighted,
 } UITextStyle;
 
 void UISetStyle(UIStyle style);
+UIStyle UIGetCurrentStyle(void);
 void UISetTextStyle(UITextStyle textStyle);
 void UIResetTextStyle(void);
 
@@ -23,6 +24,8 @@ void UIRenderText(const FNTHandle *font, SDL_Texture *texture, int xOff,
                   int yOff, int width, const char *text);
 void UIRenderTextCentered(const FNTHandle *font, SDL_Texture *texture,
                           int xCenter, int yCenter, const char *text);
-void UIDrawButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
-                  int w, int h, const char *text);
+void UIDrawTextButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
+                      int w, int h, const char *text);
+void UIDrawButton(SDL_Texture *texture, int x, int y,
+                      int w, int h);
 void UIDrawMenuWindow(SDL_Texture *texture, int x, int y, int w, int h);

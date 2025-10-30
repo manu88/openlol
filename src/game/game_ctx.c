@@ -1,5 +1,6 @@
 #include "game_ctx.h"
 #include "SDL_render.h"
+#include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
 #include "formats/format_inf.h"
@@ -13,7 +14,9 @@
 #include "script.h"
 #include <_string.h>
 #include <assert.h>
+#include <dirent.h>
 #include <libgen.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +42,58 @@ int GameContextSetSavDir(GameContext *gameCtx, const char *path) {
     }
   }
   return 1;
+}
+
+void SAVFilesRelease(SAVFile *files, size_t numFiles) {
+  for (int i = 0; i < numFiles; i++) {
+    free(files[i].fullpath);
+    free(files[i].savName);
+  }
+  free(files);
+}
+
+SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
+  DIR *dp;
+  struct dirent *ep;
+  dp = opendir(gameCtx->savDir);
+  if (dp == NULL) {
+    perror("Couldn't open the directory");
+    assert(0);
+  }
+
+  const size_t fullPathSize = strlen(gameCtx->savDir) + 32;
+  char *fullPath = malloc(fullPathSize);
+
+  SAVFile *files = NULL;
+  size_t num = 0;
+  while ((ep = readdir(dp)) != NULL) {
+    const char *dot = strrchr(ep->d_name, '.');
+    if (!dot) {
+      continue;
+    }
+    const char *ext = dot + 1;
+    if (strcmp(ext, "DAT") != 0) {
+      continue;
+    }
+    snprintf(fullPath, fullPathSize, "%s/%s", gameCtx->savDir, ep->d_name);
+    size_t fileSize;
+    size_t bufferSize;
+    uint8_t *buffer = readBinaryFile(fullPath, &fileSize, &bufferSize);
+    SAVHandle sav = {0};
+    SAVHandleFromBuffer(&sav, buffer, bufferSize);
+
+    num++;
+    files = realloc(files, num * sizeof(SAVFile));
+    assert(files);
+    files[num - 1].fullpath = strdup(fullPath);
+    files[num - 1].savName = strdup(sav.slot.header->name);
+
+    free(buffer);
+  }
+  *numSavFiles = num;
+  free(fullPath);
+  closedir(dp);
+  return files;
 }
 
 int GameContextInit(GameContext *gameCtx, Language lang) {

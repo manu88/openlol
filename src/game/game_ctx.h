@@ -16,6 +16,7 @@
 #include "geometry.h"
 #include "menu.h"
 #include "script.h"
+#include <stddef.h>
 #include <stdint.h>
 
 #define SCREEN_FACTOR 4
@@ -231,7 +232,17 @@ void GameContextRelease(GameContext *gameCtx);
 int GameContextInit(GameContext *gameCtx, Language lang);
 int GameContextStartup(GameContext *ctx);
 
-int GameContextSetSavDir(GameContext *gameCtx,const char *path);
+int GameContextSetSavDir(GameContext *gameCtx, const char *path);
+
+typedef struct {
+  char *fullpath;
+  char *savName;
+} SAVFile;
+
+void SAVFilesRelease(SAVFile *files, size_t numFiles);
+
+SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles);
+
 int GameContextNewGame(GameContext *gameCtx);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum);
