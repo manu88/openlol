@@ -113,8 +113,8 @@ static int MainMenuMouse_MainMenu(Menu *menu, GameContext *context,
   return 0;
 }
 
-static int MainMenuMouse_LoadMenu(Menu *menu, GameContext *context,
-                                  const Point *pt) {
+static int MenuMouse_LoadMenu(Menu *menu, GameContext *context,
+                              const Point *pt) {
   const int winX = 23;
   const int winY = 30;
 
@@ -170,7 +170,7 @@ static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   case MenuState_GameMenu:
     return MainMenuMouse_MainMenu(menu, context, pt);
   case MenuState_LoadGame:
-    return MainMenuMouse_LoadMenu(menu, context, pt);
+    return MenuMouse_LoadMenu(menu, context, pt);
   case MenuState_StartNew:
   case MenuState_Introduction:
   case MenuState_LoreOfTheLands:
@@ -220,8 +220,8 @@ static int MainMenuKeyDown_GameMenu(Menu *menu, GameContext *context,
   return 0;
 }
 
-static int MainMenuKeyDown_LoadMenu(Menu *menu, GameContext *context,
-                                    const SDL_Event *e) {
+static int MenuKeyDown_LoadMenu(Menu *menu, GameContext *context,
+                                const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_ESCAPE:
     MainMenuSetState(menu, 0);
@@ -246,7 +246,7 @@ static int MainMenuKeyDown(Menu *menu, GameContext *context,
   case MenuState_GameMenu:
     return MainMenuKeyDown_GameMenu(menu, context, e);
   case MenuState_LoadGame:
-    return MainMenuKeyDown_LoadMenu(menu, context, e);
+    return MenuKeyDown_LoadMenu(menu, context, e);
   case MenuState_StartNew:
   case MenuState_Introduction:
   case MenuState_LoreOfTheLands:
@@ -262,9 +262,8 @@ static int MainMenuKeyDown(Menu *menu, GameContext *context,
   return 0;
 }
 
-static void MainMenuRender_LoadMenu(Menu *menu, GameContext *context,
-                                    const FNTHandle *font,
-                                    SDL_Texture *pixBuf) {
+static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
+                                const FNTHandle *font, SDL_Texture *pixBuf) {
   UIStyle current = UIGetCurrentStyle();
   UISetStyle(UIStyle_GameMenu);
   const int winX = 23;
@@ -391,7 +390,7 @@ static void MainMenuRender(Menu *menu, GameContext *context,
     menu->returnToGame = 1;
     break;
   case MenuState_LoadGame:
-    MainMenuRender_LoadMenu(menu, context, font, pixBuf);
+    MenuRender_LoadMenu(menu, context, font, pixBuf);
     break;
   case MenuState_Introduction:
   case MenuState_LoreOfTheLands:
@@ -515,6 +514,8 @@ static void GameMenuRender(Menu *menu, GameContext *context,
     GameMenuRender_ExitGame(menu, context, font, pixBuf);
     break;
   case MenuState_LoadGame:
+    MenuRender_LoadMenu(menu, context, font, pixBuf);
+    break;
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
@@ -622,6 +623,7 @@ static int GameMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   case MenuState_ExitGame:
     return GameMenuMouse_ExitGame(menu, context, pt);
   case MenuState_LoadGame:
+    return MenuMouse_LoadMenu(menu, context, pt);
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
@@ -667,6 +669,7 @@ static int GameMenuKeyDown(Menu *menu, GameContext *context,
   case MenuState_GameMenu:
     return GameMenuKeyDown_MainMenu(menu, context, e);
   case MenuState_LoadGame:
+    return MenuKeyDown_LoadMenu(menu, context, e);
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
