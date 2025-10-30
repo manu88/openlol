@@ -64,7 +64,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/manueldeneu/Documents/dev/landsoflore/data/cd"
+            argument = "/Users/manueldeneu/Documents/dev/landsoflore/data/"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

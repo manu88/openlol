@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		591408472EB3AE280012E17E /* animator.c in Sources */ = {isa = PBXBuildFile; fileRef = 591408462EB3AE280012E17E /* animator.c */; };
+		5914084C2EB3AE430012E17E /* menu.c in Sources */ = {isa = PBXBuildFile; fileRef = 591408492EB3AE430012E17E /* menu.c */; };
+		5914084D2EB3AE430012E17E /* ui.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084B2EB3AE430012E17E /* ui.c */; };
+		591408502EB3AE580012E17E /* format_xxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084F2EB3AE580012E17E /* format_xxx.c */; };
 		594887D02E8681B300684ABD /* tim_animator.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887CF2E8681B300684ABD /* tim_animator.c */; };
 		594887D32E8681C000684ABD /* tim_interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887D22E8681C000684ABD /* tim_interpreter.c */; };
 		596F7FFF2EA3EFDE00CC2266 /* format_dat.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F7FE62EA3EFDE00CC2266 /* format_dat.c */; };
@@ -61,6 +65,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		591408452EB3AE280012E17E /* animator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = animator.h; path = src/game/animator.h; sourceTree = SOURCE_ROOT; };
+		591408462EB3AE280012E17E /* animator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = animator.c; path = src/game/animator.c; sourceTree = SOURCE_ROOT; };
+		591408482EB3AE430012E17E /* menu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = menu.h; path = src/game/menu.h; sourceTree = SOURCE_ROOT; };
+		591408492EB3AE430012E17E /* menu.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = menu.c; path = src/game/menu.c; sourceTree = SOURCE_ROOT; };
+		5914084A2EB3AE430012E17E /* ui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ui.h; path = src/game/ui.h; sourceTree = SOURCE_ROOT; };
+		5914084B2EB3AE430012E17E /* ui.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ui.c; path = src/game/ui.c; sourceTree = SOURCE_ROOT; };
+		5914084E2EB3AE580012E17E /* format_xxx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_xxx.h; sourceTree = "<group>"; };
+		5914084F2EB3AE580012E17E /* format_xxx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = format_xxx.c; sourceTree = "<group>"; };
 		594887CE2E8681B300684ABD /* tim_animator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_animator.h; sourceTree = "<group>"; };
 		594887CF2E8681B300684ABD /* tim_animator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tim_animator.c; sourceTree = "<group>"; };
 		594887D12E8681C000684ABD /* tim_interpreter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_interpreter.h; sourceTree = "<group>"; };
@@ -187,6 +199,8 @@
 				596F7FFB2EA3EFDE00CC2266 /* format_wll.c */,
 				596F7FFC2EA3EFDE00CC2266 /* format_wsa.h */,
 				596F7FFD2EA3EFDE00CC2266 /* format_wsa.c */,
+				5914084E2EB3AE580012E17E /* format_xxx.h */,
+				5914084F2EB3AE580012E17E /* format_xxx.c */,
 			);
 			path = formats;
 			sourceTree = "<group>";
@@ -211,6 +225,10 @@
 				596F80332EA3F15400CC2266 /* logger.c */,
 				59A981F92E8306F800A6A596 /* bytes.h */,
 				59A981FA2E8306F800A6A596 /* bytes.c */,
+				591408482EB3AE430012E17E /* menu.h */,
+				591408492EB3AE430012E17E /* menu.c */,
+				5914084A2EB3AE430012E17E /* ui.h */,
+				5914084B2EB3AE430012E17E /* ui.c */,
 				59A981FB2E8306F800A6A596 /* emc_asm.h */,
 				59A981FC2E8306F800A6A596 /* emc_asm.c */,
 				594887D12E8681C000684ABD /* tim_interpreter.h */,
@@ -225,6 +243,8 @@
 				59A9821C2E8306F800A6A596 /* script.c */,
 				59A9821D2E8306F800A6A596 /* script_builtins.h */,
 				59A9821E2E8306F800A6A596 /* script_builtins.c */,
+				591408452EB3AE280012E17E /* animator.h */,
+				591408462EB3AE280012E17E /* animator.c */,
 				59A9821F2E8306F800A6A596 /* script_disassembler.h */,
 				59A982202E8306F800A6A596 /* script_disassembler.c */,
 			);
@@ -374,6 +394,7 @@
 				596F80082EA3EFDE00CC2266 /* format_fnt.c in Sources */,
 				596F80312EA3F13A00CC2266 /* game_envir.c in Sources */,
 				596F802D2EA3F10B00CC2266 /* debugger.c in Sources */,
+				591408502EB3AE580012E17E /* format_xxx.c in Sources */,
 				596F80092EA3EFDE00CC2266 /* format_cmz.c in Sources */,
 				596F800A2EA3EFDE00CC2266 /* format_lang.c in Sources */,
 				596F800B2EA3EFDE00CC2266 /* format_vcn.c in Sources */,
@@ -382,12 +403,15 @@
 				596F80202EA3F03500CC2266 /* game_ctx.c in Sources */,
 				596F80212EA3F03500CC2266 /* render.c in Sources */,
 				596F80222EA3F03500CC2266 /* game.c in Sources */,
+				5914084C2EB3AE430012E17E /* menu.c in Sources */,
+				5914084D2EB3AE430012E17E /* ui.c in Sources */,
 				596F80232EA3F03500CC2266 /* geometry.c in Sources */,
 				596F80242EA3F03500CC2266 /* game_render.c in Sources */,
 				596F80252EA3F03500CC2266 /* game_tim_animator.c in Sources */,
 				596F80262EA3F03500CC2266 /* game_callbacks.c in Sources */,
 				596F80272EA3F03500CC2266 /* dbg_server.c in Sources */,
 				594887D02E8681B300684ABD /* tim_animator.c in Sources */,
+				591408472EB3AE280012E17E /* animator.c in Sources */,
 				594887D32E8681C000684ABD /* tim_interpreter.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
