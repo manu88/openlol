@@ -556,6 +556,7 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
 
   for (int i = 0; i < NUM_CHARACTERS; i++) {
     if (!savHandle.slot.characters[i]->flags) {
+      memset(&gameCtx->chars[i], 0, sizeof(SAVCharacter));
       continue;
     }
     memcpy(&gameCtx->chars[i], savHandle.slot.characters[i],
@@ -565,7 +566,7 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
   gameCtx->orientation = savHandle.slot.general->currentDirection;
   gameCtx->credits = savHandle.slot.general2->credits;
   gameCtx->itemIndexInHand = savHandle.slot.general->itemIndexInHand;
-
+  gameCtx->selectedChar = savHandle.slot.general->selectedChar;
   SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
   GameContextLoadLevel(gameCtx, gameCtx->levelId);
   GameContextUpdateCursor(gameCtx);
