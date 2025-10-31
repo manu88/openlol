@@ -15,8 +15,7 @@ typedef struct {
   SDL_Color background;
   SDL_Color topLayerColor;
   SDL_Color bottomLayerColor;
-
-  SDL_Color textColorMap[2];
+  SDL_Color textColorMap[2]; // index is UITextStyle
 } UIPalette;
 
 static UIPalette gameMenuPalette = {.background = {166, 89, 77},
@@ -43,15 +42,23 @@ static UIPalette defaultPalette = {.background = {65, 44, 36},
                                        {81, 200, 255},  // highlighted color
                                    }};
 
+static UIPalette inventoryPalette = {
+    .background = {0, 0, 0, 255}, // alpha chan set means transparent
+    .textColorMap = {
+        {255, 255, 255}, // font color
+        {81, 200, 255},  // highlighted color
+    }};
+
 static UIPalette *getPalette(void) {
   switch (_currentStyle) {
-
   case UIStyle_Default:
     return &defaultPalette;
   case UIStyle_GameMenu:
     return &gameMenuPalette;
   case UIStyle_MainMenu:
     return &mainMenuPalette;
+  case UIStyle_Inventory:
+    return &inventoryPalette;
   }
   assert(0);
 }
@@ -94,7 +101,9 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
   while (charH1--) {
     SDL_Color col = pal->background;
     for (int i = 0; i < charWidth; ++i) {
-      drawPix(data, pitch, col.r, col.g, col.b, x, y);
+      if (col.a == 0) {
+        drawPix(data, pitch, col.r, col.g, col.b, x, y);
+      }
       x++;
     }
     x = xOff;
@@ -111,9 +120,10 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
         b = *src++;
         col = getTextColor(b & 0xF);
       }
-
-      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
-      row[x] = 0XFF000000 + (col.r << 0X10) + (col.g << 0X8) + col.b;
+      if (col.a == 0) {
+        uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+        row[x] = 0XFF000000 + (col.r << 0X10) + (col.g << 0X8) + col.b;
+      }
       x += 1;
     }
     y += 1;
@@ -124,7 +134,9 @@ static void DrawChar(SDL_Texture *pixBuf, const FNTHandle *font, uint16_t c,
     SDL_Color col = pal->background;
     for (int i = 0; i < charWidth; ++i) {
       uint32_t *row = (unsigned int *)((char *)data + pitch * y);
-      row[x] = 0XFF000000 + (col.r << 0X10) + (col.g << 0X8) + col.b;
+      if (col.a == 0) {
+        row[x] = 0XFF000000 + (col.r << 0X10) + (col.g << 0X8) + col.b;
+      }
       x += 1;
     }
     y += 1;

@@ -6,6 +6,7 @@ typedef enum {
   UIStyle_Default,
   UIStyle_GameMenu,
   UIStyle_MainMenu,
+  UIStyle_Inventory,
 } UIStyle;
 
 typedef enum {
@@ -26,6 +27,5 @@ void UIRenderTextCentered(const FNTHandle *font, SDL_Texture *texture,
                           int xCenter, int yCenter, const char *text);
 void UIDrawTextButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
                       int w, int h, const char *text);
-void UIDrawButton(SDL_Texture *texture, int x, int y,
-                      int w, int h);
+void UIDrawButton(SDL_Texture *texture, int x, int y, int w, int h);
 void UIDrawMenuWindow(SDL_Texture *texture, int x, int y, int w, int h);

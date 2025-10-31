@@ -115,9 +115,8 @@ static void renderCharInventory(GameContext *gameCtx) {
               200);
   char c[10] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  UISetDefaultStyle();
+  UISetStyle(UIStyle_Inventory);
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 277, 104, 50, c);
-
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 250, 10, 50,
                gameCtx->chars[gameCtx->selectedChar].name);
 }
