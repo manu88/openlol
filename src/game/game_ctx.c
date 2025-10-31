@@ -546,6 +546,7 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
 
   SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
   GameContextLoadLevel(gameCtx, gameCtx->levelId);
+  GameContextUpdateCursor(gameCtx);
+  GameContextLoadChars(gameCtx);
   return 1;
 }
-
