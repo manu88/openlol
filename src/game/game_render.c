@@ -203,6 +203,10 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
     }
   }
   UIResetTextStyle();
+  if (charId == gameCtx->selectedChar) {
+    UIStrokeRect(gameCtx->pixBuf, x, CHAR_ZONE_Y, CHAR_ZONE_W, CHAR_ZONE_H,
+                 (SDL_Color){117, 115, 145});
+  }
 }
 
 static void renderLeftUIPart(GameContext *gameCtx) {
