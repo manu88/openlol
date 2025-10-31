@@ -168,6 +168,7 @@ typedef struct _GameContext {
   SHPHandle charFaces[NUM_CHARACTERS];
   SAVCharacter chars[NUM_CHARACTERS];
   uint8_t selectedChar;
+  uint8_t selectedCharIsCastingSpell;
 
   SHPHandle automapShapes;
   SHPHandle gameShapes;
@@ -236,7 +237,7 @@ int GameContextStartup(GameContext *ctx);
 
 int GameContextSetSavDir(GameContext *gameCtx, const char *path);
 
-typedef struct _SAVFile{
+typedef struct _SAVFile {
   char *fullpath;
   char *savName;
 } SAVFile;

@@ -423,6 +423,7 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   if (gameCtx->state == GameState_ShowInventory ||
       gameCtx->state == GameState_ShowMap ||
       gameCtx->state == GameState_GameMenu) {
+    gameCtx->selectedCharIsCastingSpell = 0;
     gameCtx->controlDisabled = 1;
   } else {
     gameCtx->controlDisabled = 0;

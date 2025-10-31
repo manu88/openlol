@@ -177,29 +177,40 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
   GameContextGetString(gameCtx, 0X4254, c, 2);
   UIRenderText(&gameCtx->font6p, gameCtx->pixBuf, x + xLifeBar, CHAR_ZONE_Y + 1,
                5, c);
-  {
+
+  if (charId == gameCtx->selectedChar && gameCtx->selectedCharIsCastingSpell) {
     SHPFrame frame = {0};
-    assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 54));
+    assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 73));
     SHPFrameGetImageData(&frame);
     drawSHPFrame(gameCtx->pixBuf, &frame, x + 44, CHAR_ZONE_Y,
                  gameCtx->defaultPalette);
     SHPFrameRelease(&frame);
+  } else {
 
-    if (gameCtx->controlDisabled) {
-      drawDisabledOverlay(gameCtx, gameCtx->pixBuf, x + 44, CHAR_ZONE_Y, 22,
-                          18);
+    {
+      SHPFrame frame = {0};
+      assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 54));
+      SHPFrameGetImageData(&frame);
+      drawSHPFrame(gameCtx->pixBuf, &frame, x + 44, CHAR_ZONE_Y,
+                   gameCtx->defaultPalette);
+      SHPFrameRelease(&frame);
+
+      if (gameCtx->controlDisabled) {
+        drawDisabledOverlay(gameCtx, gameCtx->pixBuf, x + 44, CHAR_ZONE_Y, 22,
+                            18);
+      }
     }
-  }
-  {
-    SHPFrame frame = {0};
-    assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 72));
-    SHPFrameGetImageData(&frame);
-    drawSHPFrame(gameCtx->pixBuf, &frame, x + 44, CHAR_ZONE_Y + 16,
-                 gameCtx->defaultPalette);
-    SHPFrameRelease(&frame);
-    if (gameCtx->controlDisabled) {
-      drawDisabledOverlay(gameCtx, gameCtx->pixBuf, x + 44, CHAR_ZONE_Y + 16,
-                          22, 18);
+    {
+      SHPFrame frame = {0};
+      assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 72));
+      SHPFrameGetImageData(&frame);
+      drawSHPFrame(gameCtx->pixBuf, &frame, x + 44, CHAR_ZONE_Y + 16,
+                   gameCtx->defaultPalette);
+      SHPFrameRelease(&frame);
+      if (gameCtx->controlDisabled) {
+        drawDisabledOverlay(gameCtx, gameCtx->pixBuf, x + 44, CHAR_ZONE_Y + 16,
+                            22, 18);
+      }
     }
   }
   UIResetTextStyle();

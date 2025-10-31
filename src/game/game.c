@@ -185,9 +185,9 @@ static void clickOnFrontWall(GameContext *gameCtx) {
   GameContextRunScript(gameCtx, nextBlock);
 }
 
-static int charPortraitClicked(const GameContext *gameCtx) {
+static int charZoneClicked(const GameContext *gameCtx) {
   if (gameCtx->mouseEv.pos.y < CHAR_ZONE_Y ||
-      gameCtx->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_FACE_H) {
+      gameCtx->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_ZONE_H) {
     return -1;
   }
 
@@ -195,16 +195,16 @@ static int charPortraitClicked(const GameContext *gameCtx) {
   switch (numChars) {
   case 1:
     if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_1_X &&
-        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_FACE_W) {
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_ZONE_W) {
       return 0;
     }
     break;
   case 2: {
     if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_2_X &&
-        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_FACE_W) {
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_ZONE_W) {
       return 0;
     } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_2_X &&
-               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_2_X + CHAR_FACE_W) {
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_2_X + CHAR_ZONE_W) {
       return 1;
     }
   } break;
@@ -331,9 +331,8 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
   } else {
-    int charIndex = charPortraitClicked(gameCtx);
+    int charIndex = charZoneClicked(gameCtx);
     if (charIndex != -1) {
-      printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
       GameContextSetState(gameCtx, GameState_ShowInventory);
       gameCtx->selectedChar = charIndex;
       return 1;
@@ -379,6 +378,55 @@ static int tryMove(GameContext *gameCtx, Direction dir) {
                          gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
   }
   return 1;
+}
+
+static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
+                                int coordX) {
+  int prevSelectedChar = gameCtx->selectedChar;
+  gameCtx->selectedChar = charIndex;
+  if (gameCtx->selectedCharIsCastingSpell &&
+      prevSelectedChar == gameCtx->selectedChar) {
+    int spellLevel = (gameCtx->mouseEv.pos.y - CHAR_ZONE_Y) / 8;
+    printf("actually perform magic %i: char %i\n", spellLevel,
+           gameCtx->selectedChar);
+    gameCtx->selectedCharIsCastingSpell = 0;
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX, CHAR_ZONE_Y,
+                         CHAR_FACE_W, CHAR_FACE_H)) {
+    GameContextSetState(gameCtx, GameState_ShowInventory);
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y, 22,
+                         18)) {
+    printf("Attack: char %i\n", gameCtx->selectedChar);
+    gameCtx->selectedCharIsCastingSpell = 0;
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y + 16,
+                         22, 18)) {
+    if (gameCtx->selectedCharIsCastingSpell &&
+        prevSelectedChar == gameCtx->selectedChar) {
+
+    } else if (gameCtx->selectedCharIsCastingSpell == 0) {
+      gameCtx->selectedCharIsCastingSpell = 1;
+    }
+  } else {
+    printf("Some stats: char %i\n", gameCtx->selectedChar);
+  }
+
+  return 1;
+}
+
+static int charZoneXcoord[][2] = {
+    {CHAR_ZONE_0_1_X},
+    {CHAR_ZONE_0_2_X, CHAR_ZONE_1_2_X},
+};
+
+static int processCharZonesMouse(GameContext *gameCtx) {
+  int charIndex = charZoneClicked(gameCtx);
+  if (charIndex != -1) {
+    uint8_t numChars = GameContextGetNumChars(gameCtx);
+    int coordX = charZoneXcoord[numChars - 1][charIndex];
+    return processCharZoneMouse(gameCtx, charIndex, coordX);
+  } else {
+    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+  }
+  return 0;
 }
 
 static int processPlayGameMouse(GameContext *gameCtx) {
@@ -434,15 +482,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     GameContextSetState(gameCtx, GameState_ShowMap);
     return 1;
   } else {
-    int charIndex = charPortraitClicked(gameCtx);
-    if (charIndex != -1) {
-      printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
-      GameContextSetState(gameCtx, GameState_ShowInventory);
-      gameCtx->selectedChar = charIndex;
-      return 1;
-    } else {
-      printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
-    }
+    return processCharZonesMouse(gameCtx);
   }
   return 0;
 }
