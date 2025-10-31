@@ -49,8 +49,10 @@ uint16_t decompressAndTranslate(const char *s, char *dest, uint16_t destLen) {
     }
     assert(count + 1 < destLen);
     dest[count++] = c;
-    if (count >= destLen - 1) {
-      printf("decompressAndTranslate : truncating output !\n");
+    if (count > destLen - 1) {
+      printf(
+          "decompressAndTranslate : truncating output ! count=%i destLen=%i\n",
+          count, destLen);
       break;
     }
   }
