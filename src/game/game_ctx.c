@@ -147,6 +147,15 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   }
   {
     GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "GAMESHP.SHP"));
+    if (SHPHandleFromCompressedBuffer(&gameCtx->gameShapes, f.buffer,
+                                      f.bufferSize) == 0) {
+      printf("unable to get GAMESHP.SHP\n");
+      assert(0);
+    }
+  }
+  {
+    GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "AUTOBUT.SHP"));
     if (SHPHandleFromCompressedBuffer(&gameCtx->automapShapes, f.buffer,
                                       f.bufferSize) == 0) {
@@ -257,6 +266,8 @@ void GameContextRelease(GameContext *gameCtx) {
   CPSImageRelease(&gameCtx->playField);
   CPSImageRelease(&gameCtx->gameTitle);
   CPSImageRelease(&gameCtx->mapBackground);
+  SHPHandleRelease(&gameCtx->automapShapes);
+  SHPHandleRelease(&gameCtx->gameShapes);
   INFScriptRelease(&gameCtx->script);
   free(gameCtx->dialogTextBuffer);
   SDL_FreeCursor(gameCtx->cursor);

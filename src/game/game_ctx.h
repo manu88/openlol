@@ -170,6 +170,7 @@ typedef struct _GameContext {
   uint8_t selectedChar;
 
   SHPHandle automapShapes;
+  SHPHandle gameShapes;
 
   CPSImage inventoryBackground;
   CPSImage playField;
