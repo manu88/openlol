@@ -197,6 +197,7 @@ typedef struct _GameContext {
   uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS];
 
   FNTHandle defaultFont;
+  FNTHandle font6p;
   uint8_t gameFlags[NUM_GAME_FLAGS];
 
   GameTimInterpreter timInterpreter;
