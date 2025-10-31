@@ -21,6 +21,7 @@
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <_string.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -406,7 +407,15 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
       gameCtx->selectedCharIsCastingSpell = 1;
     }
   } else {
-    printf("Some stats: char %i\n", gameCtx->selectedChar);
+    const SAVCharacter *c = gameCtx->chars + charIndex;
+    GameContextGetString(gameCtx, 0X4047, gameCtx->dialogTextBuffer,
+                         DIALOG_BUFFER_SIZE);
+    char *formatString = strdup(gameCtx->dialogTextBuffer);
+    snprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, formatString,
+             c->name, c->hitPointsCur, c->hitPointsMax, c->magicPointsCur,
+             c->magicPointsMax);
+    free(formatString);
+    gameCtx->dialogText = gameCtx->dialogTextBuffer;
   }
 
   return 1;

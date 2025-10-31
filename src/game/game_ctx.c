@@ -207,8 +207,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
 
   {
     GameFile f = {0};
-    assert(GameEnvironmentGetFile(&f, "FONT9P.FNT"));
-
+    assert(GameEnvironmentGetFile(&f, "FONT9PN.FNT"));
     if (FNTHandleFromBuffer(&gameCtx->defaultFont, f.buffer, f.bufferSize) ==
         0) {
       printf("unable to get FONT9P.FNT data\n");
