@@ -331,7 +331,6 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
   } else {
-
     int charIndex = charPortraitClicked(gameCtx);
     if (charIndex != -1) {
       printf("Char %i %i\n", charIndex, gameCtx->chars[charIndex].id);
