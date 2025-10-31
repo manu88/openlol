@@ -186,25 +186,25 @@ static void clickOnFrontWall(GameContext *gameCtx) {
 }
 
 static int charPortraitClicked(const GameContext *gameCtx) {
-  if (gameCtx->mouseEv.pos.y < CHAR_FACE_Y ||
-      gameCtx->mouseEv.pos.y > CHAR_FACE_Y + CHAR_FACE_H) {
+  if (gameCtx->mouseEv.pos.y < CHAR_ZONE_Y ||
+      gameCtx->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_FACE_H) {
     return -1;
   }
 
   uint8_t numChars = GameContextGetNumChars(gameCtx);
   switch (numChars) {
   case 1:
-    if (gameCtx->mouseEv.pos.x > CHAR_FACE_0_1_X &&
-        gameCtx->mouseEv.pos.x < CHAR_FACE_0_1_X + CHAR_FACE_W) {
+    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_1_X &&
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_FACE_W) {
       return 0;
     }
     break;
   case 2: {
-    if (gameCtx->mouseEv.pos.x > CHAR_FACE_0_2_X &&
-        gameCtx->mouseEv.pos.x < CHAR_FACE_0_2_X + CHAR_FACE_W) {
+    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_2_X &&
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_FACE_W) {
       return 0;
-    } else if (gameCtx->mouseEv.pos.x > CHAR_FACE_1_2_X &&
-               gameCtx->mouseEv.pos.x < CHAR_FACE_1_2_X + CHAR_FACE_W) {
+    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_2_X &&
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_2_X + CHAR_FACE_W) {
       return 1;
     }
   } break;

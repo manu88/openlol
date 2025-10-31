@@ -49,6 +49,13 @@ static UIPalette inventoryPalette = {
         {81, 200, 255},  // highlighted color
     }};
 
+static UIPalette manaLifeBarsPalette = {
+    .background = {0, 0, 0, 255}, // alpha chan set means transparent
+    .textColorMap = {
+        {81, 138, 255}, // Mana color
+        {65, 196, 40},  // Life color
+    }};
+
 static UIPalette *getPalette(void) {
   switch (_currentStyle) {
   case UIStyle_Default:
@@ -59,6 +66,8 @@ static UIPalette *getPalette(void) {
     return &mainMenuPalette;
   case UIStyle_Inventory:
     return &inventoryPalette;
+  case UIStyle_ManaLifeBars:
+    return &manaLifeBarsPalette;
   }
   assert(0);
 }
@@ -237,6 +246,38 @@ void UIDrawMenuWindow(SDL_Texture *texture, int startX, int startY, int w,
         drawPix(data, pitch, pal->bottomLayerColor.r, pal->bottomLayerColor.g,
                 pal->bottomLayerColor.b, x, y);
       }
+    }
+  }
+  SDL_UnlockTexture(texture);
+}
+
+void UIStrokeRect(SDL_Texture *texture, int startX, int startY, int w, int h,
+                  SDL_Color col) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {startX, startY, w, h};
+  SDL_LockTexture(texture, &rect, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      if (x == 0 || x == w - 1) {
+        drawPix(data, pitch, col.r, col.g, col.b, x, y);
+      } else if (y == 0 || y == h - 1) {
+        drawPix(data, pitch, col.r, col.g, col.b, x, y);
+      }
+    }
+  }
+  SDL_UnlockTexture(texture);
+}
+
+void UIFillRect(SDL_Texture *texture, int startX, int startY, int w, int h,
+                SDL_Color col) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {startX, startY, w, h};
+  SDL_LockTexture(texture, &rect, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      drawPix(data, pitch, col.r, col.g, col.b, x, y);
     }
   }
   SDL_UnlockTexture(texture);

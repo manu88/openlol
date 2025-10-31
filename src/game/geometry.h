@@ -79,15 +79,18 @@
 #define DIALOG_BUTTON_H 10
 
 // one character in the gang
-#define CHAR_FACE_0_1_X 167
-#define CHAR_FACE_Y 144
+#define CHAR_ZONE_0_1_X 167
+// two characters in the gang
+#define CHAR_ZONE_0_2_X 116
+#define CHAR_ZONE_1_2_X 216
+
+#define CHAR_ZONE_Y 143
 
 #define CHAR_FACE_W 32
 #define CHAR_FACE_H 32
 
-// two characters in the gang
-#define CHAR_FACE_0_2_X 116
-#define CHAR_FACE_1_2_X 216
+#define CHAR_ZONE_W 66
+#define CHAR_ZONE_H 34
 
 #define GAME_MENU_X 56
 #define GAME_MENU_Y 25

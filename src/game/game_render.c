@@ -1,6 +1,8 @@
 #include "game_render.h"
+#include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "formats/format_lang.h"
+#include "formats/format_shp.h"
 #include "game_ctx.h"
 #include "geometry.h"
 #include "menu.h"
@@ -105,6 +107,7 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   drawSHPFrame(gameCtx->pixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
                UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
+  SHPFrameRelease(&frame);
 }
 
 static void renderCharInventory(GameContext *gameCtx) {
@@ -140,12 +143,57 @@ static void renderInventory(GameContext *gameCtx) {
   }
 }
 
+static void drawLevelBar(GameContext *gameCtx, int startX, int startY,
+                         SDL_Color col) {
+  UIFillRect(gameCtx->pixBuf, startX, startY, 5, 32, col);
+}
+
 static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
   SHPFrame frame = {0};
   assert(SHPHandleGetFrame(&gameCtx->charFaces[charId], &frame, 0));
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_FACE_Y,
+  drawSHPFrame(gameCtx->pixBuf, &frame, x, CHAR_ZONE_Y + 1,
                gameCtx->defaultPalette);
+  SHPFrameRelease(&frame);
+}
+
+static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
+  UIFillRect(gameCtx->pixBuf, x, CHAR_ZONE_Y, CHAR_ZONE_W, CHAR_ZONE_H,
+             (SDL_Color){0, 0, 0});
+  renderCharFace(gameCtx, charId, x);
+  const int xManaBar = 33;
+  drawLevelBar(gameCtx, x + xManaBar, CHAR_ZONE_Y + 1,
+               (SDL_Color){32, 40, 203});
+  const int xLifeBar = 39;
+  drawLevelBar(gameCtx, x + xLifeBar, CHAR_ZONE_Y + 1, (SDL_Color){4, 117, 24});
+
+  UISetStyle(UIStyle_ManaLifeBars);
+  char c[2] = "";
+  GameContextGetString(gameCtx, 0X4253, c, 2);
+  UIRenderText(&gameCtx->font6p, gameCtx->pixBuf, x + xManaBar, CHAR_ZONE_Y + 1,
+               5, c);
+
+  UISetTextStyle(UITextStyle_Highlighted);
+  GameContextGetString(gameCtx, 0X4254, c, 2);
+  UIRenderText(&gameCtx->font6p, gameCtx->pixBuf, x + xLifeBar, CHAR_ZONE_Y + 1,
+               5, c);
+  {
+    SHPFrame frame = {0};
+    assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 54));
+    SHPFrameGetImageData(&frame);
+    drawSHPFrame(gameCtx->pixBuf, &frame, x + 44, CHAR_ZONE_Y,
+                 gameCtx->defaultPalette);
+    SHPFrameRelease(&frame);
+  }
+  {
+    SHPFrame frame = {0};
+    assert(SHPHandleGetFrame(&gameCtx->gameShapes, &frame, 72));
+    SHPFrameGetImageData(&frame);
+    drawSHPFrame(gameCtx->pixBuf, &frame, x + 44, CHAR_ZONE_Y + 17,
+                 gameCtx->defaultPalette);
+    SHPFrameRelease(&frame);
+  }
+  UIResetTextStyle();
 }
 
 static void renderLeftUIPart(GameContext *gameCtx) {
@@ -160,11 +208,11 @@ static void renderCharFaces(GameContext *gameCtx) {
   uint8_t numChars = GameContextGetNumChars(gameCtx);
   switch (numChars) {
   case 1:
-    renderCharFace(gameCtx, 0, CHAR_FACE_0_1_X);
+    renderCharZone(gameCtx, 0, CHAR_ZONE_0_1_X);
     break;
   case 2:
-    renderCharFace(gameCtx, 0, CHAR_FACE_0_2_X);
-    renderCharFace(gameCtx, 1, CHAR_FACE_1_2_X);
+    renderCharZone(gameCtx, 0, CHAR_ZONE_0_2_X);
+    renderCharZone(gameCtx, 1, CHAR_ZONE_1_2_X);
     break;
   case 3:
   default:
