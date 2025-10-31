@@ -113,12 +113,17 @@ static void renderCharInventory(GameContext *gameCtx) {
               gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
               INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320,
               200);
-  char c[10] = "";
-  GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
+
   UISetStyle(UIStyle_Inventory);
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 277, 104, 50, c);
+
+  // char name
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 250, 10, 50,
                gameCtx->chars[gameCtx->selectedChar].name);
+  char c[10] = "";
+
+  // exit button
+  GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 277, 104, 50, c);
 }
 
 static void renderInventory(GameContext *gameCtx) {
