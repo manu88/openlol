@@ -417,7 +417,6 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
     free(formatString);
     gameCtx->dialogText = gameCtx->dialogTextBuffer;
   }
-
   return 1;
 }
 
