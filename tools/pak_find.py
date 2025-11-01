@@ -30,12 +30,14 @@ def main():
         proc_output = subprocess.run(
             argv, stdout=subprocess.PIPE).stdout.decode()
         for l in proc_output.splitlines():
-            if file_to_find[0] == "*":
+            if file_to_find == "*":
+                print(f"{pak_file}: {l}")
+            elif file_to_find[0] == "*":
                 ext_to_find = file_to_find.split(".")[1]
                 file_ext = l.split(".")[1]
                 if (ext_to_find == file_ext):
                     print(f"Found {l} in {pak_file}")
-            if l == file_to_find:
+            elif l == file_to_find:
                 print(f"Found {file_to_find} in {pak_file}")
                 if (args.e):
                     extract(file_to_find, pak_file)
