@@ -112,8 +112,7 @@ typedef struct {
   SAVHeader *header;
   SAVCharacter *characters[NUM_CHARACTERS];
 
-  SAVGeneral _general;
-  SAVGeneral *general;
+  SAVGeneral general;
   SAVGeneral2 *general2;
 
   GameObject *gameObjects;

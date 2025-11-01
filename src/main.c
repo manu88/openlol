@@ -693,23 +693,23 @@ static int cmdSAVShow(const char *filepath) {
   printf("+GENERAL\n");
   uint16_t x = 0;
   uint16_t y = 0;
-  GetRealCoords(slot->general->posX, slot->general->posY, &x, &y);
-  printf("block=%X x=%X y=%X (real %i %i)\n", slot->general->currentBlock,
-         slot->general->posX, slot->general->posY, x, y);
-  printf("orientation=%X compass=%X\n", slot->general->currentDirection,
-         slot->general->compassDirection);
-  printf("level %i\n", slot->general->currentLevel);
+  GetRealCoords(slot->general.posX, slot->general.posY, &x, &y);
+  printf("block=%X x=%X y=%X (real %i %i)\n", slot->general.currentBlock,
+         slot->general.posX, slot->general.posY, x, y);
+  printf("orientation=%X compass=%X\n", slot->general.currentDirection,
+         slot->general.compassDirection);
+  printf("level %i\n", slot->general.currentLevel);
   printf("credits %i\n", slot->general2->credits);
-  printf("inventoryCurrentItem %X\n", slot->general->inventoryCurrentItem);
-  printf("item in hand %X\n", slot->general->itemIndexInHand);
+  printf("inventoryCurrentItem %X\n", slot->general.inventoryCurrentItem);
+  printf("item in hand %X\n", slot->general.itemIndexInHand);
   printf("+GLOBAL SCRIPT VARS2\n");
   for (int i = 0; i < NUM_GLOBAL_SCRIPT_VARS2; i++) {
     printf("%i 0X%X\n", i, slot->general2->globalScriptVars[i]);
   }
-  printf("selected char %i\n", slot->general->selectedChar);
+  printf("selected char %i\n", slot->general.selectedChar);
   printf("+INVENTORY\n");
   for (int i = 0; i < INVENTORY_SIZE; i++) {
-    uint16_t gameObjIndex = slot->general->inventory[i];
+    uint16_t gameObjIndex = slot->general.inventory[i];
     if (gameObjIndex == 0) {
       continue;
     }
@@ -720,7 +720,7 @@ static int cmdSAVShow(const char *filepath) {
 
   printf("+Game flags\n");
   for (int i = 0; i < NUM_FLAGS; i++) {
-    printf("%i %X\n", i, slot->general->flags[i]);
+    printf("%i %X\n", i, slot->general.flags[i]);
   }
   printf("+Objects\n");
   for (int i = 0; i < MAX_IN_GAME_ITEMS; i++) {
