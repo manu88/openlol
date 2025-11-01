@@ -555,11 +555,11 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
          INVENTORY_SIZE * sizeof(uint16_t));
 
   for (int i = 0; i < NUM_CHARACTERS; i++) {
-    if (!savHandle.slot.characters[i]->flags) {
+    if (!savHandle.slot.characters[i].flags) {
       memset(&gameCtx->chars[i], 0, sizeof(SAVCharacter));
       continue;
     }
-    memcpy(&gameCtx->chars[i], savHandle.slot.characters[i],
+    memcpy(&gameCtx->chars[i], &savHandle.slot.characters[i],
            sizeof(SAVCharacter));
   }
   gameCtx->currentBock = savHandle.slot.general.currentBlock;

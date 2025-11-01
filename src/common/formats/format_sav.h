@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   uint16_t flags;
   char name[11];
   uint8_t raceClassSex;
@@ -11,6 +11,7 @@ typedef struct {
   uint8_t currentFaceFrame;
   uint8_t tempFaceFrame;
   uint8_t screamSfx;
+
   uint16_t itemsMight[8];
   uint16_t itemsProtection[8];
   uint16_t itemProtection;
@@ -30,13 +31,13 @@ typedef struct {
   uint16_t might;
   uint16_t protection;
   int16_t nextAnimUpdateCountdown;
-  uint16_t uu;
+
   uint16_t items[11];
-  // uint16_t skillLevels[11];
-  //  uint16_t skillModifiers[11];
-  //  uint16_t xpPoints[11];
-  //  uint16_t characterUpdateEvents[11];
-  //  uint16_t characterUpdateDelay[11];
+  uint16_t skillLevels[3];
+  uint16_t skillModifiers[3];
+  uint16_t xpPoints[3];
+  uint16_t characterUpdateEvents[5];
+  uint16_t characterUpdateDelay[5];
 
 } SAVCharacter;
 
@@ -110,7 +111,7 @@ static_assert(sizeof(GameObject) == 16, "");
 
 typedef struct {
   SAVHeader *header;
-  SAVCharacter *characters[NUM_CHARACTERS];
+  SAVCharacter characters[NUM_CHARACTERS];
 
   SAVGeneral general;
   SAVGeneral2 *general2;
