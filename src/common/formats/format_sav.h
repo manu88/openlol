@@ -1,7 +1,9 @@
 #pragma once
+#include <_static_assert.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 typedef struct __attribute__((__packed__)) {
   uint16_t flags;

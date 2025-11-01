@@ -4,6 +4,7 @@
 #include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
+#include "game_rules.h"
 #include "geometry.h"
 #include "menu.h"
 #include "render.h"
@@ -122,7 +123,26 @@ static void renderCharInventory(GameContext *gameCtx) {
   // char name
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 250, 10, 50,
                gameCtx->chars[gameCtx->selectedChar].name);
-  char c[10] = "";
+
+  char c[16] = "";
+  // force
+  int y = 24;
+  GameContextGetString(gameCtx, 0X4014, c, sizeof(c));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 98, c);
+
+  snprintf(c, 16, "%i",
+           GameRuleGetCharacterMight(&gameCtx->chars[gameCtx->selectedChar]));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 290, y, 20, c);
+
+  // protection
+  y = 36;
+  GameContextGetString(gameCtx, 0X4015, c, sizeof(c));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 98, c);
+
+  snprintf(
+      c, 16, "%i",
+      GameRuleGetCharacterProtection(&gameCtx->chars[gameCtx->selectedChar]));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 290, y, 20, c);
 
   // exit button
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));

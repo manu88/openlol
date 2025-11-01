@@ -680,10 +680,11 @@ static int cmdSAVShow(const char *filepath) {
       continue;
     }
     printf("character %i : flags:%X name:'%s' raceClassSex=%X id=%i "
-           "magicPointsCur=%X "
-           "magicPointsMax=%X\n",
+           "magicPointsCur=%i "
+           "magicPointsMax=%i\n",
            i, ch->flags, ch->name, ch->raceClassSex, ch->id, ch->magicPointsCur,
            ch->magicPointsMax);
+    printf("might %i protection %i\n", ch->might, ch->protection);
     printf("\titems: ");
     for (int i = 0; i < 11; i++) {
       printf(" %02X ", ch->items[i]);
