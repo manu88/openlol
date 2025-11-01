@@ -54,15 +54,12 @@ typedef struct {
   uint8_t scriptDir;
   uint8_t selectedSpell;
 
-  uint16_t unused_0;
-
   uint8_t sceneDefaultUpdate;
   uint8_t compassBroken;
 
   uint8_t drainMagic;
   uint8_t currentDirection;
 
-  uint8_t unused_1;
   uint16_t compassDirection;
   uint8_t selectedChar;
 
@@ -115,6 +112,7 @@ typedef struct {
   SAVHeader *header;
   SAVCharacter *characters[NUM_CHARACTERS];
 
+  SAVGeneral _general;
   SAVGeneral *general;
   SAVGeneral2 *general2;
 
