@@ -1,9 +1,11 @@
 #include "menu.h"
 #include "SDL_keycode.h"
 #include "formats/format_lang.h"
+#include "formats/format_shp.h"
 #include "game_ctx.h"
 #include "geometry.h"
 #include "render.h"
+#include "renderer.h"
 #include "ui.h"
 #include <assert.h>
 #include <stddef.h>
@@ -274,7 +276,11 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
 
   // up arrow
   if (menu->selectedIndex > 0) {
-    UIDrawButton(context->pixBuf, 150, 50, 24, 15);
+    SHPFrame frame = {0};
+    assert(SHPHandleGetFrame(&context->gameShapes, &frame, 17));
+    SHPFrameGetImageData(&frame);
+    drawSHPFrame(pixBuf, &frame, 150, 50, context->defaultPalette);
+    SHPFrameRelease(&frame);
   }
 
   GameContextGetString(context, 0X400E, textBuf, 128);
@@ -298,7 +304,11 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
 
   // down arrow
   if (menu->numSavFiles > 0 && menu->selectedIndex < menu->numSavFiles - 4) {
-    UIDrawButton(context->pixBuf, 150, 148, 24, 15);
+    SHPFrame frame = {0};
+    assert(SHPHandleGetFrame(&context->gameShapes, &frame, 18));
+    SHPFrameGetImageData(&frame);
+    drawSHPFrame(pixBuf, &frame, 150, 148, context->defaultPalette);
+    SHPFrameRelease(&frame);
   }
 
   // cancel
