@@ -126,66 +126,66 @@ static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
   const uint8_t *b = (uint8_t *)(handle->buffer + GENERAL_OFFSET);
   int off = 0;
 
-  slot->general.currentBlock = *(uint16_t *)(b + off);
+  slot->currentBlock = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.posX = (uint16_t)*(b + off);
+  slot->posX = (uint16_t)*(b + off);
   off += 2;
 
-  slot->general.posY = *(uint16_t *)(b + off);
+  slot->posY = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.updateFlags = *(uint16_t *)(b + off);
+  slot->updateFlags = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.scriptDir = b[off];
+  slot->scriptDir = b[off];
   off += 1;
 
-  slot->general.selectedSpell = b[off];
+  slot->selectedSpell = b[off];
   off += 1;
 
   off += 2; // skip
 
-  slot->general.sceneDefaultUpdate = b[off];
+  slot->sceneDefaultUpdate = b[off];
   off += 1;
 
-  slot->general.compassBroken = b[off];
+  slot->compassBroken = b[off];
   off += 1;
 
-  slot->general.drainMagic = b[off];
+  slot->drainMagic = b[off];
   off += 1;
 
-  slot->general.currentDirection = *(uint16_t *)(b + off);
+  slot->currentDirection = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.compassDirection = *(uint16_t *)(b + off);
+  slot->compassDirection = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.selectedChar = b[off];
+  slot->selectedChar = b[off];
   off += 1;
 
   off += 1; // skip
 
-  slot->general.currentLevel = *(b + off);
+  slot->currentLevel = *(b + off);
   off += 1;
 
   for (int i = 0; i < INVENTORY_SIZE; i++) {
-    slot->general.inventory[i] = *(uint16_t *)(b + off);
+    slot->inventory[i] = *(uint16_t *)(b + off);
     off += 2;
   }
 
-  slot->general.inventoryCurrentItem = *(uint16_t *)(b + off);
+  slot->inventoryCurrentItem = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.itemIndexInHand = *(uint16_t *)(b + off);
+  slot->itemIndexInHand = *(uint16_t *)(b + off);
   off += 2;
 
-  slot->general.lastMouseRegion = *(uint16_t *)(b + off);
+  slot->lastMouseRegion = *(uint16_t *)(b + off);
   off += 2;
 
-  memset(slot->general.flags, 0, NUM_FLAGS * 2);
+  memset(slot->flags, 0, NUM_FLAGS * 2);
   for (int i = 0; i < NUM_FLAGS; i++) {
-    slot->general.flags[i] = *(uint16_t *)(b + off);
+    slot->flags[i] = *(uint16_t *)(b + off);
     off += 2;
   }
 
@@ -205,7 +205,7 @@ void SAVHandleGetGameFlags(const SAVHandle *handle, uint8_t *gameFlags,
                            size_t numGameFlags) {
   for (int i = 0; i < NUM_FLAGS; i++) {
     for (uint8_t k = 0; k < 16; ++k) {
-      if (handle->slot.general.flags[i] & (1 << k)) {
+      if (handle->slot.flags[i] & (1 << k)) {
         uint8_t flag = ((i << 4) & 0xFFF0) | (k & 0x000F);
         uint16_t flagIndex = flag >> 3;
 #if 0

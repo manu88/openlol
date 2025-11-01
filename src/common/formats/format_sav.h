@@ -47,34 +47,6 @@ typedef struct __attribute__((__packed__)) {
 
 #define NUM_FLAGS 40
 
-typedef struct {
-  uint16_t currentBlock;
-  uint16_t posX;
-  uint16_t posY;
-  uint16_t updateFlags;
-  uint8_t scriptDir;
-  uint8_t selectedSpell;
-
-  uint8_t sceneDefaultUpdate;
-  uint8_t compassBroken;
-
-  uint8_t drainMagic;
-  uint8_t currentDirection;
-
-  uint16_t compassDirection;
-  uint8_t selectedChar;
-
-  uint8_t currentLevel;
-
-  uint16_t inventory[INVENTORY_SIZE];
-  uint16_t inventoryCurrentItem;
-  uint16_t itemIndexInHand;
-  uint16_t lastMouseRegion;
-
-  uint16_t flags[NUM_FLAGS]; // this gets transformed into gameFlags using
-                             // SAVHandleGetGameFlags
-} SAVGeneral;
-
 #define NUM_GLOBAL_SCRIPT_VARS2 8
 
 typedef struct {
@@ -113,7 +85,32 @@ typedef struct {
   SAVHeader *header;
   SAVCharacter characters[NUM_CHARACTERS];
 
-  SAVGeneral general;
+  uint16_t currentBlock;
+  uint16_t posX;
+  uint16_t posY;
+  uint16_t updateFlags;
+  uint8_t scriptDir;
+  uint8_t selectedSpell;
+
+  uint8_t sceneDefaultUpdate;
+  uint8_t compassBroken;
+
+  uint8_t drainMagic;
+  uint8_t currentDirection;
+
+  uint16_t compassDirection;
+  uint8_t selectedChar;
+
+  uint8_t currentLevel;
+
+  uint16_t inventory[INVENTORY_SIZE];
+  uint16_t inventoryCurrentItem;
+  uint16_t itemIndexInHand;
+  uint16_t lastMouseRegion;
+
+  uint16_t flags[NUM_FLAGS]; // this gets transformed into gameFlags using
+                             // SAVHandleGetGameFlags
+
   SAVGeneral2 *general2;
 
   GameObject *gameObjects;
