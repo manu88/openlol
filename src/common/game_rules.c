@@ -39,3 +39,15 @@ uint16_t GameRuleGetCharacterProtection(const SAVCharacter *c) {
   prot = (prot * c->totalProtectionModifier) >> 8;
   return prot;
 }
+
+uint16_t GameRuleGetCharacterSkillFight(const SAVCharacter *c) {
+  return c->skillLevels[0] + c->skillModifiers[0];
+}
+
+uint16_t GameRuleGetCharacterSkillRogue(const SAVCharacter *c) {
+  return c->skillLevels[1] + c->skillModifiers[1];
+}
+
+uint16_t GameRuleGetCharacterSkillMage(const SAVCharacter *c) {
+  return c->skillLevels[2] + c->skillModifiers[2];
+}

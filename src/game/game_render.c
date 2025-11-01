@@ -2,6 +2,7 @@
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "formats/format_lang.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
 #include "game_rules.h"
@@ -112,6 +113,7 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
 }
 
 static void renderCharInventory(GameContext *gameCtx) {
+  const SAVCharacter *character = gameCtx->chars + gameCtx->selectedChar;
   renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
               gameCtx->inventoryBackground.imageSize,
               gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
@@ -122,7 +124,7 @@ static void renderCharInventory(GameContext *gameCtx) {
 
   // char name
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 250, 10, 50,
-               gameCtx->chars[gameCtx->selectedChar].name);
+               character->name);
 
   char c[16] = "";
   // force
@@ -130,19 +132,40 @@ static void renderCharInventory(GameContext *gameCtx) {
   GameContextGetString(gameCtx, 0X4014, c, sizeof(c));
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 98, c);
 
-  snprintf(c, 16, "%i",
-           GameRuleGetCharacterMight(&gameCtx->chars[gameCtx->selectedChar]));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 290, y, 20, c);
+  snprintf(c, 16, "%i", GameRuleGetCharacterMight(character));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
 
   // protection
   y = 36;
   GameContextGetString(gameCtx, 0X4015, c, sizeof(c));
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 98, c);
 
-  snprintf(
-      c, 16, "%i",
-      GameRuleGetCharacterProtection(&gameCtx->chars[gameCtx->selectedChar]));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 290, y, 20, c);
+  snprintf(c, 16, "%i", GameRuleGetCharacterProtection(character));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+
+  // Fighter stats
+  y = 62;
+  GameContextGetString(gameCtx, 0X4016, c, sizeof(c));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 40, c);
+
+  snprintf(c, 16, "%i", GameRuleGetCharacterSkillFight(character));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+
+  // Rogue stats
+  y = 72;
+  GameContextGetString(gameCtx, 0X4017, c, sizeof(c));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 40, c);
+
+  snprintf(c, 16, "%i", GameRuleGetCharacterSkillRogue(character));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+
+  // Mage stats
+  y = 82;
+  GameContextGetString(gameCtx, 0X4018, c, sizeof(c));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 40, c);
+
+  snprintf(c, 16, "%i", GameRuleGetCharacterSkillMage(character));
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
 
   // exit button
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));

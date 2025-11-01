@@ -35,9 +35,9 @@ typedef struct __attribute__((__packed__)) {
   int16_t nextAnimUpdateCountdown;
 
   uint16_t items[11];
-  uint16_t skillLevels[3];
-  uint16_t skillModifiers[3];
-  uint16_t xpPoints[3];
+  uint16_t skillLevels[3];    // 0: fighter, 1: rogue, 2: mage
+  uint16_t skillModifiers[3]; // 0: fighter, 1: rogue, 2: mage
+  uint16_t xpPoints[3];       // 0: fighter, 1: rogue, 2: mage
   uint16_t characterUpdateEvents[5];
   uint16_t characterUpdateDelay[5];
 
