@@ -14,6 +14,7 @@
 #include "ui.h"
 #include <assert.h>
 #include <ctype.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -139,10 +140,97 @@ static void renderCharInventoryExperience(GameContext *gameCtx,
   UIFillRect(gameCtx->pixBuf, x, y, w, 5, (SDL_Color){255, 0, 0});
 }
 
+typedef enum {
+  CharItemIndex_Hand = 0,
+  CharItemIndex_Shield = 1,
+  CharItemIndex_Hand2 = 2,
+  CharItemIndex_Shield2 = 3,
+  CharItemIndex_Helm = 4,
+  CharItemIndex_Armor = 5,
+  CharItemIndex_Necklace = 6,
+  CharItemIndex_Braces = 7,
+  CharItemIndex_Shoes = 8,
+  CharItemIndex_RingLeft = 9,
+  CharItemIndex_RingRight = 10,
+} CharItemIndex;
+
+static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
+                           int invType, CharItemIndex itemIndex) {
+  const GameObject *obj = &gameCtx->itemsInGame[character->items[itemIndex]];
+  uint16_t frameId =
+      GameContextGetItemSHPFrameIndex(gameCtx, obj->itemPropertyIndex);
+  SHPFrame itemFrame = {0};
+  SHPHandleGetFrame(&gameCtx->itemShapes, &itemFrame, frameId);
+  SHPFrameGetImageData(&itemFrame);
+
+  int x = 0;
+  int y = 0;
+
+  size_t bIndex = 4;
+  switch (itemIndex) {
+  case CharItemIndex_Hand:
+    x = CHAR_INVENTORY_HAND1_X;
+    y = CHAR_INVENTORY_HAND1_Y;
+    break;
+  case CharItemIndex_Shield:
+    x = CHAR_INVENTORY_SHIELD_X;
+    y = CHAR_INVENTORY_SHIELD_Y;
+    break;
+  case CharItemIndex_Hand2:
+    x = CHAR_INVENTORY_HAND2_X;
+    y = CHAR_INVENTORY_HAND2_Y;
+    break;
+  case CharItemIndex_Shield2:
+    x = CHAR_INVENTORY_SHIELD2_X;
+    y = CHAR_INVENTORY_SHIELD2_Y;
+    break;
+  case CharItemIndex_Helm:
+    x = CHAR_INVENTORY_HELM_X;
+    y = CHAR_INVENTORY_HELM_Y;
+    break;
+  case CharItemIndex_Armor:
+    x = CHAR_INVENTORY_ARMOR_X;
+    y = CHAR_INVENTORY_ARMOR_Y;
+    break;
+  case CharItemIndex_Necklace:
+    x = CHAR_INVENTORY_NECKLACE_X;
+    y = CHAR_INVENTORY_NECKLACE_Y;
+    break;
+  case CharItemIndex_Braces:
+    x = CHAR_INVENTORY_BRACES_X;
+    y = CHAR_INVENTORY_BRACES_Y;
+    break;
+  case CharItemIndex_Shoes:
+    x = CHAR_INVENTORY_SHOES_X;
+    y = CHAR_INVENTORY_SHOES_Y;
+    break;
+  case CharItemIndex_RingLeft:
+    bIndex = 5;
+    x = CHAR_INVENTORY_RING_LEFT_X;
+    y = CHAR_INVENTORY_RING_LEFT_Y;
+    break;
+  case CharItemIndex_RingRight:
+    bIndex = 5;
+    x = CHAR_INVENTORY_RING_RIGHT_X;
+    y = CHAR_INVENTORY_RING_RIGHT_Y;
+    break;
+  }
+
+  SHPFrame bFrame = {0};
+
+  SHPHandleGetFrame(&gameCtx->gameShapes, &bFrame, bIndex);
+  SHPFrameGetImageData(&bFrame);
+  drawSHPFrame(gameCtx->pixBuf, &bFrame, x, y, gameCtx->defaultPalette);
+  SHPFrameRelease(&bFrame);
+  drawSHPFrame(gameCtx->pixBuf, &itemFrame, x, y, gameCtx->defaultPalette);
+  SHPFrameRelease(&itemFrame);
+}
+
 static void renderCharInventory(GameContext *gameCtx) {
   const SAVCharacter *character = gameCtx->chars + gameCtx->selectedChar;
 
   int id = character->id < 0 ? -character->id : character->id;
+  int invType = inventoryTypeForId[id];
   GameContextLoadBackgroundInventoryIfNeeded(gameCtx, id);
 
   const CPSImage *background =
@@ -151,6 +239,12 @@ static void renderCharInventory(GameContext *gameCtx) {
               background->palette, INVENTORY_SCREEN_X, INVENTORY_SCREEN_Y,
               INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320, 200);
 
+  for (int i = 0; i < 11; i++) {
+    if (character->items[i] == 0) {
+      continue;
+    }
+    renderCharItem(gameCtx, character, invType, i);
+  }
   UISetStyle(UIStyle_Inventory);
 
   // char name
