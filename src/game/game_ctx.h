@@ -136,6 +136,9 @@ typedef struct {
 
 #define NUM_GAME_FLAGS 100
 
+#define INVENTORY_TYPES_NUM 7
+static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
+
 typedef struct _GameContext {
   GameState state;
   GameState prevState;
@@ -173,7 +176,7 @@ typedef struct _GameContext {
   SHPHandle automapShapes;
   SHPHandle gameShapes;
 
-  CPSImage inventoryBackground;
+  CPSImage inventoryBackgrounds[INVENTORY_TYPES_NUM];
   CPSImage playField;
   CPSImage loadedbitMap;
   CPSImage mapBackground;
@@ -278,3 +281,6 @@ void GameContextDeleteItem(GameContext *gameCtx, uint16_t itemIndex);
 void GameContextUpdateCursor(GameContext *gameCtx);
 void GameContextExitGame(GameContext *gameCtx);
 int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath);
+
+void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
+                                                int charId);

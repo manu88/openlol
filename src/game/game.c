@@ -107,11 +107,6 @@ int cmdGame(int argc, char *argv[]) {
   }
   GameContextSetSavDir(&gameCtx, savFileOrDir);
 
-  GameFile f = {0};
-  assert(GameEnvironmentGetGeneralFile(&f, "INVENT1.CPS"));
-  assert(
-      CPSImageFromBuffer(&gameCtx.inventoryBackground, f.buffer, f.bufferSize));
-
   GameContextUpdateCursor(&gameCtx);
 
   GameRun(&gameCtx);

@@ -287,6 +287,11 @@ void GameContextRelease(GameContext *gameCtx) {
       free(gameCtx->buttonText[i]);
     }
   }
+  for (int i = 0; i < INVENTORY_TYPES_NUM; i++) {
+    if (gameCtx->inventoryBackgrounds[i].data) {
+      CPSImageRelease(&gameCtx->inventoryBackgrounds[i]);
+    }
+  }
   free(gameCtx->defaultPalette);
 }
 
@@ -573,4 +578,17 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
   GameContextUpdateCursor(gameCtx);
   GameContextLoadChars(gameCtx);
   return 1;
+}
+
+void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
+                                                int charId) {
+  int invId = inventoryTypeForId[charId];
+  if (gameCtx->inventoryBackgrounds[invId].data == NULL) {
+    GameFile f = {0};
+    char name[12] = "";
+    snprintf(name, 12, "INVENT%1i.CPS", invId);
+    assert(GameEnvironmentGetGeneralFile(&f, name));
+    assert(CPSImageFromBuffer(&gameCtx->inventoryBackgrounds[invId], f.buffer,
+                              f.bufferSize));
+  }
 }

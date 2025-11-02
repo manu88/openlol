@@ -1,6 +1,7 @@
 #include "game_render.h"
 #include "SDL_pixels.h"
 #include "SDL_render.h"
+#include "formats/format_cps.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
@@ -140,11 +141,15 @@ static void renderCharInventoryExperience(GameContext *gameCtx,
 
 static void renderCharInventory(GameContext *gameCtx) {
   const SAVCharacter *character = gameCtx->chars + gameCtx->selectedChar;
-  renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
-              gameCtx->inventoryBackground.imageSize,
-              gameCtx->inventoryBackground.palette, INVENTORY_SCREEN_X,
-              INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320,
-              200);
+
+  int id = character->id < 0 ? -character->id : character->id;
+  GameContextLoadBackgroundInventoryIfNeeded(gameCtx, id);
+
+  const CPSImage *background =
+      &gameCtx->inventoryBackgrounds[inventoryTypeForId[id]];
+  renderCPSAt(gameCtx->pixBuf, background->data, background->imageSize,
+              background->palette, INVENTORY_SCREEN_X, INVENTORY_SCREEN_Y,
+              INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320, 200);
 
   UISetStyle(UIStyle_Inventory);
 
