@@ -1,11 +1,65 @@
 #include "game_render_inventory.h"
 #include "game_rules.h"
+#include "geometry.h"
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
 
+typedef struct {
+  Point hand1;
+  Point shield1;
+  Point hand2;
+  Point shield2;
+  Point helm;
+  Point armor;
+  Point necklace;
+  Point braces;
+  Point shoes;
+  Point ringRight;
+  Point ringLeft;
+} InventoryLayout;
+
+#define INVALID_ITEM -1, -1
+
+static InventoryLayout humanLayout = {
+    {117, 25},      //
+    {192, 25},      //
+    {INVALID_ITEM}, //
+    {INVALID_ITEM}, //
+    {117, 1},       //
+    {117, 49},      //
+    {192, 1},       //
+    {192, 49},      //
+    {117, 97},      //
+    {191, 78},      //
+    {126, 78},      //
+};
+
+static InventoryLayout ulineLayout = {
+    {233 / 2, 104 / 2}, {383 / 2, 103 / 2}, {INVALID_ITEM},
+    {INVALID_ITEM},     {233 / 2, 8 / 2},   {233 / 2, 56 / 2},
+    {383 / 2, 8 / 2},   {383 / 2, 56 / 2},  {INVALID_ITEM},
+    {253 / 2, 156 / 2}, {383 / 2, 156 / 2},
+};
+
+static InventoryLayout thomgogLayout = {
+    {117, 25}, {192, 25}, {117, 73}, {192, 73},      {117, 1},       {117, 49},
+    {192, 1},  {192, 49}, {117, 97}, {INVALID_ITEM}, {INVALID_ITEM},
+};
+
+static InventoryLayout *layouts[] = {
+
+    NULL,         // invalid
+    &humanLayout, // MALE
+    &humanLayout, // TIM
+    &humanLayout, // Female
+    &humanLayout, // Dracoid
+    &ulineLayout, &thomgogLayout,
+};
+
 static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
                            int invType, CharItemIndex itemIndex) {
+  const InventoryLayout *layout = layouts[invType];
   const GameObject *obj = &gameCtx->itemsInGame[character->items[itemIndex]];
   uint16_t frameId =
       GameContextGetItemSHPFrameIndex(gameCtx, obj->itemPropertyIndex);
@@ -13,66 +67,58 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
   SHPHandleGetFrame(&gameCtx->itemShapes, &itemFrame, frameId);
   SHPFrameGetImageData(&itemFrame);
 
-  int x = 0;
-  int y = 0;
+  Point pt;
 
   size_t bIndex = 4;
   switch (itemIndex) {
   case CharItemIndex_Hand:
-    x = CHAR_INVENTORY_HAND1_X;
-    y = CHAR_INVENTORY_HAND1_Y;
+    pt = layout->hand1;
     break;
   case CharItemIndex_Shield:
-    x = CHAR_INVENTORY_SHIELD_X;
-    y = CHAR_INVENTORY_SHIELD_Y;
+    pt = layout->shield1;
     break;
   case CharItemIndex_Hand2:
-    x = CHAR_INVENTORY_HAND2_X;
-    y = CHAR_INVENTORY_HAND2_Y;
+    pt = layout->hand2;
     break;
   case CharItemIndex_Shield2:
-    x = CHAR_INVENTORY_SHIELD2_X;
-    y = CHAR_INVENTORY_SHIELD2_Y;
+    pt = layout->shield2;
     break;
   case CharItemIndex_Helm:
-    x = CHAR_INVENTORY_HELM_X;
-    y = CHAR_INVENTORY_HELM_Y;
+    pt = layout->helm;
     break;
   case CharItemIndex_Armor:
-    x = CHAR_INVENTORY_ARMOR_X;
-    y = CHAR_INVENTORY_ARMOR_Y;
+    pt = layout->armor;
     break;
   case CharItemIndex_Necklace:
-    x = CHAR_INVENTORY_NECKLACE_X;
-    y = CHAR_INVENTORY_NECKLACE_Y;
+    pt = layout->necklace;
     break;
   case CharItemIndex_Braces:
-    x = CHAR_INVENTORY_BRACES_X;
-    y = CHAR_INVENTORY_BRACES_Y;
+    pt = layout->braces;
     break;
   case CharItemIndex_Shoes:
-    x = CHAR_INVENTORY_SHOES_X;
-    y = CHAR_INVENTORY_SHOES_Y;
+    pt = layout->shoes;
     break;
   case CharItemIndex_RingLeft:
+    pt = layout->ringLeft;
     bIndex = 5;
-    x = CHAR_INVENTORY_RING_LEFT_X;
-    y = CHAR_INVENTORY_RING_LEFT_Y;
     break;
   case CharItemIndex_RingRight:
+    pt = layout->ringRight;
     bIndex = 5;
-    x = CHAR_INVENTORY_RING_RIGHT_X;
-    y = CHAR_INVENTORY_RING_RIGHT_Y;
     break;
   }
 
+  if (pt.x < 0 && pt.y < 0) {
+    return;
+  }
   SHPFrame bFrame = {0};
 
   SHPHandleGetFrame(&gameCtx->gameShapes, &bFrame, bIndex);
   SHPFrameGetImageData(&bFrame);
-  drawSHPFrame(gameCtx->pixBuf, &bFrame, x, y, gameCtx->defaultPalette);
+  drawSHPFrame(gameCtx->pixBuf, &bFrame, pt.x, pt.y, gameCtx->defaultPalette);
   SHPFrameRelease(&bFrame);
-  drawSHPFrame(gameCtx->pixBuf, &itemFrame, x, y, gameCtx->defaultPalette);
+  drawSHPFrame(gameCtx->pixBuf, &itemFrame, pt.x, pt.y,
+               gameCtx->defaultPalette);
   SHPFrameRelease(&itemFrame);
 }
 
