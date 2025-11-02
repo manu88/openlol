@@ -17,3 +17,5 @@ typedef enum {
 
 void renderInventoryStrip(GameContext *gameCtx);
 void renderCharInventory(GameContext *gameCtx);
+
+int processCharInventoryItemsMouse(GameContext *gameCtx);

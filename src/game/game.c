@@ -5,12 +5,12 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "dbg_server.h"
-#include "formats/format_cps.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "formats/format_wll.h"
 #include "game_callbacks.h"
+#include "game_char_inventory.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
@@ -333,7 +333,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
       gameCtx->selectedChar = charIndex;
       return 1;
     } else {
-      printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+      return processCharInventoryItemsMouse(gameCtx);
     }
   }
   return 0;

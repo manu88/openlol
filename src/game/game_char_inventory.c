@@ -249,3 +249,8 @@ void renderInventoryStrip(GameContext *gameCtx) {
         GameContextGetItemSHPFrameIndex(gameCtx, obj->itemPropertyIndex));
   }
 }
+
+int processCharInventoryItemsMouse(GameContext *gameCtx) {
+  printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+  return 0;
+}
