@@ -569,9 +569,11 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
   }
   gameCtx->currentBock = savHandle.slot.currentBlock;
   gameCtx->orientation = savHandle.slot.currentDirection;
-  gameCtx->credits = savHandle.slot.general2->credits;
+  gameCtx->credits = savHandle.slot.credits;
   gameCtx->itemIndexInHand = savHandle.slot.itemIndexInHand;
   gameCtx->selectedChar = savHandle.slot.selectedChar;
+  memcpy(gameCtx->globalScriptVars, savHandle.slot.globalScriptVars,
+         NUM_GLOBAL_SCRIPT_VARS * 2);
   memset(gameCtx->gameFlags, 0, NUM_GAME_FLAGS);
   SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
   GameContextLoadLevel(gameCtx, gameCtx->levelId);

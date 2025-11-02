@@ -700,12 +700,12 @@ static int cmdSAVShow(const char *filepath) {
   printf("orientation=%X compass=%X\n", slot->currentDirection,
          slot->compassDirection);
   printf("level %i\n", slot->currentLevel);
-  printf("credits %i\n", slot->general2->credits);
+  printf("credits %i\n", slot->credits);
   printf("inventoryCurrentItem %X\n", slot->inventoryCurrentItem);
   printf("item in hand %X\n", slot->itemIndexInHand);
   printf("+GLOBAL SCRIPT VARS2\n");
   for (int i = 0; i < NUM_GLOBAL_SCRIPT_VARS2; i++) {
-    printf("%i 0X%X\n", i, slot->general2->globalScriptVars[i]);
+    printf("%i 0X%X\n", i, slot->globalScriptVars2[i]);
   }
   printf("selected char %i\n", slot->selectedChar);
   printf("+INVENTORY\n");

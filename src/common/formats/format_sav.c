@@ -9,7 +9,6 @@
 #define CHARACTERS_OFFSET 0X4C
 #define GENERAL_OFFSET 0X254
 #define ALL_OBJECTS_OFFSET 0X487
-#define GENERAL2_OFFSET 0X460
 
 static void getCharacter(SAVCharacter *c, uint8_t *b) {
   int off = 0;
@@ -188,7 +187,43 @@ static int getSlot(const SAVHandle *handle, SAVSlot *slot) {
     off += 2;
   }
 
-  slot->general2 = (SAVGeneral2 *)(handle->buffer + GENERAL2_OFFSET);
+  off += 120; // skip
+
+  for (int i = 0; i < NUM_GLOBAL_SCRIPT_VARS; i++) {
+    slot->globalScriptVars[i] = *(uint16_t *)(b + off);
+    off += 2;
+  }
+
+  off += 152; // skip
+
+  slot->brightness = b[off];
+  off += 1;
+
+  slot->lampOilStatus = b[off];
+  off += 1;
+
+  slot->lampEffect = b[off];
+  off += 1;
+
+  off += 1; // skip
+
+  slot->credits = *(uint16_t *)(b + off);
+  off += 2;
+
+  for (int i = 0; i < NUM_GLOBAL_SCRIPT_VARS2; i++) {
+    slot->globalScriptVars2[i] = *(uint16_t *)(b + off);
+    off += 2;
+  }
+
+  for (int i = 0; i < 7; i++) {
+    slot->spells[i] = b[off];
+    off++;
+  }
+
+  slot->numTempDataFlags = *(uint32_t *)(b + off);
+  off += 4;
+  printf("got %i tempdataflags\n", slot->numTempDataFlags);
+
   slot->gameObjects = (GameObject *)(handle->buffer + ALL_OBJECTS_OFFSET);
   return 1;
 }
@@ -197,6 +232,7 @@ int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize) {
   assert(handle);
   handle->buffer = buffer;
   handle->bufferSize = bufferSize;
+  memset(&handle->slot, 0, sizeof(SAVSlot));
   return getSlot(handle, &handle->slot);
 }
 

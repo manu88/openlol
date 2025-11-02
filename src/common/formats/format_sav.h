@@ -55,17 +55,8 @@ typedef struct __attribute__((__packed__)) {
 
 #define NUM_FLAGS 40
 
+#define NUM_GLOBAL_SCRIPT_VARS 24
 #define NUM_GLOBAL_SCRIPT_VARS2 8
-
-typedef struct {
-  uint8_t brightness;
-  uint8_t lampOilStatus;
-  uint8_t lampEffect;
-  uint8_t _;
-  uint16_t credits;
-
-  uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS2];
-} SAVGeneral2;
 
 typedef struct {
   char name[46];
@@ -119,7 +110,19 @@ typedef struct {
   uint16_t flags[NUM_FLAGS]; // this gets transformed into gameFlags using
                              // SAVHandleGetGameFlags
 
-  SAVGeneral2 *general2;
+  uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS];
+
+  uint8_t brightness;
+  uint8_t lampOilStatus;
+  uint8_t lampEffect;
+
+  uint16_t credits;
+
+  uint16_t globalScriptVars2[NUM_GLOBAL_SCRIPT_VARS2];
+
+  uint8_t spells[7];
+
+  uint32_t numTempDataFlags;
 
   GameObject *gameObjects;
 } SAVSlot;

@@ -30,8 +30,6 @@
 #define MAX_MONSTERS 30
 #define MAX_IN_GAME_ITEMS 400
 
-#define NUM_GLOBAL_SCRIPT_VARS 24
-
 typedef struct {
   uint16_t stringId;
   uint16_t shapeId;
