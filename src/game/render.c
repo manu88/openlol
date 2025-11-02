@@ -2,6 +2,7 @@
 #include "SDL_mouse.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
+#include "formats/format_shp.h"
 #include "game_ctx.h"
 #include "geometry.h"
 #include "renderer.h"
@@ -31,6 +32,7 @@ void createCursorForItem(GameContext *ctx, uint16_t frameId) {
   SDL_SetCursor(ctx->cursor);
   SDL_DestroyRenderer(r);
   SDL_FreeSurface(s);
+  SHPFrameRelease(&frame);
   if (prevCursor) {
     SDL_FreeCursor(prevCursor);
   }
