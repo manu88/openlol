@@ -1,8 +1,7 @@
 #include "script_builtins.h"
-#include "game_ctx.h"
+#include "formats/format_sav.h"
 #include "logger.h"
 #include "script.h"
-#include <_stdlib.h>
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

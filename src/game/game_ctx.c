@@ -12,7 +12,6 @@
 #include "menu.h"
 #include "render.h"
 #include "script.h"
-#include <_string.h>
 #include <assert.h>
 #include <dirent.h>
 #include <libgen.h>

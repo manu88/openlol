@@ -21,7 +21,6 @@
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <_string.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

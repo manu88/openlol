@@ -1,5 +1,4 @@
 #include "logger.h"
-#include <_string.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
