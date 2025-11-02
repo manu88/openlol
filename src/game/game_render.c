@@ -112,6 +112,33 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   SHPFrameRelease(&frame);
 }
 
+static void renderCharInventoryExperience(GameContext *gameCtx,
+                                          const SAVCharacter *c,
+                                          SkillIndex index) {
+  const int x = 266;
+  const int maxW = 34;
+  float percent = 0;
+  int y = 0;
+  int32_t exp = 0;
+  int32_t req = 0;
+  GameRuleGetCharacterExpPoints(c, index, &exp, &req);
+  percent = (float)exp / (float)req;
+  printf("%i %i %f\n", exp, req, percent);
+  switch (index) {
+  case SkillIndex_Fighter:
+    y = 64;
+    break;
+  case SkillIndex_Rogue:
+    y = 74;
+    break;
+  case SkillIndex_Mage:
+    y = 84;
+    break;
+  }
+  int w = maxW * percent;
+  UIFillRect(gameCtx->pixBuf, x, y, w, 5, (SDL_Color){255, 0, 0});
+}
+
 static void renderCharInventory(GameContext *gameCtx) {
   const SAVCharacter *character = gameCtx->chars + gameCtx->selectedChar;
   renderCPSAt(gameCtx->pixBuf, gameCtx->inventoryBackground.data,
@@ -151,6 +178,8 @@ static void renderCharInventory(GameContext *gameCtx) {
   snprintf(c, 16, "%i", GameRuleGetCharacterSkillFight(character));
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
 
+  renderCharInventoryExperience(gameCtx, character, SkillIndex_Fighter);
+
   // Rogue stats
   y = 72;
   GameContextGetString(gameCtx, 0X4017, c, sizeof(c));
@@ -159,6 +188,7 @@ static void renderCharInventory(GameContext *gameCtx) {
   snprintf(c, 16, "%i", GameRuleGetCharacterSkillRogue(character));
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
 
+  renderCharInventoryExperience(gameCtx, character, SkillIndex_Rogue);
   // Mage stats
   y = 82;
   GameContextGetString(gameCtx, 0X4018, c, sizeof(c));
@@ -166,6 +196,8 @@ static void renderCharInventory(GameContext *gameCtx) {
 
   snprintf(c, 16, "%i", GameRuleGetCharacterSkillMage(character));
   UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+
+  renderCharInventoryExperience(gameCtx, character, SkillIndex_Mage);
 
   // exit button
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
