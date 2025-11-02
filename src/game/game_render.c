@@ -123,7 +123,6 @@ static void renderCharInventoryExperience(GameContext *gameCtx,
   int32_t req = 0;
   GameRuleGetCharacterExpPoints(c, index, &exp, &req);
   percent = (float)exp / (float)req;
-  printf("%i %i %f\n", exp, req, percent);
   switch (index) {
   case SkillIndex_Fighter:
     y = 64;
