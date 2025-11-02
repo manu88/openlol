@@ -1,4 +1,4 @@
-#include "game_render_inventory.h"
+#include "game_char_inventory.h"
 #include "game_rules.h"
 #include "geometry.h"
 #include "render.h"
