@@ -545,9 +545,15 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
     gameCtx->shouldUpdate = ret;
-    return;
-  }
-  if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
+  } else if (gameCtx->state == GameState_ShowInventory ||
+             gameCtx->state == GameState_ShowMap) {
+    switch (e->key.keysym.sym) {
+    case SDLK_ESCAPE:
+      GameContextSetState(gameCtx, GameState_PlayGame);
+      gameCtx->shouldUpdate = 1;
+      break;
+    }
+  } else if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
