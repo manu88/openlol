@@ -525,23 +525,10 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
     return;
   }
 
-  char *itemName = GameContextGetString2(gameCtx, gameCtx->itemProperties[itemId].stringId);
+  char *itemName =
+      GameContextGetString2(gameCtx, gameCtx->itemProperties[itemId].stringId);
   GameRenderSetDialogF(gameCtx, STR_TAKEN_INDEX, itemName);
   free(itemName);
-#if 0  
-  GameContextGetString(gameCtx, STR_TAKEN_INDEX, gameCtx->dialogTextBuffer,
-                       DIALOG_BUFFER_SIZE);
-  char *format = strdup(gameCtx->dialogTextBuffer);
-
-  uint16_t stringId = gameCtx->itemProperties[itemId].stringId;
-  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
-                       DIALOG_BUFFER_SIZE);
-
-  snprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format,
-           gameCtx->dialogTextBuffer);
-  free(format);
-  GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
-#endif
 }
 
 void GameContextExitGame(GameContext *gameCtx) { gameCtx->_shouldRun = 0; }

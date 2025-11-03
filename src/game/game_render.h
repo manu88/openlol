@@ -9,5 +9,5 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
                   uint16_t srcPage, uint16_t dstPage);
 
 void GameRenderResetDialog(GameContext *gameCtx);
-void GameRenderSetDialog(GameContext *gameCtx, char *str);
+
 void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...);

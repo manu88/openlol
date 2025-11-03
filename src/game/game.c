@@ -402,14 +402,8 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
     }
   } else {
     const SAVCharacter *c = gameCtx->chars + charIndex;
-    GameContextGetString(gameCtx, 0X4047, gameCtx->dialogTextBuffer,
-                         DIALOG_BUFFER_SIZE);
-    char *formatString = strdup(gameCtx->dialogTextBuffer);
-    snprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, formatString,
-             c->name, c->hitPointsCur, c->hitPointsMax, c->magicPointsCur,
-             c->magicPointsMax);
-    free(formatString);
-    GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
+    GameRenderSetDialogF(gameCtx, 0X4047, c->name, c->hitPointsCur,
+                         c->hitPointsMax, c->magicPointsCur, c->magicPointsMax);
   }
   return 1;
 }

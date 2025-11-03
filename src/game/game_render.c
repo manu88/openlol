@@ -362,10 +362,6 @@ void GameRender(GameContext *gameCtx) {
 
 void GameRenderResetDialog(GameContext *gameCtx) { gameCtx->dialogText = NULL; }
 
-void GameRenderSetDialog(GameContext *gameCtx, char *str) {
-  gameCtx->dialogText = str;
-}
-
 void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...) {
 
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
@@ -378,5 +374,5 @@ void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...) {
   vsnprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format, args);
   va_end(args);
   free(format);
-  GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
+  gameCtx->dialogText = gameCtx->dialogTextBuffer;
 }
