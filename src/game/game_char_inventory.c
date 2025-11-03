@@ -1,51 +1,75 @@
 #include "game_char_inventory.h"
+#include "formats/format_sav.h"
+#include "game_ctx.h"
 #include "game_rules.h"
 #include "geometry.h"
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
 
+typedef enum {
+  ItemType_Weapon = 0X05,
+  ItemType_Helm = 0X10,
+  ItemType_Shield = 0X0A,
+  ItemType_Armor = 0X20,
+  ItemType_Necklace = 0X40,
+  ItemType_Bracers = 0X40,
+  ItemType_Shoes = 0X100,
+  ItemType_Ring = 0X600,
+} ItemType;
+
 typedef struct {
-  Point hand1;
-  Point shield1;
-  Point hand2;
-  Point shield2;
-  Point helm;
-  Point armor;
-  Point necklace;
-  Point braces;
-  Point shoes;
-  Point ringRight;
-  Point ringLeft;
+  Point coords;
+  ItemType type;
+} InventorySlot;
+
+typedef struct {
+  InventorySlot slot[11];
 } InventoryLayout;
 
-#define INVALID_ITEM -1, -1
+#define INVALID_ITEM {{-1, -1}, 0}
 
-static InventoryLayout humanLayout = {
-    {117, 25},      //
-    {192, 25},      //
-    {INVALID_ITEM}, //
-    {INVALID_ITEM}, //
-    {117, 1},       //
-    {117, 49},      //
-    {192, 1},       //
-    {192, 49},      //
-    {117, 97},      //
-    {191, 78},      //
-    {126, 78},      //
-};
+static InventoryLayout humanLayout = {{
+    {{117, 25}, ItemType_Weapon},  // CharItemIndex_Hand
+    {{192, 25}, ItemType_Shield},  // CharItemIndex_Shield
+    INVALID_ITEM,                  // CharItemIndex_Hand2
+    INVALID_ITEM,                  // CharItemIndex_Shield2
+    {{117, 1}, ItemType_Helm},     // CharItemIndex_Helm
+    {{117, 49}, ItemType_Armor},   // CharItemIndex_Armor
+    {{192, 1}, ItemType_Necklace}, // CharItemIndex_Necklace
+    {{192, 49}, ItemType_Bracers}, // CharItemIndex_Bracers
+    {{117, 97}, ItemType_Shoes},   // CharItemIndex_Shoes
+    {{191, 78}, ItemType_Ring},    // CharItemIndex_RingLeft
+    {{126, 78}, ItemType_Ring},    // CharItemIndex_RingRight
+}};
 
-static InventoryLayout ulineLayout = {
-    {233 / 2, 104 / 2}, {383 / 2, 103 / 2}, {INVALID_ITEM},
-    {INVALID_ITEM},     {233 / 2, 8 / 2},   {233 / 2, 56 / 2},
-    {383 / 2, 8 / 2},   {383 / 2, 56 / 2},  {INVALID_ITEM},
-    {253 / 2, 156 / 2}, {383 / 2, 156 / 2},
-};
+static InventoryLayout ulineLayout = {{
+    {{233 / 2, 104 / 2}, ItemType_Weapon}, // CharItemIndex_Hand
+    {{383 / 2, 103 / 2}, ItemType_Shield}, // CharItemIndex_Shield
+    INVALID_ITEM,                          // CharItemIndex_Hand2
+    INVALID_ITEM,                          // CharItemIndex_Shield2
+    {{233 / 2, 8 / 2}, ItemType_Helm},     // CharItemIndex_Helm
+    {{233 / 2, 56 / 2}, ItemType_Armor},   // CharItemIndex_Armor
+    {{383 / 2, 8 / 2}, ItemType_Necklace}, // CharItemIndex_Necklace
+    {{383 / 2, 56 / 2}, ItemType_Bracers}, // CharItemIndex_Bracers
+    INVALID_ITEM,                          // CharItemIndex_Shoes
+    {{253 / 2, 156 / 2}, ItemType_Ring},   // CharItemIndex_RingLeft
+    {{383 / 2, 156 / 2}, ItemType_Ring},   // CharItemIndex_RingRight
+}};
 
-static InventoryLayout thomgogLayout = {
-    {117, 25}, {192, 25}, {117, 73}, {192, 73},      {117, 1},       {117, 49},
-    {192, 1},  {192, 49}, {117, 97}, {INVALID_ITEM}, {INVALID_ITEM},
-};
+static InventoryLayout thomgogLayout = {{
+    {{117, 25}, ItemType_Weapon},  // CharItemIndex_Hand
+    {{192, 25}, ItemType_Shield},  // CharItemIndex_Shield
+    {{117, 73}, ItemType_Weapon},  // CharItemIndex_Hand2
+    {{192, 73}, ItemType_Shield},  // CharItemIndex_Shield2
+    {{117, 1}, ItemType_Helm},     // CharItemIndex_Helm
+    {{117, 49}, ItemType_Armor},   // CharItemIndex_Armor
+    {{192, 1}, ItemType_Necklace}, // CharItemIndex_Necklace
+    {{192, 49}, ItemType_Bracers}, // CharItemIndex_Bracers
+    {{117, 97}, ItemType_Shoes},   // CharItemIndex_Shoes
+    INVALID_ITEM,                  // CharItemIndex_RingLeft
+    INVALID_ITEM,                  // CharItemIndex_RingRight
+}};
 
 static InventoryLayout *layouts[] = {
 
@@ -67,45 +91,12 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
   SHPHandleGetFrame(&gameCtx->itemShapes, &itemFrame, frameId);
   SHPFrameGetImageData(&itemFrame);
 
-  Point pt;
+  Point pt = layout->slot[itemIndex].coords;
 
   size_t bIndex = 4;
-  switch (itemIndex) {
-  case CharItemIndex_Hand:
-    pt = layout->hand1;
-    break;
-  case CharItemIndex_Shield:
-    pt = layout->shield1;
-    break;
-  case CharItemIndex_Hand2:
-    pt = layout->hand2;
-    break;
-  case CharItemIndex_Shield2:
-    pt = layout->shield2;
-    break;
-  case CharItemIndex_Helm:
-    pt = layout->helm;
-    break;
-  case CharItemIndex_Armor:
-    pt = layout->armor;
-    break;
-  case CharItemIndex_Necklace:
-    pt = layout->necklace;
-    break;
-  case CharItemIndex_Braces:
-    pt = layout->braces;
-    break;
-  case CharItemIndex_Shoes:
-    pt = layout->shoes;
-    break;
-  case CharItemIndex_RingLeft:
-    pt = layout->ringLeft;
+  if (itemIndex == CharItemIndex_RingLeft ||
+      itemIndex == CharItemIndex_RingRight) {
     bIndex = 5;
-    break;
-  case CharItemIndex_RingRight:
-    pt = layout->ringRight;
-    bIndex = 5;
-    break;
   }
 
   if (pt.x < 0 && pt.y < 0) {
@@ -250,7 +241,52 @@ void renderInventoryStrip(GameContext *gameCtx) {
   }
 }
 
+static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
+                                const InventorySlot *slot, int index) {
+  uint16_t itemIndex = character->items[index];
+  int updateCursor = 1;
+  if (gameCtx->itemIndexInHand == 0 && itemIndex) {
+    // getting item from slot
+    character->items[index] = 0;
+    gameCtx->itemIndexInHand = itemIndex;
+  } else {
+    // putting item in slot
+    const GameObject *obj = &gameCtx->itemsInGame[gameCtx->itemIndexInHand];
+    const ItemProperty *props =
+        &gameCtx->itemProperties[obj->itemPropertyIndex];
+    printf("type=%X slot type %X\n", props->type, slot->type);
+    if (props->type == slot->type) {
+      character->items[index] = gameCtx->itemIndexInHand;
+      gameCtx->itemIndexInHand = itemIndex;
+    } else {
+      updateCursor = 0;
+      GameContextGetString(gameCtx, 0X418A, gameCtx->dialogTextBuffer,
+                           DIALOG_BUFFER_SIZE);
+      gameCtx->dialogText = gameCtx->dialogTextBuffer;
+      printf("'%s'\n", gameCtx->dialogText);
+    }
+  }
+  if (updateCursor) {
+    GameContextUpdateCursor(gameCtx);
+  }
+}
+
 int processCharInventoryItemsMouse(GameContext *gameCtx) {
   printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+  SAVCharacter *character = gameCtx->chars + gameCtx->selectedChar;
+  int id = character->id < 0 ? -character->id : character->id;
+  int invType = inventoryTypeForId[id];
+  const InventoryLayout *layout = layouts[invType];
+  for (int i = 0; i < 11; i++) {
+    if (layout->slot[i].coords.x < 0 && layout->slot[i].coords.y < 0) {
+      continue;
+    }
+    if (zoneClicked(&gameCtx->mouseEv.pos, layout->slot[i].coords.x,
+                    layout->slot[i].coords.y, 20, 20)) {
+      printf("Item Click %i\n", i);
+      selectFromCharItems(gameCtx, character, &layout->slot[i], i);
+      return 1;
+    }
+  }
   return 0;
 }

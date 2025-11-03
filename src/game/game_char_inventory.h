@@ -9,7 +9,7 @@ typedef enum {
   CharItemIndex_Helm = 4,
   CharItemIndex_Armor = 5,
   CharItemIndex_Necklace = 6,
-  CharItemIndex_Braces = 7,
+  CharItemIndex_Bracers = 7,
   CharItemIndex_Shoes = 8,
   CharItemIndex_RingLeft = 9,
   CharItemIndex_RingRight = 10,

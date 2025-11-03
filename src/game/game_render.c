@@ -33,6 +33,7 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
 void renderDialog(GameContext *gameCtx) {
   UISetDefaultStyle();
   if (gameCtx->dialogText) {
+    printf("renderDialog: '%s'\n", gameCtx->dialogText);
     UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BOX_X + 5,
                  DIALOG_BOX_Y + 2, DIALOG_BOX_W - 5, gameCtx->dialogText);
   }
