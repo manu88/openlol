@@ -265,6 +265,9 @@ uint8_t GameContextGetNumChars(const GameContext *ctx);
 
 uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
                               char *outBuffer, size_t outBufferSize);
+
+// string needs to be freed!
+char *GameContextGetString2(const GameContext *ctx, uint16_t stringId);
 uint16_t GameContextGetLevelName(const GameContext *gameCtx, char *outBuffer,
                                  size_t outBufferSize);
 

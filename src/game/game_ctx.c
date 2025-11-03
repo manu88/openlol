@@ -444,6 +444,13 @@ uint8_t GameContextGetNumChars(const GameContext *ctx) {
   return c;
 }
 
+char *GameContextGetString2(const GameContext *ctx, uint16_t stringId) {
+  char *s = malloc(DIALOG_BUFFER_SIZE);
+  assert(s);
+  GameContextGetString(ctx, stringId, s, DIALOG_BUFFER_SIZE);
+  return s;
+}
+
 uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
                               char *outBuffer, size_t outBufferSize) {
   uint8_t useLevelFile = 0;
@@ -518,6 +525,10 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
     return;
   }
 
+  char *itemName = GameContextGetString2(gameCtx, gameCtx->itemProperties[itemId].stringId);
+  GameRenderSetDialogF(gameCtx, STR_TAKEN_INDEX, itemName);
+  free(itemName);
+#if 0  
   GameContextGetString(gameCtx, STR_TAKEN_INDEX, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   char *format = strdup(gameCtx->dialogTextBuffer);
@@ -530,6 +541,7 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
            gameCtx->dialogTextBuffer);
   free(format);
   GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
+#endif
 }
 
 void GameContextExitGame(GameContext *gameCtx) { gameCtx->_shouldRun = 0; }

@@ -13,6 +13,7 @@
 #include "ui.h"
 #include <assert.h>
 #include <ctype.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -363,4 +364,19 @@ void GameRenderResetDialog(GameContext *gameCtx) { gameCtx->dialogText = NULL; }
 
 void GameRenderSetDialog(GameContext *gameCtx, char *str) {
   gameCtx->dialogText = str;
+}
+
+void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...) {
+
+  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
+                       DIALOG_BUFFER_SIZE);
+  char *format = strdup(gameCtx->dialogTextBuffer);
+  //  int numArgs = countStringArgs(format);
+
+  va_list args;
+  va_start(args, stringId);
+  vsnprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format, args);
+  va_end(args);
+  free(format);
+  GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
 }

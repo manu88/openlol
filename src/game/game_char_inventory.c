@@ -7,6 +7,7 @@
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
+#include <stdint.h>
 
 typedef enum {
   ItemType_Weapon = 0X05,
@@ -14,7 +15,7 @@ typedef enum {
   ItemType_Shield = 0X0A,
   ItemType_Armor = 0X20,
   ItemType_Necklace = 0X40,
-  ItemType_Bracers = 0X40,
+  ItemType_Bracers = 0X80,
   ItemType_Shoes = 0X100,
   ItemType_Ring = 0X600,
 } ItemType;
@@ -242,6 +243,50 @@ void renderInventoryStrip(GameContext *gameCtx) {
   }
 }
 
+static uint16_t getSlotDescStringID(ItemType type) {
+  switch (type) {
+  case ItemType_Weapon:
+    return 0X4182;
+  case ItemType_Shield:
+    return 0X4183;
+  case ItemType_Helm:
+    return 0X4184;
+  case ItemType_Armor:
+    return 0X4185;
+  case ItemType_Necklace:
+    return 0X4186;
+  case ItemType_Bracers:
+    return 0X4187;
+  case ItemType_Shoes:
+    return 0X4188;
+  case ItemType_Ring:
+    return 0X4189;
+  }
+  assert(0);
+}
+
+static uint16_t getSlotNameStringID(ItemType type) {
+  switch (type) {
+  case ItemType_Weapon:
+    return 0X417A;
+  case ItemType_Shield:
+    return 0X417B;
+  case ItemType_Helm:
+    return 0X417C;
+  case ItemType_Armor:
+    return 0X417D;
+  case ItemType_Necklace:
+    return 0X417E;
+  case ItemType_Bracers:
+    return 0X417F;
+  case ItemType_Shoes:
+    return 0X4180;
+  case ItemType_Ring:
+    return 0X4181;
+  }
+  assert(0);
+}
+
 static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
                                 const InventorySlot *slot, int index) {
   uint16_t itemIndex = character->items[index];
@@ -259,11 +304,15 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
     if (props->type == slot->type) {
       character->items[index] = gameCtx->itemIndexInHand;
       gameCtx->itemIndexInHand = itemIndex;
-    } else {
+    } else if (gameCtx->itemIndexInHand) {
       updateCursor = 0;
-      GameContextGetString(gameCtx, 0X418A, gameCtx->dialogTextBuffer,
-                           DIALOG_BUFFER_SIZE);
-      GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
+      char *itemName = GameContextGetString2(gameCtx, props->stringId);
+      char *destName =
+          GameContextGetString2(gameCtx, getSlotNameStringID(slot->type));
+      GameRenderSetDialogF(gameCtx, 0X418A, itemName, destName);
+      free(itemName);
+    } else {
+      GameRenderSetDialogF(gameCtx, getSlotDescStringID(slot->type));
     }
   }
   if (updateCursor) {
