@@ -529,7 +529,7 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
   snprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format,
            gameCtx->dialogTextBuffer);
   free(format);
-  GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
+  GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
 }
 
 void GameContextExitGame(GameContext *gameCtx) { gameCtx->_shouldRun = 0; }

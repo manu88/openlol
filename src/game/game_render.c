@@ -361,6 +361,6 @@ void GameRender(GameContext *gameCtx) {
 
 void GameRenderResetDialog(GameContext *gameCtx) { gameCtx->dialogText = NULL; }
 
-void GameRenderDialog(GameContext *gameCtx, char *str) {
+void GameRenderSetDialog(GameContext *gameCtx, char *str) {
   gameCtx->dialogText = str;
 }

@@ -263,7 +263,7 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
       updateCursor = 0;
       GameContextGetString(gameCtx, 0X418A, gameCtx->dialogTextBuffer,
                            DIALOG_BUFFER_SIZE);
-      GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
+      GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
     }
   }
   if (updateCursor) {

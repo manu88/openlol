@@ -30,7 +30,7 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   assert(ctx);
   Log(LOG_PREFIX, "callbackPlayDialogue %x %x %x", charId, mode, strId);
   GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
-  GameRenderDialog(ctx, ctx->dialogTextBuffer);
+  GameRenderSetDialog(ctx, ctx->dialogTextBuffer);
 }
 
 static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
@@ -39,7 +39,7 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
   assert(ctx);
   Log(LOG_PREFIX, "callbackPrintMessage %x %x %x", type, strId, soundId);
   GameContextGetString(ctx, strId, ctx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
-  GameRenderDialog(ctx, ctx->dialogTextBuffer);
+  GameRenderSetDialog(ctx, ctx->dialogTextBuffer);
 }
 
 static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,

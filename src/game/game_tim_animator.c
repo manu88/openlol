@@ -71,7 +71,7 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
 
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
-  GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
+  GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
 }
 
 static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,

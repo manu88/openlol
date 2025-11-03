@@ -409,7 +409,7 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
              c->name, c->hitPointsCur, c->hitPointsMax, c->magicPointsCur,
              c->magicPointsMax);
     free(formatString);
-    GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
+    GameRenderSetDialog(gameCtx, gameCtx->dialogTextBuffer);
   }
   return 1;
 }
