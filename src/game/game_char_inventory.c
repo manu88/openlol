@@ -1,6 +1,7 @@
 #include "game_char_inventory.h"
 #include "formats/format_sav.h"
 #include "game_ctx.h"
+#include "game_render.h"
 #include "game_rules.h"
 #include "geometry.h"
 #include "render.h"
@@ -262,8 +263,7 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
       updateCursor = 0;
       GameContextGetString(gameCtx, 0X418A, gameCtx->dialogTextBuffer,
                            DIALOG_BUFFER_SIZE);
-      gameCtx->dialogText = gameCtx->dialogTextBuffer;
-      printf("'%s'\n", gameCtx->dialogText);
+      GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
     }
   }
   if (updateCursor) {

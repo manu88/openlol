@@ -8,6 +8,7 @@
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_envir.h"
+#include "game_render.h"
 #include "game_tim_animator.h"
 #include "menu.h"
 #include "render.h"
@@ -332,7 +333,7 @@ int GameContextStartup(GameContext *ctx) {
 }
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum) {
-  ctx->dialogText = NULL;
+  GameRenderResetDialog(ctx);
 
   GameEnvironmentLoadLevel(levelNum);
   {
@@ -484,7 +485,7 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
       gameCtx->buttonText[i] = NULL;
     }
   }
-  gameCtx->dialogText = NULL;
+  GameRenderResetDialog(gameCtx);
 }
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
@@ -528,7 +529,7 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
   snprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format,
            gameCtx->dialogTextBuffer);
   free(format);
-  gameCtx->dialogText = gameCtx->dialogTextBuffer;
+  GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
 }
 
 void GameContextExitGame(GameContext *gameCtx) { gameCtx->_shouldRun = 0; }

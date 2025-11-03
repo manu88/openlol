@@ -4,6 +4,7 @@
 #include "formats/format_wsa.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "game_render.h"
 #include "tim_interpreter.h"
 #include <assert.h>
 #include <stdint.h>
@@ -70,7 +71,7 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
 
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
-  gameCtx->dialogText = gameCtx->dialogTextBuffer;
+  GameRenderDialog(gameCtx, gameCtx->dialogTextBuffer);
 }
 
 static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
