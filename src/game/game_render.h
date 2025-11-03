@@ -1,8 +1,6 @@
 #pragma once
 #include "game_ctx.h"
 
-void renderDialog(GameContext *gameCtx);
-
 void GameRender(GameContext *gameCtx);
 
 void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
