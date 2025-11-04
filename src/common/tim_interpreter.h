@@ -16,6 +16,9 @@ typedef struct {
   void (*TIMInterpreterCallbacks_PlayDialogue)(TIMInterpreter *interp,
                                                uint16_t strId, int argc,
                                                const uint16_t *argv);
+  void (*TIMInterpreterCallbacks_CharChat)(TIMInterpreter *interp,
+                                           uint16_t charId, uint16_t mode,
+                                           uint16_t stringId);
   void (*TIMInterpreterCallbacks_ShowDialogButtons)(
       TIMInterpreter *interp, uint16_t functionId,
       const uint16_t buttonStrIds[3]);
@@ -30,6 +33,11 @@ typedef struct {
   uint16_t (*TIMInterpreterCallbacks_GiveItem)(TIMInterpreter *interp,
                                                uint16_t param0, uint16_t param1,
                                                uint16_t param2);
+  void (*TIMInterpreterCallbacks_CopyPage)(TIMInterpreter *interp,
+                                           uint16_t srcX, uint16_t srcY,
+                                           uint16_t destX, uint16_t destY,
+                                           uint16_t w, uint16_t h,
+                                           uint16_t srcPage, uint16_t dstPage);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {

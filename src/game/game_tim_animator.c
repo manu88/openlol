@@ -65,6 +65,17 @@ static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   WSAHandleRelease(&gameCtx->animator.wsa);
 }
 
+static void callbackTIM_CharChat(TIMInterpreter *interp, uint16_t charId,
+                                 uint16_t mode, uint16_t stringId) {
+  printf(
+      "GameTimAnimator: callbackTIM_CharChat charId=%x mode=%x stringId=%x\n",
+      charId, mode, stringId);
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
+                       DIALOG_BUFFER_SIZE);
+  GameRenderSetDialogF(gameCtx, stringId);
+}
+
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
                                      int argc, const uint16_t *argv) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -91,6 +102,14 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
     GameContextGetString(gameCtx, buttonStrIds[i], gameCtx->buttonText[i], 16);
     printf("button %i = %s\n", i, gameCtx->buttonText[i]);
   }
+}
+
+static void callbackTIM_CopyPage(TIMInterpreter *interp, uint16_t srcX,
+                                 uint16_t srcY, uint16_t destX, uint16_t destY,
+                                 uint16_t w, uint16_t h, uint16_t srcPage,
+                                 uint16_t dstPage) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameCopyPage(gameCtx, srcX, srcY, destX, destY, w, h, srcPage, dstPage);
 }
 
 static void callbackTIM_InitSceneDialog(TIMInterpreter *interp,
@@ -134,6 +153,10 @@ void GameTimInterpreterInit(GameTimInterpreter *timInterpreter,
   timInterpreter->timInterpreter.callbacks
       .TIMInterpreterCallbacks_RestoreAfterSceneDialog =
       callbackTIM_RestoreAfterSceneDialog;
+  timInterpreter->timInterpreter.callbacks.TIMInterpreterCallbacks_CharChat =
+      callbackTIM_CharChat;
+  timInterpreter->timInterpreter.callbacks.TIMInterpreterCallbacks_CopyPage =
+      callbackTIM_CopyPage;
 }
 
 void GameTimInterpreterRelease(GameTimInterpreter *animator) {

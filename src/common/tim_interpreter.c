@@ -56,6 +56,8 @@ typedef enum {
   TIM_OPCODE_GIVE_ITEM = 0X03,
   TIM_OPCODE_SET_PARTY_POS = 0X04,
   TIM_OPCODE_FADE_CLEAR_WINDOW = 0X05,
+  TIM_OPCODE_COPY_REGION = 0X06,
+  TIM_OPCODE_CHAR_CHAT = 0X07,
   TIM_OPCODE_CLEAR_TEXT_FIELD = 0X0A,
   TIM_OPCODE_LOAD_SOUND_FILE = 0X0B,
   TIM_OPCODE_PLAY_MUSIC_TRACK = 0X0C,
@@ -130,6 +132,15 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     break;
   case TIM_OPCODE_PLAY_SOUND_FX:
     printf("\t TIM_OPCODE_PLAY_SOUND_FX %i params\n", numParams);
+    break;
+  case TIM_OPCODE_COPY_REGION:
+    interp->callbacks.TIMInterpreterCallbacks_CopyPage(
+        interp, params[0], params[1], params[2], params[3], params[4],
+        params[5], params[6], params[7]);
+    break;
+  case TIM_OPCODE_CHAR_CHAT:
+    interp->callbacks.TIMInterpreterCallbacks_CharChat(interp, params[0],
+                                                       params[1], params[2]);
     break;
   default:
     printf("Unimplemented TIM Opcode %X\n", timOpCode);
