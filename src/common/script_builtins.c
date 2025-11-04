@@ -321,7 +321,7 @@ static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
   uint16_t w = EMCStateStackVal(state, 4);
   uint16_t h = EMCStateStackVal(state, 5);
   uint16_t srcPage = EMCStateStackVal(state, 6);
-  uint16_t dstPage = EMCStateStackVal(state, 6);
+  uint16_t dstPage = EMCStateStackVal(state, 7);
   interp->callbacks.EMCInterpreterCallbacks_CopyPage(
       interp, srcX, srcY, destX, destY, w, h, srcPage, dstPage);
   return 1;
