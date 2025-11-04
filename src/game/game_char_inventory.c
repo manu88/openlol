@@ -32,31 +32,31 @@ typedef struct {
 #define INVALID_ITEM {{-1, -1}, 0}
 
 static InventoryLayout humanLayout = {{
-    {{117, 25}, ItemType_Weapon},  // CharItemIndex_Hand
+    {{117, 28}, ItemType_Weapon},  // CharItemIndex_Hand
     {{192, 25}, ItemType_Shield},  // CharItemIndex_Shield
     INVALID_ITEM,                  // CharItemIndex_Hand2
     INVALID_ITEM,                  // CharItemIndex_Shield2
     {{117, 1}, ItemType_Helm},     // CharItemIndex_Helm
-    {{117, 49}, ItemType_Armor},   // CharItemIndex_Armor
+    {{117, 52}, ItemType_Armor},   // CharItemIndex_Armor
     {{192, 1}, ItemType_Necklace}, // CharItemIndex_Necklace
     {{192, 49}, ItemType_Bracers}, // CharItemIndex_Bracers
-    {{117, 97}, ItemType_Shoes},   // CharItemIndex_Shoes
+    {{117, 93}, ItemType_Shoes},   // CharItemIndex_Shoes
     {{191, 78}, ItemType_Ring},    // CharItemIndex_RingLeft
     {{126, 78}, ItemType_Ring},    // CharItemIndex_RingRight
 }};
 
 static InventoryLayout ulineLayout = {{
-    {{233 / 2, 104 / 2}, ItemType_Weapon}, // CharItemIndex_Hand
-    {{383 / 2, 103 / 2}, ItemType_Shield}, // CharItemIndex_Shield
-    INVALID_ITEM,                          // CharItemIndex_Hand2
-    INVALID_ITEM,                          // CharItemIndex_Shield2
-    {{233 / 2, 8 / 2}, ItemType_Helm},     // CharItemIndex_Helm
-    {{233 / 2, 56 / 2}, ItemType_Armor},   // CharItemIndex_Armor
-    {{383 / 2, 8 / 2}, ItemType_Necklace}, // CharItemIndex_Necklace
-    {{383 / 2, 56 / 2}, ItemType_Bracers}, // CharItemIndex_Bracers
-    INVALID_ITEM,                          // CharItemIndex_Shoes
-    {{253 / 2, 156 / 2}, ItemType_Ring},   // CharItemIndex_RingLeft
-    {{383 / 2, 156 / 2}, ItemType_Ring},   // CharItemIndex_RingRight
+    {{117, 52}, ItemType_Weapon},  // CharItemIndex_Hand
+    {{192, 52}, ItemType_Shield},  // CharItemIndex_Shield
+    INVALID_ITEM,                  // CharItemIndex_Hand2
+    INVALID_ITEM,                  // CharItemIndex_Shield2
+    {{117, 4}, ItemType_Helm},     // CharItemIndex_Helm
+    {{117, 28}, ItemType_Armor},   // CharItemIndex_Armor
+    {{192, 4}, ItemType_Necklace}, // CharItemIndex_Necklace
+    {{192, 28}, ItemType_Bracers}, // CharItemIndex_Bracers
+    INVALID_ITEM,                  // CharItemIndex_Shoes
+    {{127, 78}, ItemType_Ring},    // CharItemIndex_RingLeft
+    {{192, 78}, ItemType_Ring},    // CharItemIndex_RingRight
 }};
 
 static InventoryLayout thomgogLayout = {{
@@ -93,24 +93,27 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
   SHPHandleGetFrame(&gameCtx->itemShapes, &itemFrame, frameId);
   SHPFrameGetImageData(&itemFrame);
 
-  Point pt = layout->slot[itemIndex].coords;
-
+  Point itemPt = layout->slot[itemIndex].coords;
+  Point backgroundPt = itemPt;
   size_t bIndex = 4;
   if (itemIndex == CharItemIndex_RingLeft ||
       itemIndex == CharItemIndex_RingRight) {
     bIndex = 5;
+    itemPt.x -= 4;
+    itemPt.y -= 4;
   }
 
-  if (pt.x < 0 && pt.y < 0) {
+  if (itemPt.x < 0 && itemPt.y < 0) {
     return;
   }
   SHPFrame bFrame = {0};
 
   SHPHandleGetFrame(&gameCtx->gameShapes, &bFrame, bIndex);
   SHPFrameGetImageData(&bFrame);
-  drawSHPFrame(gameCtx->pixBuf, &bFrame, pt.x, pt.y, gameCtx->defaultPalette);
+  drawSHPFrame(gameCtx->pixBuf, &bFrame, backgroundPt.x, backgroundPt.y,
+               gameCtx->defaultPalette);
   SHPFrameRelease(&bFrame);
-  drawSHPFrame(gameCtx->pixBuf, &itemFrame, pt.x, pt.y,
+  drawSHPFrame(gameCtx->pixBuf, &itemFrame, itemPt.x, itemPt.y,
                gameCtx->defaultPalette);
   SHPFrameRelease(&itemFrame);
 }
@@ -321,7 +324,6 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
 }
 
 int processCharInventoryItemsMouse(GameContext *gameCtx) {
-  printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
   SAVCharacter *character = gameCtx->chars + gameCtx->selectedChar;
   int id = character->id < 0 ? -character->id : character->id;
   int invType = inventoryTypeForId[id];
@@ -330,9 +332,14 @@ int processCharInventoryItemsMouse(GameContext *gameCtx) {
     if (layout->slot[i].coords.x < 0 && layout->slot[i].coords.y < 0) {
       continue;
     }
+    int width = 20;
+    int height = 20;
+    if (layout->slot[i].type == ItemType_Ring) {
+      width = 12;
+      height = 11;
+    }
     if (zoneClicked(&gameCtx->mouseEv.pos, layout->slot[i].coords.x,
-                    layout->slot[i].coords.y, 20, 20)) {
-      printf("Item Click %i\n", i);
+                    layout->slot[i].coords.y, width, height)) {
       selectFromCharItems(gameCtx, character, &layout->slot[i], i);
       return 1;
     }
