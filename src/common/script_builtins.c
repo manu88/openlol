@@ -90,7 +90,7 @@ static uint16_t rollDice(EMCInterpreter *interp, EMCState *state) {
 static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] enableSysTimer\n");
   // ASSERT_UNIMPLEMENTED;
-  return 0;
+  return 1;
 }
 
 static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
@@ -218,7 +218,7 @@ static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t fadePalette(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] fadePalette\n");
-  return 0;
+  return 1;
 }
 
 static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
@@ -231,7 +231,7 @@ static uint16_t loadBitmap(EMCInterpreter *interp, EMCState *state) {
 static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
                                         EMCState *state) {
   printf("[UNIMPLEMENTED] stopBackgroundAnimation\n");
-  return 0;
+  return 1;
 }
 
 void calcCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
@@ -247,9 +247,31 @@ static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
-  printf("initMonster\n");
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  uint16_t p3 = EMCStateStackVal(state, 3);
+  uint16_t monsterType = EMCStateStackVal(state, 4);
+  uint16_t p5 = EMCStateStackVal(state, 5);
+  uint16_t p6 = EMCStateStackVal(state, 6);
+  uint16_t p7 = EMCStateStackVal(state, 7);
+  uint16_t p8 = EMCStateStackVal(state, 8);
+  uint16_t p9 = EMCStateStackVal(state, 9);
+  uint16_t p10 = EMCStateStackVal(state, 10);
+  printf("initMonster %X %X %X %X monsterType=%X %X %X %X %X %X %X\n", p0, p1,
+         p2, p3, monsterType, p5, p6, p7, p8, p9, p10);
   ASSERT_UNIMPLEMENTED;
   return 1;
+}
+
+static uint16_t countSpecificMonsters(EMCInterpreter *interp, EMCState *state) {
+  printf("countSpecificMonsters\n");
+  return 0;
+}
+
+static uint16_t countAllMonsters(EMCInterpreter *interp, EMCState *state) {
+  printf("countAllMonsters\n");
+  return 0;
 }
 
 static uint16_t setGlobalVar(EMCInterpreter *interp, EMCState *state) {
@@ -383,7 +405,7 @@ static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
 }
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] playSoundEffect\n");
-  return 0;
+  return 1;
 }
 
 static uint16_t playCharacterScriptChat(EMCInterpreter *interp,
@@ -477,6 +499,13 @@ static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
 
   interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics(interp, file,
                                                               paletteFile);
+  return 1;
+}
+
+static uint16_t checkBlockForMonster(EMCInterpreter *interp, EMCState *state) {
+  uint16_t block = EMCStateStackVal(state, 0);
+  uint16_t id = EMCStateStackVal(state, 1) | 0x8000;
+  printf("checkBlockForMonster block=%x id=%x\n", block, id);
   return 1;
 }
 
@@ -604,13 +633,13 @@ static uint16_t checkMonsterTypeHostility(EMCInterpreter *interp,
 
 static uint16_t savePage5(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] savePage5\n");
-  return 0;
+  return 1;
 }
 
 static uint16_t restorePage5(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] restorePage5\n");
   // ASSERT_UNIMPLEMENTED;
-  return 0;
+  return 1;
 }
 
 static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
@@ -850,7 +879,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {countAllMonsters, "countAllMonsters"},
     {NULL},
     // 0X6A
     {stopPortraitSpeechAnim, "stopPortraitSpeechAnim"},
@@ -883,7 +912,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {triggerEventOnMouseButtonClick, "triggerEventOnMouseButtonClick"},
     {NULL},
-    {NULL},
+    {countSpecificMonsters, "countSpecificMonsters"},
     {NULL},
     {NULL},
     {NULL},
@@ -906,7 +935,7 @@ static ScriptFunDesc functions[] = {
     {assignCustomSfx, "assignCustomSfx"},
     {NULL},
     {NULL},
-    {NULL},
+    {checkBlockForMonster, "checkBlockForMonster"},
     {NULL},
     {NULL},
 
@@ -939,7 +968,7 @@ static ScriptFunDesc functions[] = {
     // B0
     {paletteFlash, "paletteFlash"},
     {NULL},
-    {NULL},
+    {return1, "stubB2"},
     {disableControls, "disableControls"},
     {enableControls, "enableControls"},
 };
