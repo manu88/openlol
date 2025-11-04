@@ -3,6 +3,7 @@
 #include "SDL_render.h"
 #include "formats/format_cps.h"
 #include "formats/format_lang.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_char_inventory.h"
 #include "game_ctx.h"
@@ -11,12 +12,14 @@
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
+#include <_string.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
@@ -362,12 +365,55 @@ void GameRender(GameContext *gameCtx) {
 
 void GameRenderResetDialog(GameContext *gameCtx) { gameCtx->dialogText = NULL; }
 
-void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...) {
+static inline int stringHasCharName(const char *s, int startIndex) {
+  size_t strLen = strlen(s);
+  int i = 0;
+  if (startIndex) {
+    i = startIndex + 1;
+  }
+  for (; i < strLen; i++) {
+    if (s[i] == '%') {
+      if (i + 1 >= strLen) {
+        return -1;
+      }
+      char next = s[i + 1];
+      if (next == 'n') {
+        return i;
+      } // XXX handle other special string aliasing types here if any
+    }
+  }
+  return -1;
+}
 
+static inline char *stringReplaceHeroNameAt(GameContext *gameCtx, char *string,
+                                            size_t bufferSize, int index) {
+  const char *heroName = gameCtx->chars[0].name;
+  size_t totalNewSize = strlen(string) - 2 + strlen(heroName) + 1;
+  assert(totalNewSize < bufferSize);
+  char *newStr = malloc(totalNewSize);
+  memcpy(newStr, string, index);
+  newStr[index] = 0;
+
+  strcat(newStr, heroName);
+  strcat(newStr, string + index + 2);
+  return newStr;
+}
+
+void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...) {
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   char *format = strdup(gameCtx->dialogTextBuffer);
-  //  int numArgs = countStringArgs(format);
+
+  int placeholderIndex = 0;
+  do {
+    placeholderIndex = stringHasCharName(format, placeholderIndex);
+    if (placeholderIndex != -1) {
+      char *newFormat = stringReplaceHeroNameAt(
+          gameCtx, format, DIALOG_BUFFER_SIZE, placeholderIndex);
+      free(format);
+      format = newFormat;
+    }
+  } while (placeholderIndex != -1);
 
   va_list args;
   va_start(args, stringId);
