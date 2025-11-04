@@ -141,6 +141,10 @@ static void inspectFrontWall(GameContext *gameCtx) {
   }
 }
 
+static void runBlockScript(GameContext *gameCtx) {
+  GameContextRunScript(gameCtx, gameCtx->currentBock);
+}
+
 static void clickOnFrontWall(GameContext *gameCtx) {
   uint16_t nextBlock =
       BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
@@ -368,6 +372,7 @@ static int tryMove(GameContext *gameCtx, Direction dir) {
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   if (mapping == NULL || mapping->wallType == 0 || mapping->wallType == 3) {
     gameCtx->currentBock = newBlock;
+    runBlockScript(gameCtx);
   } else {
     GameContextGetString(gameCtx, STR_CANT_GO_THAT_WAY_INDEX,
                          gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
@@ -578,7 +583,7 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       break;
     case SDLK_SPACE:
       gameCtx->shouldUpdate = 1;
-      clickOnFrontWall(gameCtx);
+      runBlockScript(gameCtx);
       break;
     case SDLK_ESCAPE:
       GameContextSetState(gameCtx, GameState_GameMenu);
