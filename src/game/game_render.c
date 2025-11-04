@@ -28,7 +28,10 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
   if (w == 320) {
     return;
   }
-  assert(gameCtx->loadedbitMap.data);
+  if (!gameCtx->loadedbitMap.data) {
+    printf("[UNIMPLEMENTED] GameCopyPage: no loaded bitmap\n");
+    return;
+  }
   renderCPSAt(gameCtx->pixBuf, gameCtx->loadedbitMap.data,
               gameCtx->loadedbitMap.imageSize, gameCtx->loadedbitMap.palette,
               destX, destY, w, h, 320, 200);
