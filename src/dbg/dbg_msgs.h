@@ -3,30 +3,31 @@
 
 #define DBG_PORT 9000
 
+// Keep in sync with tools/dbg.py!
 typedef enum {
   DBGMsgType_Hello = 0,
-  DBGMsgType_Goodbye,
+  DBGMsgType_Goodbye = 1,
 
-  DBGMsgType_StatusRequest,
-  DBGMsgType_StatusResponse,
+  DBGMsgType_StatusRequest = 2,
+  DBGMsgType_StatusResponse = 3,
 
-  DBGMsgType_GiveItemRequest,
-  DBGMsgType_GiveItemResponse,
+  DBGMsgType_GiveItemRequest = 4,
+  DBGMsgType_GiveItemResponse = 5,
 
-  DBGMsgType_SetStateRequest,
-  DBGMsgType_SetStateResponse,
+  DBGMsgType_SetStateRequest = 6,
+  DBGMsgType_SetStateResponse = 7,
 
-  DBGMsgType_QuitRequest,
-  DBGMsgType_QuitResponse,
+  DBGMsgType_QuitRequest = 8,
+  DBGMsgType_QuitResponse = 9,
 
-  DBGMsgType_NoClipRequest,
-  DBGMsgType_NoClipResponse,
+  DBGMsgType_NoClipRequest = 10,
+  DBGMsgType_NoClipResponse = 11,
 
-  DBGMsgType_SetLoggerRequest,
-  DBGMsgType_SetLoggerResponse,
+  DBGMsgType_SetLoggerRequest = 12,
+  DBGMsgType_SetLoggerResponse = 13,
 
-  DBGMsgType_SetVarRequest,
-  DBGMsgType_SetVarResponse,
+  DBGMsgType_SetVarRequest = 14,
+  DBGMsgType_SetVarResponse = 15,
 
 } DBGMsgType;
 
