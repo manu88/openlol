@@ -38,6 +38,7 @@ typedef struct {
 
 typedef struct {
   uint16_t currentBock;
+  uint8_t gameFlags[100];
 } DBGMsg_Status;
 
 typedef struct {

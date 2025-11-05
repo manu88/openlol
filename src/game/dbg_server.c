@@ -22,8 +22,7 @@ static uint8_t recvBuf[1024];
 void DBGServerRelease(void) {
   printf("DBGServerRelease\n");
   if (cltSocket != -1) {
-    DBGMsg_Header outHeader = {.type = DBGMsgType_Goodbye,
-                               sizeof(DBGMsg_Status)};
+    DBGMsg_Header outHeader = {.type = DBGMsgType_Goodbye, 0};
     write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
   }
   close(cltSocket);
@@ -70,6 +69,7 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsg_Header *header,
                                sizeof(DBGMsg_Status)};
     write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
     DBGMsg_Status s = {.currentBock = gameCtx->currentBock};
+    memcpy(s.gameFlags, gameCtx->gameFlags, NUM_GAME_FLAGS);
     write(cltSocket, &s, sizeof(DBGMsg_Status));
   } break;
   case DBGMsgType_GiveItemRequest: {
