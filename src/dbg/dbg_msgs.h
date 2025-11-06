@@ -3,7 +3,7 @@
 
 #define DBG_PORT 9000
 
-// Keep in sync with tools/dbg.py!
+// Keep in sync with tools/dbg_connector.py!
 typedef enum {
   DBGMsgType_Hello = 0,
   DBGMsgType_Goodbye = 1,
