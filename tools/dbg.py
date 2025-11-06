@@ -9,6 +9,11 @@ class ToolViews(StrEnum):
     OTHER = "other"
 
 
+class StatusFrame(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master, bg="green")
+
+
 class UIDebugger:
     def __init__(self, conn: Connection):
         self.conn = conn
@@ -23,6 +28,7 @@ class UIDebugger:
 
         self.last_status = MsgStatus()
 
+        self.status_frame = StatusFrame(self.right_frame)
         self.setup_left()
         self.setup_right()
         self.setup_status_view()
@@ -32,20 +38,19 @@ class UIDebugger:
 
     def setup_right(self):
         self.tool_frames = {
-            ToolViews.STATUS: tk.Frame(self.right_frame, bg="green"),
+            ToolViews.STATUS: self.status_frame,
             ToolViews.OTHER: tk.Frame(self.right_frame, bg="yellow"),
         }
 
     def setup_status_view(self):
-        frame = self.tool_frames[ToolViews.STATUS]
         self.str_var = tk.StringVar()
         self.game_flags_var = [tk.StringVar() for _ in range(10)]
-        tk.Label(master=frame,
+        tk.Label(master=self.status_frame,
                  textvariable=self.str_var).pack()
         self.game_flags_var = []
         for i in range(10):
             self.game_flags_var.append(tk.StringVar())
-            tk.Label(master=frame,
+            tk.Label(master=self.status_frame,
                      textvariable=self.game_flags_var[i]).pack()
 
     def setup_left(self):
