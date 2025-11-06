@@ -28,7 +28,7 @@ class DBGMsgType(IntEnum):
 msg_header_struct = "@BI"
 msg_header_struct_size = 8
 
-msg_status_response = "@H"
+msg_status_response = "@H100B"
 
 
 class DBGMsgHeader:
@@ -43,9 +43,11 @@ class DBGMsgHeader:
 class MsgStatus:
     def __init__(self, data=None):
         self.current_block = 0
+        self.game_flags = [0 for _ in range(100)]
         if (data):
             fields = struct.unpack(msg_status_response, data)
             self.current_block = fields[0]
+            self.game_flags = fields[1:]
 
     def __str__(self):
         return f"current block {self.current_block}"
@@ -119,8 +121,14 @@ class UIDebugger:
     def setup_status_view(self):
         frame = self.tool_frames[ToolViews.STATUS]
         self.str_var = tk.StringVar()
+        self.game_flags_var = [tk.StringVar() for _ in range(10)]
         tk.Label(master=frame,
                  textvariable=self.str_var).pack()
+        self.game_flags_var = []
+        for i in range(10):
+            self.game_flags_var.append(tk.StringVar())
+            tk.Label(master=frame,
+                     textvariable=self.game_flags_var[i]).pack()
 
     def setup_left(self):
         self.go = tk.Button(master=self.left_frame,
@@ -150,6 +158,12 @@ class UIDebugger:
         print("get status")
         self.last_status = self.conn.get_status()
         self.str_var.set(f"current block {self.last_status.current_block}")
+        for i in range(10):
+            label = self.game_flags_var[i]
+            s = ""
+            for ii in range(10):
+                s += f"{hex(self.last_status.game_flags[i+ii])} "
+            label.set(s)
 
     def view_list_changed(self, evt):
         i = self.view_list.curselection()
