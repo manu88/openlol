@@ -11,7 +11,26 @@ class ToolViews(StrEnum):
 
 class StatusFrame(tk.Frame):
     def __init__(self, master):
+        self.last_status = MsgStatus()
+        self.str_var = tk.StringVar()
         super().__init__(master, bg="green")
+        tk.Label(master=self,
+                 textvariable=self.str_var).pack()
+        self.game_flags_var = [tk.StringVar() for _ in range(10)]
+        for i in range(10):
+            self.game_flags_var.append(tk.StringVar())
+            tk.Label(master=self,
+                     textvariable=self.game_flags_var[i]).pack()
+
+    def update(self, status: MsgStatus):
+        self.str_var.set(
+            f"current block {status.current_block}")
+        for i in range(10):
+            label = self.game_flags_var[i]
+            s = ""
+            for ii in range(10):
+                s += f"{hex(status.game_flags[i+ii])} "
+            label.set(s)
 
 
 class UIDebugger:
@@ -26,12 +45,9 @@ class UIDebugger:
         self.right_frame = tk.Frame(self.root, bg="lightblue")
         self.right_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.last_status = MsgStatus()
-
         self.status_frame = StatusFrame(self.right_frame)
         self.setup_left()
         self.setup_right()
-        self.setup_status_view()
 
         self.view_list.select_set(0)
         self.change_tool_view(ToolViews.STATUS)
@@ -41,17 +57,6 @@ class UIDebugger:
             ToolViews.STATUS: self.status_frame,
             ToolViews.OTHER: tk.Frame(self.right_frame, bg="yellow"),
         }
-
-    def setup_status_view(self):
-        self.str_var = tk.StringVar()
-        self.game_flags_var = [tk.StringVar() for _ in range(10)]
-        tk.Label(master=self.status_frame,
-                 textvariable=self.str_var).pack()
-        self.game_flags_var = []
-        for i in range(10):
-            self.game_flags_var.append(tk.StringVar())
-            tk.Label(master=self.status_frame,
-                     textvariable=self.game_flags_var[i]).pack()
 
     def setup_left(self):
         self.go = tk.Button(master=self.left_frame,
@@ -64,7 +69,6 @@ class UIDebugger:
         for tool in ToolViews:
             self.view_list.insert(i, str(tool))
             i += 1
-
         self.view_list.pack()
 
     def run(self):
@@ -78,15 +82,9 @@ class UIDebugger:
         return
 
     def get_status(self):
-        print("get status")
-        self.last_status = self.conn.get_status()
-        self.str_var.set(f"current block {self.last_status.current_block}")
-        for i in range(10):
-            label = self.game_flags_var[i]
-            s = ""
-            for ii in range(10):
-                s += f"{hex(self.last_status.game_flags[i+ii])} "
-            label.set(s)
+        status = self.conn.get_status()
+        if status:
+            self.status_frame.update(status)
 
     def view_list_changed(self, evt):
         i = self.view_list.curselection()
