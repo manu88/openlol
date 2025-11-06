@@ -11,26 +11,37 @@ class ToolViews(StrEnum):
 
 class StatusFrame(tk.Frame):
     def __init__(self, master):
+        super().__init__(master, bg="green")
         self.last_status = MsgStatus()
         self.str_var = tk.StringVar()
-        super().__init__(master, bg="green")
+        self.game_flags_var = [tk.StringVar(value=f"0X00") for _ in range(100)]
+        self.game_flags = [None for _ in range(100)]
         tk.Label(master=self,
-                 textvariable=self.str_var).pack()
-        self.game_flags_var = [tk.StringVar() for _ in range(10)]
-        for i in range(10):
-            self.game_flags_var.append(tk.StringVar())
-            tk.Label(master=self,
-                     textvariable=self.game_flags_var[i]).pack()
+                 textvariable=self.str_var).grid(column=0, row=0)
+        tk.Label(master=self, text="game flags").grid(
+            column=0, row=1, sticky='w')
+        grid_y_offset = 2
+        for x in range(10):
+            for y in range(10):
+                label_idx = x + (y*10)
+                self.game_flags[label_idx] = tk.Label(
+                    master=self, textvariable=self.game_flags_var[label_idx], anchor="e")
+                self.game_flags[label_idx].grid(
+                    column=x+2, row=y+grid_y_offset, sticky='w')
+        grid_y_offset += 10
 
     def update(self, status: MsgStatus):
         self.str_var.set(
             f"current block {status.current_block}")
-        for i in range(10):
+        for i in range(100):
             label = self.game_flags_var[i]
-            s = ""
-            for ii in range(10):
-                s += f"{hex(status.game_flags[i+ii])} "
-            label.set(s)
+            label.set(f"0X{status.game_flags[i]:02X}")
+            if self.last_status and self.last_status.game_flags[i] != status.game_flags[i]:
+                self.game_flags[i].config(bg="red")
+            else:
+                self.game_flags[i].config(bg="gray")
+
+        self.last_status = status
 
 
 class UIDebugger:
