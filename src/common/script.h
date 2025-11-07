@@ -292,6 +292,10 @@ typedef struct _EMCInterpreterCallbacks {
 
   void (*EMCInterpreterCallbacks_SetNextFunc)(EMCInterpreter *interp,
                                               uint16_t func);
+
+  uint16_t (*EMCInterpreterCallbacks_GetCredits)(EMCInterpreter *interp);
+  void (*EMCInterpreterCallbacks_CreditsTransaction)(EMCInterpreter *interp,
+                                                     int16_t amount);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

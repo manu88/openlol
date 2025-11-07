@@ -93,6 +93,17 @@ static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t creditsTransaction(EMCInterpreter *interp, EMCState *state) {
+  int16_t amount = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_CreditsTransaction(interp, amount);
+  return 1;
+}
+
+static uint16_t checkMoney(EMCInterpreter *interp, EMCState *state) {
+  int16_t amount = EMCStateStackVal(state, 0);
+  return interp->callbacks.EMCInterpreterCallbacks_GetCredits(interp) > amount;
+}
+
 static uint16_t initDialogueSequence(EMCInterpreter *interp, EMCState *state) {
   // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   return 1;
@@ -264,13 +275,21 @@ static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t changeMonsterStat(EMCInterpreter *interp, EMCState *state) {
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  printf("[UNIMPLEMENTED] changeMonsterStat %X %X %X \n", p0, p1, p2);
+  return 1;
+}
+
 static uint16_t countSpecificMonsters(EMCInterpreter *interp, EMCState *state) {
-  printf("countSpecificMonsters\n");
+  printf("[UNIMPLEMENTED] countSpecificMonsters\n");
   return 0;
 }
 
 static uint16_t countAllMonsters(EMCInterpreter *interp, EMCState *state) {
-  printf("countAllMonsters\n");
+  printf("[UNIMPLEMENTED] countAllMonsters\n");
   return 0;
 }
 
@@ -369,6 +388,11 @@ static uint16_t update(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] moveMonster\n");
+  return 1;
+}
+
+static uint16_t suspendMonster(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] suspendMonster\n");
   return 1;
 }
 
@@ -839,8 +863,8 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {moveMonster, "moveMonster"},
     {setupDialogueButtons, "setupDialogueButtons"},
-    {NULL},
-    {NULL},
+    {creditsTransaction, "giveTakeMoney"},
+    {checkMoney, "checkMoney"},
     {NULL},
     {createHandItem, "createHandItem"},
     // 0X4A
@@ -864,7 +888,7 @@ static ScriptFunDesc functions[] = {
     {stopTimScript, "stopTimScript"},
     // 0X5A
     {getWallFlags, "getWallFlags"},
-    {NULL},
+    {changeMonsterStat, "changeMonsterStat"},
     {NULL},
     {NULL},
     {playCharacterScriptChat, "playCharacterScriptChat"},
@@ -906,7 +930,7 @@ static ScriptFunDesc functions[] = {
     {setNextFunc, "setNextFunc"},
     {return1, "stub7D"},
     {NULL},
-    {NULL},
+    {suspendMonster, "suspendMonster"},
 
     // 0X80
     {NULL},

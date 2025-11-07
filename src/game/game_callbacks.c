@@ -54,6 +54,7 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   case EMCGlobalVarID_ItemInHand:
   case EMCGlobalVarID_Brightness:
   case EMCGlobalVarID_Credits:
+    return ctx->credits;
   case EMCGlobalVarID_6:
   case EMCGlobalVarID_7_Unused:
     assert(0);
@@ -600,6 +601,16 @@ static void callbackPlayAnimationPart(EMCInterpreter *interp,
                    lastFrame, delay);
 }
 
+static uint16_t callbackGetCredits(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  return gameCtx->credits;
+}
+
+static void callbackCreditsTransaction(EMCInterpreter *interp, int16_t amount) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->credits += amount;
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -675,4 +686,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_CheckForCertainPartyMember =
       callbackCheckForCertainPartyMember;
   interp->callbacks.EMCInterpreterCallbacks_SetNextFunc = callbackSetNextFunc;
+  interp->callbacks.EMCInterpreterCallbacks_GetCredits = callbackGetCredits;
+  interp->callbacks.EMCInterpreterCallbacks_CreditsTransaction =
+      callbackCreditsTransaction;
 }
