@@ -245,6 +245,14 @@ static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
                              f.buffer, f.bufferSize));
 }
 
+static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
+                                uint16_t destBlock, uint16_t xOff,
+                                uint16_t yOff, uint16_t destDir) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  Monster *monster = &gameCtx->level->monsters[monsterId];
+  printf("--> MoveMonster %X\n", monsterId);
+}
+
 static void callbackClearDialogField(EMCInterpreter *interp) {
   Log(LOG_PREFIX, "callbackClearDialogField");
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -689,4 +697,5 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetCredits = callbackGetCredits;
   interp->callbacks.EMCInterpreterCallbacks_CreditsTransaction =
       callbackCreditsTransaction;
+  interp->callbacks.EMCInterpreterCallbacks_MoveMonster = callbackMoveMonster;
 }

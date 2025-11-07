@@ -381,7 +381,17 @@ static uint16_t update(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] moveMonster\n");
+  uint16_t monsterId = EMCStateStackVal(state, 0);
+  uint16_t destBlock = EMCStateStackVal(state, 1);
+  uint16_t xOff = EMCStateStackVal(state, 2);
+  uint16_t yOff = EMCStateStackVal(state, 3);
+  uint16_t destDir = EMCStateStackVal(state, 4);
+  printf("[UNIMPLEMENTED] moveMonster monsterId=%i destBlock=%X xOff=%X "
+         "yOff=%X destDir=%X\n",
+         monsterId, destBlock, xOff, yOff, destDir);
+
+  interp->callbacks.EMCInterpreterCallbacks_MoveMonster(
+      interp, monsterId, destBlock, xOff, yOff, destDir);
   return 1;
 }
 
@@ -418,9 +428,11 @@ static uint16_t releaseTimScript(EMCInterpreter *interp, EMCState *state) {
   interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript(interp, scriptId);
   return 1;
 }
+
 static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
   return interp->callbacks.EMCInterpreterCallbacks_GetItemIndexInHand(interp);
 }
+
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] playSoundEffect\n");
   return 1;

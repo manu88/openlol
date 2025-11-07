@@ -296,6 +296,11 @@ typedef struct _EMCInterpreterCallbacks {
   uint16_t (*EMCInterpreterCallbacks_GetCredits)(EMCInterpreter *interp);
   void (*EMCInterpreterCallbacks_CreditsTransaction)(EMCInterpreter *interp,
                                                      int16_t amount);
+
+  void (*EMCInterpreterCallbacks_MoveMonster)(EMCInterpreter *interp,
+                                              uint16_t monsterId,
+                                              uint16_t destBlock, uint16_t xOff,
+                                              uint16_t yOff, uint16_t destDir);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
