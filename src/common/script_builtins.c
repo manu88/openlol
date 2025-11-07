@@ -245,12 +245,6 @@ static uint16_t stopBackgroundAnimation(EMCInterpreter *interp,
   return 1;
 }
 
-void calcCoordinates(uint16_t *x, uint16_t *y, int block, uint16_t xOffs,
-                     uint16_t yOffs) {
-  *x = (block & 0x1F) << 8 | xOffs;
-  *y = ((block & 0xFFE0) << 3) | yOffs;
-}
-
 static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
   uint16_t how = EMCStateStackVal(state, 0);
   uint16_t a = EMCStateStackVal(state, 1);
