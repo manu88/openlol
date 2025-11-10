@@ -15,7 +15,7 @@ typedef struct {
   int numTextStrings;
 
   uint16_t *data;
-  uint32_t ordrSize;
+  uint32_t numSegments;
   uint16_t *ordr;
   uint32_t dataSize;
 

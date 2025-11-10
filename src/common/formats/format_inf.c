@@ -27,7 +27,7 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
     readSize += 4;
     if (strcmp((char *)chunkName, "FORM") == 0) {
       // looks like 'FORM' is the beginning of the file.
-      // size if the whole file size
+      // size is the whole file size
       buff += 4;
       readSize += 4;
     } else if (strcmp((char *)chunkName, "TEXT") == 0) {
@@ -45,9 +45,6 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       readSize += 4;
       script->dataSize = dataSize;
       script->data = (uint16_t *)buff;
-      // printf("Got a DATA chunk size %u\n", dataSize);
-      //  mostly it will be the end of the file because all files should end
-      //  with a 'DATA' chunk
       buff += dataSize;
       readSize += dataSize;
     } else {
@@ -57,12 +54,11 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       readSize += 4;
       if (strcmp((char *)chunkName, "EMC2ORDR") == 0) {
         uint32_t chunkSize = swap_uint32(*(uint32_t *)buff);
-        script->ordrSize = chunkSize / 2;
+        script->numSegments = chunkSize / 2;
         buff += 4;
         readSize += 4;
         script->ordr = (uint16_t *)buff;
 
-        // printf("Got a EMC2ORDR chunk size %u\n", chunkSize);
         buff += chunkSize;
         readSize += chunkSize;
       } else {
@@ -88,7 +84,7 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
 }
 
 int INFScriptGetNumFunctions(const INFScript *script) {
-  return script->ordrSize;
+  return script->numSegments;
 }
 
 int INFScriptGetFunctionOffset(const INFScript *script, uint16_t functionNum) {
