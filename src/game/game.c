@@ -207,7 +207,18 @@ static int charZoneClicked(const GameContext *gameCtx) {
       return 1;
     }
   } break;
-  case 3:
+  case 3: {
+    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_3_X &&
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_3_X + CHAR_ZONE_W) {
+      return 0;
+    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_3_X &&
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_3_X + CHAR_ZONE_W) {
+      return 1;
+    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_2_3_X &&
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_2_3_X + CHAR_ZONE_W) {
+      return 2;
+    }
+  } break;
   default:
     assert(0);
   }
@@ -413,9 +424,10 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
   return 1;
 }
 
-static int charZoneXcoord[][2] = {
+static int charZoneXcoord[][3] = {
     {CHAR_ZONE_0_1_X},
     {CHAR_ZONE_0_2_X, CHAR_ZONE_1_2_X},
+    {CHAR_ZONE_0_3_X, CHAR_ZONE_1_3_X, CHAR_ZONE_2_3_X},
 };
 
 static int processCharZonesMouse(GameContext *gameCtx) {

@@ -80,9 +80,15 @@
 
 // one character in the gang
 #define CHAR_ZONE_0_1_X 167
+
 // two characters in the gang
 #define CHAR_ZONE_0_2_X 116
 #define CHAR_ZONE_1_2_X 216
+
+// three characters in the gang
+#define CHAR_ZONE_0_3_X 91
+#define CHAR_ZONE_1_3_X 166
+#define CHAR_ZONE_2_3_X 241
 
 #define CHAR_ZONE_Y 143
 

@@ -204,6 +204,10 @@ static void renderCharFaces(GameContext *gameCtx) {
     renderCharZone(gameCtx, 1, CHAR_ZONE_1_2_X);
     break;
   case 3:
+    renderCharZone(gameCtx, 0, CHAR_ZONE_0_3_X);
+    renderCharZone(gameCtx, 1, CHAR_ZONE_1_3_X);
+    renderCharZone(gameCtx, 2, CHAR_ZONE_2_3_X);
+    break;
   default:
     assert(0);
   }
