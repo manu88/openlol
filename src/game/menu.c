@@ -192,6 +192,7 @@ static int MainMenuKeyDown_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_RETURN:
+  case SDLK_ESCAPE:
     MainMenuSetState(menu, MenuState_GameMenu);
     return 1;
   }
@@ -652,6 +653,7 @@ static int GameMenuKeyDown_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const SDL_Event *e) {
   switch (e->key.keysym.sym) {
   case SDLK_RETURN:
+  case SDLK_ESCAPE:
     menu->state = MenuState_GameMenu;
     return 1;
   }
