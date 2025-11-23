@@ -314,6 +314,7 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
           GameContextGetString2(gameCtx, getSlotNameStringID(slot->type));
       GameRenderSetDialogF(gameCtx, 0X418A, itemName, destName);
       free(itemName);
+      free(destName);
     } else {
       GameRenderSetDialogF(gameCtx, getSlotDescStringID(slot->type));
     }
