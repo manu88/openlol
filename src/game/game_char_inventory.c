@@ -309,12 +309,18 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
       gameCtx->itemIndexInHand = itemIndex;
     } else if (gameCtx->itemIndexInHand) {
       updateCursor = 0;
-      char *itemName = GameContextGetString2(gameCtx, props->stringId);
-      char *destName =
-          GameContextGetString2(gameCtx, getSlotNameStringID(slot->type));
-      GameRenderSetDialogF(gameCtx, 0X418A, itemName, destName);
-      free(itemName);
-      free(destName);
+      if (props->type == 0) {
+        GameContextGetString(gameCtx, 0X418C, gameCtx->dialogTextBuffer,
+                             DIALOG_BUFFER_SIZE);
+        gameCtx->dialogText = gameCtx->dialogTextBuffer;
+      } else {
+        char *itemName = GameContextGetString2(gameCtx, props->stringId);
+        char *destName =
+            GameContextGetString2(gameCtx, getSlotNameStringID(slot->type));
+        GameRenderSetDialogF(gameCtx, 0X418A, itemName, destName);
+        free(itemName);
+        free(destName);
+      }
     } else {
       GameRenderSetDialogF(gameCtx, getSlotDescStringID(slot->type));
     }
