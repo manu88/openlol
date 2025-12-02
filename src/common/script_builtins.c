@@ -252,20 +252,23 @@ static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
-  uint16_t p0 = EMCStateStackVal(state, 0);
-  uint16_t p1 = EMCStateStackVal(state, 1);
-  uint16_t p2 = EMCStateStackVal(state, 2);
-  uint16_t p3 = EMCStateStackVal(state, 3);
+  uint16_t block = EMCStateStackVal(state, 0);
+  uint16_t xOff = EMCStateStackVal(state, 1);
+  uint16_t yOff = EMCStateStackVal(state, 2);
+  uint16_t orientation = EMCStateStackVal(state, 3);
   uint16_t monsterType = EMCStateStackVal(state, 4);
-  uint16_t p5 = EMCStateStackVal(state, 5);
-  uint16_t p6 = EMCStateStackVal(state, 6);
+  uint16_t flags = EMCStateStackVal(state, 5);
+  uint16_t monsterMode = EMCStateStackVal(state, 6);
+  // Looks like those are optionals
   uint16_t p7 = EMCStateStackVal(state, 7);
   uint16_t p8 = EMCStateStackVal(state, 8);
   uint16_t p9 = EMCStateStackVal(state, 9);
   uint16_t p10 = EMCStateStackVal(state, 10);
-  printf("initMonster %X %X %X %X monsterType=%X %X %X %X %X %X %X\n", p0, p1,
-         p2, p3, monsterType, p5, p6, p7, p8, p9, p10);
-  ASSERT_UNIMPLEMENTED;
+  printf("initMonster block=%X xOff=%X yOff=%X orientation=%X monsterType=%X "
+         "flags=%X monsterMode=%X p7=%X p8=%X p9=%X p10=%X\n",
+         block, xOff, yOff, orientation, monsterType, flags, monsterMode, p7,
+         p8, p9, p10);
+  // ASSERT_UNIMPLEMENTED;
   return 1;
 }
 
@@ -726,15 +729,18 @@ static uint16_t restoreAfterSpecialScene(EMCInterpreter *interp,
 }
 
 static uint16_t makeItem(EMCInterpreter *interp, EMCState *state) {
-  printf("makeItem\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t p0 = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  uint16_t p2 = EMCStateStackVal(state, 2);
+  printf("[UNIMPLEMENTED] makeItem %X %X %X\n", p0, p1, p2);
+  return 1;
 }
 
 static uint16_t giveItemToMonster(EMCInterpreter *interp, EMCState *state) {
-  printf("giveItemToMonster\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t monsterId = EMCStateStackVal(state, 0);
+  uint16_t p1 = EMCStateStackVal(state, 1);
+  printf("[UNIMPLEMENTED] giveItemToMonster monsterId=%X %X\n", monsterId, p1);
+  return 1;
 }
 
 static uint16_t assignCustomSfx(EMCInterpreter *interp, EMCState *state) {
