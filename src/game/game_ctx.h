@@ -185,7 +185,6 @@ typedef struct _GameContext {
   SDL_Texture *textTexture;
 
   INFScript script;
-  INFScript iniScript;
   INFScript itemScript;
 
   uint16_t nextFunc;

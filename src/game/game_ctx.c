@@ -342,13 +342,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     assert(GameEnvironmentGetFile(&f, wllFile));
     assert(WllHandleFromBuffer(&ctx->level->wllHandle, f.buffer, f.bufferSize));
   }
-  {
-    GameFile f = {0};
-    char iniFile[12];
-    snprintf(iniFile, 12, "LEVEL%i.INI", levelNum);
-    assert(GameEnvironmentGetFile(&f, iniFile));
-    assert(INFScriptFromBuffer(&ctx->iniScript, f.buffer, f.bufferSize));
-  }
+
   {
     GameFile f = {0};
     char infFile[12];
@@ -356,10 +350,21 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     assert(GameEnvironmentGetFile(&f, infFile));
     assert(INFScriptFromBuffer(&ctx->script, f.buffer, f.bufferSize));
   }
+  {
+    INFScript iniScript = {0};
+    GameFile f = {0};
+    char iniFile[12];
+    snprintf(iniFile, 12, "LEVEL%i.INI", levelNum);
+    assert(GameEnvironmentGetFile(&f, iniFile));
+    assert(INFScriptFromBuffer(&iniScript, f.buffer, f.bufferSize));
+    printf("->Run INI SCRIPT\n");
+    runScript(ctx, &iniScript);
+    printf("<-DONE INI SCRIPT\n");
+  }
 
-  runScript(ctx, &ctx->iniScript);
+  printf("->Run LEVEL INIT SCRIPT\n");
   GameContextRunLevelInitScript(ctx);
-
+  printf("<-Done LEVEL INIT SCRIPT\n");
   return 1;
 }
 
