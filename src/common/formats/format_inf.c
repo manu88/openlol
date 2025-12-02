@@ -10,7 +10,6 @@
 // https://github.com/OpenDUNE/OpenDUNE/blob/master/src/script/script.c
 
 void INFScriptInit(INFScript *script) { memset(script, 0, sizeof(INFScript)); }
-void INFScriptRelease(INFScript *script) {}
 
 int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
   assert(buffer);

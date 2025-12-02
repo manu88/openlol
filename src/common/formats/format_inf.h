@@ -22,7 +22,6 @@ typedef struct {
 } INFScript;
 
 void INFScriptInit(INFScript *script);
-void INFScriptRelease(INFScript *script);
 
 int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize);
 

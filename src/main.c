@@ -270,7 +270,6 @@ static int cmdScriptTest(const char *filepath, int functionNum) {
     n++;
   }
   printf("Exec'ed %i instructions\n", n);
-  INFScriptRelease(&script);
   if (freeBuffer) {
     free(iffData);
   }

@@ -278,7 +278,6 @@ void GameContextRelease(GameContext *gameCtx) {
   CPSImageRelease(&gameCtx->mapBackground);
   SHPHandleRelease(&gameCtx->automapShapes);
   SHPHandleRelease(&gameCtx->gameShapes);
-  INFScriptRelease(&gameCtx->script);
   free(gameCtx->dialogTextBuffer);
   SDL_FreeCursor(gameCtx->cursor);
 
