@@ -31,6 +31,9 @@ static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode,
                           getBuiltinFunctions()[funcCode].name);
 }
 
+static void StackPush(EMCState *s, uint16_t val) { s->stack[--s->sp] = val; }
+static uint16_t StackPop(EMCState *s) { return s->stack[s->sp++]; }
+
 static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
                        int16_t parameter, uint32_t instOffset) {
 
@@ -42,6 +45,13 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
                               MNEMONIC_JUMP, parameter);
     } else {
       script->ip = script->dataPtr->data + parameter;
+#if 0
+      printf("After jump ip=%lX\n", script->ip - script->dataPtr->data);
+      if (script->ip - script->dataPtr->data == 0) {
+        printf("STOP \n");
+        script->ip = NULL;
+      }
+#endif
     }
     return;
   case OP_SETRETURNVALUE:
@@ -61,13 +71,12 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       switch (parameter) {
       case 0:
         Log("SCRIPT", "PUSHRET");
-        script->stack[--script->sp] = script->retValue;
+        StackPush(script, script->retValue);
         return;
-
       case 1:
         Log("SCRIPT", "PUSHRETLOC");
-        script->stack[--script->sp] = script->ip - script->dataPtr->data + 1;
-        script->stack[--script->sp] = script->bp;
+        StackPush(script, script->ip - script->dataPtr->data + 1);
+        StackPush(script, script->bp);
         script->bp = script->sp + 2;
         return;
 
@@ -84,7 +93,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_PUSH, parameter);
     } else {
-      script->stack[--script->sp] = parameter;
+      StackPush(script, parameter);
     }
     return;
   case OP_PUSH_VARIABLE:
@@ -93,7 +102,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_PUSH_VAR, parameter);
     } else {
-      script->stack[--script->sp] = script->regs[parameter];
+      StackPush(script, script->regs[parameter]);
     }
     return;
   case OP_PUSH_LOCAL_VARIABLE:
@@ -102,8 +111,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_PUSH_LOC_VAR, parameter);
     } else {
-      script->stack[--script->sp] =
-          script->stack[(-(int32_t)(parameter + 2)) + script->bp];
+      StackPush(script, script->stack[script->bp - parameter - 2]);
     }
     return;
   case OP_PUSH_PARAMETER:
@@ -112,7 +120,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_PUSH_ARG, parameter);
     } else {
-      script->stack[--script->sp] = script->stack[(parameter - 1) + script->bp];
+      StackPush(script, script->stack[script->bp + parameter - 1]);
     }
     return;
   case OP_POP_RETURN_OR_LOCATION:
@@ -123,17 +131,19 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       switch (parameter) {
       case 0:
         Log("SCRIPT", "POPRET");
-        script->retValue = script->stack[script->sp++];
+        script->retValue = StackPop(script);
         break;
 
       case 1:
         Log("SCRIPT", "POPLOC");
+
         if (script->sp >= kStackLastEntry) {
           // assert(0);
           script->ip = NULL;
         } else {
-          script->bp = script->stack[script->sp++];
-          script->ip = script->dataPtr->data + script->stack[script->sp++];
+
+          script->bp = StackPop(script);
+          script->ip = script->dataPtr->data + StackPop(script);
         }
         break;
       default:
@@ -147,7 +157,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_POP, parameter);
     } else {
-      script->regs[parameter] = script->stack[script->sp++];
+      script->regs[parameter] = StackPop(script);
     }
     return;
   case OP_POP_LOCAL_VARIABLE:
@@ -156,8 +166,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_POP_LOC_VAR, parameter);
     } else {
-      script->stack[(-(int32_t)(parameter + 2)) + script->bp] =
-          script->stack[script->sp++];
+      script->stack[script->bp - parameter - 2] = StackPop(script);
     }
     return;
   case OP_POP_PARAMETER:
@@ -166,7 +175,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "POPPARAM %X",
                               parameter);
     } else {
-      script->stack[(parameter - 1) + script->bp] = script->stack[script->sp++];
+      script->stack[script->bp + parameter - 1] = StackPop(script);
     }
     return;
   case OP_STACK_REWIND:
@@ -201,7 +210,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_JUMP_NE, parameter);
     } else {
-      if (!script->stack[script->sp++]) {
+      if (!StackPop(script)) {
         script->ip = script->dataPtr->data + parameter;
       }
     }
@@ -240,8 +249,8 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
     int16_t val1 = 0;
     int16_t val2 = 0;
     if (interp->disassembler == NULL) {
-      val1 = script->stack[script->sp++];
-      val2 = script->stack[script->sp++];
+      val1 = StackPop(script);
+      val2 = StackPop(script);
     }
     switch (parameter) {
     case BinaryOp_LogicalAND:
@@ -250,7 +259,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_LOGICAL_AND);
       } else {
-        script->stack[--script->sp] = (val2 && val1) ? 1 : 0;
+        StackPush(script, (val2 && val1) ? 1 : 0);
       }
 
       return;
@@ -261,8 +270,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_LOGICAL_OR);
       } else {
-
-        script->stack[--script->sp] = (val2 || val1) ? 1 : 0;
+        StackPush(script, (val2 || val1) ? 1 : 0);
       }
       return;
 
@@ -272,7 +280,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_EQUAL);
       } else {
-        script->stack[--script->sp] = (val1 == val2) ? 1 : 0;
+        StackPush(script, (val1 == val2) ? 1 : 0);
       }
       return;
 
@@ -282,7 +290,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_NOT_EQUAL);
       } else {
-        script->stack[--script->sp] = (val1 != val2) ? 1 : 0;
+        StackPush(script, (val1 != val2) ? 1 : 0);
       }
       return;
 
@@ -291,7 +299,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_INF);
       } else {
-        script->stack[--script->sp] = (val1 > val2) ? 1 : 0;
+        StackPush(script, (val1 > val2) ? 1 : 0);
       }
       return;
 
@@ -301,7 +309,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_INF_EQ);
       } else {
-        script->stack[--script->sp] = (val1 >= val2) ? 1 : 0;
+        StackPush(script, (val1 >= val2) ? 1 : 0);
       }
       return;
     case BinaryOp_Greater:
@@ -309,7 +317,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_SUP);
       } else {
-        script->stack[--script->sp] = (val1 < val2) ? 1 : 0;
+        StackPush(script, (val1 < val2) ? 1 : 0);
       }
       return;
 
@@ -319,7 +327,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_SUP_EQ);
       } else {
-        script->stack[--script->sp] = (val1 <= val2) ? 1 : 0;
+        StackPush(script, (val1 <= val2) ? 1 : 0);
       }
       return;
 
@@ -328,7 +336,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_ADD);
       } else {
-        script->stack[--script->sp] = val1 + val2;
+        StackPush(script, val1 + val2);
       }
       return;
 
@@ -338,7 +346,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_MINUS);
       } else {
-        script->stack[--script->sp] = val2 - val1;
+        StackPush(script, val1 - val2);
       }
       return;
 
@@ -348,7 +356,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_MULTIPLY);
       } else {
-        script->stack[--script->sp] = val1 * val2;
+        StackPush(script, val1 * val2);
       }
       return;
 
@@ -358,7 +366,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_DIVIDE);
       } else {
-        script->stack[--script->sp] = val2 / val1;
+        StackPush(script, val1 / val2);
       }
       return;
 
@@ -368,7 +376,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_RIGHT_SHIFT);
       } else {
-        script->stack[--script->sp] = val2 >> val1;
+        StackPush(script, val1 >> val2);
       }
       return;
 
@@ -378,7 +386,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_LEFT_SHIFT);
       } else {
-        script->stack[--script->sp] = val2 << val1;
+        StackPush(script, val1 << val2);
       }
       return;
 
@@ -387,7 +395,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_AND);
       } else {
-        script->stack[--script->sp] = val1 & val2;
+        StackPush(script, val1 & val2);
       }
       return;
 
@@ -396,7 +404,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_OR);
       } else {
-        script->stack[--script->sp] = val1 | val2;
+        StackPush(script, val1 | val2);
       }
       return;
 
@@ -405,7 +413,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_MOD);
       } else {
-        script->stack[--script->sp] = val2 % val1;
+        StackPush(script, val1 % val2);
       }
       return;
 
@@ -414,7 +422,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       if (interp->disassembler) {
         EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_XOR);
       } else {
-        script->stack[--script->sp] = val1 ^ val2;
+        StackPush(script, val1 ^ val2);
       }
       return;
 
@@ -427,14 +435,14 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
   case OP_RETURN:
     Log("SCRIPT", "RET");
     if (interp->disassembler) {
-
+      EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_RET);
     } else {
       if (script->sp >= kStackLastEntry) {
         script->ip = NULL;
         assert(0);
       } else {
-        script->retValue = script->stack[script->sp++];
-        uint16_t temp = script->stack[script->sp++];
+        script->retValue = StackPop(script);
+        uint16_t temp = StackPop(script);
         script->stack[kStackLastEntry] = 0;
         script->ip = &script->dataPtr->data[temp];
       }
