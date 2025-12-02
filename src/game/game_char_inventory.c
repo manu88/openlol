@@ -32,12 +32,12 @@ typedef struct {
 #define INVALID_ITEM {{-1, -1}, 0}
 
 static InventoryLayout humanLayout = {{
-    {{117, 28}, ItemType_Weapon},  // CharItemIndex_Hand
+    {{117, 52}, ItemType_Weapon},  // CharItemIndex_Hand
     {{192, 25}, ItemType_Shield},  // CharItemIndex_Shield
     INVALID_ITEM,                  // CharItemIndex_Hand2
     INVALID_ITEM,                  // CharItemIndex_Shield2
     {{117, 1}, ItemType_Helm},     // CharItemIndex_Helm
-    {{117, 52}, ItemType_Armor},   // CharItemIndex_Armor
+    {{117, 28}, ItemType_Armor},   // CharItemIndex_Armor
     {{192, 1}, ItemType_Necklace}, // CharItemIndex_Necklace
     {{192, 49}, ItemType_Bracers}, // CharItemIndex_Bracers
     {{117, 93}, ItemType_Shoes},   // CharItemIndex_Shoes
