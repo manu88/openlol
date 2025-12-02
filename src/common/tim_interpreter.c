@@ -238,6 +238,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 
     break;
   default:
+    printf("unimplemented TIM OPCODE %X\n", instr->instrCode);
     assert(0);
   }
   return instr->len;
