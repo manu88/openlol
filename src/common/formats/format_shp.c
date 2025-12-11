@@ -138,9 +138,7 @@ void SHPFramePrint(const SHPFrame *frame) {
 }
 
 void SHPHandlePrint(const SHPHandle *handle) {
-  printf("%i frames\n", handle->framesCount);
   for (int i = 0; i < handle->framesCount; i++) {
-
     SHPFrame frame = {0};
     SHPHandleGetFrame(handle, &frame, i);
     printf("%i: ", i);
