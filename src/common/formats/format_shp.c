@@ -125,9 +125,9 @@ void SHPFramePrint(const SHPFrame *frame) {
     assert(hasRemapTable);
   }
 
-  printf("flags %02X %02X %i w=%i h=%i fsize=%i "
+  printf("flags0=%02X flags1=%02X slices=%i w=%i h=%i fsize=%i "
          "zeroCompressedSize=%i hasRemapTable=%i noLCW=%i "
-         "customSizeRemap=%i remapSize %i remapTable %p image data %p "
+         "customSizeRemap=%i remapSize=%i remapTable=%p imagedata=%p "
          "header=%i\n",
          frame->header.flags[0], frame->header.flags[1], frame->header.slices,
          frame->header.width, frame->header.height, frame->header.fileSize,
