@@ -928,10 +928,10 @@ static int cmdWSA(int argc, char *argv[]) {
 }
 
 static void usageTim(void) {
-  printf("tim subcommands: show|anim file [langfile]\n");
+  printf("tim subcommands: info|anim file [langfile]\n");
 }
 
-static int cmdShowTim(const char *filepath) {
+static int cmdInfoTim(const char *filepath) {
   size_t fileSize = 0;
   size_t readSize = 0;
   uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
@@ -1009,8 +1009,8 @@ static int cmdTim(int argc, char *argv[]) {
     usageTim();
     return 1;
   }
-  if (strcmp(argv[0], "show") == 0) {
-    return cmdShowTim(argv[1]);
+  if (strcmp(argv[0], "info") == 0) {
+    return cmdInfoTim(argv[1]);
   } else if (strcmp(argv[0], "anim") == 0) {
     return cmdAnimateTim(argv[1], argc > 2 ? argv[2] : NULL);
   }
