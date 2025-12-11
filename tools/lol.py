@@ -1,6 +1,7 @@
 import subprocess
 from os.path import isfile, join
 from os import listdir
+from typing import List
 
 
 class LOL:
@@ -16,3 +17,9 @@ class LOL:
         subprocess.run(
             argv, stdout=subprocess.PIPE, check=False).stdout.decode()
         return True
+
+    def list(self, pak: str) -> List[str]:
+        argv = ["./lol", "-p", pak, "pak", "list"]
+        proc_output = subprocess.run(
+            argv, stdout=subprocess.PIPE, check=False).stdout.decode()
+        return proc_output.splitlines()

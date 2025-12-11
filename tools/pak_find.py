@@ -1,6 +1,3 @@
-from os import listdir
-from os.path import isfile, join
-import subprocess
 import argparse
 from lol import LOL
 
@@ -8,13 +5,6 @@ from lol import LOL
 parser = argparse.ArgumentParser()
 parser.add_argument("file")
 parser.add_argument("-e", action="store_true", help="extract file")
-
-
-def extract(file: str, pak: str):
-    argv = ["./lol", "-p", pak, "pak", "extract", file]
-    subprocess.run(
-        argv, stdout=subprocess.PIPE, check=False).stdout.decode()
-    print(f"extracted {file}")
 
 
 def main():
@@ -25,10 +15,8 @@ def main():
     print(f"Looking for {file_to_find} in {lol.data_dir}")
     num_found_files = 0
     for pak_file in lol.pak_files:
-        argv = ["./lol", "-p", pak_file, "pak", "list"]
-        proc_output = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False).stdout.decode()
-        for l in proc_output.splitlines():
+        files = lol.list(pak_file)
+        for l in files:
             if file_to_find == "*":
                 print(f"{pak_file}: {l}")
             elif file_to_find[0] == "*":
