@@ -7,21 +7,59 @@ def get_type(file: str) -> str:
     return file.split(".")[1]
 
 
+type_info = {
+    "CMZ": "maze map",
+    "CPS": "image",
+    "DAT": "level decoration data",
+    "FNT": "font",
+    "INF": "EMC script",
+    "INI": "EMC script",
+    "SHP": "Sprites sheet",
+
+    "TIM": "animation script",
+    "VCN": "maze wall and background graphics",
+    "VMP": "how to assemble VCN blocks into proper walls",
+    "WLL": "maze wall mappings",
+    "WSA": "animation",
+    "XXX": "automap data",
+
+    "FRE": "French text",
+    "ENG": "English text",
+    "GER": "German text",
+}
+
+
+def get_type_info(typ: str) -> str:
+    desc = "unsupported"
+    if typ in type_info:
+        desc = type_info[typ]
+    return typ + ": " + desc
+
+
 class InfoFrame(tk.Frame):
     def __init__(self, master):
-        super().__init__(master, bg="red", height=200)
+        super().__init__(master, height=200)
 
-        tk.Label(master=self, text="File").grid(column=0, row=0)
+        tk.Label(master=self, text="File:").grid(column=0, row=0)
         self.file_name_var = tk.StringVar()
         self.file_name_var.set("-- select a file -- ")
         tk.Label(master=self, textvariable=self.file_name_var).grid(
             column=1, row=0)
 
-        tk.Label(master=self, text="PAK").grid(column=2, row=0)
+        tk.Label(master=self, text="Pak:").grid(column=2, row=0)
         self.pak_name_var = tk.StringVar()
-        self.pak_name_var.set("-- select a file -- ")
         tk.Label(master=self, textvariable=self.pak_name_var).grid(
             column=3, row=0)
+
+        tk.Label(master=self, text="type:").grid(column=0, row=1)
+        self.type_desc_var = tk.StringVar(value="some description about type")
+        tk.Label(master=self, textvariable=self.type_desc_var).grid(
+            column=1, row=1)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        self.file_name_var.set(file_name)
+        self.pak_name_var.set(pak_name)
+        self.type_desc_var.set(get_type_info(get_type(file_name)))
 
 
 class UI:
@@ -73,10 +111,8 @@ class UI:
             self.selected_item_changed(
                 sel_item['text'], self.file_tree.item(parent_iid)['text'])
 
-    def selected_item_changed(self, file_name: str, pak_name: str = None):
-        print(f"Selected item: {file_name} in {pak_name}")
-        self.info_frame.file_name_var.set(file_name)
-        self.info_frame.pak_name_var.set(pak_name)
+    def selected_item_changed(self, file_name: str, pak_name: str):
+        self.info_frame.update_for_item(file_name, pak_name)
 
 
 if __name__ == "__main__":
