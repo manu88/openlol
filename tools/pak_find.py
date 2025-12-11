@@ -4,10 +4,6 @@ import subprocess
 import argparse
 from lol import LOL
 
-pak_path = "data"
-pak_files = [join(pak_path, f) for f in listdir(pak_path) if isfile(
-    join(pak_path, f)) and f.endswith(".PAK")]
-# print(pak_files)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file")
@@ -26,8 +22,9 @@ def main():
 
     args = parser.parse_args()
     file_to_find: str = args.file
-    print(f"Looking for {file_to_find} in {pak_path}")
-    for pak_file in pak_files:
+    print(f"Looking for {file_to_find} in {lol.data_dir}")
+    num_found_files = 0
+    for pak_file in lol.pak_files:
         argv = ["./lol", "-p", pak_file, "pak", "list"]
         proc_output = subprocess.run(
             argv, stdout=subprocess.PIPE, check=False).stdout.decode()
@@ -37,14 +34,19 @@ def main():
             elif file_to_find[0] == "*":
                 ext_to_find = file_to_find.split(".")[1]
                 file_ext = l.split(".")[1]
-                if (ext_to_find == file_ext):
+                if ext_to_find == file_ext:
                     print(f"Found {l} in {pak_file}")
+                    num_found_files += 1
             elif l == file_to_find:
                 print(f"Found {file_to_find} in {pak_file}")
-                if (args.e):
+                num_found_files += 1
+                if args.e:
                     lol.extract(file_to_find, pak_file)
                 return
-    print("No such file")
+    if num_found_files == 0:
+        print("No such file")
+    else:
+        print(f"found {num_found_files} files")
 
 
 if __name__ == "__main__":
