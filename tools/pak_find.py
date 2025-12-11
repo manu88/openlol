@@ -1,7 +1,6 @@
 from os import listdir
 from os.path import isfile, join
 import subprocess
-import sys
 import argparse
 
 pak_path = "data"
@@ -16,8 +15,8 @@ parser.add_argument("-e", action="store_true", help="extract file")
 
 def extract(file: str, pak: str):
     argv = ["./lol", "-p", pak, "pak", "extract", file]
-    proc_output = subprocess.run(
-        argv, stdout=subprocess.PIPE).stdout.decode()
+    subprocess.run(
+        argv, stdout=subprocess.PIPE, check=False).stdout.decode()
     print(f"extracted {file}")
 
 
@@ -28,7 +27,7 @@ def main():
     for pak_file in pak_files:
         argv = ["./lol", "-p", pak_file, "pak", "list"]
         proc_output = subprocess.run(
-            argv, stdout=subprocess.PIPE).stdout.decode()
+            argv, stdout=subprocess.PIPE, check=False).stdout.decode()
         for l in proc_output.splitlines():
             if file_to_find == "*":
                 print(f"{pak_file}: {l}")
