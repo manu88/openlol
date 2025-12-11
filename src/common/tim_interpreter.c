@@ -80,7 +80,6 @@ void TIMInterpreterRelease(TIMInterpreter *interp) {}
 
 void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim) {
   interp->_tim = tim;
-  printf("Mystery word = 0X%X\n", interp->_tim->avtl[0]);
   interp->pos = TIM_START_OFFSET;
 }
 
