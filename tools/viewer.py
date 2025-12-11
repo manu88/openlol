@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
-import tempfile
 from lol import LOL
 
 
@@ -65,6 +65,35 @@ class InfoFrame(tk.Frame):
         self.type_desc_var.set(get_type_info(get_type(file_name)))
 
 
+class BaseRender(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent, bg="pink")
+
+    def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
+        pass
+
+
+class CPSRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.img_label = tk.Label(self)
+        self.img_label.pack()
+
+    def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
+        out_file = lol.get_temp_path_for("display.png")
+        if lol.extract_cps(file_name, pak_name, out_file):
+            print(f"written to {out_file}")
+            img_data = PIL.Image.open(out_file)
+            img = PIL.ImageTk.PhotoImage(img_data)
+            self.img_label.configure(image=img)
+            self.img_label.image = img
+
+
+class WSARender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+
 class UI:
     def __init__(self):
         self.lol = LOL()
@@ -90,9 +119,25 @@ class UI:
         self.file_tree.heading("type", text="type")
         self.file_tree.column("type")
         self._construct_file_tree()
+        self.renders: Dict[str, BaseRender] = {}
+        self.current_renderer: Optional[BaseRender] = None
+        self._setup_renders()
+
+    def _setup_renders(self):
+        self.renders["CPS"] = CPSRender(self.details_frame)
+        self.renders["WSA"] = WSARender(self.details_frame)
+
+    def change_tool_view(self, typ: str):
+        for widget in self.details_frame.winfo_children():
+            widget.pack_forget()
+        self.current_renderer = None
+        if typ in self.renders:
+            self.current_renderer = self.renders[typ]
+            self.current_renderer.pack(fill=tk.BOTH, expand=True)
+            self.current_renderer.update()
+        return
 
     def _construct_file_tree(self):
-
         for pak_file in self.lol.pak_files:
             parent_id = self.file_tree.insert(
                 "", "end", text=pak_file, values="PAK")
@@ -119,15 +164,10 @@ class UI:
         desc = self.lol.file_info(
             file_name, pak_name, get_type(file_name).lower())
         print(desc)
-        if get_type(file_name) == "CPS":
-            out_file = self.lol.get_temp_path_for("display.png")
-            if self.lol.extract_cps(file_name, pak_name, out_file):
-                print(f"written to {out_file}")
-                im = PIL.Image.open(out_file)
-                photo = PIL.ImageTk.PhotoImage(im)
-                label = tk.Label(self.details_frame, image=photo)
-                label.image = photo
-                label.pack()
+        self.change_tool_view(get_type(file_name))
+        if self.current_renderer:
+            self.current_renderer.update_for_item(
+                self.lol, file_name, pak_name)
 
 
 if __name__ == "__main__":
