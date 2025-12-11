@@ -94,6 +94,20 @@ class WSARender(BaseRender):
         super().__init__(parent)
 
 
+class SHPRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
+        shp_info = lol.get_shp_info(file_name, pak_name)
+        if shp_info is None:
+            return
+        print(f"compressed = {shp_info.compressed}")
+
+        for line in shp_info.desc:
+            print(line)
+
+
 class UI:
     def __init__(self):
         self.lol = LOL()
@@ -126,6 +140,7 @@ class UI:
     def _setup_renders(self):
         self.renders["CPS"] = CPSRender(self.details_frame)
         self.renders["WSA"] = WSARender(self.details_frame)
+        self.renders["SHP"] = SHPRender(self.details_frame)
 
     def change_tool_view(self, typ: str):
         for widget in self.details_frame.winfo_children():
@@ -161,9 +176,6 @@ class UI:
 
     def selected_item_changed(self, file_name: str, pak_name: str):
         self.info_frame.update_for_item(file_name, pak_name)
-        desc = self.lol.file_info(
-            file_name, pak_name, get_type(file_name).lower())
-        print(desc)
         self.change_tool_view(get_type(file_name))
         if self.current_renderer:
             self.current_renderer.update_for_item(

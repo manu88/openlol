@@ -5,6 +5,12 @@ from os import listdir
 from typing import List, Optional
 
 
+class SHPFileInfo:
+    def __init__(self, desc: List[str], compressed=False):
+        self.compressed = compressed
+        self.desc: List[str] = desc
+
+
 class LOL:
     def __init__(self):
         self.tool_path = "./lol"
@@ -13,7 +19,7 @@ class LOL:
         self.pak_files = [join(self.data_dir, f) for f in listdir(self.data_dir) if isfile(
             join(self.data_dir, f)) and f.endswith(".PAK")]
 
-    def get_temp_path_for(self, file_name: str)->str:
+    def get_temp_path_for(self, file_name: str) -> str:
         return join(self.temp_dir, file_name)
 
     def extract(self, file: str, pak: str) -> bool:
@@ -43,6 +49,30 @@ class LOL:
             print(resp)
             return None
         return proc_output.splitlines()
+
+    def get_shp_info(self, file: str, pak: str) -> Optional[SHPFileInfo]:
+        info = self._get_shp_info_uncompressed(file, pak)
+        if info is None:
+            info = self._get_shp_info_compressed(file, pak)
+        return info
+
+    def _get_shp_info_uncompressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:
+        argv = [self.tool_path, "-p", pak, "shp", "info", file]
+        resp = subprocess.run(
+            argv, stdout=subprocess.PIPE, check=False)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return SHPFileInfo(proc_output.splitlines())
+
+    def _get_shp_info_compressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:
+        argv = [self.tool_path, "-p", pak, "shp", "-c", "info", file]
+        resp = subprocess.run(
+            argv, stdout=subprocess.PIPE, check=False)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return SHPFileInfo(proc_output.splitlines(), compressed=True)
 
     def file_info(self, file: str, pak: str, typ: str) -> Optional[List[str]]:
         argv = [self.tool_path, "-p", pak, typ, "info", file]
