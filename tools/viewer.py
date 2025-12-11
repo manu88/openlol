@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+import PIL.Image
+import PIL.ImageTk
+import tempfile
 from lol import LOL
 
 
@@ -113,6 +116,18 @@ class UI:
 
     def selected_item_changed(self, file_name: str, pak_name: str):
         self.info_frame.update_for_item(file_name, pak_name)
+        desc = self.lol.file_info(
+            file_name, pak_name, get_type(file_name).lower())
+        print(desc)
+        if get_type(file_name) == "CPS":
+            out_file = self.lol.get_temp_path_for("display.png")
+            if self.lol.extract_cps(file_name, pak_name, out_file):
+                print(f"written to {out_file}")
+                im = PIL.Image.open(out_file)
+                photo = PIL.ImageTk.PhotoImage(im)
+                label = tk.Label(self.details_frame, image=photo)
+                label.image = photo
+                label.pack()
 
 
 if __name__ == "__main__":
