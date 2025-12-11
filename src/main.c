@@ -870,7 +870,7 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   return 0;
 }
 
-static int cmdWSAShow(const char *filepath) {
+static int cmdWSAInfo(const char *filepath) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -902,7 +902,7 @@ static int cmdWSAShow(const char *filepath) {
 }
 
 static void usageWSA(void) {
-  printf("wsa subcommands: show|extract file [framenum]\n");
+  printf("wsa subcommands: info|extract file [framenum]\n");
 }
 
 static int cmdWSA(int argc, char *argv[]) {
@@ -913,8 +913,8 @@ static int cmdWSA(int argc, char *argv[]) {
   }
 
   const char *filepath = argv[1];
-  if (strcmp(argv[0], "show") == 0) {
-    return cmdWSAShow(filepath);
+  if (strcmp(argv[0], "info") == 0) {
+    return cmdWSAInfo(filepath);
   } else if (strcmp(argv[0], "extract") == 0) {
     if (argc < 3) {
       printf("missing frameNum argument\n");
