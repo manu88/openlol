@@ -2,6 +2,7 @@ from os import listdir
 from os.path import isfile, join
 import subprocess
 import argparse
+from lol import LOL
 
 pak_path = "data"
 pak_files = [join(pak_path, f) for f in listdir(pak_path) if isfile(
@@ -21,6 +22,8 @@ def extract(file: str, pak: str):
 
 
 def main():
+    lol = LOL()
+
     args = parser.parse_args()
     file_to_find: str = args.file
     print(f"Looking for {file_to_find} in {pak_path}")
@@ -39,7 +42,7 @@ def main():
             elif l == file_to_find:
                 print(f"Found {file_to_find} in {pak_file}")
                 if (args.e):
-                    extract(file_to_find, pak_file)
+                    lol.extract(file_to_find, pak_file)
                 return
     print("No such file")
 
