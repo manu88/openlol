@@ -215,7 +215,6 @@ static int cmdScriptDisasm(const char *filepath, int functionNum) {
   }
 
   int n = 0;
-
   while (EMCInterpreterIsValid(&interp, &state)) {
     if (EMCInterpreterRun(&interp, &state) == 0) {
       printf("EMCInterpreterRun returned 0\n");
@@ -223,7 +222,6 @@ static int cmdScriptDisasm(const char *filepath, int functionNum) {
     n++;
   }
 
-  INFScriptRelease(&script);
   printf("%s\n", disassembler.disasmBuffer);
   EMCDisassemblerRelease(&disassembler);
   printf("Exec'ed %i / %i instructions\n", n, script.dataSize);
@@ -250,9 +248,10 @@ static int cmdScriptTest(const char *filepath, int functionNum) {
   EMCInterpreter interp = {0};
   EMCState state = {0};
   EMCStateInit(&state, &script);
-  EMCStateSetOffset(&state, functionNum);
-  if (!EMCStateStart(&state, functionNum)) {
-    printf("EMCInterpreterStart: invalid\n");
+  if (functionNum != -1) {
+    EMCStateStart(&state, functionNum);
+  } else {
+    state.ip = script.data;
   }
   int n = 0;
 
@@ -440,7 +439,32 @@ static int cmdMap(int argc, char *argv[]) {
   return 0;
 }
 
-static void usageCPS(void) { printf("cps extract|extract-pal cpsfile \n"); }
+static void usageCPS(void) {
+  printf("cps extract|extract-pal|info cpsfile \n");
+}
+
+static int cmdCPSInfo(const char *filepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+  CPSImage image = {0};
+  int ok = CPSImageFromBuffer(&image, buffer, dataSize);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  if (!ok) {
+    return 1;
+  }
+
+  CPSImageRelease(&image);
+  printf("palette size: %zu\n", image.paletteSize);
+  printf("image size: %zu\n", image.imageSize);
+  return 0;
+}
 
 static int cmdCPSExtractPal(const char *filepath) {
   size_t dataSize = 0;
@@ -513,6 +537,8 @@ static int cmdCPS(int argc, char *argv[]) {
     return cmdCPSExtract(argv[1]);
   } else if (strcmp(argv[0], "extract-pal") == 0) {
     return cmdCPSExtractPal(argv[1]);
+  } else if (strcmp(argv[0], "info") == 0) {
+    return cmdCPSInfo(argv[1]);
   }
   usageCPS();
   return 1;
