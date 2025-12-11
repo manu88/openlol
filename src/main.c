@@ -440,7 +440,7 @@ static int cmdMap(int argc, char *argv[]) {
 }
 
 static void usageCPS(void) {
-  printf("cps extract|extract-pal|info cpsfile \n");
+  printf("cps extract|extract-pal|info cpsfile [outputfile]\n");
 }
 
 static int cmdCPSInfo(const char *filepath) {
@@ -501,7 +501,7 @@ static int cmdCPSExtractPal(const char *filepath) {
   return 0;
 }
 
-static int cmdCPSExtract(const char *filepath) {
+static int cmdCPSExtract(const char *filepath, const char *destFilePath) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -515,13 +515,7 @@ static int cmdCPSExtract(const char *filepath) {
     free(buffer);
   }
   if (ok) {
-    char *destFilePath = strdup(filepath);
-    assert(destFilePath);
-    destFilePath[strlen(destFilePath) - 3] = 'p';
-    destFilePath[strlen(destFilePath) - 2] = 'n';
-    destFilePath[strlen(destFilePath) - 1] = 'g';
     CPSImageToPng(&image, destFilePath);
-    free(destFilePath);
     CPSImageRelease(&image);
   }
 
@@ -534,7 +528,11 @@ static int cmdCPS(int argc, char *argv[]) {
     return 1;
   }
   if (strcmp(argv[0], "extract") == 0) {
-    return cmdCPSExtract(argv[1]);
+    if (argc < 3) {
+      usageCPS();
+      return 1;
+    }
+    return cmdCPSExtract(argv[1], argv[2]);
   } else if (strcmp(argv[0], "extract-pal") == 0) {
     return cmdCPSExtractPal(argv[1]);
   } else if (strcmp(argv[0], "info") == 0) {
