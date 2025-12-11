@@ -298,7 +298,7 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageSHP(void) {
-  printf("shp subcommands: [-c] list|extract  filepath [index] [palette]\n");
+  printf("shp subcommands: [-c] info|extract  filepath [index] [palette]\n");
 }
 
 static int cmdShp(int argc, char *argv[]) {
@@ -313,9 +313,7 @@ static int cmdShp(int argc, char *argv[]) {
     argc--;
     argv++;
   }
-  printf("compressed = %i\n", compressed);
-  printf("%s\n", argv[0]);
-  if (strcmp(argv[0], "list") != 0 && strcmp(argv[0], "extract") != 0) {
+  if (strcmp(argv[0], "info") != 0 && strcmp(argv[0], "extract") != 0) {
     usageSHP();
     return 1;
   }
@@ -325,29 +323,34 @@ static int cmdShp(int argc, char *argv[]) {
   }
 
   const char *shpFile = argv[1];
-  printf("open SHP file '%s'\n", shpFile);
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(shpFile, &fileSize, &readSize);
+
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(shpFile, &dataSize, &freeBuffer);
   if (!buffer) {
-    perror("readBinaryFile");
+    printf("Error while getting data for '%s'\n", shpFile);
     return 1;
   }
+
   SHPHandle handle = {0};
   if (compressed == 0) {
-    if (!SHPHandleFromBuffer(&handle, buffer, readSize)) {
+    if (!SHPHandleFromBuffer(&handle, buffer, dataSize)) {
       perror("SHPHandleFromBuffer");
-      free(buffer);
+      if (freeBuffer) {
+        free(buffer);
+      }
       return 1;
     }
   } else {
-    if (!SHPHandleFromCompressedBuffer(&handle, buffer, readSize)) {
+    if (!SHPHandleFromCompressedBuffer(&handle, buffer, dataSize)) {
       perror("SHPHandleFromBuffer");
-      free(buffer);
+      if (freeBuffer) {
+        free(buffer);
+      }
       return 1;
     }
   }
-  if (strcmp(argv[0], "list") == 0) {
+  if (strcmp(argv[0], "info") == 0) {
     SHPHandlePrint(&handle);
   } else if (strcmp(argv[0], "extract") == 0) {
     int index = atoi(argv[2]);
@@ -355,6 +358,8 @@ static int cmdShp(int argc, char *argv[]) {
     VCNHandle vcnHandle = {0};
     char *vcnPaletteFile = NULL;
     if (argc > 3) {
+      size_t fileSize = 0;
+      size_t readSize = 0;
       vcnPaletteFile = argv[3];
       printf("using vcn palette file '%s'\n", vcnPaletteFile);
       uint8_t *buffer = readBinaryFile(vcnPaletteFile, &fileSize, &readSize);
