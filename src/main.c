@@ -949,7 +949,7 @@ static int cmdInfoTim(const char *filepath) {
       printf("Text: %i '%s'\n", i, TIMHandleGetText(&handle, i));
     }
   } else {
-    printf("No text\n");
+    printf("No text data\n");
   }
 
   TIMInterpreter interp;
