@@ -932,17 +932,17 @@ static void usageTim(void) {
 }
 
 static int cmdInfoTim(const char *filepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
   if (!buffer) {
-    perror("malloc error");
+    printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
 
   TIMHandle handle = {0};
   TIMHandleInit(&handle);
-  TIMHandleFromBuffer(&handle, buffer, readSize);
+  TIMHandleFromBuffer(&handle, buffer, dataSize);
 
   if (handle.text) {
     for (int i = 0; i < handle.numTextStrings; i++) {
@@ -959,6 +959,9 @@ static int cmdInfoTim(const char *filepath) {
   TIMInterpreterStart(&interp, &handle);
   while (TIMInterpreterIsRunning(&interp)) {
     TIMInterpreterUpdate(&interp);
+  }
+  if (freeBuffer) {
+    free(buffer);
   }
 
   return 0;
