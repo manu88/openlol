@@ -3,7 +3,7 @@ from tkinter import ttk
 from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
-from lol import LOL
+from lol import lol, SHPFileInfo
 
 
 def get_type(file: str) -> str:
@@ -69,7 +69,7 @@ class BaseRender(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent, bg="pink")
 
-    def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
+    def update_for_item(self, file_name: str, pak_name: str):
         pass
 
 
@@ -79,7 +79,7 @@ class CPSRender(BaseRender):
         self.img_label = tk.Label(self)
         self.img_label.pack()
 
-    def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
+    def update_for_item(self, file_name: str, pak_name: str):
         out_file = lol.get_temp_path_for("display.png")
         if lol.extract_cps(file_name, pak_name, out_file):
             print(f"written to {out_file}")
@@ -97,11 +97,13 @@ class WSARender(BaseRender):
 class SHPRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
+        self.shp_info: Optional[SHPFileInfo] = None
         style = ttk.Style(parent)
         style.theme_use("clam")
         style.configure("Treeview", background="black",
                         fieldbackground="black", foreground="white")
         self.table = ttk.Treeview(self, columns=("width", "height"))
+        self.table.bind("<<TreeviewSelect>>", self.frame_sel_changed)
         self.table.heading("width", text="width")
         self.table.heading("height", text="height")
 
@@ -110,25 +112,32 @@ class SHPRender(BaseRender):
 
         self.table.pack(fill=tk.BOTH, expand=True)
 
+    def frame_sel_changed(self, _):
+        frame_iid = self.table.selection()[0]
+        sel_item = self.table.item(frame_iid)
+        frame_id = int(sel_item["text"])
+        out_file = lol.get_temp_path_for("display.png")
+        if not lol.extract_shp_frame(self.shp_info, frame_id, out_file):
+            print("extract_shp_frame error")
+
     def clear_table(self):
         for i in self.table.get_children():
             self.table.delete(i)
 
-    def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
-        shp_info = lol.get_shp_info(file_name, pak_name)
-        if shp_info is None:
+    def update_for_item(self, file_name: str, pak_name: str):
+        self.shp_info = lol.get_shp_info(file_name, pak_name)
+        if self.shp_info is None:
             return
-        print(f"compressed = {shp_info.compressed}")
-        print(f"{len(shp_info.desc)} frames")
+        print(f"compressed = {self.shp_info.compressed}")
+        print(f"{len(self.shp_info.desc)} frames")
         self.clear_table()
-        for frame_id, frame in enumerate(shp_info.frames):
+        for frame_id, frame in enumerate(self.shp_info.frames):
             self.table.insert(
                 "", "end", text=f"{frame_id}", values=(frame.width, frame.height))
 
 
 class UI:
     def __init__(self):
-        self.lol = LOL()
         self.root = tk.Tk()
         self.root.title("Lands Of Lore - Viewer")
         self.root.geometry("1000x800")
@@ -145,9 +154,9 @@ class UI:
         self.info_frame = InfoFrame(self.right_frame)
         self.info_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.file_tree = ttk.Treeview(self.left_frame, columns=("type"))
+        self.file_tree = ttk.Treeview(self.left_frame, columns="type")
 
-        self.file_tree = ttk.Treeview(self.left_frame, columns=("type"))
+        self.file_tree = ttk.Treeview(self.left_frame, columns="type")
         self.file_tree.heading("type", text="type")
         self.file_tree.column("type")
         self._construct_file_tree()
@@ -171,11 +180,11 @@ class UI:
         return
 
     def _construct_file_tree(self):
-        for pak_file in self.lol.pak_files:
+        for pak_file in lol.pak_files:
             parent_id = self.file_tree.insert(
                 "", "end", text=pak_file, values="PAK")
 
-            for file in self.lol.list(pak_file):
+            for file in lol.list(pak_file):
                 self.file_tree.insert(parent_id, "end", text=file,
                                       values=get_type(file))
         self.file_tree.pack(fill=tk.BOTH, expand=True)
@@ -196,8 +205,7 @@ class UI:
         self.info_frame.update_for_item(file_name, pak_name)
         self.change_tool_view(get_type(file_name))
         if self.current_renderer:
-            self.current_renderer.update_for_item(
-                self.lol, file_name, pak_name)
+            self.current_renderer.update_for_item(file_name, pak_name)
 
 
 if __name__ == "__main__":

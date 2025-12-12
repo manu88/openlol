@@ -24,6 +24,8 @@ class SHPFileInfo:
                     self.height = int(val)
 
     def __init__(self, desc: List[str], compressed=False):
+        self.file = ""
+        self.pak_file = ""
         self.compressed = compressed
         self.desc: List[str] = desc
         self.frames: List[SHPFileInfo.SHPFrameInfo] = []
@@ -89,10 +91,22 @@ class LOL:
             return None
         return proc_output.splitlines()
 
+    def extract_shp_frame(self, shp_info: SHPFileInfo, frame_id: int, out_file: str) -> bool:
+        argv = [self.tool_path, "-p", shp_info.pak_file, "shp"]
+        if shp_info.compressed:
+            argv.append("-c")
+        argv += ["extract", shp_info.file, str(frame_id), out_file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return False
+        return True
+
     def get_shp_info(self, file: str, pak: str) -> Optional[SHPFileInfo]:
         info = self._get_shp_info_uncompressed(file, pak)
         if info is None:
             info = self._get_shp_info_compressed(file, pak)
+        info.file = file
+        info.pak_file = pak
         return info
 
     def _get_shp_info_uncompressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:
@@ -119,3 +133,6 @@ class LOL:
             return None
         proc_output = resp.stdout.decode()
         return proc_output.splitlines()
+
+
+lol = LOL()
