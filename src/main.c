@@ -298,11 +298,12 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageSHP(void) {
-  printf("shp subcommands: [-c] info|extract  filepath index [palette]\n");
+  printf(
+      "shp subcommands: [-c] info|extract  filepath index outfile [palette]\n");
 }
 
 static int doSHPExtract(int index, const SHPHandle *handle,
-                        const char *vcnPaletteFile) {
+                        const char *outfilePath, const char *vcnPaletteFile) {
   VCNHandle vcnHandle = {0};
 
   if (vcnPaletteFile) {
@@ -329,7 +330,7 @@ static int doSHPExtract(int index, const SHPHandle *handle,
   SHPHandleGetFrame(handle, &frame, index);
   SHPFramePrint(&frame);
   SHPFrameGetImageData(&frame);
-  SHPFrameToPng(&frame, "frame.png", vcnPaletteFile ? vcnHandle.palette : NULL);
+  SHPFrameToPng(&frame, outfilePath, vcnPaletteFile ? vcnHandle.palette : NULL);
   SHPFrameRelease(&frame);
   if (vcnPaletteFile != NULL) {
     VCNHandleRelease(&vcnHandle);
@@ -353,7 +354,7 @@ static int cmdShp(int argc, char *argv[]) {
     usageSHP();
     return 1;
   }
-  if (strcmp(argv[0], "extract") == 0 && argc < 3) {
+  if (strcmp(argv[0], "extract") == 0 && argc < 4) {
     usageSHP();
     return 1;
   }
@@ -391,8 +392,9 @@ static int cmdShp(int argc, char *argv[]) {
     SHPHandlePrint(&handle);
   } else if (strcmp(argv[0], "extract") == 0) {
     int index = atoi(argv[2]);
-    const char *vcnPaletteFile = argc > 3 ? argv[3] : NULL;
-    ret = doSHPExtract(index, &handle, vcnPaletteFile);
+    const char *outfilePath = argv[3];
+    const char *vcnPaletteFile = argc > 4 ? argv[4] : NULL;
+    ret = doSHPExtract(index, &handle, outfilePath, vcnPaletteFile);
   }
 
   SHPHandleRelease(&handle);
