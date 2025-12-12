@@ -298,7 +298,43 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageSHP(void) {
-  printf("shp subcommands: [-c] info|extract  filepath [index] [palette]\n");
+  printf("shp subcommands: [-c] info|extract  filepath index [palette]\n");
+}
+
+static int doSHPExtract(int index, const SHPHandle *handle,
+                        const char *vcnPaletteFile) {
+  VCNHandle vcnHandle = {0};
+
+  if (vcnPaletteFile) {
+    size_t fileSize = 0;
+    size_t readSize = 0;
+    printf("using vcn palette file '%s'\n", vcnPaletteFile);
+    uint8_t *buffer = readBinaryFile(vcnPaletteFile, &fileSize, &readSize);
+    if (!buffer) {
+      return 1;
+    }
+    if (readSize == 0) {
+      free(buffer);
+      return 1;
+    }
+    if (!VCNHandleFromLCWBuffer(&vcnHandle, buffer, fileSize)) {
+      printf("VCNDataFromLCWBuffer error\n");
+      free(buffer);
+      return 1;
+    }
+    assert(readSize == fileSize);
+  }
+  printf("extracting index %i\n", index);
+  SHPFrame frame = {0};
+  SHPHandleGetFrame(handle, &frame, index);
+  SHPFramePrint(&frame);
+  SHPFrameGetImageData(&frame);
+  SHPFrameToPng(&frame, "frame.png", vcnPaletteFile ? vcnHandle.palette : NULL);
+  SHPFrameRelease(&frame);
+  if (vcnPaletteFile != NULL) {
+    VCNHandleRelease(&vcnHandle);
+  }
+  return 0;
 }
 
 static int cmdShp(int argc, char *argv[]) {
@@ -350,48 +386,17 @@ static int cmdShp(int argc, char *argv[]) {
       return 1;
     }
   }
+  int ret = 0;
   if (strcmp(argv[0], "info") == 0) {
     SHPHandlePrint(&handle);
   } else if (strcmp(argv[0], "extract") == 0) {
     int index = atoi(argv[2]);
-
-    VCNHandle vcnHandle = {0};
-    char *vcnPaletteFile = NULL;
-    if (argc > 3) {
-      size_t fileSize = 0;
-      size_t readSize = 0;
-      vcnPaletteFile = argv[3];
-      printf("using vcn palette file '%s'\n", vcnPaletteFile);
-      uint8_t *buffer = readBinaryFile(vcnPaletteFile, &fileSize, &readSize);
-      if (!buffer) {
-        return 1;
-      }
-      if (readSize == 0) {
-        free(buffer);
-        return 1;
-      }
-      if (!VCNHandleFromLCWBuffer(&vcnHandle, buffer, fileSize)) {
-        printf("VCNDataFromLCWBuffer error\n");
-        free(buffer);
-        return 1;
-      }
-      assert(readSize == fileSize);
-    }
-    printf("extracting index %i\n", index);
-    SHPFrame frame = {0};
-    SHPHandleGetFrame(&handle, &frame, index);
-    SHPFramePrint(&frame);
-    SHPFrameGetImageData(&frame);
-    SHPFrameToPng(&frame, "frame.png",
-                  vcnPaletteFile ? vcnHandle.palette : NULL);
-    SHPFrameRelease(&frame);
-    if (vcnPaletteFile != NULL) {
-      VCNHandleRelease(&vcnHandle);
-    }
+    const char *vcnPaletteFile = argc > 3 ? argv[3] : NULL;
+    ret = doSHPExtract(index, &handle, vcnPaletteFile);
   }
 
   SHPHandleRelease(&handle);
-  return 0;
+  return ret;
 }
 
 static int cmdDat(int argc, char *argv[]) {
