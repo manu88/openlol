@@ -14,7 +14,8 @@ class StatusFrame(tk.Frame):
         super().__init__(master, bg="green")
         self.last_status = MsgStatus()
         self.str_var = tk.StringVar()
-        self.game_flags_var = [tk.StringVar(value=f"0X00") for _ in range(100)]
+        self.game_flags_var = [tk.StringVar(
+            value=f"{0:08b}") for _ in range(100)]
         self.game_flags = [None for _ in range(100)]
         tk.Label(master=self,
                  textvariable=self.str_var).grid(column=0, row=0)
@@ -35,7 +36,7 @@ class StatusFrame(tk.Frame):
             f"current block {status.current_block}")
         for i in range(100):
             label = self.game_flags_var[i]
-            label.set(f"0X{status.game_flags[i]:02X}")
+            label.set(f"{status.game_flags[i]:08b}")
             if self.last_status and self.last_status.game_flags[i] != status.game_flags[i]:
                 self.game_flags[i].config(bg="red")
             else:
@@ -89,8 +90,7 @@ class UIDebugger:
         for widget in self.right_frame.winfo_children():
             widget.pack_forget()
         self.tool_frames[sel_tool].pack(fill=tk.BOTH, expand=True)
-        widget.update()
-        return
+        self.tool_frames[sel_tool].update()
 
     def get_status(self):
         status = self.conn.get_status()
