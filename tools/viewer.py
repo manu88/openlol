@@ -110,15 +110,25 @@ class SHPRender(BaseRender):
         self.table.column("width", width=100)
         self.table.column("height", width=50, anchor="center")
 
-        self.table.pack(fill=tk.BOTH, expand=True)
+        self.table.pack(fill=tk.X, expand=True)
+
+        self.img_label = tk.Label(self)
+        self.img_label.pack()
 
     def frame_sel_changed(self, _):
+        if len(self.table.selection()) == 0:
+            return
         frame_iid = self.table.selection()[0]
         sel_item = self.table.item(frame_iid)
         frame_id = int(sel_item["text"])
         out_file = lol.get_temp_path_for("display.png")
         if not lol.extract_shp_frame(self.shp_info, frame_id, out_file):
             print("extract_shp_frame error")
+            return
+        img_data = PIL.Image.open(out_file)
+        img = PIL.ImageTk.PhotoImage(img_data)
+        self.img_label.configure(image=img)
+        self.img_label.image = img
 
     def clear_table(self):
         for i in self.table.get_children():
