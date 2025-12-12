@@ -395,13 +395,15 @@ void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
   SDL_Surface *surface = SDL_CreateRGBSurface(
       0, frame->header.width, frame->header.height, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+  SDL_Texture *pixbuf = SDL_CreateTexture(
+      renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
+      frame->header.width, frame->header.height);
 
-  assert(0 && "will fail because we don't pass a SDL_Texture");
-  drawSHPFrame(NULL, frame, 0, 0, palette);
+  drawSHPFrame(pixbuf, frame, 0, 0, palette);
 
-  SDL_RenderPresent(renderer);
+  SDL_RenderCopy(renderer, pixbuf, NULL, NULL);
   IMG_SavePNG(surface, savePngPath);
-
+  SDL_DestroyTexture(pixbuf);
   SDL_DestroyRenderer(renderer);
 }
 
