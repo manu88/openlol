@@ -286,7 +286,7 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
-  assert(0 || "will fail because we're passing a SDL_Renderer to blitBlock "
+  assert(0 && "will fail because we're passing a SDL_Renderer to blitBlock "
               "instead of a pixel buffer -- this is easy to fix");
   for (int i = 0; i < handle->nbBlocks; i++) {
     int blockX = i % widthBlocks;
@@ -396,7 +396,7 @@ void SHPFrameToPng(const SHPFrame *frame, const char *savePngPath,
       0, frame->header.width, frame->header.height, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
 
-  assert(0 || "will fail because we don't pass a SDL_Texture");
+  assert(0 && "will fail because we don't pass a SDL_Texture");
   drawSHPFrame(NULL, frame, 0, 0, palette);
 
   SDL_RenderPresent(renderer);
