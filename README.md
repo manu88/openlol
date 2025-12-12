@@ -1,4 +1,6 @@
-# Lands of Lore CLI
+# Lands of Lore
+
+Complete new implementation of the awesome game 'Lands of Lore: Throne of Chaos', along with tools.
 
 ## build
 ```bash
@@ -9,7 +11,6 @@ note: SDL2 is required.
 
 ## game assets
 You need to create a "data" folder in the root of the repo and copy all ‘pak' files into it.
-
 
 
 ## Usage
@@ -24,6 +25,8 @@ The program also exposes a list of commands to extract or inspect game assets li
 ```bash
 ./lol -h
 ```
+
+Alternatively, a viewer is available in the tools directory. 
 
 ## What's working, what's not
 Most of the game logic and rendering code is setup, but there's still a lot to cover. Next big thing to tackle is to correctly render WSA/TIM animations.
