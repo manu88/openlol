@@ -10,7 +10,7 @@ How to find in which pak is located a given file?
 in two different pak files.
 - Second, per-level files are located in level-related pak files. For example
 files like 'LEVEL1.SHP', 'LEVEL1.INF' are located in 'L01.PAK'.
-- Lastly, some general files like background ui, item icons are located in
+- Lastly, some general files like UI assets or item icons are located in
 general pak files like 'GENERAL.PAK' and 'STARTUP.PAK'.
 
 So here's the heuristic when loading a file;
@@ -18,8 +18,8 @@ So here's the heuristic when loading a file;
 be straightforward to deduce the PAK file from the file path. Example:
 'LEVEL1.INF' is in LO1.PAK.
 
-- If the file needs to be load from main code, either specify the PAK from which
-to load the content, or load all pak files until the right file is found. This
+- If the file needs to be loaded from main code, either specify the PAK from which
+to load the content, or load pak files one by one until the right file is found. This
 last option is doable because all file names are unique, but it will be
 slooooooooow.
 */
