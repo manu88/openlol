@@ -169,6 +169,11 @@ class UI:
         self.file_tree = ttk.Treeview(self.left_frame, columns="type")
         self.file_tree.heading("type", text="type")
         self.file_tree.column("type")
+        self.pak_files: Dict[str, str] = {}
+        for pak_file in lol.pak_files:
+            self.pak_files[pak_file] = []
+            for file in lol.list(pak_file):
+                self.pak_files[pak_file].append(file)
         self._construct_file_tree()
         self.renders: Dict[str, BaseRender] = {}
         self.current_renderer: Optional[BaseRender] = None
@@ -190,11 +195,11 @@ class UI:
         return
 
     def _construct_file_tree(self):
-        for pak_file in lol.pak_files:
+        for pak_name, files in self.pak_files.items():
             parent_id = self.file_tree.insert(
-                "", "end", text=pak_file, values="PAK")
+                "", "end", text=pak_name, values="PAK")
 
-            for file in lol.list(pak_file):
+            for file in files:
                 self.file_tree.insert(parent_id, "end", text=file,
                                       values=get_type(file))
         self.file_tree.pack(fill=tk.BOTH, expand=True)
