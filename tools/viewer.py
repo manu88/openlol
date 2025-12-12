@@ -97,15 +97,33 @@ class WSARender(BaseRender):
 class SHPRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns=("width", "height"))
+        self.table.heading("width", text="width")
+        self.table.heading("height", text="height")
+
+        self.table.column("width", width=100)
+        self.table.column("height", width=50, anchor="center")
+
+        self.table.pack(fill=tk.BOTH, expand=True)
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
 
     def update_for_item(self, lol: LOL, file_name: str, pak_name: str):
         shp_info = lol.get_shp_info(file_name, pak_name)
         if shp_info is None:
             return
         print(f"compressed = {shp_info.compressed}")
-
-        for line in shp_info.desc:
-            print(line)
+        print(f"{len(shp_info.desc)} frames")
+        self.clear_table()
+        for frame_id, frame in enumerate(shp_info.frames):
+            self.table.insert(
+                "", "end", text=f"{frame_id}", values=(frame.width, frame.height))
 
 
 class UI:

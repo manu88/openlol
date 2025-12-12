@@ -6,9 +6,51 @@ from typing import List, Optional
 
 
 class SHPFileInfo:
+    class SHPFrameInfo:
+        def __init__(self):
+            self.flags0 = 0
+            self.flags1 = 1
+            self.width = 0
+            self.height = 0
+
+        def from_data(self, data: str):
+            for param in data.split(" "):
+                if param == "":
+                    continue
+                name, val = param.split("=")
+                if name == "w":
+                    self.width = int(val)
+                elif name == "h":
+                    self.height = int(val)
+
     def __init__(self, desc: List[str], compressed=False):
         self.compressed = compressed
         self.desc: List[str] = desc
+        self.frames: List[SHPFileInfo.SHPFrameInfo] = []
+        self._parse()
+
+    def _parse(self):
+        index = 0
+        for l in self.desc:
+            info = SHPFileInfo.SHPFrameInfo()
+            frame_id_str, the_rest = l.split(":")
+
+            frame_id = int(frame_id_str)
+            assert frame_id == index
+            info.from_data(the_rest)
+            self.frames.append(info)
+            index += 1
+
+
+#  framenum: flags0=%02X flags1=%02X slices=%i w=%i h=%i fsize=%i "
+#         "zeroCompressedSize=%i hasRemapTable=%i noLCW=%i "
+#         "customSizeRemap=%i remapSize %i remapTable %p image data %p "
+#         "header=%i\n",
+
+
+def _do_exec(argv: List, output=True):
+    return subprocess.run(
+        argv, stdout=subprocess.PIPE if output else None, check=False)
 
 
 class LOL:
@@ -24,8 +66,7 @@ class LOL:
 
     def extract(self, file: str, pak: str) -> bool:
         argv = [self.tool_path, "-p", pak, "pak", "extract", file]
-        resp = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False)
+        resp = _do_exec(argv)
         if resp.returncode != 0:
             print(resp)
             return False
@@ -33,8 +74,7 @@ class LOL:
 
     def extract_cps(self, file: str, pak: str, out_file: str) -> bool:
         argv = [self.tool_path, "-p", pak, "cps", "extract", file, out_file]
-        resp = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False)
+        resp = _do_exec(argv)
         if resp.returncode != 0:
             print(resp)
             return False
@@ -42,8 +82,7 @@ class LOL:
 
     def list(self, pak: str) -> Optional[List[str]]:
         argv = ["./lol", "-p", pak, "pak", "list"]
-        resp = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False)
+        resp = _do_exec(argv)
         proc_output = resp.stdout.decode()
         if resp.returncode != 0:
             print(resp)
@@ -58,8 +97,7 @@ class LOL:
 
     def _get_shp_info_uncompressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:
         argv = [self.tool_path, "-p", pak, "shp", "info", file]
-        resp = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False)
+        resp = _do_exec(argv)
         if resp.returncode != 0:
             return None
         proc_output = resp.stdout.decode()
@@ -67,8 +105,7 @@ class LOL:
 
     def _get_shp_info_compressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:
         argv = [self.tool_path, "-p", pak, "shp", "-c", "info", file]
-        resp = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False)
+        resp = _do_exec(argv)
         if resp.returncode != 0:
             return None
         proc_output = resp.stdout.decode()
@@ -76,8 +113,7 @@ class LOL:
 
     def file_info(self, file: str, pak: str, typ: str) -> Optional[List[str]]:
         argv = [self.tool_path, "-p", pak, typ, "info", file]
-        resp = subprocess.run(
-            argv, stdout=subprocess.PIPE, check=False)
+        resp = _do_exec(argv)
         if resp.returncode != 0:
             print(resp)
             return None
