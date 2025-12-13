@@ -305,25 +305,24 @@ static void usageSHP(void) {
 static int doSHPExtract(int index, const SHPHandle *handle,
                         const char *outfilePath, const char *vcnPaletteFile) {
   VCNHandle vcnHandle = {0};
-
+  int freeVcnFileBuffer = 0;
+  uint8_t *vcnFileBuffer = NULL;
   if (vcnPaletteFile) {
-    size_t fileSize = 0;
-    size_t readSize = 0;
     printf("using vcn palette file '%s'\n", vcnPaletteFile);
-    uint8_t *buffer = readBinaryFile(vcnPaletteFile, &fileSize, &readSize);
-    if (!buffer) {
+    size_t vcnDataSize = 0;
+    vcnFileBuffer =
+        getFileContent(vcnPaletteFile, &vcnDataSize, &freeVcnFileBuffer);
+    if (!vcnFileBuffer) {
+      printf("Error while getting data for '%s'\n", vcnPaletteFile);
       return 1;
     }
-    if (readSize == 0) {
-      free(buffer);
-      return 1;
-    }
-    if (!VCNHandleFromLCWBuffer(&vcnHandle, buffer, fileSize)) {
+    if (!VCNHandleFromLCWBuffer(&vcnHandle, vcnFileBuffer, vcnDataSize)) {
       printf("VCNDataFromLCWBuffer error\n");
-      free(buffer);
+      if (freeVcnFileBuffer) {
+        free(vcnFileBuffer);
+      }
       return 1;
     }
-    assert(readSize == fileSize);
   }
   printf("extracting index %i\n", index);
   SHPFrame frame = {0};
@@ -334,6 +333,9 @@ static int doSHPExtract(int index, const SHPHandle *handle,
   SHPFrameRelease(&frame);
   if (vcnPaletteFile != NULL) {
     VCNHandleRelease(&vcnHandle);
+  }
+  if (freeVcnFileBuffer) {
+    free(vcnFileBuffer);
   }
   return 0;
 }
