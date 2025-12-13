@@ -6,6 +6,9 @@ import PIL.ImageTk
 from lol import lol, SHPFileInfo
 
 
+pak_files: Dict[str, str] = {}
+
+
 def get_type(file: str) -> str:
     return file.split(".")[1]
 
@@ -111,9 +114,9 @@ class SHPRender(BaseRender):
         self.table.column("height", width=50, anchor="center")
 
         self.table.pack(fill=tk.X, expand=True)
-
         self.img_label = tk.Label(self)
         self.img_label.pack()
+        self.vnc_file: Optional[str] = None
 
     def frame_sel_changed(self, _):
         if len(self.table.selection()) == 0:
@@ -122,7 +125,7 @@ class SHPRender(BaseRender):
         sel_item = self.table.item(frame_iid)
         frame_id = int(sel_item["text"])
         out_file = lol.get_temp_path_for("display.png")
-        if not lol.extract_shp_frame(self.shp_info, frame_id, out_file):
+        if not lol.extract_shp_frame(self.shp_info, frame_id, out_file, self.vnc_file):
             print("extract_shp_frame error")
             return
         img_data = PIL.Image.open(out_file)
@@ -138,6 +141,14 @@ class SHPRender(BaseRender):
         self.shp_info = lol.get_shp_info(file_name, pak_name)
         if self.shp_info is None:
             return
+
+        # is there a matching vcn file?
+        vnc_file = self.shp_info.file.split(".")[0] + ".VCN"
+        print(f"looking for {vnc_file} in {self.shp_info.pak_file}")
+        if vnc_file in pak_files[self.shp_info.pak_file]:
+            self.vnc_file = vnc_file
+        else:
+            self.vnc_file = None
         print(f"compressed = {self.shp_info.compressed}")
         print(f"{len(self.shp_info.desc)} frames")
         self.clear_table()
@@ -169,11 +180,6 @@ class UI:
         self.file_tree = ttk.Treeview(self.left_frame, columns="type")
         self.file_tree.heading("type", text="type")
         self.file_tree.column("type")
-        self.pak_files: Dict[str, str] = {}
-        for pak_file in lol.pak_files:
-            self.pak_files[pak_file] = []
-            for file in lol.list(pak_file):
-                self.pak_files[pak_file].append(file)
         self._construct_file_tree()
         self.renders: Dict[str, BaseRender] = {}
         self.current_renderer: Optional[BaseRender] = None
@@ -195,10 +201,9 @@ class UI:
         return
 
     def _construct_file_tree(self):
-        for pak_name, files in self.pak_files.items():
+        for pak_name, files in pak_files.items():
             parent_id = self.file_tree.insert(
                 "", "end", text=pak_name, values="PAK")
-
             for file in files:
                 self.file_tree.insert(parent_id, "end", text=file,
                                       values=get_type(file))
@@ -224,5 +229,9 @@ class UI:
 
 
 if __name__ == "__main__":
+    for pak_file in lol.pak_files:
+        pak_files[pak_file] = []
+        for file in lol.list(pak_file):
+            pak_files[pak_file].append(file)
     ui = UI()
     ui.run()

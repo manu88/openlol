@@ -91,11 +91,13 @@ class LOL:
             return None
         return proc_output.splitlines()
 
-    def extract_shp_frame(self, shp_info: SHPFileInfo, frame_id: int, out_file: str) -> bool:
+    def extract_shp_frame(self, shp_info: SHPFileInfo, frame_id: int, out_file: str, vnc_file: Optional[str] = None) -> bool:
         argv = [self.tool_path, "-p", shp_info.pak_file, "shp"]
         if shp_info.compressed:
             argv.append("-c")
         argv += ["extract", shp_info.file, str(frame_id), out_file]
+        if vnc_file:
+            argv.append(vnc_file)
         resp = _do_exec(argv)
         if resp.returncode != 0:
             return False
