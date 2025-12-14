@@ -48,7 +48,7 @@ class WSAFileInfo:
     def __init__(self, desc: List[str]):
         self.file = ""
         self.pak_file = ""
-        self.numFrame = 0
+        self.frame_count = 0
         self.x = 0
         self.y = 0
         self.w = 0
@@ -59,7 +59,7 @@ class WSAFileInfo:
                 continue
             name, val = param.split("=")
             if name == "numFrame":
-                self.numFrame = int(val)
+                self.frame_count = int(val)
             elif name == "x":
                 self.x = int(val)
             elif name == "y":

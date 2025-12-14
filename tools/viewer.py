@@ -151,11 +151,11 @@ class WSARender(BaseRender):
         self.wsa_info = info
         if info is None:
             return
-        self.frame_count_var.set(f"{info.numFrame}")
+        self.frame_count_var.set(f"{info.frame_count}")
         self.size_var.set(f"{info.w}/{info.h}")
         self.origin_var.set(f"{info.x}/{info.y}")
         self.clear_table()
-        for frame_id in range(self.wsa_info.numFrame):
+        for frame_id in range(self.wsa_info.frame_count):
             self.table.insert(
                 "", "end", text=f"{frame_id}", values=("", ""))
 
