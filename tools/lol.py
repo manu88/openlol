@@ -46,6 +46,8 @@ class SHPFileInfo:
 
 class WSAFileInfo:
     def __init__(self, desc: List[str]):
+        self.file = ""
+        self.pak_file = ""
         self.numFrame = 0
         self.x = 0
         self.y = 0
@@ -152,7 +154,18 @@ class LOL:
         if resp.returncode != 0:
             return None
         proc_output = resp.stdout.decode()
-        return WSAFileInfo(proc_output.splitlines())
+        info = WSAFileInfo(proc_output.splitlines())
+        info.file = file
+        info.pak_file = pak
+        return info
+
+    def extract_wsa_frame(self, wsa_info: WSAFileInfo, frame_id: int, out_file: str) -> bool:
+        argv = [self.tool_path, "-p", wsa_info.pak_file, "wsa"]
+        argv += ["extract", wsa_info.file, str(frame_id), out_file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return False
+        return True
 
 
 lol = LOL()

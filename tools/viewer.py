@@ -3,7 +3,7 @@ from tkinter import ttk
 from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
-from lol import lol, SHPFileInfo
+from lol import lol, SHPFileInfo, WSAFileInfo
 
 
 pak_files: Dict[str, str] = {}
@@ -95,6 +95,7 @@ class CPSRender(BaseRender):
 class WSARender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
+        self.wsa_info: Optional[WSAFileInfo] = None
         tk.Label(master=self, text="Frames:").grid(column=0, row=0)
         self.frame_count_var = tk.StringVar()
         tk.Label(master=self, textvariable=self.frame_count_var).grid(
@@ -110,14 +111,53 @@ class WSARender(BaseRender):
         tk.Label(master=self, textvariable=self.origin_var).grid(
             column=5, row=0)
 
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns=("width", "height"))
+        self.table.grid(column=0, row=1, columnspan=5)
+        self.table.bind("<<TreeviewSelect>>", self.frame_sel_changed)
+        self.table.heading("width", text="width")
+        self.table.heading("height", text="height")
+
+        self.table.column("width", width=100)
+        self.table.column("height", width=50, anchor="center")
+
+        self.img_label = tk.Label(self)
+        self.img_label.grid(column=0, row=2)
+
+    def frame_sel_changed(self, _):
+        if len(self.table.selection()) == 0:
+            return
+        frame_iid = self.table.selection()[0]
+        sel_item = self.table.item(frame_iid)
+        frame_id = int(sel_item["text"])
+        out_file = lol.get_temp_path_for("display.png")
+        if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file):
+            return
+        img_data = PIL.Image.open(out_file)
+        img = PIL.ImageTk.PhotoImage(img_data)
+        self.img_label.configure(image=img)
+        self.img_label.image = img
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
+
     def update_for_item(self, file_name: str, pak_name: str):
         print(f"WSA Render: update for {file_name}")
         info = lol.get_wsa_info(file_name, pak_name)
+        self.wsa_info = info
         if info is None:
             return
         self.frame_count_var.set(f"{info.numFrame}")
         self.size_var.set(f"{info.w}/{info.h}")
         self.origin_var.set(f"{info.x}/{info.y}")
+        self.clear_table()
+        for frame_id in range(self.wsa_info.numFrame):
+            self.table.insert(
+                "", "end", text=f"{frame_id}", values=("", ""))
 
 
 class TIMRender(BaseRender):
