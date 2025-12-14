@@ -44,10 +44,29 @@ class SHPFileInfo:
             index += 1
 
 
-#  framenum: flags0=%02X flags1=%02X slices=%i w=%i h=%i fsize=%i "
-#         "zeroCompressedSize=%i hasRemapTable=%i noLCW=%i "
-#         "customSizeRemap=%i remapSize %i remapTable %p image data %p "
-#         "header=%i\n",
+class WSAFileInfo:
+    def __init__(self, desc: List[str]):
+        self.numFrame = 0
+        self.x = 0
+        self.y = 0
+        self.w = 0
+        self.h = 0
+        general_info = desc[0].split(" ")
+        for param in general_info:
+            if param == "":
+                continue
+            name, val = param.split("=")
+            if name == "numFrame":
+                self.numFrame = int(val)
+            elif name == "x":
+                self.x = int(val)
+            elif name == "y":
+                self.y = int(val)
+            elif name == "w":
+                self.w = int(val)
+            elif name == "h":
+                self.h = int(val)
+        # numFrame=38 x=0 y=0 w=72 h=64 palette=0 delta=EF9
 
 
 def _do_exec(argv: List, output=True):
@@ -127,14 +146,13 @@ class LOL:
         proc_output = resp.stdout.decode()
         return SHPFileInfo(proc_output.splitlines(), compressed=True)
 
-    def file_info(self, file: str, pak: str, typ: str) -> Optional[List[str]]:
-        argv = [self.tool_path, "-p", pak, typ, "info", file]
+    def get_wsa_info(self, file: str, pak: str) -> Optional[WSAFileInfo]:
+        argv = [self.tool_path, "-p", pak, "wsa", "info", file]
         resp = _do_exec(argv)
         if resp.returncode != 0:
-            print(resp)
             return None
         proc_output = resp.stdout.decode()
-        return proc_output.splitlines()
+        return WSAFileInfo(proc_output.splitlines())
 
 
 lol = LOL()

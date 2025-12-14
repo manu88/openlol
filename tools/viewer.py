@@ -70,7 +70,7 @@ class InfoFrame(tk.Frame):
 
 class BaseRender(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent, bg="pink")
+        super().__init__(parent)
 
     def update_for_item(self, file_name: str, pak_name: str):
         pass
@@ -93,6 +93,34 @@ class CPSRender(BaseRender):
 
 
 class WSARender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        tk.Label(master=self, text="Frames:").grid(column=0, row=0)
+        self.frame_count_var = tk.StringVar()
+        tk.Label(master=self, textvariable=self.frame_count_var).grid(
+            column=1, row=0)
+
+        tk.Label(master=self, text="Size:").grid(column=2, row=0)
+        self.size_var = tk.StringVar()
+        tk.Label(master=self, textvariable=self.size_var).grid(
+            column=3, row=0)
+
+        tk.Label(master=self, text="Origin:").grid(column=0, row=1)
+        self.origin_var = tk.StringVar()
+        tk.Label(master=self, textvariable=self.origin_var).grid(
+            column=1, row=1)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        print(f"WSA Render: update for {file_name}")
+        info = lol.get_wsa_info(file_name, pak_name)
+        if info is None:
+            return
+        self.frame_count_var.set(f"{info.numFrame}")
+        self.size_var.set(f"{info.w}/{info.h}")
+        self.origin_var.set(f"{info.x}/{info.y}")
+
+
+class TIMRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -186,9 +214,13 @@ class UI:
         self._setup_renders()
 
     def _setup_renders(self):
-        self.renders["CPS"] = CPSRender(self.details_frame)
-        self.renders["WSA"] = WSARender(self.details_frame)
-        self.renders["SHP"] = SHPRender(self.details_frame)
+        self._register_renderer("CPS", CPSRender)
+        self._register_renderer("WSA", WSARender)
+        self._register_renderer("SHP", SHPRender)
+        self._register_renderer("TIM", TIMRender)
+
+    def _register_renderer(self, name: str, cls):
+        self.renders[name] = cls(self.details_frame)
 
     def change_tool_view(self, typ: str):
         for widget in self.details_frame.winfo_children():
