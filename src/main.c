@@ -834,7 +834,8 @@ static int cmdFNT(int argc, char *argv[]) {
   return 1;
 }
 
-static int cmdWSAExtract(const char *filepath, int frameNum) {
+static int cmdWSAExtract(const char *filepath, int frameNum,
+                         const char *outFilePath) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -860,15 +861,9 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   assert(frameData);
   if (WSAHandleGetFrame(&handle, frameNum, frameData, 1)) {
     size_t fullSize = handle.header.width * handle.header.height;
-
-    char ext[8] = "";
-    snprintf(ext, 8, "-%i.png", frameNum);
-    char *outFilePath = strAppend(filepath, ext);
-    assert(outFilePath);
-    printf("Rendering png file '%s'\n", outFilePath);
     WSAFrameToPng(frameData, fullSize, handle.header.palette, outFilePath,
                   handle.header.width, handle.header.height);
-    free(outFilePath);
+
     free(frameData);
   }
   WSAHandleRelease(&handle);
@@ -910,7 +905,7 @@ static int cmdWSAInfo(const char *filepath) {
 }
 
 static void usageWSA(void) {
-  printf("wsa subcommands: info|extract file [framenum]\n");
+  printf("wsa subcommands: info|extract file [framenum] [outfile]\n");
 }
 
 static int cmdWSA(int argc, char *argv[]) {
@@ -924,12 +919,12 @@ static int cmdWSA(int argc, char *argv[]) {
   if (strcmp(argv[0], "info") == 0) {
     return cmdWSAInfo(filepath);
   } else if (strcmp(argv[0], "extract") == 0) {
-    if (argc < 3) {
-      printf("missing frameNum argument\n");
+    if (argc < 4) {
       usageWSA();
       return 1;
     }
-    return cmdWSAExtract(filepath, atoi(argv[2]));
+    const char *outFilePath = argv[3];
+    return cmdWSAExtract(filepath, atoi(argv[2]), outFilePath);
   }
   usageWSA();
   return 1;
