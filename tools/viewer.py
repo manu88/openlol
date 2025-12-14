@@ -105,10 +105,10 @@ class WSARender(BaseRender):
         tk.Label(master=self, textvariable=self.size_var).grid(
             column=3, row=0)
 
-        tk.Label(master=self, text="Origin:").grid(column=0, row=1)
+        tk.Label(master=self, text="Origin:").grid(column=4, row=0)
         self.origin_var = tk.StringVar()
         tk.Label(master=self, textvariable=self.origin_var).grid(
-            column=1, row=1)
+            column=5, row=0)
 
     def update_for_item(self, file_name: str, pak_name: str):
         print(f"WSA Render: update for {file_name}")
