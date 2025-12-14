@@ -846,7 +846,7 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   WSAHandle handle;
   WSAHandleInit(&handle);
   WSAHandleFromBuffer(&handle, buffer, dataSize);
-  printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X delta=%i\n",
+  printf("numFrame=%i x=%i y=%i w=%i h=%i palette=%X delta=%i\n",
          handle.header.numFrames, handle.header.xPos, handle.header.yPos,
          handle.header.width, handle.header.height, handle.header.hasPalette,
          handle.header.delta);
@@ -893,7 +893,7 @@ static int cmdWSAInfo(const char *filepath) {
   WSAHandle handle;
   WSAHandleInit(&handle);
   WSAHandleFromBuffer(&handle, buffer, dataSize);
-  printf("numFrame %i, x=%i y=%i w=%i h=%i palette=%X delta=%X\n",
+  printf("numFrame=%i x=%i y=%i w=%i h=%i palette=%X delta=%X\n",
          handle.header.numFrames, handle.header.xPos, handle.header.yPos,
          handle.header.width, handle.header.height, handle.header.hasPalette,
          handle.header.delta);
