@@ -846,10 +846,6 @@ static int cmdWSAExtract(const char *filepath, int frameNum) {
   WSAHandle handle;
   WSAHandleInit(&handle);
   WSAHandleFromBuffer(&handle, buffer, dataSize);
-  printf("numFrame=%i x=%i y=%i w=%i h=%i palette=%X delta=%i\n",
-         handle.header.numFrames, handle.header.xPos, handle.header.yPos,
-         handle.header.width, handle.header.height, handle.header.hasPalette,
-         handle.header.delta);
   if (frameNum < 0 || frameNum >= handle.header.numFrames) {
     printf("invalid frameNum\n");
     WSAHandleRelease(&handle);
