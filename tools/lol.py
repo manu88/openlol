@@ -93,6 +93,7 @@ class LOL:
     def __init__(self):
         self.tool_path = "./lol"
         self.temp_dir = tempfile.mkdtemp()
+        self.pak_files: List[str] = []
 
     def scan_dir(self, pak_dir: str):
         print(f"Lol: scanning dir {pak_dir}")
