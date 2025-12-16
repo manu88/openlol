@@ -5,6 +5,19 @@ from os import listdir
 from typing import List, Optional
 
 
+class LangFileInfo:
+    def __init__(self, desc: List[str]):
+        self.desc = desc
+        self.lines: List[str] = []
+        self._parse()
+
+    def _parse(self):
+        # i=42 offset=1164 size=8 text=A lock.
+        for line in self.desc:
+            text = line.split("text=")[1]
+            self.lines.append(text)
+
+
 class SHPFileInfo:
     class SHPFrameInfo:
         def __init__(self):
@@ -131,6 +144,14 @@ class LOL:
         info.file = file
         info.pak_file = pak
         return info
+
+    def extract_lang_file(self, file: str, pak: str) -> Optional[LangFileInfo]:
+        argv = [self.tool_path, "-p", pak, "lang", "show", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return LangFileInfo(proc_output.splitlines())
 
     def _get_shp_info_uncompressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:
         argv = [self.tool_path, "-p", pak, "shp", "info", file]

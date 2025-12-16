@@ -3,14 +3,17 @@ from tkinter import ttk
 from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
-from lol import lol, SHPFileInfo, WSAFileInfo
+from lol import lol, SHPFileInfo, WSAFileInfo, LangFileInfo
 
 
 pak_files: Dict[str, str] = {}
 
 
 def get_type(file: str) -> str:
-    return file.split(".")[1]
+    ext = file.split(".")[1]
+    if ext in ["FRE", "ENG", "GER"]:
+        return "LANG"
+    return ext
 
 
 type_info = {
@@ -29,9 +32,7 @@ type_info = {
     "WSA": "animation",
     "XXX": "automap data",
 
-    "FRE": "French text",
-    "ENG": "English text",
-    "GER": "German text",
+    "LANG": "game text",
 }
 
 
@@ -165,6 +166,33 @@ class TIMRender(BaseRender):
         super().__init__(parent)
 
 
+class LANGRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns="text")
+        self.table.heading("text", text="text")
+
+        self.table.pack(fill=tk.X, expand=True)
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        print(f"{file_name} in {pak_name}")
+        info = lol.extract_lang_file(file_name, pak_name)
+        if info is None:
+            return
+        self.clear_table()
+        for line_num, line in enumerate(info.lines):
+            self.table.insert(
+                "", "end", text=f"{line_num}", values=(line,))
+
+
 class SHPRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
@@ -258,6 +286,7 @@ class UI:
         self._register_renderer("WSA", WSARender)
         self._register_renderer("SHP", SHPRender)
         self._register_renderer("TIM", TIMRender)
+        self._register_renderer("LANG", LANGRender)
 
     def _register_renderer(self, name: str, cls):
         self.renders[name] = cls(self.details_frame)
