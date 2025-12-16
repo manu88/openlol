@@ -92,10 +92,12 @@ def _do_exec(argv: List, output=True):
 class LOL:
     def __init__(self):
         self.tool_path = "./lol"
-        self.data_dir = "./data"
         self.temp_dir = tempfile.mkdtemp()
-        self.pak_files = [join(self.data_dir, f) for f in listdir(self.data_dir) if isfile(
-            join(self.data_dir, f)) and f.endswith(".PAK")]
+
+    def scan_dir(self, pak_dir: str):
+        print(f"Lol: scanning dir {pak_dir}")
+        self.pak_files = [join(pak_dir, f) for f in listdir(pak_dir) if isfile(
+            join(pak_dir, f)) and f.endswith(".PAK")]
 
     def get_temp_path_for(self, file_name: str) -> str:
         return join(self.temp_dir, file_name)

@@ -1,12 +1,16 @@
+import argparse
 import tkinter as tk
 from tkinter import ttk
 from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
-from lol import lol, SHPFileInfo, WSAFileInfo, LangFileInfo
+from lol import lol, SHPFileInfo, WSAFileInfo
 
 
 pak_files: Dict[str, str] = {}
+
+parser = argparse.ArgumentParser(prog="lol asset explorer")
+parser.add_argument("pak_file", default="data/", nargs="?")
 
 
 def get_type(file: str) -> str:
@@ -330,6 +334,8 @@ class UI:
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+    lol.scan_dir(args.pak_file)
     for pak_file in lol.pak_files:
         pak_files[pak_file] = []
         for file in lol.list(pak_file):
