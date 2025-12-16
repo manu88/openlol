@@ -1075,7 +1075,6 @@ static int cmdLangShow(const char *filepath) {
     printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
-  printf("lang file '%s'\n", filepath);
   LangHandle handle = {0};
   LangHandleFromBuffer(&handle, buffer, dataSize);
   LangHandleShow(&handle);

@@ -75,12 +75,10 @@ uint16_t LangHandleGetString(const LangHandle *handle, uint16_t index,
 void LangHandleShow(LangHandle *handle) {
   char dest[1024];
   uint16_t *offsets = (uint16_t *)handle->originalBuffer;
-  printf("Count = %i\n", handle->count);
   for (int i = 0; i < handle->count; i++) {
 
     uint16_t size = LangHandleGetString(handle, i, dest, 1024);
-    printf("  %i/%i offset=%i size=%i '%s'\n", i, handle->count, offsets[i],
-           size, dest);
+    printf("i=%i offset=%i size=%i text=%s\n", i, offsets[i], size, dest);
   }
 }
 
