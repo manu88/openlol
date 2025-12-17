@@ -91,16 +91,17 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
   params++;
   switch (timOpCode) {
   case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE:
-    if (interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog) {
-      interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog(interp,
-                                                                params[0]);
-    }
+    assert(interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog);
+    interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog(interp,
+                                                              params[0]);
     break;
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
+    assert(interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog);
     interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog(
         interp, params[0]);
     break;
   case TIM_OPCODE_GIVE_ITEM:
+    assert(interp->callbacks.TIMInterpreterCallbacks_GiveItem);
     interp->callbacks.TIMInterpreterCallbacks_GiveItem(interp, params[0],
                                                        params[1], params[2]);
     break;
@@ -108,16 +109,14 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     printf("\t TIM_OPCODE_SET_PARTY_POS %i params\n", numParams);
     break;
   case TIM_OPCODE_FADE_CLEAR_WINDOW:
-    if (interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow) {
-      interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow(interp,
-                                                                params[0]);
-    }
+    assert(interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow);
+    interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow(interp,
+                                                              params[0]);
     break;
   case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
-    if (interp->callbacks.TIMInterpreterCallbacks_PlayDialogue) {
-      interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(
-          interp, params[0], numParams - 1, numParams > 1 ? params + 1 : NULL);
-    }
+    assert(interp->callbacks.TIMInterpreterCallbacks_PlayDialogue);
+    interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(
+        interp, params[0], numParams - 1, numParams > 1 ? params + 1 : NULL);
     break;
   }
   case TIM_OPCODE_CLEAR_TEXT_FIELD:
@@ -138,6 +137,7 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
         params[5], params[6], params[7]);
     break;
   case TIM_OPCODE_CHAR_CHAT:
+    assert(interp->callbacks.TIMInterpreterCallbacks_CharChat);
     interp->callbacks.TIMInterpreterCallbacks_CharChat(interp, params[0],
                                                        params[1], params[2]);
     break;
