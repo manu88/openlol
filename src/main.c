@@ -837,15 +837,19 @@ static int cmdFNT(int argc, char *argv[]) {
 static void doRenderWSAFrame(const WSAHandle *handle, int frameNum,
                              const uint8_t *palette, const char *outFilePath) {
   printf("Extract frame %i/%i\n", frameNum, handle->header.numFrames);
-  uint8_t *frameData = malloc(handle->header.width * handle->header.height);
+  size_t frameDataSize = handle->header.width * handle->header.height;
+  uint8_t *frameData = malloc(frameDataSize);
+  memset(frameData, 0, frameDataSize);
   assert(frameData);
-  if (WSAHandleGetFrame(handle, frameNum, frameData, 0)) {
-    size_t fullSize = handle->header.width * handle->header.height;
-    WSAFrameToPng(frameData, fullSize, palette, outFilePath,
-                  handle->header.width, handle->header.height);
 
-    free(frameData);
+  for (int i = 0; i <= frameNum; i++) {
+    WSAHandleGetFrame(handle, i, frameData, 1);
   }
+
+  WSAFrameToPng(frameData, frameDataSize, palette, outFilePath,
+                handle->header.width, handle->header.height);
+
+  free(frameData);
 }
 
 static int cmdWSAExtract(const char *filepath, int frameNum,
