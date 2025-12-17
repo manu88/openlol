@@ -117,6 +117,11 @@ class WSARender(BaseRender):
         tk.Label(master=self, textvariable=self.origin_var).grid(
             column=5, row=0)
 
+        tk.Label(master=self, text="Palette:").grid(column=6, row=0)
+        self.palette_var = tk.StringVar()
+        tk.Label(master=self, textvariable=self.palette_var).grid(
+            column=7, row=0)
+
         style = ttk.Style(parent)
         style.theme_use("clam")
         style.configure("Treeview", background="black",
@@ -160,6 +165,7 @@ class WSARender(BaseRender):
         self.frame_count_var.set(f"{info.frame_count}")
         self.size_var.set(f"{info.w}/{info.h}")
         self.origin_var.set(f"{info.x}/{info.y}")
+        self.palette_var.set("Yes" if info.has_palette else "No")
         self.clear_table()
         for frame_id in range(self.wsa_info.frame_count):
             self.table.insert(
