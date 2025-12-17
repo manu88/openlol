@@ -51,6 +51,7 @@ static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
         g = paletteIdx;
         b = paletteIdx;
       }
+      // FIXME: remove this if
       if (1) { // r && g && b) {
         SDL_SetRenderDrawColor(renderer, r, g, b, 255);
         SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
