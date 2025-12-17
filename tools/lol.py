@@ -67,6 +67,9 @@ class WSAFileInfo:
         self.w = 0
         self.h = 0
         self.has_palette = False
+        self._parse(desc)
+
+    def _parse(self, desc: List[str]):
         general_info = desc[0].split(" ")
         for param in general_info:
             if param == "":
@@ -85,7 +88,6 @@ class WSAFileInfo:
             elif name == "palette":
                 if int(val) != 0:
                     self.has_palette = True
-
         # numFrame=38 x=0 y=0 w=72 h=64 palette=0 delta=EF9
 
 
