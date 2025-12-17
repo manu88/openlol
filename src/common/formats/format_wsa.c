@@ -47,9 +47,8 @@ int WSAHandleGetFrame(const WSAHandle *handle, uint32_t index,
   ssize_t decompressedSize =
       LCWDecompress(frameData, frameSize, lcwDecompressedData, destSize);
 
-  if (frameBuffer) {
-    Format40Decode(lcwDecompressedData, decompressedSize, frameBuffer, 1);
-  }
+  Format40Decode(lcwDecompressedData, decompressedSize, frameBuffer, xor);
+
   free(lcwDecompressedData);
   return 1;
 }
