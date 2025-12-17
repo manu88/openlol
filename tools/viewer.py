@@ -126,14 +126,14 @@ class WSARender(BaseRender):
         style.theme_use("clam")
         style.configure("Treeview", background="black",
                         fieldbackground="black", foreground="white")
-        self.table = ttk.Treeview(self, columns=("width", "height"))
+        self.table = ttk.Treeview(self, columns=("offset", "size"))
         self.table.grid(column=0, row=1, columnspan=5)
         self.table.bind("<<TreeviewSelect>>", self.frame_sel_changed)
-        self.table.heading("width", text="width")
-        self.table.heading("height", text="height")
+        self.table.heading("offset", text="offset")
+        self.table.heading("size", text="size")
 
-        self.table.column("width", width=100)
-        self.table.column("height", width=50, anchor="center")
+        self.table.column("offset", width=100)
+        self.table.column("size", width=50, anchor="center")
 
         self.img_label = tk.Label(self)
         self.img_label.grid(column=0, row=2)
@@ -168,8 +168,9 @@ class WSARender(BaseRender):
         self.palette_var.set("Yes" if info.has_palette else "No")
         self.clear_table()
         for frame_id in range(self.wsa_info.frame_count):
+            frame_info = self.wsa_info.frames[frame_id]
             self.table.insert(
-                "", "end", text=f"{frame_id}", values=("", ""))
+                "", "end", text=f"{frame_id}", values=(frame_info.offset, frame_info.size))
 
 
 class TIMRender(BaseRender):

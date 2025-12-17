@@ -58,6 +58,24 @@ class SHPFileInfo:
 
 
 class WSAFileInfo:
+    class WSAFrameInfo:
+        def __init__(self):
+            self.offset = 0
+            self.size = 0
+
+        def from_data(self, data: str):
+            # i=0 offset=46 size=5F04:
+            for param in data.split(" "):
+                if param == "":
+                    continue
+                print(f"param='{param}'")
+                name, val = param.split("=")
+                print(f"name='{name}' val='{val}' ")
+                if name == "offset":
+                    self.offset = int(val, 0)
+                elif name == "size":
+                    self.size = int(val, 0)
+
     def __init__(self, desc: List[str]):
         self.file = ""
         self.pak_file = ""
@@ -67,6 +85,7 @@ class WSAFileInfo:
         self.w = 0
         self.h = 0
         self.has_palette = False
+        self.frames: List[WSAFileInfo.WSAFrameInfo] = []
         self._parse(desc)
 
     def _parse(self, desc: List[str]):
@@ -88,6 +107,14 @@ class WSAFileInfo:
             elif name == "palette":
                 if int(val) != 0:
                     self.has_palette = True
+        for line in desc[1:]:
+            if line.startswith("IS ZERO"):
+                continue
+            frame = WSAFileInfo.WSAFrameInfo()
+            frame.from_data(line)
+            self.frames.append(frame)
+
+            # i=0 offset=46 size=5F04:
         # numFrame=38 x=0 y=0 w=72 h=64 palette=0 delta=EF9
 
 
