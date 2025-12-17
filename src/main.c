@@ -835,40 +835,81 @@ static int cmdFNT(int argc, char *argv[]) {
 }
 
 static int cmdWSAExtract(const char *filepath, int frameNum,
-                         const char *outFilePath) {
-  size_t dataSize = 0;
-  int freeBuffer = 0;
-  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
-  if (!buffer) {
+                         const char *outFilePath, const char *cpsPaletteFile) {
+  size_t wsaDataSize = 0;
+  int freeWsaBuffer = 0;
+
+  int freeCpsBuffer = 0;
+  CPSImage img = {0};
+  uint8_t *cpsBuffer = NULL;
+  uint8_t *wsaBuffer = getFileContent(filepath, &wsaDataSize, &freeWsaBuffer);
+  if (!wsaBuffer) {
     printf("Error while getting data for '%s'\n", filepath);
     return 1;
   }
 
+  if (cpsPaletteFile) {
+    size_t cpsDataSize = 0;
+    cpsBuffer = getFileContent(cpsPaletteFile, &cpsDataSize, &freeCpsBuffer);
+    if (!cpsBuffer) {
+      printf("Error while getting data for cps file '%s'\n", cpsPaletteFile);
+      if (freeWsaBuffer) {
+        free(wsaBuffer);
+      }
+      return 1;
+    }
+
+    if (!CPSImageFromBuffer(&img, cpsBuffer, cpsDataSize)) {
+      printf("invalid CPS image\n");
+      if (freeWsaBuffer) {
+        free(wsaBuffer);
+      }
+      if (freeCpsBuffer) {
+        free(cpsBuffer);
+      }
+    }
+  }
+
   WSAHandle handle;
   WSAHandleInit(&handle);
-  WSAHandleFromBuffer(&handle, buffer, dataSize);
+  WSAHandleFromBuffer(&handle, wsaBuffer, wsaDataSize);
   if (frameNum < 0 || frameNum >= handle.header.numFrames) {
     printf("invalid frameNum\n");
     WSAHandleRelease(&handle);
-    if (freeBuffer) {
-      free(buffer);
+    if (freeWsaBuffer) {
+      free(wsaBuffer);
+    }
+    if (freeCpsBuffer) {
+      free(cpsBuffer);
+    }
+    if (img.data) {
+      CPSImageRelease(&img);
     }
     return 1;
   }
+  uint8_t *palette = handle.header.palette;
+  if (cpsPaletteFile && img.data) {
+    palette = img.palette;
+  }
   printf("Extract frame %i/%i\n", frameNum, handle.header.numFrames);
-
   uint8_t *frameData = malloc(handle.header.width * handle.header.height);
   assert(frameData);
   if (WSAHandleGetFrame(&handle, frameNum, frameData, 1)) {
     size_t fullSize = handle.header.width * handle.header.height;
-    WSAFrameToPng(frameData, fullSize, handle.header.palette, outFilePath,
+    WSAFrameToPng(frameData, fullSize, palette, outFilePath,
                   handle.header.width, handle.header.height);
 
     free(frameData);
   }
   WSAHandleRelease(&handle);
-  if (freeBuffer) {
-    free(buffer);
+  if (freeWsaBuffer) {
+    free(wsaBuffer);
+  }
+  if (freeCpsBuffer) {
+    free(cpsBuffer);
+  }
+  if (img.data) {
+    CPSImageRelease(&img);
   }
   return 0;
 }
@@ -891,7 +932,7 @@ static int cmdWSAInfo(const char *filepath) {
 
   for (int i = 0; i < handle.header.numFrames + 2; i++) {
     uint32_t frameOffset = WSAHandleGetFrameOffset(&handle, i);
-    printf("%i %X %zX:\n", i, frameOffset, handle.bufferSize);
+    printf("i=%i offset=0X%X size=0X%zX\n", i, frameOffset, handle.bufferSize);
     if (frameOffset == handle.bufferSize) {
       printf("IS ZERO\n");
     }
@@ -905,7 +946,8 @@ static int cmdWSAInfo(const char *filepath) {
 }
 
 static void usageWSA(void) {
-  printf("wsa subcommands: info|extract file [framenum] [outfile]\n");
+  printf(
+      "wsa subcommands: info|extract file [framenum] [outfile] [cpspalette]\n");
 }
 
 static int cmdWSA(int argc, char *argv[]) {
@@ -924,7 +966,9 @@ static int cmdWSA(int argc, char *argv[]) {
       return 1;
     }
     const char *outFilePath = argv[3];
-    return cmdWSAExtract(filepath, atoi(argv[2]), outFilePath);
+    const char *cpsPaletteFile = argc > 4 ? argv[4] : NULL;
+    printf("cpsPaletteFile=%s\n", cpsPaletteFile);
+    return cmdWSAExtract(filepath, atoi(argv[2]), outFilePath, cpsPaletteFile);
   }
   usageWSA();
   return 1;
