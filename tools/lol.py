@@ -220,9 +220,11 @@ class LOL:
         info.pak_file = pak
         return info
 
-    def extract_wsa_frame(self, wsa_info: WSAFileInfo, frame_id: int, out_file: str) -> bool:
+    def extract_wsa_frame(self, wsa_info: WSAFileInfo, frame_id: int, out_file: str, cps_palette_file: Optional[str] = None) -> bool:
         argv = [self.tool_path, "-p", wsa_info.pak_file, "wsa"]
         argv += ["extract", wsa_info.file, str(frame_id), out_file]
+        if cps_palette_file is not None:
+            argv.append(cps_palette_file)
         resp = _do_exec(argv)
         if resp.returncode != 0:
             return False

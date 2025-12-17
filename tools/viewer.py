@@ -102,6 +102,7 @@ class WSARender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
         self.wsa_info: Optional[WSAFileInfo] = None
+        self.cps_palette_file: Optional[str] = None
         tk.Label(master=self, text="Frames:").grid(column=0, row=0)
         self.frame_count_var = tk.StringVar()
         tk.Label(master=self, textvariable=self.frame_count_var).grid(
@@ -145,7 +146,7 @@ class WSARender(BaseRender):
         sel_item = self.table.item(frame_iid)
         frame_id = int(sel_item["text"])
         out_file = lol.get_temp_path_for("display.png")
-        if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file):
+        if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file, self.cps_palette_file):
             return
         img_data = PIL.Image.open(out_file)
         img = PIL.ImageTk.PhotoImage(img_data)
@@ -160,6 +161,7 @@ class WSARender(BaseRender):
         print(f"WSA Render: update for {file_name}")
         info = lol.get_wsa_info(file_name, pak_name)
         self.wsa_info = info
+        self.cps_palette_file = None
         if info is None:
             return
         self.frame_count_var.set(f"{info.frame_count}")
@@ -171,6 +173,13 @@ class WSARender(BaseRender):
             frame_info = self.wsa_info.frames[frame_id]
             self.table.insert(
                 "", "end", text=f"{frame_id}", values=(frame_info.offset, frame_info.size))
+
+        if not info.has_palette:
+            print("No palette, looking for a cps file in the pak file")
+            cps_files = lol.list(pak_name, "*.CPS")
+            if len(cps_files) > 0:
+                print(cps_files)
+                self.cps_palette_file = cps_files[0]
 
 
 class TIMRender(BaseRender):
