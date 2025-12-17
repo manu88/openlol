@@ -834,6 +834,20 @@ static int cmdFNT(int argc, char *argv[]) {
   return 1;
 }
 
+static void doRenderWSAFrame(const WSAHandle *handle, int frameNum,
+                             const uint8_t *palette, const char *outFilePath) {
+  printf("Extract frame %i/%i\n", frameNum, handle->header.numFrames);
+  uint8_t *frameData = malloc(handle->header.width * handle->header.height);
+  assert(frameData);
+  if (WSAHandleGetFrame(handle, frameNum, frameData, 0)) {
+    size_t fullSize = handle->header.width * handle->header.height;
+    WSAFrameToPng(frameData, fullSize, palette, outFilePath,
+                  handle->header.width, handle->header.height);
+
+    free(frameData);
+  }
+}
+
 static int cmdWSAExtract(const char *filepath, int frameNum,
                          const char *outFilePath, const char *cpsPaletteFile) {
   size_t wsaDataSize = 0;
@@ -891,16 +905,9 @@ static int cmdWSAExtract(const char *filepath, int frameNum,
   if (cpsPaletteFile && img.data) {
     palette = img.palette;
   }
-  printf("Extract frame %i/%i\n", frameNum, handle.header.numFrames);
-  uint8_t *frameData = malloc(handle.header.width * handle.header.height);
-  assert(frameData);
-  if (WSAHandleGetFrame(&handle, frameNum, frameData, 1)) {
-    size_t fullSize = handle.header.width * handle.header.height;
-    WSAFrameToPng(frameData, fullSize, palette, outFilePath,
-                  handle.header.width, handle.header.height);
 
-    free(frameData);
-  }
+  doRenderWSAFrame(&handle, frameNum, palette, outFilePath);
+
   WSAHandleRelease(&handle);
   if (freeWsaBuffer) {
     free(wsaBuffer);
