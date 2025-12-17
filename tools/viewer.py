@@ -167,7 +167,6 @@ class WSARender(BaseRender):
         self.frame_count_var.set(f"{info.frame_count}")
         self.size_var.set(f"{info.w}/{info.h}")
         self.origin_var.set(f"{info.x}/{info.y}")
-        self.palette_var.set("Yes" if info.has_palette else "No")
         self.clear_table()
         for frame_id in range(self.wsa_info.frame_count):
             frame_info = self.wsa_info.frames[frame_id]
@@ -180,6 +179,12 @@ class WSARender(BaseRender):
             if len(cps_files) > 0:
                 print(cps_files)
                 self.cps_palette_file = cps_files[0]
+        if info.has_palette:
+            self.palette_var.set("Yes")
+        elif self.cps_palette_file:
+            self.palette_var.set(f"No (using {self.cps_palette_file})")
+        else:
+            self.palette_var.set("No")
 
 
 class TIMRender(BaseRender):
