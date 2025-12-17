@@ -1,5 +1,6 @@
 import subprocess
 import tempfile
+import fnmatch
 from os.path import isfile, join
 from os import listdir
 from typing import List, Optional
@@ -68,9 +69,7 @@ class WSAFileInfo:
             for param in data.split(" "):
                 if param == "":
                     continue
-                print(f"param='{param}'")
                 name, val = param.split("=")
-                print(f"name='{name}' val='{val}' ")
                 if name == "offset":
                     self.offset = int(val, 0)
                 elif name == "size":
@@ -153,14 +152,18 @@ class LOL:
             return False
         return True
 
-    def list(self, pak: str) -> Optional[List[str]]:
+    def list(self, pak: str, pattern: str = "*") -> Optional[List[str]]:
         argv = ["./lol", "-p", pak, "pak", "list"]
         resp = _do_exec(argv)
         proc_output = resp.stdout.decode()
         if resp.returncode != 0:
             print(resp)
             return None
-        return proc_output.splitlines()
+        ret = []
+        for file in proc_output.splitlines():
+            if fnmatch.fnmatch(file, pattern):
+                ret.append(file)
+        return ret
 
     def extract_shp_frame(self, shp_info: SHPFileInfo, frame_id: int, out_file: str, vnc_file: Optional[str] = None) -> bool:
         argv = [self.tool_path, "-p", shp_info.pak_file, "shp"]
