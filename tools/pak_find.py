@@ -15,7 +15,7 @@ def main():
     for pak_file in lol.pak_files:
         files = lol.list(pak_file, pattern=file_to_find)
         for l in files:
-            print(l)
+            print(f"{l} in {pak_file}")
             if args.e:
                 lol.extract(l, pak_file)
             num_found_files += 1
