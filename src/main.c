@@ -20,7 +20,6 @@
 #include "renderer.h"
 #include "script.h"
 #include "script_disassembler.h"
-#include "tim_animator.h"
 #include "tim_interpreter.h"
 #include <assert.h>
 #include <stddef.h>
@@ -985,100 +984,6 @@ static int cmdWSA(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageTim(void) {
-  printf("tim subcommands: info|anim file [langfile]\n");
-}
-
-static int cmdInfoTim(const char *filepath) {
-  size_t dataSize = 0;
-  int freeBuffer = 0;
-  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
-  if (!buffer) {
-    printf("Error while getting data for '%s'\n", filepath);
-    return 1;
-  }
-
-  TIMHandle handle = {0};
-  TIMHandleInit(&handle);
-  TIMHandleFromBuffer(&handle, buffer, dataSize);
-
-  if (handle.text) {
-    for (int i = 0; i < handle.numTextStrings; i++) {
-      printf("Text: %i '%s'\n", i, TIMHandleGetText(&handle, i));
-    }
-  } else {
-    printf("No text data\n");
-  }
-
-  TIMInterpreter interp;
-  TIMInterpreterInit(&interp);
-  interp.dontLoop = 1;
-
-  TIMInterpreterStart(&interp, &handle);
-  while (TIMInterpreterIsRunning(&interp)) {
-    TIMInterpreterUpdate(&interp);
-  }
-  if (freeBuffer) {
-    free(buffer);
-  }
-
-  return 0;
-}
-
-static int cmdAnimateTim(const char *filepath, const char *langFilepath) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(filepath, &fileSize, &readSize);
-  if (!buffer) {
-    perror("malloc error");
-    return 1;
-  }
-
-  TIMHandle handle = {0};
-  TIMHandleInit(&handle);
-  TIMHandleFromBuffer(&handle, buffer, readSize);
-
-  TIMAnimator animator;
-  TIMAnimatorInit(&animator);
-  LangHandle lang = {0};
-  if (langFilepath) {
-    printf("using lang file '%s'\n", langFilepath);
-    size_t fileSize = 0;
-    size_t readSize = 0;
-    uint8_t *buffer = readBinaryFile(langFilepath, &fileSize, &readSize);
-    if (!buffer) {
-      perror("malloc error");
-      return 1;
-    }
-    LangHandleFromBuffer(&lang, buffer, readSize);
-    animator.lang = &lang;
-  }
-  if (TIMAnimatorRunAnim(&animator, &handle) == 0) {
-    printf("TIMAnimatorRunAnim error\n");
-  }
-
-  TIMAnimatorRelease(&animator);
-  if (lang.originalBuffer) {
-    LangHandleRelease(&lang);
-  }
-  return 0;
-}
-
-static int cmdTim(int argc, char *argv[]) {
-  if (argc < 2) {
-    printf("tim command, missing arguments\n");
-    usageTim();
-    return 1;
-  }
-  if (strcmp(argv[0], "info") == 0) {
-    return cmdInfoTim(argv[1]);
-  } else if (strcmp(argv[0], "anim") == 0) {
-    return cmdAnimateTim(argv[1], argc > 2 ? argv[2] : NULL);
-  }
-  usageTim();
-  return 1;
-}
-
 static void usageXXX(void) { printf("xxx subcommands: show file\n"); }
 
 static int cmdXXXShow(const char *filepath) {
@@ -1187,8 +1092,6 @@ static int doCMD(int argc, char *argv[]) {
     return cmdLang(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "xxx") == 0) {
     return cmdXXX(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "tim") == 0) {
-    return cmdTim(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "wsa") == 0) {
     return cmdWSA(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "sav") == 0) {
