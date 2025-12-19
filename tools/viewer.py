@@ -102,7 +102,6 @@ class WSARender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
         self.wsa_info: Optional[WSAFileInfo] = None
-        self.cps_palette_file: Optional[str] = None
         tk.Label(master=self, text="Frames:").grid(column=0, row=0)
         self.frame_count_var = tk.StringVar()
         tk.Label(master=self, textvariable=self.frame_count_var).grid(
@@ -118,17 +117,24 @@ class WSARender(BaseRender):
         tk.Label(master=self, textvariable=self.origin_var).grid(
             column=5, row=0)
 
-        tk.Label(master=self, text="Palette:").grid(column=6, row=0)
+        tk.Label(master=self, text="Palette:").grid(column=0, row=1)
         self.palette_var = tk.StringVar()
         tk.Label(master=self, textvariable=self.palette_var).grid(
-            column=7, row=0)
+            column=1, row=1)
 
         style = ttk.Style(parent)
         style.theme_use("clam")
         style.configure("Treeview", background="black",
                         fieldbackground="black", foreground="white")
         self.table = ttk.Treeview(self, columns=("offset", "size"))
-        self.table.grid(column=0, row=1, columnspan=5)
+
+        self.current_pal_combo_var = tk.StringVar()
+        self.pal_combo = ttk.Combobox(
+            self, textvariable=self.current_pal_combo_var)
+        self.pal_combo.grid(column=0, row=2)
+        self.pal_combo.bind('<<ComboboxSelected>>', self.pal_index_changed)
+        self.pal_combo["state"] = "readonly"
+        self.table.grid(column=0, row=3, columnspan=5)
         self.table.bind("<<TreeviewSelect>>", self.frame_sel_changed)
         self.table.heading("offset", text="offset")
         self.table.heading("size", text="size")
@@ -137,7 +143,10 @@ class WSARender(BaseRender):
         self.table.column("size", width=50, anchor="center")
 
         self.img_label = tk.Label(self)
-        self.img_label.grid(column=0, row=2)
+        self.img_label.grid(column=0, row=4)
+
+    def pal_index_changed(self, _):
+        self.current_pal_combo_var.set(self.pal_combo.get())
 
     def frame_sel_changed(self, _):
         if len(self.table.selection()) == 0:
@@ -146,7 +155,8 @@ class WSARender(BaseRender):
         sel_item = self.table.item(frame_iid)
         frame_id = int(sel_item["text"])
         out_file = lol.get_temp_path_for("display.png")
-        if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file, self.cps_palette_file):
+        custom_pal = None if self.wsa_info.has_palette else self.current_pal_combo_var.get()
+        if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file, custom_pal):
             return
         img_data = PIL.Image.open(out_file)
         img = PIL.ImageTk.PhotoImage(img_data)
@@ -161,7 +171,6 @@ class WSARender(BaseRender):
         print(f"WSA Render: update for {file_name}")
         info = lol.get_wsa_info(file_name, pak_name)
         self.wsa_info = info
-        self.cps_palette_file = None
         if info is None:
             return
         self.frame_count_var.set(f"{info.frame_count}")
@@ -176,15 +185,11 @@ class WSARender(BaseRender):
         if not info.has_palette:
             print("No palette, looking for a cps file in the pak file")
             cps_files = lol.list(pak_name, "*.CPS")
+            self.pal_combo["values"] = cps_files
             if len(cps_files) > 0:
-                print(cps_files)
-                self.cps_palette_file = cps_files[0]
-        if info.has_palette:
-            self.palette_var.set("Yes")
-        elif self.cps_palette_file:
-            self.palette_var.set(f"No (using {self.cps_palette_file})")
-        else:
-            self.palette_var.set("No")
+                self.current_pal_combo_var.set(cps_files[0])
+
+        self.palette_var.set("Yes" if info.has_palette else "No")
 
 
 class TIMRender(BaseRender):
