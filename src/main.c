@@ -9,9 +9,9 @@
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
-#include "formats/format_tim.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
+#include "formats/format_voc.h"
 #include "formats/format_wll.h"
 #include "formats/format_wsa.h"
 #include "formats/format_xxx.h"
@@ -20,7 +20,6 @@
 #include "renderer.h"
 #include "script.h"
 #include "script_disassembler.h"
-#include "tim_interpreter.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -294,6 +293,57 @@ static int cmdScript(int argc, char *argv[]) {
   }
   usageScript();
   return 1;
+}
+
+static void usageVOC(void) { printf("voc subcommands: info  filepath\n"); }
+
+static int cmdVocInfo(const char *vocFile) {
+  printf("using voc file '%s'\n", vocFile);
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(vocFile, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", vocFile);
+    return 1;
+  }
+  printf("voc file size=%zX\n", dataSize);
+  VOCHandle handle = {0};
+  if (VOCHandleFromBuffer(&handle, buffer, dataSize) == 0) {
+    printf("Error while reading file\n");
+    if (freeBuffer) {
+      free(buffer);
+    }
+    return 1;
+  }
+
+  const VOCBlock *block = handle.firstBlock;
+  printf("block type=%X size= %X %X %X => %X\n", block->type, block->size[0],
+         block->size[1], block->size[2], VOCBlockGetSize(block));
+
+  printf("1st  block data byte = %X\n", VOCBlockGetData(block)[0]);
+  printf("last block data byte = %X\n",
+         VOCBlockGetData(block)[VOCBlockGetSize(block) - 1]);
+
+  if (VOCBlockIsLast(block)) {
+    printf("Is last\n");
+  }
+  if (freeBuffer) {
+    free(buffer);
+  }
+
+  return 0;
+}
+static int cmdVOC(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageVOC();
+    return 1;
+  }
+  if (strcmp(argv[0], "info") == 0) {
+    const char *vocFile = argv[1];
+    return cmdVocInfo(vocFile);
+  }
+  usageVOC();
+  return 0;
 }
 
 static void usageSHP(void) {
@@ -1100,6 +1150,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdFNT(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "dbg") == 0) {
     return cmdDbg(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "voc") == 0) {
+    return cmdVOC(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
