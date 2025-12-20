@@ -259,6 +259,13 @@ class LOL:
             return False
         return True
 
+    def extract_voc_file(self, file: str, pak: str, out_file: str) -> bool:
+        argv = [self.tool_path, "-p", pak, "voc", "extract", file, out_file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return False
+        return True
+
     def get_voc_info(self, file: str, pak: str) -> Optional[VOCFileInfo]:
         argv = [self.tool_path, "-p", pak, "voc", "info", file]
         resp = _do_exec(argv)

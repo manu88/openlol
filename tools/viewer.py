@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from playsound import playsound
 import tkinter as tk
 from tkinter import ttk
 from typing import Dict, Optional
@@ -199,8 +200,13 @@ class VOCRender(BaseRender):
     def update_for_item(self, file_name: str, pak_name: str):
         print(f"{file_name} in {pak_name}")
         info = lol.get_voc_info(file_name, pak_name)
+        assert len(info.blocks) == 1
         for block in info.blocks:
             print(block.type, block.size)
+        out_file = lol.get_temp_path_for("voc.wav")
+        if lol.extract_voc_file(file_name, pak_name, out_file):
+            print(f"Extracted {out_file}")
+            playsound(out_file)
 
 
 class TIMRender(BaseRender):

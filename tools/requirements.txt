@@ -1,2 +1,3 @@
 Pillow
 PySDL2
+playsound
