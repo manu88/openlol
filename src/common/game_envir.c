@@ -203,7 +203,7 @@ int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {
   return getFile(&_envir.pakGeneral, file, name);
 }
 
-int GameEnvironmentLoadPak(const char *pakFileName) {
+static int GameEnvironmentLoadPak(const char *pakFileName) {
   int cacheIndex = GetCacheIndex(pakFileName);
   if (cacheIndex != -1) {
     return 1;

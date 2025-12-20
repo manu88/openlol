@@ -33,7 +33,6 @@ void GameEnvironmentRelease(void);
 
 int GameEnvironmentLoadLevel(uint8_t index);
 
-int GameEnvironmentLoadPak(const char *name);
 int GameEnvironmentGetFile(GameFile *file, const char *name);
 int GameEnvironmentFindPak(const char *filename);
 
