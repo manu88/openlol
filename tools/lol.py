@@ -2,8 +2,8 @@ import subprocess
 import tempfile
 import fnmatch
 from os.path import isfile, join
-from os import listdir
-from typing import List, Optional
+from os import listdir, remove
+from typing import List, Optional, Set
 
 
 class LangFileInfo:
@@ -156,6 +156,7 @@ class LOL:
         self.tool_path = "./lol"
         self.temp_dir = tempfile.mkdtemp()
         self.pak_files: List[str] = []
+        self.temp_files: Set[str] = set()
 
     def scan_dir(self, pak_dir: str):
         print(f"Lol: scanning dir {pak_dir}")
@@ -163,7 +164,13 @@ class LOL:
             join(pak_dir, f)) and f.endswith(".PAK")]
 
     def get_temp_path_for(self, file_name: str) -> str:
-        return join(self.temp_dir, file_name)
+        t = join(self.temp_dir, file_name)
+        self.temp_files.add(t)
+        return t
+
+    def cleanup_temp_files(self):
+        for file in self.temp_files:
+            remove(file)
 
     def extract(self, file: str, pak: str) -> bool:
         argv = [self.tool_path, "-p", pak, "pak", "extract", file]

@@ -396,3 +396,5 @@ if __name__ == "__main__":
             pak_files[pak_file].append(file)
     ui = UI()
     ui.run()
+    print(f"ui returned, {len(lol.temp_files)} temp files to clean")
+    lol.cleanup_temp_files()
