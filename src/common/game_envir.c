@@ -84,7 +84,7 @@ static char *resolvePakName(const char *name) {
   return path;
 }
 
-static int loadPak(PAKFile *f, const char *pakfile) {
+int GameEnvironmentLoadPak(PAKFile *f, const char *pakfile) {
   char *path = resolvePakName(pakfile);
   assert(PAKFileRead(f, path));
   free(path);
@@ -100,10 +100,10 @@ int GameEnvironmentInit(const char *dataDir, Language lang) {
          LanguageGetExtension(_envir.lang));
 
   PAKFileInit(&_envir.pakGeneral);
-  loadPak(&_envir.pakGeneral, generalPakName);
+  GameEnvironmentLoadPak(&_envir.pakGeneral, generalPakName);
 
   PAKFileInit(&_envir.pakStartup);
-  loadPak(&_envir.pakStartup, startupPakName);
+  GameEnvironmentLoadPak(&_envir.pakStartup, startupPakName);
 
   _envir.cache = malloc(sizeof(PakFileCache) * CACHE_SIZE_INCREMENT);
   _envir.cacheSize = CACHE_SIZE_INCREMENT;

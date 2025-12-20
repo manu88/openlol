@@ -1,5 +1,6 @@
 #pragma once
 #include "formats/format_lang.h"
+#include "pak_file.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -18,10 +19,10 @@ So here's the heuristic when loading a file;
 be straightforward to deduce the PAK file from the file path. Example:
 'LEVEL1.INF' is in LO1.PAK.
 
-- If the file needs to be loaded from main code, either specify the PAK from which
-to load the content, or load pak files one by one until the right file is found. This
-last option is doable because all file names are unique, but it will be
-slooooooooow.
+- If the file needs to be loaded from main code, either specify the PAK from
+which to load the content, or load pak files one by one until the right file is
+found. This last option is doable because all file names are unique, but it will
+be slooooooooow.
 */
 typedef struct {
   uint8_t *buffer;
@@ -32,6 +33,8 @@ int GameEnvironmentInit(const char *dataDir, Language lang);
 void GameEnvironmentRelease(void);
 
 int GameEnvironmentLoadLevel(uint8_t index);
+
+int GameEnvironmentLoadPak(PAKFile *f, const char *pakfile);
 
 int GameEnvironmentGetFile(GameFile *file, const char *name);
 int GameEnvironmentFindPak(const char *filename);
