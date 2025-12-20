@@ -58,6 +58,35 @@ class SHPFileInfo:
             index += 1
 
 
+class VOCFileInfo:
+    class VOCBlock:
+        def __init__(self):
+            self.type = 0
+            self.size = 0
+
+        def from_data(self, data: str):
+            for param in data.split(" "):
+                if param == "":
+                    continue
+                name, val = param.split("=")
+                if name == "type":
+                    self.type = int(val)
+                elif name == "size":
+                    self.size = int(val)
+
+    def __init__(self, desc: List[str]):
+        self.desc = desc
+        self.lines: List[str] = []
+        self.blocks: List[VOCFileInfo.VOCBlock] = []
+        self._parse()
+
+    def _parse(self):
+        for l in self.desc:
+            block = VOCFileInfo.VOCBlock()
+            block.from_data(l)
+            self.blocks.append(block)
+
+
 class WSAFileInfo:
     class WSAFrameInfo:
         def __init__(self):
@@ -229,6 +258,14 @@ class LOL:
         if resp.returncode != 0:
             return False
         return True
+
+    def get_voc_info(self, file: str, pak: str) -> Optional[VOCFileInfo]:
+        argv = [self.tool_path, "-p", pak, "voc", "info", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return VOCFileInfo(proc_output.splitlines())
 
 
 lol = LOL()

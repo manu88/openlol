@@ -1,4 +1,5 @@
 
+#include "SDL_assert.h"
 #include "bytes.h"
 #include "dbg/debugger.h"
 #include "formats/format_cmz.h"
@@ -298,7 +299,6 @@ static int cmdScript(int argc, char *argv[]) {
 static void usageVOC(void) { printf("voc subcommands: info  filepath\n"); }
 
 static int cmdVocInfo(const char *vocFile) {
-  printf("using voc file '%s'\n", vocFile);
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(vocFile, &dataSize, &freeBuffer);
@@ -306,7 +306,6 @@ static int cmdVocInfo(const char *vocFile) {
     printf("Error while getting data for '%s'\n", vocFile);
     return 1;
   }
-  printf("voc file size=%zX\n", dataSize);
   VOCHandle handle = {0};
   if (VOCHandleFromBuffer(&handle, buffer, dataSize) == 0) {
     printf("Error while reading file\n");
@@ -317,16 +316,26 @@ static int cmdVocInfo(const char *vocFile) {
   }
 
   const VOCBlock *block = handle.firstBlock;
-  printf("block type=%X size= %X %X %X => %X\n", block->type, block->size[0],
-         block->size[1], block->size[2], VOCBlockGetSize(block));
 
-  printf("1st  block data byte = %X\n", VOCBlockGetData(block)[0]);
-  printf("last block data byte = %X\n",
-         VOCBlockGetData(block)[VOCBlockGetSize(block) - 1]);
+  int i = 0;
+  do {
+    printf("blockid=%i type=%X size=%i ", i, block->type,
+           VOCBlockGetSize(block));
+    switch (block->type) {
+    case VOCBlockType_SoundDataTyped: {
+      const VOCSoundDataTyped *soundData =
+          (const VOCSoundDataTyped *)VOCBlockGetData(block);
+      printf("freqDivisor=%X codec=%X", soundData->freqDivisor,
+             soundData->codec);
+    } break;
+    default:
+      assert(0);
+    }
+    printf("\n");
 
-  if (VOCBlockIsLast(block)) {
-    printf("Is last\n");
-  }
+    i++;
+  } while ((block = VOCHandleGetNextBlock(&handle, block)));
+
   if (freeBuffer) {
     free(buffer);
   }

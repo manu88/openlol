@@ -30,6 +30,9 @@ int VOCBlockIsLast(const VOCBlock *block) {
 
 const VOCBlock *VOCHandleGetNextBlock(const VOCHandle *handle,
                                       const VOCBlock *block) {
+  if (VOCBlockIsLast(block)) {
+    return NULL;
+  }
   const uint8_t *next = VOCBlockGetData(block) + VOCBlockGetSize(block);
   return (const VOCBlock *)next;
 }

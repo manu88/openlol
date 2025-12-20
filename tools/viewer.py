@@ -32,11 +32,11 @@ type_info = {
 
     "TIM": "animation script",
     "VCN": "maze wall and background graphics",
+    "VOC": "audio file",
     "VMP": "how to assemble VCN blocks into proper walls",
     "WLL": "maze wall mappings",
     "WSA": "animation",
     "XXX": "automap data",
-
     "LANG": "game text",
 }
 
@@ -192,6 +192,17 @@ class WSARender(BaseRender):
         self.palette_var.set("Yes" if info.has_palette else "No")
 
 
+class VOCRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        print(f"{file_name} in {pak_name}")
+        info = lol.get_voc_info(file_name, pak_name)
+        for block in info.blocks:
+            print(block.type, block.size)
+
+
 class TIMRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
@@ -318,6 +329,7 @@ class UI:
         self._register_renderer("SHP", SHPRender)
         self._register_renderer("TIM", TIMRender)
         self._register_renderer("LANG", LANGRender)
+        self._register_renderer("VOC", VOCRender)
 
     def _register_renderer(self, name: str, cls):
         self.renders[name] = cls(self.details_frame)

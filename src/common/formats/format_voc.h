@@ -27,6 +27,18 @@ typedef enum __attribute__((__packed__)) {
 
 static_assert(sizeof(VOCBlockType) == 1, "");
 
+typedef enum __attribute__((__packed__)) {
+  VOCCodec_PCM_U8 = 0,
+} VOCCodec;
+
+static_assert(sizeof(VOCCodec) == 1, "");
+
+typedef struct {
+  uint8_t freqDivisor;
+  VOCCodec codec;
+  uint8_t *data;
+} VOCSoundDataTyped;
+
 typedef struct __attribute__((__packed__)) {
   VOCBlockType type;
   uint8_t
