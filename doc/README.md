@@ -21,6 +21,9 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.CMZ‘ : EoB maze definition, but compressed with Format 80
 - '.DAT' : level decoration data 
 - '.FNT' : font files, using Westwood Font Format v3 see https://moddingwiki.shikadi.net/wiki/Westwood_Font_Format_v3 and https://web.archive.org/web/20180313235144/http://eob.wikispaces.com/eob.fnt
+- '.TLK' : PAK file in disguise. Contains in game voices in the VOC format
+- '.VOC' : audio files
+
 
 ## format 80
 Looks like this 'format 80' refers to 2 different compression format:

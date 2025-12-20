@@ -352,11 +352,15 @@ class UI:
 
     def _construct_file_tree(self):
         for pak_name, files in pak_files.items():
+            pak_ext = pak_name.split(".")[-1]
             parent_id = self.file_tree.insert(
-                "", "end", text=pak_name, values="PAK")
+                "", "end", text=pak_name, values=pak_ext)
             for file in files:
+                file_type = get_type(file)
+                if pak_ext == "TLK":
+                    file_type = "VOC"
                 self.file_tree.insert(parent_id, "end", text=file,
-                                      values=get_type(file))
+                                      values=file_type)
         self.file_tree.pack(fill=tk.BOTH, expand=True)
         self.file_tree.bind("<<TreeviewSelect>>", self.file_tree_sel_changed)
 
@@ -373,7 +377,10 @@ class UI:
 
     def selected_item_changed(self, file_name: str, pak_name: str):
         self.info_frame.update_for_item(file_name, pak_name)
-        self.change_tool_view(get_type(file_name))
+        file_type = get_type(file_name)
+        if pak_name.split(".")[-1] == "TLK":
+            file_type = "VOC"
+        self.change_tool_view(file_type)
         if self.current_renderer:
             self.current_renderer.update_for_item(file_name, pak_name)
 
