@@ -161,7 +161,7 @@ class LOL:
     def scan_dir(self, pak_dir: str):
         print(f"Lol: scanning dir {pak_dir}")
         self.pak_files = [join(pak_dir, f) for f in listdir(pak_dir) if isfile(
-            join(pak_dir, f)) and f.endswith(".PAK")]
+            join(pak_dir, f)) and f.endswith((".PAK", ".TLK"))]
 
     def get_temp_path_for(self, file_name: str) -> str:
         t = join(self.temp_dir, file_name)
