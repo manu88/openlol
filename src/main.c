@@ -1,5 +1,4 @@
 
-#include "SDL_assert.h"
 #include "bytes.h"
 #include "dbg/debugger.h"
 #include "formats/format_cmz.h"
@@ -22,6 +21,7 @@
 #include "script.h"
 #include "script_disassembler.h"
 #include <assert.h>
+#include <sndfile.h>
 #include <stddef.h>
 #include <stdint.h>
 #define _POSIX_C_SOURCE 2
@@ -296,7 +296,81 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageVOC(void) { printf("voc subcommands: info  filepath\n"); }
+static void usageVOC(void) {
+  printf("voc subcommands: info|extract filepath\n");
+}
+
+static int doWriteWav(const char *outFilePath, int sampleRate,
+                      const int8_t *samples, size_t numSamples) {
+  SF_INFO sfinfo = {0};
+  sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+  sfinfo.channels = 1;
+  sfinfo.samplerate = sampleRate;
+  SNDFILE *outFile = sf_open(outFilePath, SFM_WRITE, &sfinfo);
+  if (!outFile) {
+    printf("Not able to open output file %s.\n", outFilePath);
+    puts(sf_strerror(NULL));
+    return 1;
+  }
+
+  for (size_t i = 0; i < numSamples; i++) {
+    // int v = *(int *)(samples + i) / 2;
+    int16_t v = (samples[i] - 0X80) << 8;
+    sf_write_short(outFile, &v, 1);
+  }
+  sf_close(outFile);
+  return 0;
+}
+
+static int doVocExtract(const VOCHandle *handle, const char *outFile) {
+  const VOCBlock *block = handle->firstBlock;
+  if (block->type != VOCBlockType_SoundDataTyped) {
+    printf("unhandled block type %i\n", block->type);
+    return 1;
+  }
+
+  const VOCSoundDataTyped *soundData =
+      (const VOCSoundDataTyped *)VOCBlockGetData(block);
+
+  if (soundData->codec != VOCCodec_PCM_U8) {
+    printf("unhandled codec %i\n", soundData->codec);
+    return 1;
+  }
+
+  int sampleRate = 1000000 / (256 - soundData->freqDivisor);
+
+  const int8_t *samples = ((int8_t *)soundData) + 2;
+  size_t numSamples = VOCBlockGetSize(block) - 2;
+  int ret = doWriteWav(outFile, sampleRate, samples, numSamples);
+
+  return ret;
+}
+
+static int cmdVocExtract(const char *vocFile, const char *outFile) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(vocFile, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", vocFile);
+    return 1;
+  }
+  VOCHandle handle = {0};
+  if (VOCHandleFromBuffer(&handle, buffer, dataSize) == 0) {
+    printf("Error while reading file\n");
+    if (freeBuffer) {
+      free(buffer);
+    }
+    return 1;
+  }
+
+  int ret = doVocExtract(&handle, outFile);
+
+  if (freeBuffer) {
+    free(buffer);
+  }
+
+  return ret;
+}
 
 static int cmdVocInfo(const char *vocFile) {
   size_t dataSize = 0;
@@ -350,6 +424,14 @@ static int cmdVOC(int argc, char *argv[]) {
   if (strcmp(argv[0], "info") == 0) {
     const char *vocFile = argv[1];
     return cmdVocInfo(vocFile);
+  } else if (strcmp(argv[0], "extract") == 0) {
+    if (argc < 3) {
+      usageVOC();
+      return 1;
+    }
+    const char *vocFile = argv[1];
+    const char *outFile = argv[2];
+    return cmdVocExtract(vocFile, outFile);
   }
   usageVOC();
   return 0;

@@ -7,7 +7,7 @@ Complete new implementation of the awesome game 'Lands of Lore: Throne of Chaos'
 make
 ```
 
-note: SDL2 is required.
+note: SDL2 and libsndfile are required.
 
 ## game assets
 You need to create a "data" folder in the root of the repo and copy all ‘pak' files into it.
