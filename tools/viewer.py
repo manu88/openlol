@@ -196,17 +196,40 @@ class WSARender(BaseRender):
 class VOCRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
+        self.file_name = ""
+        self.pak_name = ""
+
+        self.play_btton = ttk.Button(self, text="play")
+        self.play_btton.bind("<Button-1>", self.play_voc)
+        self.play_btton.pack()
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns=("duration", "samplerate"))
+        self.table.heading("duration", text="duration")
+        self.table.heading("samplerate", text="samplerate")
+        self.table.pack(fill=tk.X, expand=True)
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
+
+    def play_voc(self, _):
+        out_file = lol.get_temp_path_for("voc.wav")
+        if lol.extract_voc_file(self.file_name, self.pak_name, out_file):
+            playsound(out_file)
 
     def update_for_item(self, file_name: str, pak_name: str):
-        print(f"{file_name} in {pak_name}")
+        self.file_name = file_name
+        self.pak_name = pak_name
         info = lol.get_voc_info(file_name, pak_name)
-        assert len(info.blocks) == 1
-        for block in info.blocks:
+        # assert len(info.blocks) == 1
+        self.clear_table()
+        for bId, block in enumerate(info.blocks):
             print(block.type, block.size)
-        out_file = lol.get_temp_path_for("voc.wav")
-        if lol.extract_voc_file(file_name, pak_name, out_file):
-            print(f"Extracted {out_file}")
-            playsound(out_file)
+            self.table.insert(
+                "", "end", text=f"{bId}", values=(block.duration, block.sample_rate))
 
 
 class TIMRender(BaseRender):

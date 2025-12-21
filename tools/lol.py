@@ -63,6 +63,8 @@ class VOCFileInfo:
         def __init__(self):
             self.type = 0
             self.size = 0
+            self.duration = 0
+            self.sample_rate = 0
 
         def from_data(self, data: str):
             for param in data.split(" "):
@@ -73,6 +75,10 @@ class VOCFileInfo:
                     self.type = int(val)
                 elif name == "size":
                     self.size = int(val)
+                elif name == "duration":
+                    self.duration = float(val)
+                elif name == "sampleRate":
+                    self.sample_rate = int(val)
 
     def __init__(self, desc: List[str]):
         self.desc = desc
