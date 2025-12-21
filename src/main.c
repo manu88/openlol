@@ -297,33 +297,12 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageVOC(void) {
-  printf("voc subcommands: info|extract filepath\n");
+  printf("voc subcommands: info|extract filepath [outfile]\n");
 }
 
-static int doWriteWav(const char *outFilePath, int sampleRate,
-                      const int8_t *samples, size_t numSamples) {
-  SF_INFO sfinfo = {0};
-  sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-  sfinfo.channels = 1;
-  sfinfo.samplerate = sampleRate;
-  SNDFILE *outFile = sf_open(outFilePath, SFM_WRITE, &sfinfo);
-  if (!outFile) {
-    printf("Not able to open output file %s.\n", outFilePath);
-    puts(sf_strerror(NULL));
-    return 1;
-  }
-
-  for (size_t i = 0; i < numSamples; i++) {
-    // int v = *(int *)(samples + i) / 2;
-    int16_t v = (samples[i] - 0X80) << 8;
-    sf_write_short(outFile, &v, 1);
-  }
-  sf_close(outFile);
-  return 0;
-}
-
-static int doVocExtract(const VOCHandle *handle, const char *outFile) {
+static int doVocExtract(const VOCHandle *handle, const char *outFilePath) {
   const VOCBlock *block = handle->firstBlock;
+
   if (block->type != VOCBlockType_SoundDataTyped) {
     printf("unhandled block type %i\n", block->type);
     return 1;
@@ -339,11 +318,31 @@ static int doVocExtract(const VOCHandle *handle, const char *outFile) {
 
   int sampleRate = 1000000 / (256 - soundData->freqDivisor);
 
-  const int8_t *samples = ((int8_t *)soundData) + 2;
-  size_t numSamples = VOCBlockGetSize(block) - 2;
-  int ret = doWriteWav(outFile, sampleRate, samples, numSamples);
+  SF_INFO sfinfo = {0};
+  sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+  sfinfo.channels = 1;
+  sfinfo.samplerate = sampleRate;
+  SNDFILE *outFile = sf_open(outFilePath, SFM_WRITE, &sfinfo);
+  if (!outFile) {
+    printf("Not able to open output file %s.\n", outFilePath);
+    puts(sf_strerror(NULL));
+    return 1;
+  }
 
-  return ret;
+  do {
+    const VOCSoundDataTyped *soundData =
+        (const VOCSoundDataTyped *)VOCBlockGetData(block);
+    const int8_t *samples = ((int8_t *)soundData) + 2;
+    size_t numSamples = VOCBlockGetSize(block) - 2;
+    for (size_t i = 0; i < numSamples; i++) {
+      int16_t v = (samples[i] - 0X80) << 8;
+      sf_write_short(outFile, &v, 1);
+    }
+  } while ((block = VOCHandleGetNextBlock(handle, block)));
+
+  sf_close(outFile);
+
+  return 0;
 }
 
 static int cmdVocExtract(const char *vocFile, const char *outFile) {
@@ -399,8 +398,12 @@ static int cmdVocInfo(const char *vocFile) {
     case VOCBlockType_SoundDataTyped: {
       const VOCSoundDataTyped *soundData =
           (const VOCSoundDataTyped *)VOCBlockGetData(block);
-      printf("freqDivisor=%X codec=%X", soundData->freqDivisor,
-             soundData->codec);
+
+      int sampleRate = 1000000 / (256 - soundData->freqDivisor);
+      size_t numSamples = VOCBlockGetSize(block) - 2;
+      float duration = numSamples * 1.f / sampleRate;
+      printf("codec=%X sampleRate=%i numSamples=%zi duration=%f",
+             soundData->codec, sampleRate, numSamples, duration);
     } break;
     default:
       assert(0);

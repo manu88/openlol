@@ -1,6 +1,5 @@
 #include "format_voc.h"
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 static const char signature[] = "Creative Voice File";
@@ -15,7 +14,6 @@ int VOCHandleFromBuffer(VOCHandle *handle, const uint8_t *data,
   }
   handle->header = header;
   handle->firstBlock = (const VOCBlock *)(data + header->headerSize);
-
   return 1;
 }
 
@@ -24,8 +22,8 @@ const uint8_t *VOCBlockGetData(const VOCBlock *block) {
 }
 
 int VOCBlockIsLast(const VOCBlock *block) {
-  const uint8_t *next = VOCBlockGetData(block) + VOCBlockGetSize(block);
-  return next != 0;
+  const uint8_t *next = (const uint8_t *)(block) + VOCBlockGetSize(block) + 4;
+  return next[0] == 0;
 }
 
 const VOCBlock *VOCHandleGetNextBlock(const VOCHandle *handle,
