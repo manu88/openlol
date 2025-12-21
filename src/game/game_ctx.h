@@ -15,6 +15,7 @@
 #include "game_tim_animator.h"
 #include "geometry.h"
 #include "menu.h"
+#include "audio.h"
 #include "script.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -138,6 +139,7 @@ typedef struct {
 static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
 
 typedef struct _GameContext {
+  AudioSystem audio;
   GameState state;
   GameState prevState;
 

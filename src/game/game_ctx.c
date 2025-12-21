@@ -172,12 +172,13 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
       assert(0);
     }
   }
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 0;
   }
+  AudioSystemInit(&gameCtx->audio);
   gameCtx->window =
       SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
                        SDL_WINDOWPOS_UNDEFINED, PIX_BUF_WIDTH * SCREEN_FACTOR,
@@ -268,6 +269,7 @@ int GameContextNewGame(GameContext *gameCtx) {
 
 void GameContextRelease(GameContext *gameCtx) {
   DBGServerRelease();
+  AudioSystemRelease(&gameCtx->audio);
   SDL_DestroyRenderer(gameCtx->renderer);
   SDL_DestroyWindow(gameCtx->window);
 
