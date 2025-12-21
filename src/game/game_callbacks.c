@@ -29,7 +29,11 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   Log(LOG_PREFIX, "callbackPlayDialogue %x %x %x", charId, mode, strId);
+  if (charId == 1) {
+    charId = ctx->selectedChar;
+  }
   GameRenderSetDialogF(ctx, strId);
+  GameContextPlayDialogSpeech(ctx, charId, strId);
 }
 
 static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,

@@ -101,6 +101,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
   gameCtx->shouldUpdate = 1;
+  gameCtx->currentTlkFileIndex = -1;
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));
@@ -364,6 +365,10 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     printf("<-DONE INI SCRIPT\n");
   }
 
+  if (levelNum != ctx->currentTlkFileIndex) {
+    GameContextLoadTLKFile(ctx, levelNum);
+  }
+
   printf("->Run LEVEL INIT SCRIPT\n");
   GameContextRunLevelInitScript(ctx);
   printf("<-Done LEVEL INIT SCRIPT\n");
@@ -597,5 +602,73 @@ void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
     assert(GameEnvironmentGetGeneralFile(&f, name));
     assert(CPSImageFromBuffer(&gameCtx->inventoryBackgrounds[invId], f.buffer,
                               f.bufferSize));
+  }
+}
+
+void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex) {
+  printf("Load TLK File index %i\n", levelIndex);
+  if (gameCtx->currentTlkFileIndex != -1) {
+    PAKFileRelease(&gameCtx->currentTlkFile);
+  }
+  PAKFileInit(&gameCtx->currentTlkFile);
+
+  static char tlkFilePath[7] = "";
+  snprintf(tlkFilePath, 7, "%02d.TLK", levelIndex);
+  printf("load TLK file '%s'\n", tlkFilePath);
+  GameEnvironmentLoadPak(&gameCtx->currentTlkFile, tlkFilePath);
+  gameCtx->currentTlkFileIndex = levelIndex;
+}
+
+void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
+                                 uint16_t strId) {
+  printf("GameContextPlayDialogSpeech charId=%X strId=%X\n", charId, strId);
+
+  if (charId < 65) {
+    if (gameCtx->chars[charId].flags & 1) {
+      charId = (int16_t)gameCtx->chars[charId].name[0];
+    } else {
+      charId = 0;
+    }
+  }
+  printf("charId=%X '%c'\n", charId, charId);
+
+  char pattern2[10] = "";
+  snprintf(pattern2, 10, "%02d",
+           strId & 0x4000 ? 0 : gameCtx->currentTlkFileIndex);
+  printf("pattern2='%s'\n", pattern2);
+
+  char pattern1[10] = "";
+  char file3[16] = "";
+  if (strId & 0x4000) {
+    snprintf(pattern1, 10, "%03X", strId & 0x3FFF);
+  } else if (strId < 1000) {
+    snprintf(pattern1, 10, "%03d", strId);
+  } else {
+    snprintf(file3, 16, "@%04d%c.%s", strId - 1000, (char)charId, pattern2);
+  }
+
+  printf("pattern1='%s'\n", pattern1);
+  printf("file3='%s'\n", file3);
+
+  char file1[16] = "";
+  char file2[16] = "";
+  if (strlen(file3) == 0) {
+    for (char i = 0; i < 100; i++) {
+      char symbol = '0' + i;
+      snprintf(file1, 16, "%s%c%c.%s", pattern1, (char)charId, symbol,
+               pattern2);
+      snprintf(file2, 16, "%s%c%c.%s", pattern1, '_', symbol, pattern2);
+
+      printf("file1='%s' file2='%s'\n", file1, file2);
+      if (PakFileGetEntryIndex(&gameCtx->currentTlkFile, file1) != -1) {
+        printf("found file1='%s'\n", file1);
+        AudioSystemQueueVoc(&gameCtx->audio, &gameCtx->currentTlkFile, file1);
+      } else if (PakFileGetEntryIndex(&gameCtx->currentTlkFile, file2) != -1) {
+        printf("found file2='%s'\n", file2);
+        AudioSystemQueueVoc(&gameCtx->audio, &gameCtx->currentTlkFile, file2);
+      } else {
+        break;
+      }
+    }
   }
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "pak_file.h"
 #include <SDL2/SDL.h>
 
 typedef struct {
@@ -8,4 +9,8 @@ typedef struct {
 
 int AudioSystemInit(AudioSystem *audioSystem);
 void AudioSystemRelease(AudioSystem *audioSystem);
-int AudioSystemPlayTest(AudioSystem *audioSystem);
+
+void AudioSystemClear(AudioSystem *audioSystem);
+
+int AudioSystemQueueVoc(AudioSystem *audioSystem, const PAKFile *pak,
+                        const char *vocName);

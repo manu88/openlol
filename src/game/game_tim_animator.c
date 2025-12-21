@@ -74,6 +74,10 @@ static void callbackTIM_CharChat(TIMInterpreter *interp, uint16_t charId,
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   GameRenderSetDialogF(gameCtx, stringId);
+  if (charId == 1) {
+    charId = gameCtx->selectedChar;
+  }
+  GameContextPlayDialogSpeech(gameCtx, 0, stringId);
 }
 
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
@@ -83,6 +87,7 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   GameRenderSetDialogF(gameCtx, stringId);
+  GameContextPlayDialogSpeech(gameCtx, 0, stringId);
 }
 
 static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,

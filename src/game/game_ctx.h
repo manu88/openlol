@@ -15,6 +15,7 @@
 #include "game_tim_animator.h"
 #include "geometry.h"
 #include "menu.h"
+#include "pak_file.h"
 #include "audio.h"
 #include "script.h"
 #include <stddef.h>
@@ -231,6 +232,9 @@ typedef struct _GameContext {
   int shouldUpdate;
 
   char *savDir;
+
+  PAKFile currentTlkFile;
+  int currentTlkFileIndex;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
@@ -286,3 +290,7 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath);
 
 void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
                                                 int charId);
+
+void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
+void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
+                                 uint16_t strId);
