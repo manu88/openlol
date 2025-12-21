@@ -227,7 +227,6 @@ class VOCRender(BaseRender):
         # assert len(info.blocks) == 1
         self.clear_table()
         for bId, block in enumerate(info.blocks):
-            print(block.type, block.size)
             self.table.insert(
                 "", "end", text=f"{bId}", values=(block.duration, block.sample_rate))
 
