@@ -189,6 +189,21 @@ void UIRenderTextCentered(const FNTHandle *font, SDL_Texture *texture,
   UIRenderText(font, texture, xCenter - (width / 2), yCenter, width, text);
 }
 
+void UIRenderTextLeft(const FNTHandle *font, SDL_Texture *texture, int xTopLeft,
+                      int yTopLeft, const char *text) {
+  if (!text) {
+    return;
+  }
+  int width = 0;
+  for (int i = 0; i < strlen(text); i++) {
+    if (!isprint(text[i])) {
+      continue;
+    }
+    width += font->widthTable[(uint8_t)text[i]];
+  }
+  UIRenderText(font, texture, xTopLeft - width, yTopLeft, width, text);
+}
+
 void UIDrawButton(SDL_Texture *texture, int x, int y, int w, int h) {
   const UIPalette *pal = getPalette();
   void *data;
