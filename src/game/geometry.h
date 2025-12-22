@@ -120,6 +120,9 @@
 #define GAME_MENU_AUDIO_CONTROLS_W 272
 #define GAME_MENU_AUDIO_CONTROLS_H 98
 
+#define GAME_MENU_AUDIO_CONTROLS_SLIDER_W 136
+#define GAME_MENU_AUDIO_CONTROLS_SLIDER_H 14
+
 typedef struct {
   uint16_t x;
   uint16_t y;

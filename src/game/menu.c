@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "SDL_keycode.h"
+#include "audio.h"
 #include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
@@ -9,6 +10,8 @@
 #include "ui.h"
 #include <assert.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 static Menu _gameMenu = {0};
@@ -507,32 +510,56 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
       font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + GAME_MENU_AUDIO_CONTROLS_W / 2,
       GAME_MENU_AUDIO_CONTROLS_Y + 10, textBuf);
 
-  SHPFrame frame = {0};
+  SHPFrame sliderFrame = {0};
 
-  assert(SHPHandleGetFrame(&context->gameShapes, &frame, 85));
-  SHPFrameGetImageData(&frame);
+  assert(SHPHandleGetFrame(&context->gameShapes, &sliderFrame, 85));
+  SHPFrameGetImageData(&sliderFrame);
 
+  int sliderX = GAME_MENU_AUDIO_CONTROLS_X + 127;
   // music volume
-  drawSHPFrame(pixBuf, &frame, GAME_MENU_AUDIO_CONTROLS_X + 127,
-               GAME_MENU_AUDIO_CONTROLS_Y + 25, context->defaultPalette);
+  drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 25,
+               context->defaultPalette);
   GameContextGetString(context, 0X42DB, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 27, textBuf);
 
   // sound volume
-  drawSHPFrame(pixBuf, &frame, GAME_MENU_AUDIO_CONTROLS_X + 127,
-               GAME_MENU_AUDIO_CONTROLS_Y + 41, context->defaultPalette);
+  drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 41,
+               context->defaultPalette);
   GameContextGetString(context, 0X42DA, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 43, textBuf);
 
   // talking volume
-  drawSHPFrame(pixBuf, &frame, GAME_MENU_AUDIO_CONTROLS_X + 127,
-               GAME_MENU_AUDIO_CONTROLS_Y + 58, context->defaultPalette);
+  drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 58,
+               context->defaultPalette);
   GameContextGetString(context, 0X42DC, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 61, textBuf);
-  SHPFrameRelease(&frame);
+  SHPFrameRelease(&sliderFrame);
+
+  // buttons
+  SHPFrame buttonFrame = {0};
+  assert(SHPHandleGetFrame(&context->gameShapes, &buttonFrame, 86));
+  SHPFrameGetImageData(&buttonFrame);
+
+  int xOffset = 12;
+  // music button
+  int musicVolVal = context->audio.musicVol * 10;
+  drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + musicVolVal,
+               GAME_MENU_AUDIO_CONTROLS_Y + 25, context->defaultPalette);
+
+  // sound button
+  int soundVolVal = context->audio.soundVol * 10;
+  drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + soundVolVal,
+               GAME_MENU_AUDIO_CONTROLS_Y + 41, context->defaultPalette);
+
+  // talking button
+  int talkVolVal = context->audio.voiceVol * 10;
+  drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + talkVolVal,
+               GAME_MENU_AUDIO_CONTROLS_Y + 58, context->defaultPalette);
+
+  SHPFrameRelease(&buttonFrame);
 
   // main menu
   GameContextGetString(context, 0X4072, textBuf, 128);
@@ -589,12 +616,69 @@ static void GameMenuRender(Menu *menu, GameContext *context,
   }
 }
 
+static void handleSlider(GameContext *context, int sliderID, uint16_t ptX) {
+  const int sliderX = GAME_MENU_AUDIO_CONTROLS_X + 127;
+  const int xOffset = 12;
+
+  uint8_t soundVal = context->audio.musicVol;
+  if (sliderID == 1) {
+    soundVal = context->audio.soundVol;
+  } else if (sliderID == 2) {
+    soundVal = context->audio.voiceVol;
+  }
+  if (ptX - sliderX < 8) {
+    soundVal -= 1;
+  } else if (ptX - sliderX >= GAME_MENU_AUDIO_CONTROLS_SLIDER_W - 8) {
+    soundVal += 1;
+  } else {
+
+    soundVal = (ptX - sliderX - xOffset) / 10;
+  }
+  switch (sliderID) {
+  case 0:
+    AudioSystemSetMusicVolume(&context->audio, soundVal);
+    break;
+  case 1:
+    AudioSystemSetSoundVolume(&context->audio, soundVal);
+    break;
+  case 2:
+    AudioSystemSetVoiceVolume(&context->audio, soundVal);
+    break;
+  default:
+    assert(0);
+  }
+}
+
 static int GameMenuMouse_AudioControls(Menu *menu, GameContext *context,
                                        const Point *pt) {
   // main menu
   if (zoneClicked(pt, GAME_MENU_AUDIO_CONTROLS_X + 152,
                   GAME_MENU_AUDIO_CONTROLS_Y + 76, 96, 15)) {
     menu->state = MenuState_GameMenu;
+    return 1;
+  }
+
+  // sliders: can click on +- signs, increment step is 1/12th
+  // click anywhere on the strip to move the slider to mouse point
+
+  // 136 14
+  // music
+
+  const int sliderX = GAME_MENU_AUDIO_CONTROLS_X + 127;
+  if (zoneClicked(pt, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 25,
+                  GAME_MENU_AUDIO_CONTROLS_SLIDER_W,
+                  GAME_MENU_AUDIO_CONTROLS_SLIDER_H)) {
+    handleSlider(context, 0, pt->x);
+    return 1;
+  } else if (zoneClicked(pt, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 41,
+                         GAME_MENU_AUDIO_CONTROLS_SLIDER_W,
+                         GAME_MENU_AUDIO_CONTROLS_SLIDER_H)) {
+    handleSlider(context, 1, pt->x);
+    return 1;
+  } else if (zoneClicked(pt, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 58,
+                         GAME_MENU_AUDIO_CONTROLS_SLIDER_W,
+                         GAME_MENU_AUDIO_CONTROLS_SLIDER_H)) {
+    handleSlider(context, 2, pt->x);
     return 1;
   }
 

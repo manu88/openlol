@@ -10,6 +10,10 @@
 
 int AudioSystemInit(AudioSystem *audioSystem) {
   memset(audioSystem, 0, sizeof(AudioSystem));
+
+  audioSystem->musicVol = 6;
+  audioSystem->soundVol = 6;
+  audioSystem->voiceVol = 6;
   audioSystem->volume = INT16_MAX;
   printf("init audio\n");
   SDL_AudioSpec desiredSpec = {0};
@@ -35,6 +39,27 @@ int AudioSystemInit(AudioSystem *audioSystem) {
 
 void AudioSystemRelease(AudioSystem *audioSystem) {
   SDL_CloseAudioDevice(audioSystem->deviceID);
+}
+
+static inline uint8_t clampVol(int8_t vol) {
+  if (vol > 10) {
+    return 10;
+  } else if (vol < 0) {
+    return 0;
+  }
+  return vol;
+}
+
+void AudioSystemSetSoundVolume(AudioSystem *audioSystem, int8_t vol) {
+  audioSystem->soundVol = clampVol(vol);
+}
+
+void AudioSystemSetMusicVolume(AudioSystem *audioSystem, int8_t vol) {
+  audioSystem->musicVol = clampVol(vol);
+}
+
+void AudioSystemSetVoiceVolume(AudioSystem *audioSystem, int8_t vol) {
+  audioSystem->voiceVol = clampVol(vol);
 }
 
 void AudioSystemClear(AudioSystem *audioSystem) {
