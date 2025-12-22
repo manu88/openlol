@@ -5,6 +5,7 @@
 typedef struct {
   SDL_AudioDeviceID deviceID;
   SDL_AudioSpec audioSpec;
+  uint16_t volume;
 } AudioSystem;
 
 int AudioSystemInit(AudioSystem *audioSystem);

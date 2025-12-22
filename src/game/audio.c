@@ -2,12 +2,15 @@
 #include "SDL_audio.h"
 #include "formats/format_voc.h"
 #include "pak_file.h"
+#include <assert.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
 int AudioSystemInit(AudioSystem *audioSystem) {
   memset(audioSystem, 0, sizeof(AudioSystem));
+  audioSystem->volume = INT16_MAX;
   printf("init audio\n");
   SDL_AudioSpec desiredSpec = {0};
   desiredSpec.freq = 22222;
@@ -71,6 +74,8 @@ int AudioSystemQueueVoc(AudioSystem *audioSystem, const PAKFile *pak,
 
     for (size_t i = 0; i < numSamples; i++) {
       samples[i] = (inSamples[i] - 0X80) << 8;
+      samples[i] = (int16_t)(((int32_t)audioSystem->volume) * (samples[i]) /
+                             (INT32_C(1) << 15));
     }
     printf("SDL_QueueAudio voc %s\n", vocName);
     SDL_QueueAudio(audioSystem->deviceID, samples, numSamples * sizeof(Sint16));
