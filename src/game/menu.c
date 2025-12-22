@@ -507,9 +507,35 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
       font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + GAME_MENU_AUDIO_CONTROLS_W / 2,
       GAME_MENU_AUDIO_CONTROLS_Y + 10, textBuf);
 
-  GameContextGetString(context, 0X4072, textBuf, 128);
+  SHPFrame frame = {0};
+
+  assert(SHPHandleGetFrame(&context->gameShapes, &frame, 85));
+  SHPFrameGetImageData(&frame);
+
+  // music volume
+  drawSHPFrame(pixBuf, &frame, GAME_MENU_AUDIO_CONTROLS_X + 127,
+               GAME_MENU_AUDIO_CONTROLS_Y + 25, context->defaultPalette);
+  GameContextGetString(context, 0X42DB, textBuf, 128);
+  UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 27, textBuf);
+
+  // sound volume
+  drawSHPFrame(pixBuf, &frame, GAME_MENU_AUDIO_CONTROLS_X + 127,
+               GAME_MENU_AUDIO_CONTROLS_Y + 41, context->defaultPalette);
+  GameContextGetString(context, 0X42DA, textBuf, 128);
+  UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 43, textBuf);
+
+  // talking volume
+  drawSHPFrame(pixBuf, &frame, GAME_MENU_AUDIO_CONTROLS_X + 127,
+               GAME_MENU_AUDIO_CONTROLS_Y + 58, context->defaultPalette);
+  GameContextGetString(context, 0X42DC, textBuf, 128);
+  UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 61, textBuf);
+  SHPFrameRelease(&frame);
 
   // main menu
+  GameContextGetString(context, 0X4072, textBuf, 128);
   UIDrawTextButton(&context->defaultFont, context->pixBuf,
                    GAME_MENU_AUDIO_CONTROLS_X + 152,
                    GAME_MENU_AUDIO_CONTROLS_Y + 76, 96, 15, textBuf);
