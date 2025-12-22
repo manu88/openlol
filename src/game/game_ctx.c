@@ -1,5 +1,6 @@
 #include "game_ctx.h"
 #include "SDL_render.h"
+#include "audio.h"
 #include "bytes.h"
 #include "dbg_server.h"
 #include "formats/format_cps.h"
@@ -635,45 +636,49 @@ void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
       charId = 0;
     }
   }
-  printf("charId=%X '%c'\n", charId, charId);
 
-  char pattern2[10] = "";
-  snprintf(pattern2, 10, "%02d",
+  char pattern2[8] = "";
+  snprintf(pattern2, 8, "%02d",
            strId & 0x4000 ? 0 : gameCtx->currentTlkFileIndex);
-  printf("pattern2='%s'\n", pattern2);
 
-  char pattern1[10] = "";
-  char file3[16] = "";
+  char pattern1[8] = "";
+  char file3[8] = "";
   if (strId & 0x4000) {
-    snprintf(pattern1, 10, "%03X", strId & 0x3FFF);
+    snprintf(pattern1, 8, "%03X", strId & 0x3FFF);
   } else if (strId < 1000) {
-    snprintf(pattern1, 10, "%03d", strId);
+    snprintf(pattern1, 8, "%03d", strId);
   } else {
-    snprintf(file3, 16, "@%04d%c.%s", strId - 1000, (char)charId, pattern2);
+    snprintf(file3, 8, "@%04d%c.%s", strId - 1000, (char)charId, pattern2);
   }
 
-  printf("pattern1='%s'\n", pattern1);
-  printf("file3='%s'\n", file3);
+  int fileSequence[MAX_VOC_SEQ_ENTRIES] = {0};
+  int fileSequenceIndex = 0;
+  // printf("file3='%s'\n", file3);
 
-  char file1[16] = "";
-  char file2[16] = "";
+  char file1[9] = "";
+  char file2[9] = "";
   if (strlen(file3) == 0) {
     for (char i = 0; i < 100; i++) {
       char symbol = '0' + i;
-      snprintf(file1, 16, "%s%c%c.%s", pattern1, (char)charId, symbol,
-               pattern2);
-      snprintf(file2, 16, "%s%c%c.%s", pattern1, '_', symbol, pattern2);
+      snprintf(file1, 9, "%s%c%c.%s", pattern1, (char)charId, symbol, pattern2);
+      snprintf(file2, 9, "%s%c%c.%s", pattern1, '_', symbol, pattern2);
 
-      printf("file1='%s' file2='%s'\n", file1, file2);
-      if (PakFileGetEntryIndex(&gameCtx->currentTlkFile, file1) != -1) {
+      // printf("file1='%s' file2='%s'\n", file1, file2);
+      int file1index = PakFileGetEntryIndex(&gameCtx->currentTlkFile, file1);
+      int file2index = PakFileGetEntryIndex(&gameCtx->currentTlkFile, file2);
+      if (file1index != -1) {
         printf("found file1='%s'\n", file1);
-        AudioSystemQueueVoc(&gameCtx->audio, &gameCtx->currentTlkFile, file1);
-      } else if (PakFileGetEntryIndex(&gameCtx->currentTlkFile, file2) != -1) {
+        fileSequence[fileSequenceIndex++] = file1index;
+      } else if (file2index != -1) {
         printf("found file2='%s'\n", file2);
-        AudioSystemQueueVoc(&gameCtx->audio, &gameCtx->currentTlkFile, file2);
+        fileSequence[fileSequenceIndex++] = file2index;
       } else {
         break;
       }
+    }
+    if (fileSequenceIndex > 0) {
+      AudioSystemPlaySequence(&gameCtx->audio, &gameCtx->currentTlkFile,
+                              fileSequence, fileSequenceIndex);
     }
   }
 }

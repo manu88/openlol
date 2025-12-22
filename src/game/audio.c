@@ -8,8 +8,69 @@
 #include <stdio.h>
 #include <string.h>
 
+void AudioQueueInit(AudioQueue *queue) {
+  memset(queue, 0, sizeof(AudioQueue));
+  queue->vocHandle.header = NULL;
+}
+
 static inline uint16_t getAudioGain(uint8_t vol) {
   return INT16_MAX * vol / 10;
+}
+static void _audioCallbackQueue(AudioSystem *audioSystem, AudioQueue *queue,
+                                int16_t *samples, size_t numSamplesOut) {
+
+  if (queue->currentBlock == NULL) {
+    queue->currentBlock = queue->sequence[queue->currentSequence].firstBlock;
+  }
+  assert(queue->currentBlock);
+
+  const VOCSoundDataTyped *data =
+      (const VOCSoundDataTyped *)VOCBlockGetData(queue->currentBlock);
+  size_t numBLockSamples = VOCBlockGetSize(queue->currentBlock) - 2;
+  size_t remainingBlockSamples = numBLockSamples - queue->currentSample;
+
+  if (remainingBlockSamples == 0) {
+    if (VOCBlockIsLast(queue->currentBlock)) {
+      if (queue->currentSequence == queue->sequenceSize - 1) {
+        queue->sequenceSize = 0;
+        return;
+      } else {
+        queue->currentSequence++;
+        queue->currentSample = 0;
+        queue->currentBlock = NULL;
+      }
+    } else {
+      queue->currentBlock = VOCHandleGetNextBlock(
+          &queue->sequence[queue->currentSequence], queue->currentBlock);
+      queue->currentSample = 0;
+    }
+  } else {
+
+    size_t numSamplesToCopy = remainingBlockSamples > numSamplesOut
+                                  ? numSamplesOut
+                                  : remainingBlockSamples;
+    assert(numSamplesToCopy <= numSamplesOut);
+    int32_t vol = getAudioGain(audioSystem->soundVol);
+    const int8_t *inSamples = ((int8_t *)data) + 2;
+    for (size_t i = 0; i < numSamplesToCopy; i++) {
+      samples[i] = (inSamples[i + queue->currentSample] - 0X80) << 8;
+      samples[i] = (int16_t)(vol * (samples[i]) / (INT32_C(1) << 15));
+    }
+    queue->currentSample += numSamplesToCopy;
+  }
+}
+
+static void _audioCallback(void *userdata, Uint8 *stream, int len) {
+  AudioSystem *audioSystem = (AudioSystem *)userdata;
+  assert(audioSystem);
+  int16_t *samples = (int16_t *)stream;
+  size_t numSamplesOut = len / 2;
+
+  memset(stream, 0, len);
+  AudioQueue *queue = &audioSystem->voiceQueue;
+  if (queue->sequenceSize > 0) {
+    _audioCallbackQueue(audioSystem, queue, samples, numSamplesOut);
+  }
 }
 
 int AudioSystemInit(AudioSystem *audioSystem) {
@@ -23,7 +84,9 @@ int AudioSystemInit(AudioSystem *audioSystem) {
   desiredSpec.freq = 22222;
   desiredSpec.format = AUDIO_S16SYS;
   desiredSpec.channels = 1;
-  desiredSpec.samples = 4096;
+  desiredSpec.samples = 1024;
+  desiredSpec.callback = _audioCallback;
+  desiredSpec.userdata = audioSystem;
 
   audioSystem->deviceID =
       SDL_OpenAudioDevice(NULL, 0, &desiredSpec, &audioSystem->audioSpec, 0);
@@ -37,6 +100,7 @@ int AudioSystemInit(AudioSystem *audioSystem) {
   printf("samples: %i\n", audioSystem->audioSpec.samples);
   SDL_PauseAudioDevice(audioSystem->deviceID, 0);
 
+  AudioQueueInit(&audioSystem->voiceQueue);
   return 1;
 }
 
@@ -69,46 +133,26 @@ void AudioSystemClear(AudioSystem *audioSystem) {
   SDL_ClearQueuedAudio(audioSystem->deviceID);
 }
 
-int AudioSystemQueueVoc(AudioSystem *audioSystem, const PAKFile *pak,
-                        const char *vocName) {
-  int entryIndex = PakFileGetEntryIndex(pak, vocName);
-  const uint8_t *buffer = PakFileGetEntryData(pak, entryIndex);
-  size_t bufferSize = PakFileGetEntrySize(pak, entryIndex);
-  VOCHandle handle = {0};
-  if (!VOCHandleFromBuffer(&handle, buffer, bufferSize)) {
-    printf("Unable to read voc file '%s'\n", vocName);
-    return 0;
+void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
+                             int *sequence, size_t sequenceSize) {
+  printf("file sequence: \n");
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  for (int i = 0; i < sequenceSize; i++) {
+    int entryIndex = sequence[i];
+    printf("%i: %i\n", i, entryIndex);
+    const uint8_t *buffer = PakFileGetEntryData(pak, entryIndex);
+    size_t bufferSize = PakFileGetEntrySize(pak, entryIndex);
+
+    if (!VOCHandleFromBuffer(&audioSystem->voiceQueue.sequence[i], buffer,
+                             bufferSize)) {
+      printf("Unable to read voc file index %i\n", entryIndex);
+      continue;
+    }
   }
-  const VOCBlock *block = handle.firstBlock;
-  do {
 
-    if (block->type != VOCBlockType_SoundDataTyped) {
-      printf("AudioSystemQueueVoc: skipping unsupported audio type %i\n",
-             block->type);
-      continue;
-    }
-    const VOCSoundDataTyped *data =
-        (const VOCSoundDataTyped *)VOCBlockGetData(block);
-    int sampleRate = 1000000 / (256 - data->freqDivisor);
-    if (sampleRate != audioSystem->audioSpec.freq) {
-      printf("AudioSystemQueueVoc: different samplerate %i %i\n", sampleRate,
-             audioSystem->audioSpec.freq);
-      continue;
-    }
-    const int8_t *inSamples = ((int8_t *)data) + 2;
-    size_t numSamples = VOCBlockGetSize(block) - 2;
-    printf("Block numSamples=%zu sampleRate=%i\n", numSamples, sampleRate);
-    Sint16 *samples = malloc(numSamples * sizeof(Sint16));
-
-    int32_t vol = getAudioGain(audioSystem->soundVol);
-    for (size_t i = 0; i < numSamples; i++) {
-      samples[i] = (inSamples[i] - 0X80) << 8;
-      samples[i] = (int16_t)(vol * (samples[i]) / (INT32_C(1) << 15));
-    }
-    printf("SDL_QueueAudio voc %s\n", vocName);
-    SDL_QueueAudio(audioSystem->deviceID, samples, numSamples * sizeof(Sint16));
-    free(samples);
-
-  } while ((block = VOCHandleGetNextBlock(&handle, block)));
-  return 1;
+  audioSystem->voiceQueue.currentBlock = NULL;
+  audioSystem->voiceQueue.currentSample = 0;
+  audioSystem->voiceQueue.currentSequence = 0;
+  audioSystem->voiceQueue.sequenceSize = sequenceSize;
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
 }
