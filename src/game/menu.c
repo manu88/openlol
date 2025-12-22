@@ -495,6 +495,26 @@ static void GameMenuRender_MainMenu(Menu *menu, GameContext *context,
                    GAME_MENU_BUTTON_H, textBuf);
 }
 
+static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
+                                         const FNTHandle *font,
+                                         SDL_Texture *pixBuf) {
+  UIDrawMenuWindow(pixBuf, GAME_MENU_AUDIO_CONTROLS_X,
+                   GAME_MENU_AUDIO_CONTROLS_Y, GAME_MENU_AUDIO_CONTROLS_W,
+                   GAME_MENU_AUDIO_CONTROLS_H);
+
+  GameContextGetString(context, 0X42D9, textBuf, 128);
+  UIRenderTextCentered(
+      font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + GAME_MENU_AUDIO_CONTROLS_W / 2,
+      GAME_MENU_AUDIO_CONTROLS_Y + 10, textBuf);
+
+  GameContextGetString(context, 0X4072, textBuf, 128);
+
+  // main menu
+  UIDrawTextButton(&context->defaultFont, context->pixBuf,
+                   GAME_MENU_AUDIO_CONTROLS_X + 152,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 76, 96, 15, textBuf);
+}
+
 static void GameMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const FNTHandle *font,
                                              SDL_Texture *pixBuf) {
@@ -527,10 +547,13 @@ static void GameMenuRender(Menu *menu, GameContext *context,
   case MenuState_LoadGame:
     MenuRender_LoadMenu(menu, context, font, pixBuf);
     break;
+  case MenuState_AudioControls:
+    gameMenuRender_AudioControls(menu, context, font, pixBuf);
+    break;
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
-  case MenuState_AudioControls:
+
     GameMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
     break;
   case MenuState_StartNew:
@@ -538,6 +561,18 @@ static void GameMenuRender(Menu *menu, GameContext *context,
   case MenuState_LoreOfTheLands:
     assert(0);
   }
+}
+
+static int GameMenuMouse_AudioControls(Menu *menu, GameContext *context,
+                                       const Point *pt) {
+  // main menu
+  if (zoneClicked(pt, GAME_MENU_AUDIO_CONTROLS_X + 152,
+                  GAME_MENU_AUDIO_CONTROLS_Y + 76, 96, 15)) {
+    menu->state = MenuState_GameMenu;
+    return 1;
+  }
+
+  return 0;
 }
 
 static int GameMenuMouse_ExitGame(Menu *menu, GameContext *context,
@@ -635,10 +670,12 @@ static int GameMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
     return GameMenuMouse_ExitGame(menu, context, pt);
   case MenuState_LoadGame:
     return MenuMouse_LoadMenu(menu, context, pt);
+  case MenuState_AudioControls:
+    return GameMenuMouse_AudioControls(menu, context, pt);
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
-  case MenuState_AudioControls:
+
     return GameMenuMouse_UnimplementedMenu(menu, context, pt);
     break;
   case MenuState_StartNew:
