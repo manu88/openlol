@@ -6,7 +6,6 @@
 typedef struct {
   SDL_AudioDeviceID deviceID;
   SDL_AudioSpec audioSpec;
-  uint16_t volume;
 
   uint8_t soundVol; // 0-10
   uint8_t musicVol; // 0-10

@@ -8,13 +8,16 @@
 #include <stdio.h>
 #include <string.h>
 
+static inline uint16_t getAudioGain(uint8_t vol) {
+  return INT16_MAX * vol / 10;
+}
+
 int AudioSystemInit(AudioSystem *audioSystem) {
   memset(audioSystem, 0, sizeof(AudioSystem));
 
   audioSystem->musicVol = 6;
   audioSystem->soundVol = 6;
   audioSystem->voiceVol = 6;
-  audioSystem->volume = INT16_MAX;
   printf("init audio\n");
   SDL_AudioSpec desiredSpec = {0};
   desiredSpec.freq = 22222;
@@ -97,10 +100,10 @@ int AudioSystemQueueVoc(AudioSystem *audioSystem, const PAKFile *pak,
     printf("Block numSamples=%zu sampleRate=%i\n", numSamples, sampleRate);
     Sint16 *samples = malloc(numSamples * sizeof(Sint16));
 
+    int32_t vol = getAudioGain(audioSystem->soundVol);
     for (size_t i = 0; i < numSamples; i++) {
       samples[i] = (inSamples[i] - 0X80) << 8;
-      samples[i] = (int16_t)(((int32_t)audioSystem->volume) * (samples[i]) /
-                             (INT32_C(1) << 15));
+      samples[i] = (int16_t)(vol * (samples[i]) / (INT32_C(1) << 15));
     }
     printf("SDL_QueueAudio voc %s\n", vocName);
     SDL_QueueAudio(audioSystem->deviceID, samples, numSamples * sizeof(Sint16));
