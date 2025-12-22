@@ -428,6 +428,7 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
   if (gameCtx->state == GameState_GameMenu) {
+    createCursorForItem(gameCtx, 0);
     gameCtx->currentMenu = gameMenu;
   } else if (gameCtx->state == GameState_MainMenu) {
     gameCtx->currentMenu = mainMenu;
@@ -442,6 +443,10 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
     gameCtx->controlDisabled = 1;
   } else {
     gameCtx->controlDisabled = 0;
+  }
+  if (gameCtx->prevState == GameState_GameMenu &&
+      gameCtx->state == GameState_PlayGame) {
+    GameContextUpdateCursor(gameCtx);
   }
 }
 
