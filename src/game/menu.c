@@ -652,12 +652,12 @@ static void handleSlider(GameContext *context, int sliderID, uint16_t ptX) {
     break;
   case 1:
     AudioSystemSetSoundVolume(&context->audio, soundVal);
-    // FIXME: play random sound
-    int seq = 0;
-    AudioSystemPlaySequence(&context->audio, &context->currentTlkFile, &seq, 1);
     break;
   case 2:
     AudioSystemSetVoiceVolume(&context->audio, soundVal);
+    // FIXME: play random sound
+    int seq = 0;
+    AudioSystemPlaySequence(&context->audio, &context->currentTlkFile, &seq, 1);
     break;
   default:
     assert(0);
