@@ -24,9 +24,9 @@ void AudioQueueReset(AudioQueue *queue, size_t sequenceSize) {
 static inline uint16_t getAudioGain(uint8_t vol) {
   return INT16_MAX * vol / 10;
 }
-static void _audioCallbackQueue(AudioSystem *audioSystem, AudioQueue *queue,
-                                int16_t *samples, size_t numSamplesOut,
-                                int32_t vol) {
+
+static void _audioCallbackQueue(AudioQueue *queue, int16_t *samples,
+                                size_t numSamplesOut, int32_t vol) {
   if (queue->sequenceSize == 0) {
     return;
   }
@@ -56,7 +56,6 @@ static void _audioCallbackQueue(AudioSystem *audioSystem, AudioQueue *queue,
       queue->currentSample = 0;
     }
   } else {
-
     size_t numSamplesToCopy = remainingBlockSamples > numSamplesOut
                                   ? numSamplesOut
                                   : remainingBlockSamples;
@@ -78,10 +77,10 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
 
   memset(stream, 0, len);
 
-  _audioCallbackQueue(audioSystem, &audioSystem->soundQueue, samples,
-                      numSamplesOut, getAudioGain(audioSystem->soundVol));
-  _audioCallbackQueue(audioSystem, &audioSystem->voiceQueue, samples,
-                      numSamplesOut, getAudioGain(audioSystem->voiceVol));
+  _audioCallbackQueue(&audioSystem->soundQueue, samples, numSamplesOut,
+                      getAudioGain(audioSystem->soundVol));
+  _audioCallbackQueue(&audioSystem->voiceQueue, samples, numSamplesOut,
+                      getAudioGain(audioSystem->voiceVol));
 }
 
 int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
