@@ -437,7 +437,8 @@ static uint16_t getItemInHand(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] playSoundEffect\n");
+  uint16_t soundId = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_PlaySoundFX(interp, soundId);
   return 1;
 }
 

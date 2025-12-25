@@ -3,6 +3,7 @@
 #include "animator.h"
 #include "audio.h"
 #include "formats/format_cmz.h"
+#include "formats/format_config.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
 #include "formats/format_fnt.h"
@@ -297,3 +298,4 @@ void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
 void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
                                  uint16_t strId);
+void GameContextPlaySoundFX(GameContext *gameCtx,uint16_t soundId);
