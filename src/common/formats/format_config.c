@@ -28,6 +28,22 @@ char *substr(const char *s, int x, int y) {
 
   return ret;
 }
+
+int ConfigHandleAddValue(ConfigHandle *handle, const char *key,
+                         const char *val) {
+  if (ConfigHandleGetValue(handle, key) != NULL) {
+    return 0;
+  }
+  handle->numEntries++;
+  handle->entries =
+      realloc(handle->entries, sizeof(ConfigEntry) * handle->numEntries);
+  assert(handle->entries);
+  ConfigEntry *entry = handle->entries + handle->numEntries - 1;
+  entry->key = strdup(key);
+  entry->val = strdup(val);
+  return 1;
+}
+
 static int parseLineEntry(ConfigHandle *handle, const char *line) {
   const char *sep = strchr(line, '=');
   if (sep == NULL) {
@@ -47,6 +63,19 @@ static int parseLineEntry(ConfigHandle *handle, const char *line) {
   ConfigEntry *entry = handle->entries + handle->numEntries - 1;
   entry->key = key;
   entry->val = strdup(sep + 1);
+
+  return 1;
+}
+
+int ConfigHandleWriteFile(const ConfigHandle *handle, const char *filepath) {
+  FILE *fptr = fopen(filepath, "w");
+  if (fptr == NULL) {
+    return 0;
+  }
+  for (int i = 0; i < handle->numEntries; i++) {
+    fprintf(fptr, "%s=%s\n", handle->entries[i].key, handle->entries[i].val);
+  }
+  fclose(fptr);
 
   return 1;
 }
@@ -93,6 +122,15 @@ int ConfigHandleFromFile(ConfigHandle *handle, const char *filepath) {
     handle->numEntries = 0;
   }
   return !error;
+}
+
+float ConfigHandleGetValueFloat(const ConfigHandle *handle, const char *key,
+                                float defaultVal) {
+  const char *val = ConfigHandleGetValue(handle, key);
+  if (!val) {
+    return defaultVal;
+  }
+  return atof(val);
 }
 
 const char *ConfigHandleGetValue(const ConfigHandle *handle, const char *key) {

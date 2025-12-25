@@ -99,6 +99,7 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
 
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
+  GameConfigCreateDefault(&gameCtx->conf);
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
   gameCtx->shouldUpdate = 1;
@@ -180,7 +181,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
            SDL_GetError());
     return 0;
   }
-  AudioSystemInit(&gameCtx->audio);
+  AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
   gameCtx->window =
       SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
                        SDL_WINDOWPOS_UNDEFINED, PIX_BUF_WIDTH * SCREEN_FACTOR,

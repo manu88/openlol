@@ -1,6 +1,8 @@
 #pragma once
 #include "SDL_render.h"
 #include "animator.h"
+#include "audio.h"
+#include "config.h"
 #include "formats/format_cmz.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
@@ -235,6 +237,7 @@ typedef struct _GameContext {
 
   PAKFile currentTlkFile;
   int currentTlkFileIndex;
+  ConfigHandle conf;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
