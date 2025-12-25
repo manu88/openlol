@@ -56,8 +56,6 @@ int VOCBlockIsLast(const VOCBlock *block);
 const uint8_t *VOCBlockGetData(const VOCBlock *block);
 
 typedef struct {
-  uint8_t *data;
-  size_t dataSize;
 
   VOCHeader *header;
   const VOCBlock *firstBlock;
