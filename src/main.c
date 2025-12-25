@@ -2,6 +2,7 @@
 #include "bytes.h"
 #include "dbg/debugger.h"
 #include "formats/format_cmz.h"
+#include "formats/format_config.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
 #include "formats/format_fnt.h"
@@ -296,6 +297,34 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
+static void usageCONF(void) { printf("conf subcommands: info filepath\n"); }
+
+static int cmdCONFInfo(const char *filepath) {
+  ConfigHandle handle = {0};
+  if (!ConfigHandleFromFile(&handle, filepath)) {
+    return 1;
+  }
+
+  for (int i = 0; i < handle.numEntries; i++) {
+    printf("entry %i: '%s':'%s'\n", i, handle.entries[i].key,
+           handle.entries[i].val);
+  }
+  ConfigHandleRelease(&handle);
+  return 0;
+}
+
+static int cmdCONF(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageCONF();
+    return 1;
+  }
+  if (strcmp(argv[0], "info") == 0) {
+    return cmdCONFInfo(argv[1]);
+  }
+  usageCONF();
+  return 1;
+}
+
 static void usageVOC(void) {
   printf("voc subcommands: info|extract filepath [outfile]\n");
 }
@@ -441,8 +470,8 @@ static int cmdVOC(int argc, char *argv[]) {
 }
 
 static void usageSHP(void) {
-  printf(
-      "shp subcommands: [-c] info|extract  filepath index outfile [palette]\n");
+  printf("shp subcommands: [-c] info|extract  filepath index outfile "
+         "[palette]\n");
 }
 
 static int doSHPExtract(int index, const SHPHandle *handle,
@@ -1100,8 +1129,8 @@ static int cmdWSAInfo(const char *filepath) {
 }
 
 static void usageWSA(void) {
-  printf(
-      "wsa subcommands: info|extract file [framenum] [outfile] [cpspalette]\n");
+  printf("wsa subcommands: info|extract file [framenum] [outfile] "
+         "[cpspalette]\n");
 }
 
 static int cmdWSA(int argc, char *argv[]) {
@@ -1246,6 +1275,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdDbg(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "voc") == 0) {
     return cmdVOC(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "conf") == 0) {
+    return cmdCONF(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
