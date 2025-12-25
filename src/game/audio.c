@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "SDL_audio.h"
+#include "config.h"
 #include "formats/format_voc.h"
 #include "pak_file.h"
 #include <assert.h>
@@ -73,12 +74,15 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
   }
 }
 
-int AudioSystemInit(AudioSystem *audioSystem) {
+int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
   memset(audioSystem, 0, sizeof(AudioSystem));
 
-  audioSystem->musicVol = 6;
-  audioSystem->soundVol = 6;
-  audioSystem->voiceVol = 6;
+  audioSystem->musicVol =
+      (int)ConfigHandleGetValueFloat(conf, CONF_KEY_MUSIC_VOL, 6);
+  audioSystem->soundVol =
+      (int)ConfigHandleGetValueFloat(conf, CONF_KEY_SOUND_VOL, 6);
+  audioSystem->voiceVol =
+      (int)ConfigHandleGetValueFloat(conf, CONF_KEY_VOICE_VOL, 6);
   printf("init audio\n");
   SDL_AudioSpec desiredSpec = {0};
   desiredSpec.freq = 22222;

@@ -110,6 +110,8 @@ int cmdGame(int argc, char *argv[]) {
 
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
+
+  ConfigHandleWriteFile(&gameCtx.conf, "conf.txt");
   GameContextRelease(&gameCtx);
 
   printf("GameEnvironmentRelease\n");

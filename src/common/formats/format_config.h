@@ -19,6 +19,10 @@ typedef struct {
 int ConfigHandleFromFile(ConfigHandle *handle, const char *filepath);
 int ConfigHandleWriteFile(const ConfigHandle *handle, const char *filepath);
 void ConfigHandleRelease(ConfigHandle *handle);
-const char* ConfigHandleGetValue(const ConfigHandle *handle, const char* key);
-float ConfigHandleGetValueFloat(const ConfigHandle *handle, const char* key, float defaultVal);
-int ConfigHandleAddValue(ConfigHandle *handle, const char* key, const char* val);
+const char *ConfigHandleGetValue(const ConfigHandle *handle, const char *key);
+float ConfigHandleGetValueFloat(const ConfigHandle *handle, const char *key,
+                                float defaultVal);
+int ConfigHandleSetValue(ConfigHandle *handle, const char *key,
+                         const char *val);
+int ConfigHandleSetValueInt(ConfigHandle *handle, const char *key,
+                         int val);

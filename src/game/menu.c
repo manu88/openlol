@@ -1,6 +1,8 @@
 #include "menu.h"
 #include "SDL_keycode.h"
 #include "audio.h"
+#include "config.h"
+#include "formats/format_config.h"
 #include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
@@ -40,6 +42,16 @@ void MainMenuSetState(Menu *menu, MenuState state) {
     menu->files = NULL;
     menu->numSavFiles = 0;
   }
+}
+
+static void saveConfig(GameContext *context) {
+  printf("Save config\n");
+  ConfigHandleSetValueInt(&context->conf, CONF_KEY_SOUND_VOL,
+                          context->audio.soundVol);
+  ConfigHandleSetValueInt(&context->conf, CONF_KEY_VOICE_VOL,
+                          context->audio.voiceVol);
+  ConfigHandleSetValueInt(&context->conf, CONF_KEY_MUSIC_VOL,
+                          context->audio.musicVol);
 }
 
 static char textBuf[128] = "";
@@ -657,6 +669,7 @@ static int GameMenuMouse_AudioControls(Menu *menu, GameContext *context,
   // main menu
   if (zoneClicked(pt, GAME_MENU_AUDIO_CONTROLS_X + 152,
                   GAME_MENU_AUDIO_CONTROLS_Y + 76, 96, 15)) {
+    saveConfig(context);
     menu->state = MenuState_GameMenu;
     return 1;
   }
@@ -799,6 +812,17 @@ static int GameMenuMouse(Menu *menu, GameContext *context, const Point *pt) {
   return 0;
 }
 
+static int GameMenuKeyDown_AudioControls(Menu *menu, GameContext *context,
+                                         const SDL_Event *e) {
+  switch (e->key.keysym.sym) {
+  case SDLK_ESCAPE:
+    saveConfig(context);
+    menu->state = MenuState_GameMenu;
+    return 1;
+  }
+  return 0;
+}
+
 static int GameMenuKeyDown_UnimplementedMenu(Menu *menu, GameContext *context,
                                              const SDL_Event *e) {
   switch (e->key.keysym.sym) {
@@ -832,10 +856,11 @@ static int GameMenuKeyDown(Menu *menu, GameContext *context,
     return GameMenuKeyDown_MainMenu(menu, context, e);
   case MenuState_LoadGame:
     return MenuKeyDown_LoadMenu(menu, context, e);
+  case MenuState_AudioControls:
+    return GameMenuKeyDown_AudioControls(menu, context, e);
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
-  case MenuState_AudioControls:
   case MenuState_ExitGame:
     return GameMenuKeyDown_UnimplementedMenu(menu, context, e);
   // Those are part of the Main menu

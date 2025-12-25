@@ -29,19 +29,38 @@ char *substr(const char *s, int x, int y) {
   return ret;
 }
 
-int ConfigHandleAddValue(ConfigHandle *handle, const char *key,
-                         const char *val) {
-  if (ConfigHandleGetValue(handle, key) != NULL) {
-    return 0;
+static ConfigEntry *getEntry(const ConfigHandle *handle, const char *key) {
+  for (int i = 0; i < handle->numEntries; i++) {
+    if (strcmp(handle->entries[i].key, key) == 0) {
+      return handle->entries + i;
+    }
   }
+  return NULL;
+}
+
+int ConfigHandleSetValue(ConfigHandle *handle, const char *key,
+                         const char *val) {
+  ConfigEntry *entry = getEntry(handle, key);
+  if (entry) {
+    free((void *)entry->val);
+    entry->val = strdup(val);
+    return 1;
+  }
+
   handle->numEntries++;
   handle->entries =
       realloc(handle->entries, sizeof(ConfigEntry) * handle->numEntries);
   assert(handle->entries);
-  ConfigEntry *entry = handle->entries + handle->numEntries - 1;
+  entry = handle->entries + handle->numEntries - 1;
   entry->key = strdup(key);
   entry->val = strdup(val);
   return 1;
+}
+
+int ConfigHandleSetValueInt(ConfigHandle *handle, const char *key, int val) {
+  char str[10] = "";
+  snprintf(str, 10, "%i", val);
+  return ConfigHandleSetValue(handle, key, str);
 }
 
 static int parseLineEntry(ConfigHandle *handle, const char *line) {
@@ -51,7 +70,7 @@ static int parseLineEntry(ConfigHandle *handle, const char *line) {
   }
 
   const char *key = substr(line, 0, sep - line);
-  if (ConfigHandleGetValue(handle, key) != NULL) {
+  if (getEntry(handle, key) != NULL) {
     printf("duplicate key '%s'\n", key);
     free((void *)key);
     return 0;
@@ -134,12 +153,8 @@ float ConfigHandleGetValueFloat(const ConfigHandle *handle, const char *key,
 }
 
 const char *ConfigHandleGetValue(const ConfigHandle *handle, const char *key) {
-  for (int i = 0; i < handle->numEntries; i++) {
-    if (strcmp(handle->entries[i].key, key) == 0) {
-      return handle->entries[i].val;
-    }
-  }
-  return NULL;
+  ConfigEntry *entry = getEntry(handle, key);
+  return entry ? entry->val : NULL;
 }
 
 void ConfigHandleRelease(ConfigHandle *handle) {

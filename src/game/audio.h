@@ -1,5 +1,6 @@
 #pragma once
 #include "formats/format_voc.h"
+#include "formats/format_config.h"
 #include "pak_file.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>
@@ -30,7 +31,7 @@ typedef struct {
   AudioQueue voiceQueue;
 } AudioSystem;
 
-int AudioSystemInit(AudioSystem *audioSystem);
+int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle*conf);
 void AudioSystemRelease(AudioSystem *audioSystem);
 
 void AudioSystemSetSoundVolume(AudioSystem *audioSystem, int8_t vol);

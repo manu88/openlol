@@ -1,5 +1,6 @@
 
 #include "bytes.h"
+#include "config.h"
 #include "dbg/debugger.h"
 #include "formats/format_cmz.h"
 #include "formats/format_config.h"
@@ -297,8 +298,24 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageCONF(void) { printf("conf subcommands: info filepath\n"); }
+static void usageCONF(void) {
+  printf("conf subcommands: info|init filepath\n");
+}
 
+static int cmdCONFInit(const char *filepath) {
+  ConfigHandle handle = {0};
+  if (!GameConfigCreateDefault(&handle)) {
+    return 1;
+  }
+
+  for (int i = 0; i < handle.numEntries; i++) {
+    printf("entry %i: '%s':'%s'\n", i, handle.entries[i].key,
+           handle.entries[i].val);
+  }
+  int ret = ConfigHandleWriteFile(&handle, filepath);
+  ConfigHandleRelease(&handle);
+  return !ret;
+}
 static int cmdCONFInfo(const char *filepath) {
   ConfigHandle handle = {0};
   if (!ConfigHandleFromFile(&handle, filepath)) {
@@ -320,6 +337,8 @@ static int cmdCONF(int argc, char *argv[]) {
   }
   if (strcmp(argv[0], "info") == 0) {
     return cmdCONFInfo(argv[1]);
+  } else if (strcmp(argv[0], "init") == 0) {
+    return cmdCONFInit(argv[1]);
   }
   usageCONF();
   return 1;

@@ -99,7 +99,11 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
 
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
+  if (!ConfigHandleFromFile(&gameCtx->conf, "conf.txt")) {
+    printf("Create default config\n");
   GameConfigCreateDefault(&gameCtx->conf);
+  }
+
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
   gameCtx->shouldUpdate = 1;
