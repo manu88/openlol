@@ -19,6 +19,7 @@ typedef struct {
 } AudioQueue;
 
 void AudioQueueInit(AudioQueue *queue);
+void AudioQueueReset(AudioQueue *queue, size_t sequenceSize);
 
 typedef struct {
   SDL_AudioDeviceID deviceID;
@@ -29,6 +30,7 @@ typedef struct {
   uint8_t voiceVol; // 0-10
 
   AudioQueue voiceQueue;
+  AudioQueue soundQueue;
 } AudioSystem;
 
 int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle*conf);
@@ -42,3 +44,5 @@ void AudioSystemClear(AudioSystem *audioSystem);
 
 void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
                              int *sequence, size_t sequenceSize);
+void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
+                             const char* filename);

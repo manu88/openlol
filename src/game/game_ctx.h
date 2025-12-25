@@ -2,7 +2,6 @@
 #include "SDL_render.h"
 #include "animator.h"
 #include "audio.h"
-#include "config.h"
 #include "formats/format_cmz.h"
 #include "formats/format_cps.h"
 #include "formats/format_dat.h"
@@ -18,7 +17,6 @@
 #include "geometry.h"
 #include "menu.h"
 #include "pak_file.h"
-#include "audio.h"
 #include "script.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -237,6 +235,8 @@ typedef struct _GameContext {
 
   PAKFile currentTlkFile;
   int currentTlkFileIndex;
+  PAKFile sfxPak;
+
   ConfigHandle conf;
 } GameContext;
 

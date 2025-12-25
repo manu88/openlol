@@ -185,6 +185,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
            SDL_GetError());
     return 0;
   }
+  assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
   AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
   gameCtx->window =
       SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,

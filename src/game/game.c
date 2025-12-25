@@ -495,6 +495,7 @@ static int processPlayGameMouse(GameContext *gameCtx) {
   } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MAP_BUTTON_X,
                          UI_MAP_BUTTON_Y, UI_MAP_BUTTON_W, UI_MAP_BUTTON_H)) {
     GameContextSetState(gameCtx, GameState_ShowMap);
+    AudioSystemPlaySoundFX(&gameCtx->audio, &gameCtx->sfxPak, "TURNPAG2.VOC");
     return 1;
   } else {
     return processCharZonesMouse(gameCtx);

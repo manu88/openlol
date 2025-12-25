@@ -14,12 +14,22 @@ void AudioQueueInit(AudioQueue *queue) {
   queue->vocHandle.header = NULL;
 }
 
+void AudioQueueReset(AudioQueue *queue, size_t sequenceSize) {
+  queue->currentBlock = NULL;
+  queue->currentSample = 0;
+  queue->currentSequence = 0;
+  queue->sequenceSize = sequenceSize;
+}
+
 static inline uint16_t getAudioGain(uint8_t vol) {
   return INT16_MAX * vol / 10;
 }
 static void _audioCallbackQueue(AudioSystem *audioSystem, AudioQueue *queue,
-                                int16_t *samples, size_t numSamplesOut) {
-
+                                int16_t *samples, size_t numSamplesOut,
+                                int32_t vol) {
+  if (queue->sequenceSize == 0) {
+    return;
+  }
   if (queue->currentBlock == NULL) {
     queue->currentBlock = queue->sequence[queue->currentSequence].firstBlock;
   }
@@ -51,11 +61,10 @@ static void _audioCallbackQueue(AudioSystem *audioSystem, AudioQueue *queue,
                                   ? numSamplesOut
                                   : remainingBlockSamples;
     assert(numSamplesToCopy <= numSamplesOut);
-    int32_t vol = getAudioGain(audioSystem->soundVol);
     const int8_t *inSamples = ((int8_t *)data) + 2;
     for (size_t i = 0; i < numSamplesToCopy; i++) {
-      samples[i] = (inSamples[i + queue->currentSample] - 0X80) << 8;
-      samples[i] = (int16_t)(vol * (samples[i]) / (INT32_C(1) << 15));
+      int16_t v = (inSamples[i + queue->currentSample] - 0X80) << 8;
+      samples[i] += (int16_t)(vol * v / (INT32_C(1) << 15));
     }
     queue->currentSample += numSamplesToCopy;
   }
@@ -68,10 +77,11 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
   size_t numSamplesOut = len / 2;
 
   memset(stream, 0, len);
-  AudioQueue *queue = &audioSystem->voiceQueue;
-  if (queue->sequenceSize > 0) {
-    _audioCallbackQueue(audioSystem, queue, samples, numSamplesOut);
-  }
+
+  _audioCallbackQueue(audioSystem, &audioSystem->soundQueue, samples,
+                      numSamplesOut, getAudioGain(audioSystem->soundVol));
+  _audioCallbackQueue(audioSystem, &audioSystem->voiceQueue, samples,
+                      numSamplesOut, getAudioGain(audioSystem->voiceVol));
 }
 
 int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
@@ -105,6 +115,7 @@ int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
   SDL_PauseAudioDevice(audioSystem->deviceID, 0);
 
   AudioQueueInit(&audioSystem->voiceQueue);
+  AudioQueueInit(&audioSystem->soundQueue);
   return 1;
 }
 
@@ -139,11 +150,9 @@ void AudioSystemClear(AudioSystem *audioSystem) {
 
 void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
                              int *sequence, size_t sequenceSize) {
-  printf("file sequence: \n");
   SDL_LockAudioDevice(audioSystem->deviceID);
   for (int i = 0; i < sequenceSize; i++) {
     int entryIndex = sequence[i];
-    printf("%i: %i\n", i, entryIndex);
     const uint8_t *buffer = PakFileGetEntryData(pak, entryIndex);
     size_t bufferSize = PakFileGetEntrySize(pak, entryIndex);
 
@@ -154,9 +163,30 @@ void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
     }
   }
 
-  audioSystem->voiceQueue.currentBlock = NULL;
-  audioSystem->voiceQueue.currentSample = 0;
-  audioSystem->voiceQueue.currentSequence = 0;
-  audioSystem->voiceQueue.sequenceSize = sequenceSize;
+  AudioQueueReset(&audioSystem->voiceQueue, sequenceSize);
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+}
+
+void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
+                            const char *filename) {
+  int entryIndex = PakFileGetEntryIndex(pak, filename);
+  if (entryIndex == -1) {
+    printf("AudioSystemPlaySoundFX: no such sfx file '%s'\n", filename);
+    return;
+  }
+
+  SDL_LockAudioDevice(audioSystem->deviceID);
+
+  const uint8_t *buffer = PakFileGetEntryData(pak, entryIndex);
+  size_t bufferSize = PakFileGetEntrySize(pak, entryIndex);
+
+  if (VOCHandleFromBuffer(&audioSystem->soundQueue.sequence[0], buffer,
+                          bufferSize)) {
+
+    AudioQueueReset(&audioSystem->soundQueue, 1);
+  } else {
+    printf("VOCHandleFromBuffer error for file '%s'\n", filename);
+  }
+
   SDL_UnlockAudioDevice(audioSystem->deviceID);
 }
