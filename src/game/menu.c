@@ -47,11 +47,11 @@ void MainMenuSetState(Menu *menu, MenuState state) {
 static void saveConfig(GameContext *context) {
   printf("Save config\n");
   ConfigHandleSetValueInt(&context->conf, CONF_KEY_SOUND_VOL,
-                          context->audio.soundVol);
+                          AudioSystemGetSoundVolume(&context->audio));
   ConfigHandleSetValueInt(&context->conf, CONF_KEY_VOICE_VOL,
-                          context->audio.voiceVol);
+                          AudioSystemGetVoiceVolume(&context->audio));
   ConfigHandleSetValueInt(&context->conf, CONF_KEY_MUSIC_VOL,
-                          context->audio.musicVol);
+                          AudioSystemGetMusicVolume(&context->audio));
 }
 
 static char textBuf[128] = "";
@@ -557,17 +557,17 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
 
   int xOffset = 12;
   // music button
-  int musicVolVal = context->audio.musicVol * 10;
+  int musicVolVal = AudioSystemGetMusicVolume(&context->audio) * 10;
   drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + musicVolVal,
                GAME_MENU_AUDIO_CONTROLS_Y + 25, context->defaultPalette);
 
   // sound button
-  int soundVolVal = context->audio.soundVol * 10;
+  int soundVolVal = AudioSystemGetSoundVolume(&context->audio) * 10;
   drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + soundVolVal,
                GAME_MENU_AUDIO_CONTROLS_Y + 41, context->defaultPalette);
 
   // talking button
-  int talkVolVal = context->audio.voiceVol * 10;
+  int talkVolVal = AudioSystemGetVoiceVolume(&context->audio) * 10;
   drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + talkVolVal,
                GAME_MENU_AUDIO_CONTROLS_Y + 58, context->defaultPalette);
 
@@ -632,11 +632,11 @@ static void handleSlider(GameContext *context, int sliderID, uint16_t ptX) {
   const int sliderX = GAME_MENU_AUDIO_CONTROLS_X + 127;
   const int xOffset = 12;
 
-  uint8_t soundVal = context->audio.musicVol;
+  uint8_t soundVal = AudioSystemGetMusicVolume(&context->audio);
   if (sliderID == 1) {
-    soundVal = context->audio.soundVol;
+    soundVal = AudioSystemGetSoundVolume(&context->audio);
   } else if (sliderID == 2) {
-    soundVal = context->audio.voiceVol;
+    soundVal = AudioSystemGetVoiceVolume(&context->audio);
   }
   if (ptX - sliderX < 8) {
     soundVal -= 1;

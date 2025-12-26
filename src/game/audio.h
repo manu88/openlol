@@ -1,6 +1,6 @@
 #pragma once
-#include "formats/format_voc.h"
 #include "formats/format_config.h"
+#include "formats/format_voc.h"
 #include "pak_file.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>
@@ -25,24 +25,31 @@ typedef struct {
   SDL_AudioDeviceID deviceID;
   SDL_AudioSpec audioSpec;
 
-  uint8_t soundVol; // 0-10
-  uint8_t musicVol; // 0-10
-  uint8_t voiceVol; // 0-10
+  // don't access these directly, as they are shared with the audio callback!
+  // use getter/setters below.
+  uint8_t _soundVol; // 0-10
+  uint8_t _musicVol; // 0-10
+  uint8_t _voiceVol; // 0-10
 
   AudioQueue voiceQueue;
   AudioQueue soundQueue;
 } AudioSystem;
 
-int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle*conf);
+int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf);
 void AudioSystemRelease(AudioSystem *audioSystem);
 
 void AudioSystemSetSoundVolume(AudioSystem *audioSystem, int8_t vol);
+uint8_t AudioSystemGetSoundVolume(const AudioSystem *audioSystem);
+
 void AudioSystemSetMusicVolume(AudioSystem *audioSystem, int8_t vol);
+uint8_t AudioSystemGetMusicVolume(const AudioSystem *audioSystem);
+
 void AudioSystemSetVoiceVolume(AudioSystem *audioSystem, int8_t vol);
+uint8_t AudioSystemGetVoiceVolume(const AudioSystem *audioSystem);
 
 void AudioSystemClear(AudioSystem *audioSystem);
 
 void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
                              int *sequence, size_t sequenceSize);
 void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
-                             const char* filename);
+                            const char *filename);

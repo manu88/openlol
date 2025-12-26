@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "SDL_audio.h"
+#include "SDL_stdinc.h"
 #include "config.h"
 #include "formats/format_voc.h"
 #include "pak_file.h"
@@ -89,20 +90,22 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
   memset(stream, 0, len);
 
   _audioCallbackQueue(&audioSystem->soundQueue, samples, numSamplesOut,
-                      getAudioGain(audioSystem->soundVol));
+                      getAudioGain(audioSystem->_soundVol));
   _audioCallbackQueue(&audioSystem->voiceQueue, samples, numSamplesOut,
-                      getAudioGain(audioSystem->voiceVol));
+                      getAudioGain(audioSystem->_voiceVol));
 }
 
 int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
   memset(audioSystem, 0, sizeof(AudioSystem));
 
-  audioSystem->musicVol =
+  // audio thread not yet setup here, can access shared variables directly.
+  audioSystem->_musicVol =
       (int)ConfigHandleGetValueFloat(conf, CONF_KEY_MUSIC_VOL, 6);
-  audioSystem->soundVol =
+  audioSystem->_soundVol =
       (int)ConfigHandleGetValueFloat(conf, CONF_KEY_SOUND_VOL, 6);
-  audioSystem->voiceVol =
+  audioSystem->_voiceVol =
       (int)ConfigHandleGetValueFloat(conf, CONF_KEY_VOICE_VOL, 6);
+
   printf("init audio\n");
   SDL_AudioSpec desiredSpec = {0};
   desiredSpec.freq = 22222;
@@ -143,15 +146,42 @@ static inline uint8_t clampVol(int8_t vol) {
 }
 
 void AudioSystemSetSoundVolume(AudioSystem *audioSystem, int8_t vol) {
-  audioSystem->soundVol = clampVol(vol);
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  audioSystem->_soundVol = clampVol(vol);
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+}
+
+uint8_t AudioSystemGetSoundVolume(const AudioSystem *audioSystem) {
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  Uint8 val = audioSystem->_soundVol;
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+  return val;
 }
 
 void AudioSystemSetMusicVolume(AudioSystem *audioSystem, int8_t vol) {
-  audioSystem->musicVol = clampVol(vol);
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  audioSystem->_musicVol = clampVol(vol);
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+}
+
+uint8_t AudioSystemGetMusicVolume(const AudioSystem *audioSystem) {
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  uint8_t val = audioSystem->_musicVol;
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+  return val;
 }
 
 void AudioSystemSetVoiceVolume(AudioSystem *audioSystem, int8_t vol) {
-  audioSystem->voiceVol = clampVol(vol);
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  audioSystem->_voiceVol = clampVol(vol);
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+}
+
+uint8_t AudioSystemGetVoiceVolume(const AudioSystem *audioSystem) {
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  uint8_t val = audioSystem->_voiceVol;
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+  return val;
 }
 
 void AudioSystemClear(AudioSystem *audioSystem) {
