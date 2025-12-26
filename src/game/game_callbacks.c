@@ -559,6 +559,22 @@ static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
   return gameCtx->dialogState == DialogState_Done;
 }
 
+static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  for (int i = 0; i < 4; i++) {
+    if (!(gameCtx->chars[i].flags & 1) || gameCtx->chars[i].id >= 0)
+      continue;
+    int s = -gameCtx->chars[i].id;
+    int sfx = (s == 1)
+                  ? 136
+                  : ((s == 5) ? 50 : ((s == 8) ? 49 : ((s == 9) ? 48 : 0)));
+    if (sfx) {
+      GameContextPlaySoundFX(gameCtx, sfx);
+    }
+    break;
+  }
+}
+
 static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
                                                  uint16_t xMin, uint16_t yMin,
                                                  uint16_t xMax, uint16_t yMax) {
@@ -702,4 +718,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_CreditsTransaction =
       callbackCreditsTransaction;
   interp->callbacks.EMCInterpreterCallbacks_MoveMonster = callbackMoveMonster;
+  interp->callbacks.EMCInterpreterCallbacks_CharacterSurpriseSFX =
+      callbackCharacterSurpriseSFX;
 }

@@ -574,6 +574,11 @@ static uint16_t loadMonsterProperties(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t characterSurpriseSFX(EMCInterpreter *interp, EMCState *state) {
+  interp->callbacks.EMCInterpreterCallbacks_CharacterSurpriseSFX(interp);
+  return 1;
+}
+
 static uint16_t initAnimStruct(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
   uint16_t index = EMCStateStackVal(state, 1);
@@ -834,7 +839,7 @@ static ScriptFunDesc functions[] = {
     {playAnimationPart, "playAnimationPart"},
     {freeAnimStruct, "freeAnimStruct"},
     {getDirection, "getDirection"},
-    {NULL},
+    {characterSurpriseSFX, "characterSurpriseSound"},
     {NULL},
     {setSequenceButtons, "setSequenceButtons"},
 
