@@ -25,16 +25,8 @@ static inline uint16_t getAudioGain(uint8_t vol) {
   return INT16_MAX * vol / 10;
 }
 
-static void _audioCallbackQueue(AudioQueue *queue, int16_t *samples,
-                                size_t numSamplesOut, int32_t vol) {
-  if (queue->sequenceSize == 0) {
-    return;
-  }
-  if (queue->currentBlock == NULL) {
-    queue->currentBlock = queue->sequence[queue->currentSequence].firstBlock;
-  }
-  assert(queue->currentBlock);
-
+static size_t doCopyBlock(AudioQueue *queue, int16_t *samples,
+                          size_t numSamplesOut, int32_t vol) {
   const VOCSoundDataTyped *data =
       (const VOCSoundDataTyped *)VOCBlockGetData(queue->currentBlock);
   size_t numBLockSamples = VOCBlockGetSize(queue->currentBlock) - 2;
@@ -44,28 +36,47 @@ static void _audioCallbackQueue(AudioQueue *queue, int16_t *samples,
     if (VOCBlockIsLast(queue->currentBlock)) {
       if (queue->currentSequence == queue->sequenceSize - 1) {
         queue->sequenceSize = 0;
-        return;
+        return 0;
       } else {
         queue->currentSequence++;
         queue->currentSample = 0;
         queue->currentBlock = NULL;
+        return 0;
       }
-    } else {
+    } else { // not last block
       queue->currentBlock = VOCHandleGetNextBlock(
           &queue->sequence[queue->currentSequence], queue->currentBlock);
       queue->currentSample = 0;
     }
-  } else {
-    size_t numSamplesToCopy = remainingBlockSamples > numSamplesOut
-                                  ? numSamplesOut
-                                  : remainingBlockSamples;
-    assert(numSamplesToCopy <= numSamplesOut);
-    const int8_t *inSamples = ((int8_t *)data) + 2;
-    for (size_t i = 0; i < numSamplesToCopy; i++) {
-      int16_t v = (inSamples[i + queue->currentSample] - 0X80) << 8;
-      samples[i] += (int16_t)(vol * v / (INT32_C(1) << 15));
+  }
+  size_t numSamplesToCopy = remainingBlockSamples > numSamplesOut
+                                ? numSamplesOut
+                                : remainingBlockSamples;
+  assert(numSamplesToCopy <= numSamplesOut);
+  const int8_t *inSamples = ((int8_t *)data) + 2;
+  for (size_t i = 0; i < numSamplesToCopy; i++) {
+    int16_t v = (inSamples[i + queue->currentSample] - 0X80) << 8;
+    samples[i] += (int16_t)(vol * v / (INT32_C(1) << 15));
+  }
+  queue->currentSample += numSamplesToCopy;
+  return numSamplesToCopy;
+}
+
+static void _audioCallbackQueue(AudioQueue *queue, int16_t *samples,
+                                size_t numSamplesOut, int32_t vol) {
+  if (queue->sequenceSize == 0) {
+    return;
+  }
+  if (queue->currentBlock == NULL) {
+    queue->currentBlock = queue->sequence[queue->currentSequence].firstBlock;
+  }
+  assert(queue->currentBlock);
+  size_t ret = 0;
+  while (1) {
+    ret = doCopyBlock(queue, samples, numSamplesOut, vol);
+    if (ret == numSamplesOut || queue->currentBlock == NULL) {
+      break;
     }
-    queue->currentSample += numSamplesToCopy;
   }
 }
 
