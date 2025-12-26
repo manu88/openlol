@@ -39,6 +39,13 @@ static uint16_t triggerDoorSwitch(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t setDoorState(EMCInterpreter *interp, EMCState *state) {
+  uint16_t block = EMCStateStackVal(state, 0);
+  uint16_t doorState = EMCStateStackVal(state, 1);
+  printf("setDoorState %X %X\n", block, doorState);
+  return 1;
+}
+
 static uint16_t delay(EMCInterpreter *interp, EMCState *state) {
   uint16_t delayTicks = EMCStateStackVal(state, 0);
   printf("delay for %i\n", delayTicks);
@@ -854,7 +861,7 @@ static ScriptFunDesc functions[] = {
     {setGlobalVar, "setGlobalVar"},
     {triggerDoorSwitch, "triggerDoorSwitch"},
     {NULL},
-    {NULL},
+    {setDoorState, "setDoorState"},
     {NULL},
     {assignLevelDecorationShape, "assignLevelDecorationShape"},
     {resetBlockShapeAssignment, "resetBlockShapeAssignment"},
