@@ -689,8 +689,8 @@ static uint16_t restorePage5(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
-  printf("moveParty\n");
-  ASSERT_UNIMPLEMENTED;
+  uint16_t how = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_MoveParty(interp, how);
   return 1;
 }
 

@@ -249,6 +249,36 @@ static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
                              f.buffer, f.bufferSize));
 }
 
+static void callbackMoveParty(EMCInterpreter *interp, uint16_t how) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  if (how > 5 && how < 10) {
+    how = (how - 6 - gameCtx->orientation) & 3;
+  }
+  switch (how) {
+  case 0: // front
+    GameContextButtonClicked(gameCtx, ButtonType_Up);
+    break;
+  case 1: // right
+    GameContextButtonClicked(gameCtx, ButtonType_Right);
+    break;
+  case 2: // back
+    GameContextButtonClicked(gameCtx, ButtonType_Down);
+    break;
+  case 3: // left
+    GameContextButtonClicked(gameCtx, ButtonType_Left);
+    break;
+  case 4: // rotate left
+    GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
+    break;
+  case 5: // rotate right
+    GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
+    break;
+  default:
+    printf("callbackMoveParty unhandled how=%i\n", how);
+    assert(0);
+  }
+}
+
 static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
                                 uint16_t destBlock, uint16_t xOff,
                                 uint16_t yOff, uint16_t destDir) {
@@ -720,4 +750,5 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_MoveMonster = callbackMoveMonster;
   interp->callbacks.EMCInterpreterCallbacks_CharacterSurpriseSFX =
       callbackCharacterSurpriseSFX;
+  interp->callbacks.EMCInterpreterCallbacks_MoveParty = callbackMoveParty;
 }

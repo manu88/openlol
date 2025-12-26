@@ -305,7 +305,8 @@ typedef struct _EMCInterpreterCallbacks {
                                               uint16_t soundId);
 
   void (*EMCInterpreterCallbacks_CharacterSurpriseSFX)(EMCInterpreter *interp);
-
+  void (*EMCInterpreterCallbacks_MoveParty)(EMCInterpreter *interp,
+                                            uint16_t how);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {
