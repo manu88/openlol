@@ -129,7 +129,7 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     printf("\t TIM_OPCODE_PLAY_MUSIC_TRACK %i params\n", numParams);
     break;
   case TIM_OPCODE_PLAY_SOUND_FX:
-    printf("\t TIM_OPCODE_PLAY_SOUND_FX %i params\n", numParams);
+    interp->callbacks.TIMInterpreterCallbacks_PlaySoundFX(interp, params[0]);
     break;
   case TIM_OPCODE_COPY_REGION:
     interp->callbacks.TIMInterpreterCallbacks_CopyPage(

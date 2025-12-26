@@ -109,6 +109,11 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
   }
 }
 
+static void callbackTIM_PlaySoundFX(TIMInterpreter *interp, uint16_t soundId) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextPlaySoundFX(gameCtx, soundId);
+}
+
 static void callbackTIM_CopyPage(TIMInterpreter *interp, uint16_t srcX,
                                  uint16_t srcY, uint16_t destX, uint16_t destY,
                                  uint16_t w, uint16_t h, uint16_t srcPage,
@@ -162,6 +167,8 @@ void GameTimInterpreterInit(GameTimInterpreter *timInterpreter,
       callbackTIM_CharChat;
   timInterpreter->timInterpreter.callbacks.TIMInterpreterCallbacks_CopyPage =
       callbackTIM_CopyPage;
+  timInterpreter->timInterpreter.callbacks.TIMInterpreterCallbacks_PlaySoundFX =
+      callbackTIM_PlaySoundFX;
 }
 
 void GameTimInterpreterRelease(GameTimInterpreter *animator) {
