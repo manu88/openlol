@@ -299,3 +299,14 @@ void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
                                  uint16_t strId);
 void GameContextPlaySoundFX(GameContext *gameCtx,uint16_t soundId);
+
+typedef enum{
+  ButtonType_Up,
+  ButtonType_Down,
+  ButtonType_Left,
+  ButtonType_Right,
+  ButtonType_TurnLeft,
+  ButtonType_TurnRight,
+}ButtonType;
+
+void GameContextButtonClicked(GameContext *gameCtx, ButtonType button);

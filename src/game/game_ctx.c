@@ -9,6 +9,7 @@
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
+#include "game.h"
 #include "game_envir.h"
 #include "game_render.h"
 #include "game_tim_animator.h"
@@ -797,4 +798,27 @@ void GameContextPlaySoundFX(GameContext *gameCtx, uint16_t soundId) {
   char fullName[16] = "";
   snprintf(fullName, 16, "%s.VOC", name);
   AudioSystemPlaySoundFX(&gameCtx->audio, &gameCtx->sfxPak, fullName);
+}
+
+void GameContextButtonClicked(GameContext *gameCtx, ButtonType button) {
+  switch (button) {
+  case ButtonType_Up:
+    tryMove(gameCtx, Front);
+    break;
+  case ButtonType_Down:
+    tryMove(gameCtx, Back);
+    break;
+  case ButtonType_Left:
+    tryMove(gameCtx, Left);
+    break;
+  case ButtonType_Right:
+    tryMove(gameCtx, Right);
+    break;
+  case ButtonType_TurnLeft:
+    gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
+    break;
+  case ButtonType_TurnRight:
+    gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
+    break;
+  }
 }

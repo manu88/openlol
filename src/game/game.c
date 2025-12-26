@@ -355,7 +355,7 @@ static int processCharInventoryMouse(GameContext *gameCtx) {
   return 0;
 }
 
-static int tryMove(GameContext *gameCtx, Direction dir) {
+int tryMove(GameContext *gameCtx, Direction dir) {
   Orientation orientation = 0;
   switch (dir) {
   case Front:
@@ -455,19 +455,19 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     if (buttonX <= 2 && buttonY <= 1) {
       if (buttonY == 0) {
         if (buttonX == 0) {
-          gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
+          GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
         } else if (buttonX == 1) {
-          tryMove(gameCtx, Front);
+          GameContextButtonClicked(gameCtx, ButtonType_Up);
         } else if (buttonX == 2) {
-          gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
+          GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
         }
       } else if (buttonY == 1) {
         if (buttonX == 0) {
-          tryMove(gameCtx, Left);
+          GameContextButtonClicked(gameCtx, ButtonType_Left);
         } else if (buttonX == 1) {
-          tryMove(gameCtx, Back);
+          GameContextButtonClicked(gameCtx, ButtonType_Down);
         } else if (buttonX == 2) {
-          tryMove(gameCtx, Right);
+          GameContextButtonClicked(gameCtx, ButtonType_Right);
         }
       }
       return 1;
@@ -566,32 +566,32 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     case SDLK_z:
       // go front
       gameCtx->shouldUpdate = 1;
-      tryMove(gameCtx, Front);
+      GameContextButtonClicked(gameCtx, ButtonType_Up);
       break;
     case SDLK_s:
       // go back
       gameCtx->shouldUpdate = 1;
-      tryMove(gameCtx, Back);
+      GameContextButtonClicked(gameCtx, ButtonType_Down);
       break;
     case SDLK_q:
       // go left
       gameCtx->shouldUpdate = 1;
-      tryMove(gameCtx, Left);
+      GameContextButtonClicked(gameCtx, ButtonType_Left);
       break;
     case SDLK_d:
       // go right
       gameCtx->shouldUpdate = 1;
-      tryMove(gameCtx, Right);
+      GameContextButtonClicked(gameCtx, ButtonType_Right);
       break;
     case SDLK_a:
       // turn anti-clockwise
       gameCtx->shouldUpdate = 1;
-      gameCtx->orientation = OrientationTurnLeft(gameCtx->orientation);
+      GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
       break;
     case SDLK_e:
       // turn clockwise
       gameCtx->shouldUpdate = 1;
-      gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
+      GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     case SDLK_p:
       inspectFrontWall(gameCtx);

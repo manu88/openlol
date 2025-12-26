@@ -9,3 +9,4 @@
 
 void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);
+int tryMove(GameContext *gameCtx, Direction dir);
