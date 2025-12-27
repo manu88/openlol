@@ -346,7 +346,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_MINUS);
       } else {
-        StackPush(script, val1 - val2);
+        StackPush(script, val2 - val1);
       }
       return;
 
@@ -366,7 +366,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_DIVIDE);
       } else {
-        StackPush(script, val1 / val2);
+        StackPush(script, val2 / val1);
       }
       return;
 
@@ -376,7 +376,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_RIGHT_SHIFT);
       } else {
-        StackPush(script, val1 >> val2);
+        StackPush(script, val2 >> val1);
       }
       return;
 
@@ -386,7 +386,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         EMCDisassemblerEmitLine(interp->disassembler, instOffset,
                                 MNEMONIC_LEFT_SHIFT);
       } else {
-        StackPush(script, val1 << val2);
+        StackPush(script, val2 << val1);
       }
       return;
 
