@@ -569,7 +569,7 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
   if (!SAVHandleFromBuffer(&savHandle, buffer, readSize)) {
     return 0;
   }
-
+  gameCtx->state = GameState_PlayGame;
   gameCtx->levelId = savHandle.slot.currentLevel;
   memcpy(gameCtx->itemsInGame, savHandle.slot.gameObjects,
          sizeof(GameObject) * MAX_IN_GAME_ITEMS);
