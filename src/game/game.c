@@ -95,6 +95,7 @@ int cmdGame(int argc, char *argv[]) {
   GameContextStartup(&gameCtx);
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
+  gameCtx.level->currentTlkFileIndex = -1;
 
   if (savFileOrDir && pathIsFile(savFileOrDir)) {
     printf("Loading sav file '%s'\n", savFileOrDir);

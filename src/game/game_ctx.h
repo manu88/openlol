@@ -108,6 +108,9 @@ typedef struct {
   MonsterProperties monsterProperties[MAX_MONSTER_PROPERTIES];
   Monster monsters[MAX_MONSTERS];
 
+  PAKFile currentTlkFile;
+  int currentTlkFileIndex;
+
 } LevelContext;
 
 typedef enum {
@@ -234,8 +237,6 @@ typedef struct _GameContext {
 
   char *savDir;
 
-  PAKFile currentTlkFile;
-  int currentTlkFileIndex;
   PAKFile sfxPak;
 
   ConfigHandle conf;
@@ -297,16 +298,16 @@ void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
 
 void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
-                                 uint16_t strId);
-void GameContextPlaySoundFX(GameContext *gameCtx,uint16_t soundId);
+                                 uint16_t soundID);
+void GameContextPlaySoundFX(GameContext *gameCtx, uint16_t soundId);
 
-typedef enum{
+typedef enum {
   ButtonType_Up,
   ButtonType_Down,
   ButtonType_Left,
   ButtonType_Right,
   ButtonType_TurnLeft,
   ButtonType_TurnRight,
-}ButtonType;
+} ButtonType;
 
 void GameContextButtonClicked(GameContext *gameCtx, ButtonType button);

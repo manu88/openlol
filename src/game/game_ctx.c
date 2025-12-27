@@ -109,7 +109,6 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
   gameCtx->shouldUpdate = 1;
-  gameCtx->currentTlkFileIndex = -1;
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));
@@ -375,7 +374,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     printf("<-DONE INI SCRIPT\n");
   }
 
-  if (levelNum != ctx->currentTlkFileIndex) {
+  if (levelNum != ctx->level->currentTlkFileIndex) {
     GameContextLoadTLKFile(ctx, levelNum);
   }
 
@@ -622,46 +621,51 @@ void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
 
 void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex) {
   printf("Load TLK File index %i\n", levelIndex);
-  if (gameCtx->currentTlkFileIndex != -1) {
-    PAKFileRelease(&gameCtx->currentTlkFile);
+  if (gameCtx->level->currentTlkFileIndex != -1) {
+    PAKFileRelease(&gameCtx->level->currentTlkFile);
   }
-  PAKFileInit(&gameCtx->currentTlkFile);
+  PAKFileInit(&gameCtx->level->currentTlkFile);
 
   static char tlkFilePath[7] = "";
   snprintf(tlkFilePath, 7, "%02d.TLK", levelIndex);
   printf("load TLK file '%s'\n", tlkFilePath);
-  GameEnvironmentLoadPak(&gameCtx->currentTlkFile, tlkFilePath);
-  gameCtx->currentTlkFileIndex = levelIndex;
+  GameEnvironmentLoadPak(&gameCtx->level->currentTlkFile, tlkFilePath);
+  gameCtx->level->currentTlkFileIndex = levelIndex;
 }
 
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
-                                 uint16_t strId) {
-  printf("GameContextPlayDialogSpeech charId=%X strId=%X\n", charId, strId);
-
-  if (charId < 65) {
-    if (gameCtx->chars[charId].flags & 1) {
-      charId = (int16_t)gameCtx->chars[charId].name[0];
-    } else {
+                                 uint16_t soundId) {
+  printf("GameContextPlayDialogSpeech charId=%X strId=%X\n", charId, soundId);
+  // FIXME not sure this is the original algorithm to choose a speaker.
+  uint8_t numChars = GameContextGetNumChars(gameCtx);
+  if (charId > numChars) {
       charId = 0;
     }
-  }
+
+  charId = (int16_t)gameCtx->chars[charId].name[0];
 
   char pattern2[8] = "";
   snprintf(pattern2, 8, "%02d",
-           strId & 0x4000 ? 0 : gameCtx->currentTlkFileIndex);
-
-  char pattern1[8] = "";
-  char file3[8] = "";
-  if (strId & 0x4000) {
-    snprintf(pattern1, 8, "%03X", strId & 0x3FFF);
-  } else if (strId < 1000) {
-    snprintf(pattern1, 8, "%03d", strId);
-  } else {
-    snprintf(file3, 8, "@%04d%c.%s", strId - 1000, (char)charId, pattern2);
-  }
+           soundId & 0x4000 ? 0 : gameCtx->level->currentTlkFileIndex);
 
   int fileSequence[MAX_VOC_SEQ_ENTRIES] = {0};
   int fileSequenceIndex = 0;
+
+  char pattern1[8] = "";
+  char file3[8] = "";
+  if (soundId & 0x4000) {
+    snprintf(pattern1, 8, "%03X", soundId & 0x3FFF);
+  } else if (soundId < 1000) {
+    snprintf(pattern1, 8, "%03d", soundId);
+  } else {
+    snprintf(file3, 8, "@%04d%c.%s", soundId - 1000, (char)charId, pattern2);
+    int file3index =
+        PakFileGetEntryIndex(&gameCtx->level->currentTlkFile, file3);
+    if (file3index != -1) {
+      fileSequence[fileSequenceIndex++] = file3index;
+    }
+  }
+
   // printf("file3='%s'\n", file3);
 
   char file1[9] = "";
@@ -673,8 +677,10 @@ void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
       snprintf(file2, 9, "%s%c%c.%s", pattern1, '_', symbol, pattern2);
 
       // printf("file1='%s' file2='%s'\n", file1, file2);
-      int file1index = PakFileGetEntryIndex(&gameCtx->currentTlkFile, file1);
-      int file2index = PakFileGetEntryIndex(&gameCtx->currentTlkFile, file2);
+      int file1index =
+          PakFileGetEntryIndex(&gameCtx->level->currentTlkFile, file1);
+      int file2index =
+          PakFileGetEntryIndex(&gameCtx->level->currentTlkFile, file2);
       if (file1index != -1) {
         printf("found file1='%s'\n", file1);
         fileSequence[fileSequenceIndex++] = file1index;
@@ -686,8 +692,12 @@ void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
       }
     }
     if (fileSequenceIndex > 0) {
-      AudioSystemPlaySequence(&gameCtx->audio, &gameCtx->currentTlkFile,
+      AudioSystemPlaySequence(&gameCtx->audio, &gameCtx->level->currentTlkFile,
                               fileSequence, fileSequenceIndex);
+    } else {
+      printf("GameContextPlayDialogSpeech: No file found for charid='%c' "
+             "file3='%s' file1='%s' file2='%s'\n",
+             charId, file3, file2, file1);
     }
   }
 }
