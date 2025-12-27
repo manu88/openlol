@@ -42,6 +42,7 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
   assert(ctx);
   Log(LOG_PREFIX, "callbackPrintMessage %x %x %x", type, strId, soundId);
   GameRenderSetDialogF(ctx, strId);
+  GameContextPlayDialogSpeech(ctx, 1, soundId);
 }
 
 static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
@@ -589,6 +590,11 @@ static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
   return gameCtx->dialogState == DialogState_Done;
 }
 
+static void callbackPlaySoundFX(EMCInterpreter *interp, uint16_t soundId) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextPlaySoundFX(gameCtx, soundId);
+}
+
 static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   for (int i = 0; i < 4; i++) {
@@ -748,6 +754,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_CreditsTransaction =
       callbackCreditsTransaction;
   interp->callbacks.EMCInterpreterCallbacks_MoveMonster = callbackMoveMonster;
+  interp->callbacks.EMCInterpreterCallbacks_PlaySoundFX = callbackPlaySoundFX;
   interp->callbacks.EMCInterpreterCallbacks_CharacterSurpriseSFX =
       callbackCharacterSurpriseSFX;
   interp->callbacks.EMCInterpreterCallbacks_MoveParty = callbackMoveParty;

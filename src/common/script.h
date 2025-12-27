@@ -161,6 +161,8 @@ typedef struct _EMCInterpreterCallbacks {
                                                    EMCGlobalVarID id,
                                                    uint16_t a);
   uint16_t (*EMCInterpreterCallbacks_GetDirection)(EMCInterpreter *interp);
+
+  // charId = 1 means selected char
   void (*EMCInterpreterCallbacks_PlayDialogue)(EMCInterpreter *interp,
                                                int16_t charId, int16_t mode,
                                                uint16_t strId);
