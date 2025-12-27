@@ -1,8 +1,8 @@
 #include "game_render.h"
 #include "SDL_pixels.h"
 #include "SDL_render.h"
+#include "automap_render.h"
 #include "formats/format_cps.h"
-#include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game_char_inventory.h"
@@ -71,23 +71,6 @@ static void renderGameMenu(GameContext *gameCtx) {
 static void renderMainMenu(GameContext *gameCtx) {
   MenuRender(gameCtx->currentMenu, gameCtx, &gameCtx->defaultFont,
              gameCtx->pixBuf);
-}
-
-static void renderMap(GameContext *gameCtx) {
-  UISetDefaultStyle();
-  renderCPS(gameCtx->pixBuf, gameCtx->mapBackground.data,
-            gameCtx->mapBackground.imageSize, gameCtx->mapBackground.palette,
-            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-
-  char c[20] = "";
-  GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf,
-               MAP_SCREEN_EXIT_BUTTON_X + 2, MAP_SCREEN_BUTTONS_Y + 4, 50, c);
-
-  GameContextGetLevelName(gameCtx, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, MAP_SCREEN_NAME_X,
-               MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y, c);
-  printf("%i\n", gameCtx->levelId);
 }
 
 static void renderPlayField(GameContext *gameCtx) {
@@ -310,7 +293,7 @@ void GameRender(GameContext *gameCtx) {
     return;
   }
   if (gameCtx->state == GameState_ShowMap) {
-    renderMap(gameCtx);
+    AutomapRender(gameCtx);
     return;
   }
   renderPlayField(gameCtx);
