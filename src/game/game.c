@@ -560,6 +560,41 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     case SDLK_TAB:
       GameContextSetState(gameCtx, GameState_PlayGame);
       gameCtx->shouldUpdate = 1;
+      return;
+    }
+    if (!gameCtx->conf.moveInAutomap) {
+      return;
+    }
+    switch (e->key.keysym.sym) {
+    case SDLK_z:
+      // go front
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_Up);
+      break;
+    case SDLK_s:
+      // go back
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_Down);
+      break;
+    case SDLK_q:
+      // go left
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_Left);
+      break;
+    case SDLK_d:
+      // go right
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_Right);
+      break;
+    case SDLK_a:
+      // turn anti-clockwise
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
+      break;
+    case SDLK_e:
+      // turn clockwise
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     }
   } else if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
