@@ -106,6 +106,9 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   GameConfigCreateDefault(&gameCtx->conf);
   }
 
+  float fps = ConfigHandleGetValueFloat(&gameCtx->conf, CONF_KEY_FPS, 50);
+  gameCtx->tickLength = 1000 / fps;
+  printf("settings tick len to %i, fps=%f\n", gameCtx->tickLength, fps);
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
   gameCtx->shouldUpdate = 1;

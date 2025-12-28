@@ -117,7 +117,7 @@ typedef struct {
   PAKFile currentTlkFile;
   int currentTlkFileIndex;
 
-  BlockProperty blockProperties[1024];
+  BlockProperty blockProperties[MAZE_NUM_CELL];
 
 } LevelContext;
 
@@ -248,6 +248,7 @@ typedef struct _GameContext {
   PAKFile sfxPak;
 
   ConfigHandle conf;
+  int tickLength;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

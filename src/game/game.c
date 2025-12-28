@@ -635,7 +635,7 @@ static void GameRunOnce(GameContext *gameCtx) {
   GamePreUpdate(gameCtx);
 
   SDL_Event e;
-  SDL_WaitEventTimeout(&e, 20);
+  SDL_WaitEventTimeout(&e, gameCtx->tickLength);
   if (e.type == SDL_QUIT) {
     gameCtx->_shouldRun = 0;
   }
