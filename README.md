@@ -34,3 +34,8 @@ Most of the game logic and rendering code is setup, but there's still a lot to c
 ## Notes
 
 Looks like some palette are embedded in the bin and not shipped in the pak files. ([see forum](https://www.dungeon-master.com/forum/viewtopic.php?t=23792)). Currently the default palette is taken from `GERIM.CPS` in O01A.PAK.
+
+## keybindings
+
+Use `q`, `w`, `e`, `a`, `s`, `d` to move around, `tab` to display the automap - or just use the UI.
+ 
