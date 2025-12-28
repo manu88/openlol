@@ -373,7 +373,7 @@ int tryMove(GameContext *gameCtx, Direction dir) {
     break;
   }
   uint16_t newBlock = BlockCalcNewPosition(gameCtx->currentBock, orientation);
-  if (gameCtx->_noClip) {
+  if (gameCtx->conf.noClip) {
     gameCtx->currentBock = newBlock;
     return 1;
   }

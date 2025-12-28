@@ -19,7 +19,8 @@ int GameConfigFromFile(GameConfig *config, const char *filepath) {
       ConfigHandleGetValueFloat(&h, CONF_KEY_SOUND_VOL, config->soundVol);
   config->moveInAutomap = ConfigHandleGetValueFloat(&h, CONF_KEY_AUTOMAP_MOVE,
                                                     config->moveInAutomap);
-
+  config->noClip =
+      ConfigHandleGetValueFloat(&h, CONF_KEY_NO_CLIP, config->noClip);
   ConfigHandleRelease(&h);
   return 1;
 }
@@ -38,6 +39,9 @@ int GameConfigWriteFile(const GameConfig *config, const char *filepath) {
   ConfigHandleSetValueInt(&h, CONF_KEY_SOUND_VOL, config->soundVol);
   if (config->moveInAutomap) {
     ConfigHandleSetValueInt(&h, CONF_KEY_AUTOMAP_MOVE, 1);
+  }
+  if (config->noClip) {
+    ConfigHandleSetValueInt(&h, CONF_KEY_NO_CLIP, 1);
   }
   int ret = ConfigHandleWriteFile(&h, filepath);
   ConfigHandleRelease(&h);

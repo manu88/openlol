@@ -6,6 +6,7 @@
 #define CONF_KEY_VOICE_VOL "voiceVol"
 #define CONF_KEY_TICK_DURATION "tickDuration"
 #define CONF_KEY_AUTOMAP_MOVE "moveInAutomap"
+#define CONF_KEY_NO_CLIP "noClip"
 
 typedef struct {
   uint8_t soundVol;
@@ -14,6 +15,7 @@ typedef struct {
   int tickLength;
 
   int moveInAutomap; // default 0
+  int noClip;
 } GameConfig;
 
 int GameConfigFromFile(GameConfig *config, const char *filepath);

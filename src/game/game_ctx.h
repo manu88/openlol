@@ -240,8 +240,6 @@ typedef struct _GameContext {
 
   DialogState dialogState;
 
-  int _noClip;
-
   Menu *currentMenu;
   int shouldUpdate;
 
