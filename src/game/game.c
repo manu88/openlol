@@ -112,7 +112,7 @@ int cmdGame(int argc, char *argv[]) {
   GameRun(&gameCtx);
   LevelContextRelease(&levelCtx);
 
-  ConfigHandleWriteFile(&gameCtx.conf, "conf.txt");
+  GameConfigWriteFile(&gameCtx.conf, "conf.txt");
   GameContextRelease(&gameCtx);
 
   printf("GameEnvironmentRelease\n");
@@ -639,7 +639,7 @@ static void GameRunOnce(GameContext *gameCtx) {
   GamePreUpdate(gameCtx);
 
   SDL_Event e;
-  SDL_WaitEventTimeout(&e, gameCtx->tickLength);
+  SDL_WaitEventTimeout(&e, gameCtx->conf.tickLength);
   if (e.type == SDL_QUIT) {
     gameCtx->_shouldRun = 0;
   }

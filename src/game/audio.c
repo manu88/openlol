@@ -10,6 +10,15 @@
 #include <stdio.h>
 #include <string.h>
 
+static inline uint8_t clampVol(int8_t vol) {
+  if (vol > 10) {
+    return 10;
+  } else if (vol < 0) {
+    return 0;
+  }
+  return vol;
+}
+
 void AudioQueueInit(AudioQueue *queue) {
   memset(queue, 0, sizeof(AudioQueue));
   queue->vocHandle.header = NULL;
@@ -95,16 +104,13 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
                       getAudioGain(audioSystem->_voiceVol));
 }
 
-int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
+int AudioSystemInit(AudioSystem *audioSystem, const GameConfig *conf) {
   memset(audioSystem, 0, sizeof(AudioSystem));
 
   // audio thread not yet setup here, can access shared variables directly.
-  audioSystem->_musicVol =
-      (int)ConfigHandleGetValueFloat(conf, CONF_KEY_MUSIC_VOL, 6);
-  audioSystem->_soundVol =
-      (int)ConfigHandleGetValueFloat(conf, CONF_KEY_SOUND_VOL, 6);
-  audioSystem->_voiceVol =
-      (int)ConfigHandleGetValueFloat(conf, CONF_KEY_VOICE_VOL, 6);
+  audioSystem->_musicVol = clampVol(conf->musicVol);
+  audioSystem->_soundVol = clampVol(conf->soundVol);
+  audioSystem->_voiceVol = clampVol(conf->voiceVol);
 
   printf("init audio\n");
   SDL_AudioSpec desiredSpec = {0};
@@ -134,15 +140,6 @@ int AudioSystemInit(AudioSystem *audioSystem, const ConfigHandle *conf) {
 
 void AudioSystemRelease(AudioSystem *audioSystem) {
   SDL_CloseAudioDevice(audioSystem->deviceID);
-}
-
-static inline uint8_t clampVol(int8_t vol) {
-  if (vol > 10) {
-    return 10;
-  } else if (vol < 0) {
-    return 0;
-  }
-  return vol;
 }
 
 void AudioSystemSetSoundVolume(AudioSystem *audioSystem, int8_t vol) {

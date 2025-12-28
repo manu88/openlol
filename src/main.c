@@ -304,7 +304,8 @@ static void usageCONF(void) {
 
 static int cmdCONFInit(const char *filepath) {
   ConfigHandle handle = {0};
-  if (!GameConfigCreateDefault(&handle)) {
+  GameConfig conf;
+  if (!GameConfigCreateDefault(&conf)) {
     return 1;
   }
 

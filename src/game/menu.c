@@ -46,12 +46,9 @@ void MainMenuSetState(Menu *menu, MenuState state) {
 
 static void saveConfig(GameContext *context) {
   printf("Save config\n");
-  ConfigHandleSetValueInt(&context->conf, CONF_KEY_SOUND_VOL,
-                          AudioSystemGetSoundVolume(&context->audio));
-  ConfigHandleSetValueInt(&context->conf, CONF_KEY_VOICE_VOL,
-                          AudioSystemGetVoiceVolume(&context->audio));
-  ConfigHandleSetValueInt(&context->conf, CONF_KEY_MUSIC_VOL,
-                          AudioSystemGetMusicVolume(&context->audio));
+  context->conf.soundVol = AudioSystemGetSoundVolume(&context->audio);
+  context->conf.musicVol = AudioSystemGetMusicVolume(&context->audio);
+  context->conf.voiceVol = AudioSystemGetVoiceVolume(&context->audio);
 }
 
 static char textBuf[128] = "";

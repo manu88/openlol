@@ -249,8 +249,7 @@ typedef struct _GameContext {
 
   PAKFile sfxPak;
 
-  ConfigHandle conf;
-  int tickLength;
+  GameConfig conf;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
