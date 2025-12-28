@@ -557,6 +557,7 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
              gameCtx->state == GameState_ShowMap) {
     switch (e->key.keysym.sym) {
     case SDLK_ESCAPE:
+    case SDLK_TAB:
       GameContextSetState(gameCtx, GameState_PlayGame);
       gameCtx->shouldUpdate = 1;
       break;

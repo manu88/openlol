@@ -37,5 +37,5 @@ Looks like some palette are embedded in the bin and not shipped in the pak files
 
 ## keybindings
 
-Use `q`, `w`, `e`, `a`, `s`, `d` to move around, `tab` to display the automap - or just use the UI.
+Use `q`, `w`, `e`, `a`, `s`, `d` to move around, `tab` to toggle the automap - or just use the UI.
  
