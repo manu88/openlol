@@ -833,5 +833,9 @@ void GameContextButtonClicked(GameContext *gameCtx, ButtonType button) {
   case ButtonType_TurnRight:
     gameCtx->orientation = OrientationTurnRight(gameCtx->orientation);
     break;
+  case ButtonType_Automap:
+    GameContextSetState(gameCtx, GameState_ShowMap);
+    AudioSystemPlaySoundFX(&gameCtx->audio, &gameCtx->sfxPak, "TURNPAG2.VOC");
+    break;
   }
 }

@@ -317,6 +317,8 @@ typedef enum {
   ButtonType_Right,
   ButtonType_TurnLeft,
   ButtonType_TurnRight,
+
+  ButtonType_Automap,
 } ButtonType;
 
 void GameContextButtonClicked(GameContext *gameCtx, ButtonType button);
