@@ -123,10 +123,43 @@ static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
 static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadCMZ %s", file);
+  memset(gameCtx->level->blockProperties, 0, sizeof(BlockProperty) * 1024);
   GameFile f = {0};
   assert(GameEnvironmentGetFile(&f, file));
   assert(
       MazeHandleFromBuffer(&gameCtx->level->mazHandle, f.buffer, f.bufferSize));
+
+  for (int blockId = 0; blockId < 1024; blockId++) {
+    const MazeBlock *block =
+        gameCtx->level->mazHandle.maze->wallMappingIndices + blockId;
+
+    for (int wallId = 0; wallId < 4; wallId++) {
+      uint8_t wmi = block->face[wallId];
+      gameCtx->level->blockProperties[blockId].walls[wallId] = wmi;
+    }
+    gameCtx->level->blockProperties[blockId].direction = 5;
+#if 0
+    if (_wllAutomapData[_levelBlockProperties[i].walls[0]] == 17) {
+      _levelBlockProperties[i].flags &= 0xEF;
+      _levelBlockProperties[i].flags |= 0x20;
+    }
+#endif
+  }
+}
+
+static void callbackSetWallType(EMCInterpreter *interp, uint16_t block,
+                                uint16_t wall, uint16_t val) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  Log(LOG_PREFIX, "callbackSetWallType %x %x %x", block, wall, val);
+  gameCtx->level->blockProperties[block].walls[wall] = val;
+}
+
+static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t blockId,
+                                    uint16_t wall) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  Log(LOG_PREFIX, "callbackGetWallType %x %x", blockId, wall);
+
+  return gameCtx->level->blockProperties[blockId].walls[wall];
 }
 
 static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
@@ -480,11 +513,6 @@ static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
   GameContextCleanupSceneDialog(gameCtx);
 }
 
-static void callbackSetWallType(EMCInterpreter *interp, uint16_t p0,
-                                uint16_t p1, uint16_t p2) {
-  Log(LOG_PREFIX, "callbackSetWallType %x %x %x", p0, p1, p2);
-}
-
 static uint16_t callbackCheckForCertainPartyMember(EMCInterpreter *interp,
                                                    uint16_t charId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -501,16 +529,6 @@ static void callbackSetNextFunc(EMCInterpreter *interp, uint16_t func) {
   Log(LOG_PREFIX, "callbackSetNextFunc %x", func);
   assert(gameCtx->nextFunc == 0);
   gameCtx->nextFunc = func;
-}
-
-static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t index,
-                                    uint16_t index2) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  Log(LOG_PREFIX, "callbackGetWallType %x %x", index, index2);
-  const MazeBlock *block =
-      gameCtx->level->mazHandle.maze->wallMappingIndices + index;
-  uint8_t wmi = block->face[index2];
-  return wmi;
 }
 
 static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,

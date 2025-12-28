@@ -67,6 +67,12 @@ typedef struct {
 } MonsterProperties;
 
 typedef struct {
+  uint8_t walls[4];
+  uint8_t direction;
+  uint16_t flags;
+} BlockProperty;
+
+typedef struct {
   uint8_t destDirection;
   int8_t shiftStep;
   uint16_t destX;
@@ -110,6 +116,8 @@ typedef struct {
 
   PAKFile currentTlkFile;
   int currentTlkFileIndex;
+
+  BlockProperty blockProperties[1024];
 
 } LevelContext;
 
