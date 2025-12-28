@@ -6,6 +6,9 @@
 #include "renderer.h"
 #include "ui.h"
 
+#define BLOCK_W 7
+#define BLOCK_H 6
+
 static int _automapTopLeftX = 0;
 static int _automapTopLeftY = 0;
 
@@ -85,13 +88,7 @@ static void drawMapShape(const GameContext *gameCtx, uint16_t automapData,
   y = y + mapCoords[11][direction] - 2;
   drawSHPFrame(gameCtx->pixBuf, &f, x, y, gameCtx->defaultPalette);
   SHPFrameRelease(&f);
-  //_screen->drawShape(_screen->_curPage, _automapShapes[(l << 2) + direction],
-  // x + _mapCoords[10][direction] - 2, y + _mapCoords[11][direction] - 2, 0,
-  // 0);
 }
-
-#define BLOCK_W 7
-#define BLOCK_H 6
 
 void AutomapRender(GameContext *gameCtx) {
   UISetDefaultStyle();
@@ -114,7 +111,7 @@ void AutomapRender(GameContext *gameCtx) {
   int sx = _automapTopLeftX;
   int sy = _automapTopLeftY;
 
-  for (; bl < 1024; bl++) {
+  for (; bl < MAZE_NUM_CELL; bl++) {
     const uint8_t *w = gameCtx->level->blockProperties[bl].walls;
 
     const WllWallMapping *w0Mapping =
@@ -152,46 +149,47 @@ void AutomapRender(GameContext *gameCtx) {
           WllHandleGetWallMapping(&gameCtx->level->wllHandle, westWall);
       const WllWallMapping *northMapping =
           WllHandleGetWallMapping(&gameCtx->level->wllHandle, northWall);
-
+#if 0
       SDL_Color c = {.r = 255, .g = 255, .b = 255};
       if (bl == gameCtx->currentBock) {
         c = (SDL_Color){.r = 0, .g = 255, .b = 0};
       }
       UIFillRect(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H, c);
+#endif
       if (eastMapping) {
-        drawMapShape(gameCtx, eastMapping->automapData, sx, sy, East);
         if (eastMapping->automapData & 0xC0) {
           UIFillRect(gameCtx->pixBuf, sx + BLOCK_W - 1, sy, 1, BLOCK_H,
                      (SDL_Color){.r = 255});
         }
+        drawMapShape(gameCtx, eastMapping->automapData, sx, sy, East);
       }
       if (northMapping) {
-        drawMapShape(gameCtx, northMapping->automapData, sx, sy, North);
         if (northMapping->automapData & 0XC0) {
           UIFillRect(gameCtx->pixBuf, sx, sy, BLOCK_W, 1,
                      (SDL_Color){.r = 255});
         }
+        drawMapShape(gameCtx, northMapping->automapData, sx, sy, North);
       }
 
       if (southMapping) {
-        drawMapShape(gameCtx, southMapping->automapData, sx, sy, South);
         if (southMapping->automapData & 0XC0) {
           UIFillRect(gameCtx->pixBuf, sx, sy + BLOCK_H - 1, BLOCK_W, 1,
                      (SDL_Color){.r = 255});
         }
+        drawMapShape(gameCtx, southMapping->automapData, sx, sy, South);
       }
       if (westMapping) {
-        drawMapShape(gameCtx, westMapping->automapData, sx, sy, West);
         if (westMapping->automapData & 0XC0) {
           UIFillRect(gameCtx->pixBuf, sx, sy, 1, BLOCK_H,
                      (SDL_Color){.r = 255});
         }
+        drawMapShape(gameCtx, westMapping->automapData, sx, sy, West);
       }
     }
-    sx += 7;
+    sx += BLOCK_W;
     if (bl % 32 == 31) {
       sx = _automapTopLeftX;
-      sy += 6;
+      sy += BLOCK_H;
       bl += blX;
     }
   } // end of for (; bl < 1024; bl++)
