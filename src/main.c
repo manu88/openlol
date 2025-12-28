@@ -1193,9 +1193,8 @@ static int cmdXXXShow(const char *filepath) {
 
   for (int i = 0; i < handle.numEntries; i++) {
     const LegendEntry *entry = handle.entries + i;
-    printf("%i x=%02i y=%02i shapeid=%02i p3=%02X p4=%02X strid=%X\n", i,
-           entry->x, entry->y, entry->shapeId << 2, entry->p3, entry->p4,
-           entry->stringId);
+    printf("%i shapeId=0X%02X enabled=%X p=%02X strId=%i\n", i, entry->shapeId,
+           entry->enabled, entry->p, entry->stringId - 0X4000);
   }
   if (freeBuffer) {
     free(buffer);

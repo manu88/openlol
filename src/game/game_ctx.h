@@ -14,6 +14,7 @@
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
 #include "formats/format_wll.h"
+#include "formats/format_xxx.h"
 #include "game_tim_animator.h"
 #include "geometry.h"
 #include "menu.h"
@@ -118,6 +119,7 @@ typedef struct {
   int currentTlkFileIndex;
 
   BlockProperty blockProperties[MAZE_NUM_CELL];
+  XXXHandle legendData;
 
 } LevelContext;
 

@@ -1,10 +1,14 @@
 #include "automap_render.h"
 #include "SDL_pixels.h"
 #include "formats/format_shp.h"
+#include "formats/format_xxx.h"
+#include "game_ctx.h"
 #include "geometry.h"
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
+#include <stdint.h>
+#include <stdio.h>
 
 #define BLOCK_W 7
 #define BLOCK_H 6
@@ -75,22 +79,64 @@ static const int8_t mapCoords[12][4] = {
     {0, 7, 0, -1}, {-3, 0, 6, 0}, {6, 7, 6, -3},   {-3, 5, 6, 5},
     {1, 5, 1, 1},  {3, 1, 3, 1},  {-1, 6, -1, -8}, {-7, -1, 5, -1}};
 
-static void drawMapShape(const GameContext *gameCtx, uint16_t automapData,
-                         int x, int y, int direction) {
+#define NUM_LEGENDS 11
+static uint16_t legendTypes[NUM_LEGENDS];
+
+static void addLegendData(uint16_t type) {
+  type &= 0x7F;
+  for (int i = 0; i < NUM_LEGENDS; i++) {
+    if (legendTypes[i] == type) {
+      return;
+    }
+    if (legendTypes[i] == 0) {
+      legendTypes[i] = type;
+      return;
+    }
+  }
+}
+
+// returns - 1 if invalid
+static int automapToIndex(uint16_t automapData) {
   automapData &= 0x1F;
-  if (automapData == 0x1F)
+  if (automapData == 0x1F) {
+    return -1;
+  }
+  return automapData * 4; // we multiply by 4 because they are 4 different
+                          // orientations (N/S/E/W) per automap data.
+}
+
+static void drawMapShape(const GameContext *gameCtx, int index, int x, int y,
+                         int direction) {
+  if (index < 0) {
     return;
+  }
   SHPFrame f = {0};
-  SHPHandleGetFrame(&gameCtx->automapShapes, &f,
-                    ((automapData << 2) + direction) + 11);
-  SHPFrameGetImageData(&f);
+  printf("drawMapShape index = %i\n", index);
   x = x + mapCoords[10][direction] - 2;
   y = y + mapCoords[11][direction] - 2;
+  SHPHandleGetFrame(&gameCtx->automapShapes, &f, index + 11 + direction);
+  SHPFrameGetImageData(&f);
   drawSHPFrame(gameCtx->pixBuf, &f, x, y, gameCtx->defaultPalette);
   SHPFrameRelease(&f);
 }
 
+void mapOverlay(SDL_Texture *texture, int startX, int startY, int w, int h) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {startX, startY, w, h};
+  SDL_LockTexture(texture, &rect, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+      row[x] -= 0X00081814;
+      // 158	115	69
+    }
+  }
+  SDL_UnlockTexture(texture);
+}
+
 void AutomapRender(GameContext *gameCtx) {
+  memset(legendTypes, 0, NUM_LEGENDS * sizeof(uint16_t));
   UISetDefaultStyle();
   renderCPS(gameCtx->pixBuf, gameCtx->mapBackground.data,
             gameCtx->mapBackground.imageSize, gameCtx->mapBackground.palette,
@@ -149,43 +195,43 @@ void AutomapRender(GameContext *gameCtx) {
           WllHandleGetWallMapping(&gameCtx->level->wllHandle, westWall);
       const WllWallMapping *northMapping =
           WllHandleGetWallMapping(&gameCtx->level->wllHandle, northWall);
-#if 0
-      SDL_Color c = {.r = 255, .g = 255, .b = 255};
-      if (bl == gameCtx->currentBock) {
-        c = (SDL_Color){.r = 0, .g = 255, .b = 0};
-      }
-      UIFillRect(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H, c);
-#endif
+
       if (eastMapping) {
         if (eastMapping->automapData & 0xC0) {
           UIFillRect(gameCtx->pixBuf, sx + BLOCK_W - 1, sy, 1, BLOCK_H,
-                     (SDL_Color){.r = 255});
+                     (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, eastMapping->automapData, sx, sy, East);
+        drawMapShape(gameCtx, automapToIndex(eastMapping->automapData), sx, sy,
+                     East);
       }
       if (northMapping) {
         if (northMapping->automapData & 0XC0) {
           UIFillRect(gameCtx->pixBuf, sx, sy, BLOCK_W, 1,
-                     (SDL_Color){.r = 255});
+                     (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, northMapping->automapData, sx, sy, North);
+        drawMapShape(gameCtx, automapToIndex(northMapping->automapData), sx, sy,
+                     North);
       }
 
       if (southMapping) {
         if (southMapping->automapData & 0XC0) {
           UIFillRect(gameCtx->pixBuf, sx, sy + BLOCK_H - 1, BLOCK_W, 1,
-                     (SDL_Color){.r = 255});
+                     (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, southMapping->automapData, sx, sy, South);
+        drawMapShape(gameCtx, automapToIndex(southMapping->automapData), sx, sy,
+                     South);
       }
       if (westMapping) {
         if (westMapping->automapData & 0XC0) {
           UIFillRect(gameCtx->pixBuf, sx, sy, 1, BLOCK_H,
-                     (SDL_Color){.r = 255});
+                     (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, westMapping->automapData, sx, sy, West);
+        drawMapShape(gameCtx, automapToIndex(westMapping->automapData), sx, sy,
+                     West);
       }
+      mapOverlay(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H);
     }
+
     sx += BLOCK_W;
     if (bl % 32 == 31) {
       sx = _automapTopLeftX;
@@ -194,9 +240,32 @@ void AutomapRender(GameContext *gameCtx) {
     }
   } // end of for (; bl < 1024; bl++)
 
-  int partyX = _automapTopLeftX + (((gameCtx->currentBock - sx) % 32) * 7);
-  int partY =
-      _automapTopLeftY + (((gameCtx->currentBock - (sy << 5)) / 32) * 6);
+  sx = mapGetStartPosX(gameCtx);
+  sy = mapGetStartPosY(gameCtx);
 
-  drawMapShape(gameCtx, 48 + gameCtx->orientation, partyX - 3, partY - 2, 0);
+  int partyX =
+      _automapTopLeftX + (((gameCtx->currentBock - sx) % 32) * BLOCK_W);
+  int partY =
+      _automapTopLeftY + (((gameCtx->currentBock - (sy << 5)) / 32) * BLOCK_H);
+
+  drawMapShape(gameCtx, 48 + gameCtx->orientation, partyX, partY + BLOCK_H, 0);
+
+  printf("Got %zu legend entries\n", gameCtx->level->legendData.numEntries);
+  char buf[64];
+  for (int i = 0; i < NUM_LEGENDS; i++) {
+    if (legendTypes[i] == 0) {
+      continue;
+    }
+    printf("legend %i: 0X%X\n", i, legendTypes[i]);
+    for (int j = 0; j < gameCtx->level->legendData.numEntries; j++) {
+
+      LegendEntry *entry = gameCtx->level->legendData.entries + j;
+      if (entry->shapeId == legendTypes[i]) {
+        printf("string id = %i\n", entry->stringId - 0X4000);
+        GameContextGetString(gameCtx, entry->stringId, buf, 64);
+        printf("'%s'\n", buf);
+        break;
+      }
+    }
+  }
 }

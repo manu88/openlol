@@ -376,6 +376,14 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     runScript(ctx, &iniScript);
     printf("<-DONE INI SCRIPT\n");
   }
+  {
+    GameFile f = {0};
+    char iniFile[12];
+    snprintf(iniFile, 12, "LEVEL%i.XXX", levelNum);
+    assert(GameEnvironmentGetFile(&f, iniFile));
+    assert(
+        XXXHandleFromBuffer(&ctx->level->legendData, f.buffer, f.bufferSize));
+  }
 
   if (levelNum != ctx->level->currentTlkFileIndex) {
     GameContextLoadTLKFile(ctx, levelNum);

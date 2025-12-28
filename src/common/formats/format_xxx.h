@@ -1,17 +1,18 @@
 #pragma once
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
 typedef struct {
-  uint16_t x;        // 3
-  uint16_t y;        // 4
-  uint16_t shapeId;  // 5
-  uint16_t p3;       // 0
-  uint16_t p4;       // 1
+  uint8_t shapeId;
+  uint8_t enabled;
+  uint8_t p;
+  uint8_t pad[7];
   uint16_t stringId; // 2
 } LegendEntry;
 
+static_assert(sizeof(LegendEntry) == 12, "");
 typedef struct {
   LegendEntry *entries;
   size_t numEntries;
