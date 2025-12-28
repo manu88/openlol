@@ -600,6 +600,10 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       gameCtx->shouldUpdate = 1;
       runBlockScript(gameCtx);
       break;
+    case SDLK_TAB:
+      gameCtx->shouldUpdate = 1;
+      GameContextButtonClicked(gameCtx, ButtonType_Automap);
+      break;
     case SDLK_ESCAPE:
       GameContextSetState(gameCtx, GameState_GameMenu);
       gameCtx->shouldUpdate = 1;
