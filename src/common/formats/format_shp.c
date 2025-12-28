@@ -44,7 +44,11 @@ int SHPHandleFromBuffer(SHPHandle *handle, uint8_t *buffer, size_t size) {
 
 uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
                            size_t index) {
-  assert(index <= handle->framesCount);
+  if (index >= handle->framesCount) {
+    printf("SHPHandleGetFrame index %zu exceeds num frames %i\n", index,
+           handle->framesCount);
+  }
+  assert(index < handle->framesCount);
   uint32_t offset = handle->frameOffsets[index];
   uint8_t *frameStart = handle->originalBuffer + 2 + offset;
 
