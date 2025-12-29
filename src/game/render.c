@@ -214,7 +214,6 @@ typedef enum {
 } CELL_ID;
 
 /*
-
  9 7 3 7 9
  8 6 2 6 8
  8 5 1 5 8
@@ -259,11 +258,12 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
     // only for south walls
     if (decorationIndex == DecorationIndex_N_SOUTH ||
         decorationIndex == DecorationIndex_J_SOUTH ||
-        decorationIndex == DecorationIndex_D_SOUTH)
+        decorationIndex == DecorationIndex_D_SOUTH) {
       drawSHPMazeFrame(pixBuf, &frame,
                        deco->shapeX[decorationIndex] + destXOffset,
                        deco->shapeY[decorationIndex] + destYOffset,
                        ctx->vcnHandle.palette, 1);
+    }
   }
 
   if (deco->next) {
@@ -312,31 +312,31 @@ typedef struct {
 } RenderWall;
 
 static RenderWall renderWalls[] = {
-    {CELL_A, East, A_east},                                       //
-    {CELL_B, East, B_east},                                       //
-    {CELL_C, East, C_east},                                       //
-    {CELL_E, East, E_west},                                       //
-    {CELL_F, West, F_west},                                       //
-    {CELL_G, West, G_west},                                       //
-    {CELL_B, South, B_south},                                     //
-    {CELL_C, South, C_south},                                     //
-    {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0}, //
-    {CELL_E, South, E_south},                                     //
-    {CELL_F, South, F_south},                                     //
-    {CELL_H, East, H_east},                                       //
-    {CELL_I, West, I_east},                                       //
-    {CELL_K, West, K_west},                                       //
-    {CELL_L, West, L_west},                                       //
-    {CELL_I, South, I_south},                                     //
-    {CELL_J, South, J_south, DecorationIndex_J_SOUTH, 48, 20, 0}, //
-    {CELL_K, South, K_south},                                     //
-    {CELL_M, East, M_east, DecorationIndex_M_WEST, 24, 10, 0},    //
-    {CELL_O, West, O_west, DecorationIndex_O_EAST, 24, 10, 1},    //
-    {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 0, 0, 0},   //
-    {CELL_O, South, O_south},                                     //
-    {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8, 0},  //
-    {CELL_P, East, P_east, DecorationIndex_P_EAST, 0, 0, 0},      //
-    {CELL_Q, West, Q_west, DecorationIndex_Q_WEST, 0, 0, 1},      //
+    {CELL_A, East, A_east},
+    {CELL_B, East, B_east},
+    {CELL_C, East, C_east},
+    {CELL_E, East, E_west},
+    {CELL_F, West, F_west},
+    {CELL_G, West, G_west},
+    {CELL_B, South, B_south},
+    {CELL_C, South, C_south},
+    {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0},
+    {CELL_E, South, E_south},
+    {CELL_F, South, F_south},
+    {CELL_H, East, H_east},
+    {CELL_I, West, I_east},
+    {CELL_K, West, K_west},
+    {CELL_L, West, L_west},
+    {CELL_I, South, I_south},
+    {CELL_J, South, J_south, DecorationIndex_J_SOUTH, 48, 20, 0},
+    {CELL_K, South, K_south},
+    {CELL_M, East, M_east, DecorationIndex_M_WEST, 24, 10, 0},
+    {CELL_O, West, O_west, DecorationIndex_O_EAST, 24, 10, 1},
+    {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 0, 0, 0},
+    {CELL_O, South, O_south},
+    {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8, 0},
+    {CELL_P, East, P_east, DecorationIndex_P_EAST, 0, 0, 0},
+    {CELL_Q, West, Q_west, DecorationIndex_Q_WEST, 0, 0, 1},
 };
 
 void GameRenderMaze(GameContext *gameCtx) {
@@ -368,7 +368,7 @@ void GameRenderMaze(GameContext *gameCtx) {
     if (wallType) {
       drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                r->wallRenderIndex);
-      if (r->orientation == South && r->cellId == CELL_N &&
+      if (0 && r->orientation == South && r->cellId == CELL_N &&
           wallType == 3) { // door
         SHPFrame frame = {0};
         if (gameCtx->level->doors.originalBuffer) {
