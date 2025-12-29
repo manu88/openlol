@@ -181,8 +181,10 @@ uint8_t AudioSystemGetVoiceVolume(const AudioSystem *audioSystem) {
   return val;
 }
 
-void AudioSystemClear(AudioSystem *audioSystem) {
-  SDL_ClearQueuedAudio(audioSystem->deviceID);
+void AudioSystemClearVoiceQueue(AudioSystem *audioSystem) {
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  AudioQueueReset(&audioSystem->voiceQueue, 0);
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
 }
 
 void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,

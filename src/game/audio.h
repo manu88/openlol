@@ -47,7 +47,7 @@ uint8_t AudioSystemGetMusicVolume(const AudioSystem *audioSystem);
 void AudioSystemSetVoiceVolume(AudioSystem *audioSystem, int8_t vol);
 uint8_t AudioSystemGetVoiceVolume(const AudioSystem *audioSystem);
 
-void AudioSystemClear(AudioSystem *audioSystem);
+void AudioSystemClearVoiceQueue(AudioSystem *audioSystem);
 
 void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
                              int *sequence, size_t sequenceSize);

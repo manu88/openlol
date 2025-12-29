@@ -383,6 +383,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   }
 
   if (levelNum != ctx->level->currentTlkFileIndex) {
+    AudioSystemClearVoiceQueue(&ctx->audio);
     GameContextLoadTLKFile(ctx, levelNum);
   }
 
