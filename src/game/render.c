@@ -231,6 +231,8 @@ typedef enum {
   DecorationIndex_K_SOUTH = DecorationIndex_I_SOUTH,
 
   DecorationIndex_D_SOUTH = 3,
+  DecorationIndex_C_SOUTH = DecorationIndex_D_SOUTH,
+  DecorationIndex_E_SOUTH = DecorationIndex_D_SOUTH,
 
   DecorationIndex_P_EAST = 4,
   DecorationIndex_Q_WEST = DecorationIndex_P_EAST,
@@ -311,9 +313,9 @@ static RenderWall renderWalls[] = {
     {CELL_F, West, F_west},
     {CELL_G, West, G_west},
     {CELL_B, South, B_south},
-    {CELL_C, South, C_south},
+    {CELL_C, South, C_south, DecorationIndex_C_SOUTH, 16, 26, 0},
     {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0},
-    {CELL_E, South, E_south},
+    {CELL_E, South, E_south, DecorationIndex_E_SOUTH, 112, 26, -1},
     {CELL_F, South, F_south},
     {CELL_H, East, H_east},
     {CELL_I, West, I_east},
