@@ -236,49 +236,52 @@ typedef enum {
   DecorationIndex_O_SOUTH = 8,
 } DecorationIndex;
 
-static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
-                             DecorationIndex decorationIndex,
-                             uint16_t decorationId, int destXOffset,
-                             int destYOffset, uint8_t xFlip,
-                             Orientation orientation) {
+typedef struct {
+  CELL_ID cellId;
+  Orientation orientation;
+  WallRenderIndex wallRenderIndex;
+  DecorationIndex decoIndex;
+  int x;
+  int y;
+  int xFlip;
+} RenderWall;
 
-  const DatDecoration *deco = ctx->datHandle.datDecoration + decorationId;
+static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
+                             const RenderWall *wall, uint16_t decorationId) {
 
-  if (deco->shapeIndex[decorationIndex] == DECORATION_EMPTY_INDEX) {
+  const DatDecoration *deco = level->datHandle.datDecoration + decorationId;
+
+  if (deco->shapeIndex[wall->decoIndex] == DECORATION_EMPTY_INDEX) {
     return;
   }
 
   SHPFrame frame = {0};
-  size_t index = deco->shapeIndex[decorationIndex];
-  SHPHandleGetFrame(&ctx->shpHandle, &frame, index);
+  size_t index = deco->shapeIndex[wall->decoIndex];
+  SHPHandleGetFrame(&level->shpHandle, &frame, index);
   SHPFrameGetImageData(&frame);
-  drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[decorationIndex] + destXOffset,
-                   deco->shapeY[decorationIndex] + destYOffset,
-                   ctx->vcnHandle.palette, xFlip);
+  drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
+                   deco->shapeY[wall->decoIndex] + wall->y,
+                   level->vcnHandle.palette, wall->xFlip);
   if (deco->flags & DatDecorationFlags_Mirror) {
-    if (orientation == South) {
-      drawSHPMazeFrame(pixBuf, &frame,
-                       deco->shapeX[decorationIndex] + destXOffset,
-                       deco->shapeY[decorationIndex] + destYOffset,
-                       ctx->vcnHandle.palette, 1);
+    if (wall->orientation == South) {
+      drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
+                       deco->shapeY[wall->decoIndex] + wall->y,
+                       level->vcnHandle.palette, 1);
     }
   }
 
   if (deco->next) {
-    renderDecoration(pixBuf, ctx, decorationIndex, deco->next, destXOffset,
-                     destYOffset, xFlip, orientation);
+    renderDecoration(pixBuf, level, wall, deco->next);
   }
 }
 
-static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
-                                 DecorationIndex DecorationIndex, uint8_t wmi,
-                                 int destXOffset, int destYOffset,
-                                 uint8_t xFlip, Orientation orientation) {
-  const WllWallMapping *mapping = WllHandleGetWallMapping(&ctx->wllHandle, wmi);
+static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *level,
+                                 const RenderWall *wall, uint8_t wmi) {
+  const WllWallMapping *mapping =
+      WllHandleGetWallMapping(&level->wllHandle, wmi);
   if (mapping && mapping->decorationId != 0 &&
-      mapping->decorationId < ctx->datHandle.nbrDecorations) {
-    renderDecoration(pixBuf, ctx, DecorationIndex, mapping->decorationId,
-                     destXOffset, destYOffset, xFlip, orientation);
+      mapping->decorationId < level->datHandle.nbrDecorations) {
+    renderDecoration(pixBuf, level, wall, mapping->decorationId);
   }
 }
 
@@ -298,16 +301,6 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
     }
   }
 }
-
-typedef struct {
-  CELL_ID cellId;
-  Orientation orientation;
-  WallRenderIndex wallRenderIndex;
-  DecorationIndex decoIndex;
-  int x;
-  int y;
-  int xFlip;
-} RenderWall;
 
 static RenderWall renderWalls[] = {
     {CELL_A, East, A_east},
@@ -381,7 +374,6 @@ void GameRenderMaze(GameContext *gameCtx) {
     if (r->decoIndex == 0) {
       continue;
     }
-    renderWallDecoration(texture, level, r->decoIndex, wmi, r->x, r->y,
-                         r->xFlip, r->orientation);
+    renderWallDecoration(texture, level, r, wmi);
   }
 }
