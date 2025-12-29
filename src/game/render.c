@@ -239,7 +239,8 @@ typedef enum {
 static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
                              DecorationIndex decorationIndex,
                              uint16_t decorationId, int destXOffset,
-                             int destYOffset, uint8_t xFlip) {
+                             int destYOffset, uint8_t xFlip,
+                             Orientation orientation) {
 
   const DatDecoration *deco = ctx->datHandle.datDecoration + decorationId;
 
@@ -255,10 +256,7 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
                    deco->shapeY[decorationIndex] + destYOffset,
                    ctx->vcnHandle.palette, xFlip);
   if (deco->flags & DatDecorationFlags_Mirror) {
-    // only for south walls
-    if (decorationIndex == DecorationIndex_N_SOUTH ||
-        decorationIndex == DecorationIndex_J_SOUTH ||
-        decorationIndex == DecorationIndex_D_SOUTH) {
+    if (orientation == South) {
       drawSHPMazeFrame(pixBuf, &frame,
                        deco->shapeX[decorationIndex] + destXOffset,
                        deco->shapeY[decorationIndex] + destYOffset,
@@ -268,19 +266,19 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
 
   if (deco->next) {
     renderDecoration(pixBuf, ctx, decorationIndex, deco->next, destXOffset,
-                     destYOffset, xFlip);
+                     destYOffset, xFlip, orientation);
   }
 }
 
 static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *ctx,
                                  DecorationIndex DecorationIndex, uint8_t wmi,
                                  int destXOffset, int destYOffset,
-                                 uint8_t xFlip) {
+                                 uint8_t xFlip, Orientation orientation) {
   const WllWallMapping *mapping = WllHandleGetWallMapping(&ctx->wllHandle, wmi);
   if (mapping && mapping->decorationId != 0 &&
       mapping->decorationId < ctx->datHandle.nbrDecorations) {
     renderDecoration(pixBuf, ctx, DecorationIndex, mapping->decorationId,
-                     destXOffset, destYOffset, xFlip);
+                     destXOffset, destYOffset, xFlip, orientation);
   }
 }
 
@@ -384,6 +382,6 @@ void GameRenderMaze(GameContext *gameCtx) {
       continue;
     }
     renderWallDecoration(texture, level, r->decoIndex, wmi, r->x, r->y,
-                         r->xFlip);
+                         r->xFlip, r->orientation);
   }
 }
