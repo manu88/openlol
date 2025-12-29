@@ -343,6 +343,29 @@ int GameContextStartup(GameContext *ctx) {
   return runCompleteScript(ctx, "ONETIME.INF");
 }
 
+void GameContextLoadLevelShapes(GameContext *gameCtx,
+                                       const char *shpFile,
+                                       const char *datFile) {
+  char pakFile[12] = "";
+  strncpy(pakFile, shpFile, 12);
+
+  pakFile[strlen(pakFile) - 1] = 'K';
+  pakFile[strlen(pakFile) - 2] = 'A';
+  pakFile[strlen(pakFile) - 3] = 'P';
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFileFromPak(&f, shpFile, pakFile));
+    assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
+                               f.bufferSize));
+  }
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFileFromPak(&f, datFile, pakFile));
+    assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
+                               f.bufferSize));
+  }
+}
+
 int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   GameRenderResetDialog(ctx);
 

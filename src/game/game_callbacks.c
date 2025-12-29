@@ -166,24 +166,8 @@ static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
                                     const char *datFile) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadLevelShapes %s %s", shpFile, datFile);
-  char pakFile[12] = "";
-  strncpy(pakFile, shpFile, 12);
 
-  pakFile[strlen(pakFile) - 1] = 'K';
-  pakFile[strlen(pakFile) - 2] = 'A';
-  pakFile[strlen(pakFile) - 3] = 'P';
-  {
-    GameFile f = {0};
-    assert(GameEnvironmentGetFileFromPak(&f, shpFile, pakFile));
-    assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
-                               f.bufferSize));
-  }
-  {
-    GameFile f = {0};
-    assert(GameEnvironmentGetFileFromPak(&f, datFile, pakFile));
-    assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
-                               f.bufferSize));
-  }
+  GameContextLoadLevelShapes(gameCtx, shpFile, datFile);
 }
 
 static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,

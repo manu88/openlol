@@ -268,6 +268,8 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles);
 int GameContextNewGame(GameContext *gameCtx);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum);
+void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
+                                const char *datFile);
 int GameContextLoadChars(GameContext *ctx);
 int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
