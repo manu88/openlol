@@ -222,18 +222,24 @@ typedef enum {
 */
 
 typedef enum {
-  DecorationIndex_N_SOUTH = 1,
-  DecorationIndex_J_SOUTH = 2,
+  DecorationIndex_M_SOUTH = 1,
+  DecorationIndex_N_SOUTH = DecorationIndex_M_SOUTH,
+  DecorationIndex_O_SOUTH = DecorationIndex_M_SOUTH,
+
+  DecorationIndex_I_SOUTH = 2,
+  DecorationIndex_J_SOUTH = DecorationIndex_I_SOUTH,
+  DecorationIndex_K_SOUTH = DecorationIndex_I_SOUTH,
+
   DecorationIndex_D_SOUTH = 3,
 
   DecorationIndex_P_EAST = 4,
-  DecorationIndex_Q_WEST = 4,
+  DecorationIndex_Q_WEST = DecorationIndex_P_EAST,
 
   DecorationIndex_M_WEST = 5,
-  DecorationIndex_O_EAST = 5,
+  DecorationIndex_O_EAST = DecorationIndex_M_WEST,
 
-  DecorationIndex_M_SOUTH = 8,
-  DecorationIndex_O_SOUTH = 8,
+  DecorationIndex_K_EAST = 6,
+
 } DecorationIndex;
 
 typedef struct {
@@ -248,28 +254,23 @@ typedef struct {
 
 static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
                              const RenderWall *wall, uint16_t decorationId) {
-
   const DatDecoration *deco = level->datHandle.datDecoration + decorationId;
-
-  if (deco->shapeIndex[wall->decoIndex] == DECORATION_EMPTY_INDEX) {
-    return;
-  }
-
-  SHPFrame frame = {0};
-  size_t index = deco->shapeIndex[wall->decoIndex];
-  SHPHandleGetFrame(&level->shpHandle, &frame, index);
-  SHPFrameGetImageData(&frame);
-  drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
-                   deco->shapeY[wall->decoIndex] + wall->y,
-                   level->vcnHandle.palette, wall->xFlip);
-  if (deco->flags & DatDecorationFlags_Mirror) {
-    if (wall->orientation == South) {
+  if (deco->shapeIndex[wall->decoIndex] != DECORATION_EMPTY_INDEX) {
+    SHPFrame frame = {0};
+    size_t index = deco->shapeIndex[wall->decoIndex];
+    SHPHandleGetFrame(&level->shpHandle, &frame, index);
+    SHPFrameGetImageData(&frame);
+    drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
+                     deco->shapeY[wall->decoIndex] + wall->y,
+                     level->vcnHandle.palette, wall->xFlip);
+    int isFrontWall = (wall->cellId == CELL_N || wall->cellId == CELL_J ||
+                       wall->cellId == CELL_D);
+    if (isFrontWall && deco->flags & DatDecorationFlags_Mirror) {
       drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
                        deco->shapeY[wall->decoIndex] + wall->y,
                        level->vcnHandle.palette, 1);
     }
   }
-
   if (deco->next) {
     renderDecoration(pixBuf, level, wall, deco->next);
   }
@@ -316,18 +317,21 @@ static RenderWall renderWalls[] = {
     {CELL_F, South, F_south},
     {CELL_H, East, H_east},
     {CELL_I, West, I_east},
-    {CELL_K, West, K_west},
+    {CELL_K, West, K_west, DecorationIndex_K_EAST},
     {CELL_L, West, L_west},
-    {CELL_I, South, I_south},
+    {CELL_I, South, I_south, DecorationIndex_I_SOUTH, -30, 20, 0},
     {CELL_J, South, J_south, DecorationIndex_J_SOUTH, 48, 20, 0},
-    {CELL_K, South, K_south},
+    {CELL_K, South, K_south, DecorationIndex_K_SOUTH, 128, 20, 0},
     {CELL_M, East, M_east, DecorationIndex_M_WEST, 24, 10, 0},
     {CELL_O, West, O_west, DecorationIndex_O_EAST, 24, 10, 1},
-    {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 0, 0, 0},
-    {CELL_O, South, O_south},
+
+    {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 153, 8, 1},
     {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8, 0},
+    {CELL_O, South, O_south, DecorationIndex_O_SOUTH, 153, 8, 0},
+
     {CELL_P, East, P_east, DecorationIndex_P_EAST, 0, 0, 0},
     {CELL_Q, West, Q_west, DecorationIndex_Q_WEST, 0, 0, 1},
+
 };
 
 void GameRenderMaze(GameContext *gameCtx) {
@@ -350,8 +354,8 @@ void GameRenderMaze(GameContext *gameCtx) {
     }
     int index = entry->coords.y * 32 + entry->coords.x;
     const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
-    uint8_t wmi =
-        block->face[absOrientation(gameCtx->orientation, r->orientation)];
+    Orientation absOri = absOrientation(gameCtx->orientation, r->orientation);
+    uint8_t wmi = block->face[absOri];
     if (!wmi) {
       continue;
     }
@@ -359,7 +363,7 @@ void GameRenderMaze(GameContext *gameCtx) {
     if (wallType) {
       drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                r->wallRenderIndex);
-      if (0 && r->orientation == South && r->cellId == CELL_N &&
+      if (r->orientation == South && r->cellId == CELL_N &&
           wallType == 3) { // door
         SHPFrame frame = {0};
         if (gameCtx->level->doors.originalBuffer) {
