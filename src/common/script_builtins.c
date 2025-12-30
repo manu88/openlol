@@ -317,8 +317,8 @@ static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t fadeClearSceneWindow(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] fadeClearSceneWindow\n");
-  // ASSERT_UNIMPLEMENTED;
+  uint16_t mode = EMCStateStackVal(state, 0);
+  interp->callbacks.EMCInterpreterCallbacks_FadeScene(interp, mode);
   return 1;
 }
 
@@ -726,18 +726,20 @@ static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
   uint16_t allowSceneUpdate = EMCStateStackVal(state, 3);
   uint16_t controlMode = EMCStateStackVal(state, 4);
   uint16_t fadeFlag = EMCStateStackVal(state, 5);
-
-  printf("[UNIMPLEMENTED] prepareSpecialScene fieldType %X hasDialogue %X "
-         "suspendGUI %X "
-         "allowSceneUpdate %X controlMode%X  fadeFlag%X \n",
-         fieldType, hasDialogue, suspendGUI, allowSceneUpdate, controlMode,
+  interp->callbacks.EMCInterpreterCallbacks_PrepareSpecialScene(
+      interp, fieldType, hasDialogue, suspendGUI, allowSceneUpdate, controlMode,
          fadeFlag);
   return 1;
 }
 
 static uint16_t restoreAfterSpecialScene(EMCInterpreter *interp,
                                          EMCState *state) {
-  printf("[unimplemented] restoreAfterSpecialScene\n");
+  uint16_t fadeFlag = EMCStateStackVal(state, 0);
+  uint16_t redrawPlayField = EMCStateStackVal(state, 1);
+  uint16_t releaseTimScripts = EMCStateStackVal(state, 2);
+  uint16_t sceneUpdateMode = EMCStateStackVal(state, 3);
+  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSpecialScene(
+      interp, fadeFlag, redrawPlayField, releaseTimScripts, sceneUpdateMode);
   return 1;
 }
 

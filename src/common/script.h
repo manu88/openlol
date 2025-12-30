@@ -309,6 +309,16 @@ typedef struct _EMCInterpreterCallbacks {
   void (*EMCInterpreterCallbacks_CharacterSurpriseSFX)(EMCInterpreter *interp);
   void (*EMCInterpreterCallbacks_MoveParty)(EMCInterpreter *interp,
                                             uint16_t how);
+  void (*EMCInterpreterCallbacks_FadeScene)(EMCInterpreter *interp,
+                                            uint16_t mode);
+
+  void (*EMCInterpreterCallbacks_PrepareSpecialScene)(
+      EMCInterpreter *interp, uint16_t fieldType, uint16_t hasDialogue,
+      uint16_t suspendGUI, uint16_t allowSceneUpdate, uint16_t controlMode,
+      uint16_t fadeFlag);
+  void (*EMCInterpreterCallbacks_RestoreAfterSpecialScene)(
+      EMCInterpreter *interp, uint16_t fadeFlag, uint16_t redrawPlayField,
+      uint16_t releaseTimScripts, uint16_t sceneUpdateMode);
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

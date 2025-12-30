@@ -527,6 +527,11 @@ static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,
   return mapping->flags;
 }
 
+static void callbackFadeScene(EMCInterpreter *interp, uint16_t mode) {
+  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("[UNIMPLEMENTED] callbackFadeScene mode=0X%X\n", mode);
+}
+
 static void callbackSetupDialogueButtons(EMCInterpreter *interp,
                                          uint16_t numStrs, uint16_t strIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -677,6 +682,28 @@ static void callbackCreditsTransaction(EMCInterpreter *interp, int16_t amount) {
   gameCtx->credits += amount;
 }
 
+static void
+callbackPrepareSpecialScene(EMCInterpreter *interp, uint16_t fieldType,
+                            uint16_t hasDialogue, uint16_t suspendGUI,
+                            uint16_t allowSceneUpdate, uint16_t controlMode,
+                            uint16_t fadeFlag) {
+  printf("[UNIMPLEMENTED] prepareSpecialScene fieldType %X hasDialogue %X "
+         "suspendGUI %X "
+         "allowSceneUpdate %X controlMode %X  fadeFlag %X \n",
+         fieldType, hasDialogue, suspendGUI, allowSceneUpdate, controlMode,
+         fadeFlag);
+}
+
+static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
+                                             uint16_t fadeFlag,
+                                             uint16_t redrawPlayField,
+                                             uint16_t releaseTimScripts,
+                                             uint16_t sceneUpdateMode) {
+  printf("[unimplemented] restoreAfterSpecialScene fadeFlag=%X "
+         "redrawPlayField=%X releaseTimScripts=%X sceneUpdateMode=%X\n",
+         fadeFlag, redrawPlayField, releaseTimScripts, sceneUpdateMode);
+}
+
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
@@ -760,4 +787,10 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_CharacterSurpriseSFX =
       callbackCharacterSurpriseSFX;
   interp->callbacks.EMCInterpreterCallbacks_MoveParty = callbackMoveParty;
+  interp->callbacks.EMCInterpreterCallbacks_FadeScene = callbackFadeScene;
+
+  interp->callbacks.EMCInterpreterCallbacks_PrepareSpecialScene =
+      callbackPrepareSpecialScene;
+  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSpecialScene =
+      callbackRestoreAfterSpecialScene;
 }
