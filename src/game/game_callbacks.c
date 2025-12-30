@@ -226,6 +226,10 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, paletteFile));
   }
+  char fileName2[12] = "";
+  snprintf(fileName, 12, "%s.SHP", file);
+  snprintf(fileName2, 12, "%s.DAT", file);
+  GameContextLoadLevelShapes(gameCtx, fileName, fileName2);
 }
 
 static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,

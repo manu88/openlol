@@ -103,7 +103,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
   if (!GameConfigFromFile(&gameCtx->conf, "conf.txt")) {
     printf("Create default config\n");
-  GameConfigCreateDefault(&gameCtx->conf);
+    GameConfigCreateDefault(&gameCtx->conf);
   }
 
   gameCtx->language = lang;
@@ -343,9 +343,8 @@ int GameContextStartup(GameContext *ctx) {
   return runCompleteScript(ctx, "ONETIME.INF");
 }
 
-void GameContextLoadLevelShapes(GameContext *gameCtx,
-                                       const char *shpFile,
-                                       const char *datFile) {
+void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
+                                const char *datFile) {
   char pakFile[12] = "";
   strncpy(pakFile, shpFile, 12);
 
@@ -671,8 +670,8 @@ void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
   // FIXME not sure this is the original algorithm to choose a speaker.
   uint8_t numChars = GameContextGetNumChars(gameCtx);
   if (charId > numChars) {
-      charId = 0;
-    }
+    charId = 0;
+  }
 
   charId = (int16_t)gameCtx->chars[charId].name[0];
 
