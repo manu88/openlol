@@ -303,18 +303,13 @@ static void usageCONF(void) {
 }
 
 static int cmdCONFInit(const char *filepath) {
-  ConfigHandle handle = {0};
+
   GameConfig conf;
   if (!GameConfigCreateDefault(&conf)) {
     return 1;
   }
 
-  for (int i = 0; i < handle.numEntries; i++) {
-    printf("entry %i: '%s':'%s'\n", i, handle.entries[i].key,
-           handle.entries[i].val);
-  }
-  int ret = ConfigHandleWriteFile(&handle, filepath);
-  ConfigHandleRelease(&handle);
+  int ret = GameConfigWriteFile(&conf, filepath);
   return !ret;
 }
 static int cmdCONFInfo(const char *filepath) {

@@ -24,9 +24,10 @@ int GameConfigFromFile(GameConfig *config, const char *filepath) {
   ConfigHandleRelease(&h);
   return 1;
 }
+
 int GameConfigCreateDefault(GameConfig *config) {
   memset(config, 0, sizeof(GameConfig));
-  config->tickLength = 20;
+  config->tickLength = 100;
   config->musicVol = config->soundVol = config->voiceVol = 8;
   return 1;
 }
