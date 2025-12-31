@@ -286,8 +286,8 @@ static void renderExitButton(GameContext *gameCtx) {
 }
 
 void GameRender(GameContext *gameCtx) {
-  SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
-  // SDL_RenderClear(gameCtx->renderer);
+  // SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
+  //  SDL_RenderClear(gameCtx->renderer);
   if (gameCtx->state == GameState_MainMenu) {
     renderMainMenu(gameCtx);
     return;

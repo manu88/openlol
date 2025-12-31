@@ -667,7 +667,6 @@ static void GamePreUpdate(GameContext *gameCtx) {
 }
 
 static void GameRunOnce(GameContext *gameCtx) {
-
   if (DBGServerUpdate(gameCtx)) {
     gameCtx->shouldUpdate = 1;
   }

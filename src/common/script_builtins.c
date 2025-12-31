@@ -728,7 +728,7 @@ static uint16_t prepareSpecialScene(EMCInterpreter *interp, EMCState *state) {
   uint16_t fadeFlag = EMCStateStackVal(state, 5);
   interp->callbacks.EMCInterpreterCallbacks_PrepareSpecialScene(
       interp, fieldType, hasDialogue, suspendGUI, allowSceneUpdate, controlMode,
-         fadeFlag);
+      fadeFlag);
   return 1;
 }
 
