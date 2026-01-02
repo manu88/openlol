@@ -111,7 +111,6 @@ static void drawMapShape(const GameContext *gameCtx, int index, int x, int y,
     return;
   }
   SHPFrame f = {0};
-  printf("drawMapShape index = %i\n", index);
   x = x + mapCoords[10][direction] - 2;
   y = y + mapCoords[11][direction] - 2;
   SHPHandleGetFrame(&gameCtx->automapShapes, &f, index + 11 + direction);

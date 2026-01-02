@@ -123,16 +123,16 @@ int cmdGame(int argc, char *argv[]) {
 void LevelContextRelease(LevelContext *levelCtx) {
   VMPHandleRelease(&levelCtx->vmpHandle);
   VCNHandleRelease(&levelCtx->vcnHandle);
-  MazeHandleRelease(&levelCtx->mazHandle);
   SHPHandleRelease(&levelCtx->shpHandle);
 }
 
 static void inspectFrontWall(GameContext *gameCtx) {
   uint16_t nextBlock =
       BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
-  const MazeBlock *block =
-      gameCtx->level->mazHandle.maze->wallMappingIndices + nextBlock;
-  uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
+
+  Orientation facing = absOrientation(gameCtx->orientation, South);
+  uint8_t wmi = gameCtx->level->blockProperties[nextBlock].walls[facing];
+
   const WllWallMapping *mapping =
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   if (mapping) {
@@ -151,9 +151,10 @@ static void runBlockScript(GameContext *gameCtx) {
 static void clickOnFrontWall(GameContext *gameCtx) {
   uint16_t nextBlock =
       BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
-  const MazeBlock *block =
-      gameCtx->level->mazHandle.maze->wallMappingIndices + nextBlock;
-  uint8_t wmi = block->face[absOrientation(gameCtx->orientation, South)];
+
+  Orientation facing = absOrientation(gameCtx->orientation, South);
+  uint8_t wmi = gameCtx->level->blockProperties[nextBlock].walls[facing];
+
   const WllWallMapping *mapping =
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   if (!mapping) {
@@ -379,9 +380,8 @@ int tryMove(GameContext *gameCtx, Direction dir) {
   }
 
   Orientation facingOrientation = (orientation + 2) % 4;
-  const MazeBlock *block =
-      gameCtx->level->mazHandle.maze->wallMappingIndices + newBlock;
-  uint8_t wmi = block->face[facingOrientation];
+  uint8_t wmi =
+      gameCtx->level->blockProperties[newBlock].walls[facingOrientation];
   const WllWallMapping *mapping =
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   if (mapping == NULL || mapping->wallType == 0 || mapping->wallType == 3) {

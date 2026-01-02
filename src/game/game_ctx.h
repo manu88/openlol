@@ -103,7 +103,6 @@ typedef struct {
 typedef struct {
   VCNHandle vcnHandle;
   VMPHandle vmpHandle;
-  MazeHandle mazHandle;
   WllHandle wllHandle;
   DatHandle datHandle;
   SHPHandle shpHandle;

@@ -125,14 +125,13 @@ static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadCMZ %s", file);
   memset(gameCtx->level->blockProperties, 0, sizeof(BlockProperty) * 1024);
+  MazeHandle mazHandle = {0};
   GameFile f = {0};
   assert(GameEnvironmentGetFile(&f, file));
-  assert(
-      MazeHandleFromBuffer(&gameCtx->level->mazHandle, f.buffer, f.bufferSize));
+  assert(MazeHandleFromBuffer(&mazHandle, f.buffer, f.bufferSize));
 
   for (int blockId = 0; blockId < 1024; blockId++) {
-    const MazeBlock *block =
-        gameCtx->level->mazHandle.maze->wallMappingIndices + blockId;
+    const MazeBlock *block = mazHandle.maze->wallMappingIndices + blockId;
 
     for (int wallId = 0; wallId < 4; wallId++) {
       uint8_t wmi = block->face[wallId];
@@ -146,13 +145,20 @@ static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
     }
 #endif
   }
+  MazeHandleRelease(&mazHandle);
 }
 
 static void callbackSetWallType(EMCInterpreter *interp, uint16_t block,
                                 uint16_t wall, uint16_t val) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetWallType %x %x %x", block, wall, val);
-  gameCtx->level->blockProperties[block].walls[wall] = val;
+  if (wall == 0XFFFF) {
+    for (int i = 0; i < 4; i++) {
+      gameCtx->level->blockProperties[block].walls[i] = val;
+    }
+  } else {
+    gameCtx->level->blockProperties[block].walls[wall] = val;
+  }
 }
 
 static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t blockId,
@@ -524,9 +530,7 @@ static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,
                                      uint16_t index2) {
   Log(LOG_PREFIX, "callbackGetWallFlags %x %x", index, index2);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  const MazeBlock *block =
-      gameCtx->level->mazHandle.maze->wallMappingIndices + index;
-  uint8_t wmi = block->face[index2];
+  uint8_t wmi = gameCtx->level->blockProperties[index].walls[index2];
   const WllWallMapping *mapping =
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   return mapping->flags;

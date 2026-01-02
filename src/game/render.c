@@ -354,10 +354,11 @@ void GameRenderMaze(GameContext *gameCtx) {
     if (!entry) {
       continue;
     }
-    int index = entry->coords.y * 32 + entry->coords.x;
-    const MazeBlock *block = level->mazHandle.maze->wallMappingIndices + index;
+    int blockId = entry->coords.y * 32 + entry->coords.x;
     Orientation absOri = absOrientation(gameCtx->orientation, r->orientation);
-    uint8_t wmi = block->face[absOri];
+
+    uint8_t wmi = gameCtx->level->blockProperties[blockId].walls[absOri];
+
     if (!wmi) {
       continue;
     }
