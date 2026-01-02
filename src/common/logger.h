@@ -4,7 +4,7 @@
 #define PRINTFLIKE(n, m) __attribute__((format(printf, n, m)))
 
 typedef void (*LOGFunction)(const char *prefix, const char *fmt, va_list args)
-    PRINTFLIKE(3, 0);
+    PRINTFLIKE(2, 0);
 
 typedef struct _Logger {
   LOGFunction func;

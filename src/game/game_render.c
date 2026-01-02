@@ -12,7 +12,6 @@
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
-#include <_string.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
