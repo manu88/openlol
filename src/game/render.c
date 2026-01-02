@@ -316,7 +316,7 @@ static RenderWall renderWalls[] = {
     {CELL_B, South, B_south},
     {CELL_C, South, C_south, DecorationIndex_C_SOUTH, 16, 26, 0},
     {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0},
-    {CELL_E, South, E_south, DecorationIndex_E_SOUTH, 112, 26, -1},
+    {CELL_E, South, E_south, DecorationIndex_E_SOUTH, 17, 26, -1},
     {CELL_F, South, F_south},
     {CELL_H, East, H_east},
     {CELL_I, West, I_east},
