@@ -295,6 +295,11 @@ int EMC_AssembleFile(const char *srcFilepath, const char *outFilePath) {
   }
   fseek(fileSourceP, 0, SEEK_END);
   long inFileSize = ftell(fileSourceP);
+  if(inFileSize == 0){
+    fclose(fileSourceP);
+    printf("empty file\n");
+    return 1;
+  }
   fseek(fileSourceP, 0, SEEK_SET);
 
   char *script =
