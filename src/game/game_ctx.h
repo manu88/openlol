@@ -158,7 +158,6 @@ typedef struct _GameContext {
   GameState state;
   GameState prevState;
 
-  int fadeOutFrames;
   int dialogBoxFrames;
   int showBigDialog;
 

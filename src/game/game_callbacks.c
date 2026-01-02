@@ -2,6 +2,7 @@
 #include "formats/format_cps.h"
 #include "formats/format_shp.h"
 #include "formats/format_tim.h"
+#include "game.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
@@ -532,8 +533,9 @@ static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,
 }
 
 static void callbackFadeScene(EMCInterpreter *interp, uint16_t mode) {
-  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  printf("[UNIMPLEMENTED] callbackFadeScene mode=0X%X\n", mode);
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  printf("callbackFadeScene mode=0X%X\n", mode);
+  GameDoSceneFade(gameCtx, 10);
 }
 
 static void callbackSetupDialogueButtons(EMCInterpreter *interp,

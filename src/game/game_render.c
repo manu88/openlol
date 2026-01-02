@@ -76,6 +76,26 @@ static void renderPlayField(GameContext *gameCtx) {
   renderCPS(gameCtx->pixBuf, gameCtx->playField.data,
             gameCtx->playField.imageSize, gameCtx->playField.palette,
             PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+#if 0            
+  // left part
+  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
+                gameCtx->playField.imageSize, gameCtx->playField.palette, 0, 0,
+                0, 0, MAZE_COORDS_X, PIX_BUF_HEIGHT, PIX_BUF_WIDTH);
+
+  // bottom part
+  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
+                gameCtx->playField.imageSize, gameCtx->playField.palette,
+                MAZE_COORDS_X, MAZE_COORDS_H, MAZE_COORDS_X, MAZE_COORDS_H,
+                PIX_BUF_WIDTH - MAZE_COORDS_X, PIX_BUF_HEIGHT - MAZE_COORDS_H,
+                PIX_BUF_WIDTH);
+
+  // right part
+  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
+                gameCtx->playField.imageSize, gameCtx->playField.palette,
+                MAZE_COORDS_X + MAZE_COORDS_W, 0, MAZE_COORDS_X + MAZE_COORDS_W,
+                0, PIX_BUF_WIDTH - MAZE_COORDS_X + MAZE_COORDS_W,
+                PIX_BUF_HEIGHT, PIX_BUF_WIDTH);
+#endif
   renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
                 gameCtx->playField.imageSize, gameCtx->playField.palette,
                 UI_MAP_BUTTON_X, UI_MAP_BUTTON_Y, 114, 65, UI_MAP_BUTTON_W,
@@ -284,6 +304,28 @@ static void renderExitButton(GameContext *gameCtx) {
   }
 }
 
+void DimRect(SDL_Texture *texture, int startX, int startY, int w, int h) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {startX, startY, w, h};
+  SDL_LockTexture(texture, &rect, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+      uint8_t r = ((row[x] & 0X00FF0000) >> 16) / 1.5;
+      uint8_t g = ((row[x] & 0X0000FF00) >> 8) / 1.5;
+      uint8_t b = ((row[x] & 0X000000FF)) / 1.5;
+      row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+    }
+  }
+  SDL_UnlockTexture(texture);
+}
+
+void GameRenderRenderSceneFade(GameContext *gameCtx) {
+  DimRect(gameCtx->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
+          MAZE_COORDS_H);
+}
+
 void GameRender(GameContext *gameCtx) {
   // SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
   //  SDL_RenderClear(gameCtx->renderer);
@@ -298,10 +340,7 @@ void GameRender(GameContext *gameCtx) {
   renderPlayField(gameCtx);
 
   renderLeftUIPart(gameCtx);
-  if (gameCtx->fadeOutFrames) {
-    gameCtx->fadeOutFrames--;
-    // clearMazeZone(gameCtx);
-  } else if (gameCtx->state == GameState_ShowInventory) {
+  if (gameCtx->state == GameState_ShowInventory) {
     renderCharInventory(gameCtx);
   } else {
     GameRenderMaze(gameCtx);

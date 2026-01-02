@@ -2,6 +2,7 @@
 #include "animator.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
+#include "game.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
@@ -47,9 +48,9 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
 
 static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
                                         uint16_t param) {
-  printf("GameTimAnimator: callbackFadeClearWindow param=%x\n", param);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  gameCtx->fadeOutFrames = 10;
+  printf("GameTimAnimator: callbackFadeClearWindow param=%x\n", param);
+  GameDoSceneFade(gameCtx, 10);
 }
 
 static uint16_t callbackTIM_GiveItem(TIMInterpreter *interp, uint16_t p0,

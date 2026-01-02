@@ -666,12 +666,24 @@ static void GamePreUpdate(GameContext *gameCtx) {
   }
 }
 
+void GameDoSceneFade(GameContext *gameCtx, int numFrames) {
+  while (numFrames--) {
+    SDL_Delay(gameCtx->conf.tickLength);
+    GameRenderRenderSceneFade(gameCtx);
+    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
+    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) ==
+           0);
+    SDL_RenderPresent(gameCtx->renderer);
+  }
+}
 static void GameRunOnce(GameContext *gameCtx) {
   if (DBGServerUpdate(gameCtx)) {
     gameCtx->shouldUpdate = 1;
   }
-  GamePreUpdate(gameCtx);
 
+  GamePreUpdate(gameCtx);
+  // SDL_EventState(SDL_MOUSEMOTION, SDL_DISABLE);
   SDL_Event e;
   SDL_WaitEventTimeout(&e, gameCtx->conf.tickLength);
   if (e.type == SDL_QUIT) {
