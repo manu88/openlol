@@ -53,10 +53,10 @@ static uint16_t delay(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getWallType(EMCInterpreter *interp, EMCState *state) {
-  uint16_t index = EMCStateStackVal(state, 0);
-  uint16_t index2 = EMCStateStackVal(state, 1);
-  return interp->callbacks.EMCInterpreterCallbacks_GetWallType(interp, index,
-                                                               index2);
+  uint16_t blockId = EMCStateStackVal(state, 0);
+  uint16_t wall = EMCStateStackVal(state, 1);
+  return interp->callbacks.EMCInterpreterCallbacks_GetWallType(interp, blockId,
+                                                               wall);
 }
 
 static uint16_t setWallType(EMCInterpreter *interp, EMCState *state) {
@@ -75,10 +75,10 @@ static uint16_t checkForCertainPartyMember(EMCInterpreter *interp,
 }
 
 static uint16_t getWallFlags(EMCInterpreter *interp, EMCState *state) {
-  uint16_t index = EMCStateStackVal(state, 0);
-  uint16_t index2 = EMCStateStackVal(state, 1);
-  return interp->callbacks.EMCInterpreterCallbacks_GetWallFlags(interp, index,
-                                                                index2);
+  uint16_t blockId = EMCStateStackVal(state, 0);
+  uint16_t wall = EMCStateStackVal(state, 1);
+  return interp->callbacks.EMCInterpreterCallbacks_GetWallFlags(interp, blockId,
+                                                                wall);
 }
 
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {

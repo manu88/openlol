@@ -253,14 +253,14 @@ typedef struct _EMCInterpreterCallbacks {
       EMCInterpreter *interp, int redraw);
 
   uint16_t (*EMCInterpreterCallbacks_GetWallType)(EMCInterpreter *interp,
-                                                  uint16_t index,
-                                                  uint16_t index2);
+                                                  uint16_t blockId,
+                                                  uint16_t wall);
   void (*EMCInterpreterCallbacks_SetWallType)(EMCInterpreter *interp,
-                                              uint16_t p0, uint16_t p1,
-                                              uint16_t p2);
+                                              uint16_t blockId, uint16_t wall,
+                                              uint16_t val);
   uint16_t (*EMCInterpreterCallbacks_GetWallFlags)(EMCInterpreter *interp,
-                                                   uint16_t index,
-                                                   uint16_t index2);
+                                                   uint16_t blockId,
+                                                   uint16_t wall);
 
   uint16_t (*EMCInterpreterCallbacks_CheckRectForMousePointer)(
       EMCInterpreter *interp, uint16_t xMin, uint16_t yMin, uint16_t xMax,

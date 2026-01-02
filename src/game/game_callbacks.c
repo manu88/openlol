@@ -526,11 +526,11 @@ static void callbackSetNextFunc(EMCInterpreter *interp, uint16_t func) {
   gameCtx->nextFunc = func;
 }
 
-static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t index,
-                                     uint16_t index2) {
-  Log(LOG_PREFIX, "callbackGetWallFlags %x %x", index, index2);
+static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t blockId,
+                                     uint16_t wall) {
+  Log(LOG_PREFIX, "callbackGetWallFlags %x %x", blockId, wall);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  uint8_t wmi = gameCtx->level->blockProperties[index].walls[index2];
+  uint8_t wmi = gameCtx->level->blockProperties[blockId].walls[wall];
   const WllWallMapping *mapping =
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   return mapping->flags;
