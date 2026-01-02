@@ -1,6 +1,6 @@
-CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags sdl2_image` `pkg-config --cflags sdl2_ttf` `pkg-config --cflags sndfile` -Wpedantic -Wall -MD -fsanitize=address -Isrc/common -Isrc/game -Isrc/dbg
+CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags SDL2_image` `pkg-config --cflags SDL2_ttf` `pkg-config --cflags sndfile` -Wpedantic -Wall -MD -fsanitize=address -Isrc/common -Isrc/game -Isrc/dbg
 
-LDFLAGS=  `pkg-config --libs sdl2_image` `pkg-config --libs sdl2_ttf` `pkg-config --libs sndfile`
+LDFLAGS=  `pkg-config --libs SDL2_image` `pkg-config --libs SDL2_ttf` `pkg-config --libs sndfile`
 
 SOURCES=$(wildcard src/*.c) $(wildcard src/common/*.c) $(wildcard src/common/formats/*.c) $(wildcard src/game/*.c) $(wildcard src/dbg/*.c)
 
