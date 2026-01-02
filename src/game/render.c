@@ -272,6 +272,7 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
                        deco->shapeY[wall->decoIndex] + wall->y,
                        level->vcnHandle.palette, 1);
     }
+    SHPFrameRelease(&frame);
   }
   if (deco->next) {
     renderDecoration(pixBuf, level, wall, deco->next);
