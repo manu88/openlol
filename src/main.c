@@ -611,34 +611,6 @@ static int cmdDat(int argc, char *argv[]) {
   return 0;
 }
 
-static int cmdMap(int argc, char *argv[]) {
-  size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
-  if (!buffer) {
-    perror("readBinaryFile");
-    return 1;
-  }
-  MazeHandle handle = {0};
-  if (!MazeHandleFromBuffer(&handle, buffer, readSize)) {
-    return 1;
-  }
-  const Maze *maze = handle.maze;
-  printf("Maze w=%0X h=%0X Nof=%0X\n", maze->width, maze->height,
-         maze->tileSize);
-  FILE *fout = fopen("test.txt", "w");
-
-  for (int i = 0; i < MAZE_NUM_CELL; i++) {
-    fprintf(fout, "%i %i %i %i\n", maze->wallMappingIndices[i].face[0],
-            maze->wallMappingIndices[i].face[1],
-            maze->wallMappingIndices[i].face[2],
-            maze->wallMappingIndices[i].face[3]);
-  }
-  fprintf(fout, "\n");
-  fclose(fout);
-  MazeHandleRelease(&handle);
-  return 0;
-}
 
 static void usageCPS(void) {
   printf("cps extract|extract-pal|info cpsfile [outputfile]\n");
@@ -1265,8 +1237,6 @@ static int doCMD(int argc, char *argv[]) {
     return cmdVMP(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "cps") == 0) {
     return cmdCPS(argc - 2, argv + 2);
-  } else if (strcmp(argv[1], "map") == 0) {
-    return cmdMap(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "script") == 0) {
     return cmdScript(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "game") == 0) {
