@@ -11,7 +11,6 @@
 		5914084C2EB3AE430012E17E /* menu.c in Sources */ = {isa = PBXBuildFile; fileRef = 591408492EB3AE430012E17E /* menu.c */; };
 		5914084D2EB3AE430012E17E /* ui.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084B2EB3AE430012E17E /* ui.c */; };
 		591408502EB3AE580012E17E /* format_xxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084F2EB3AE580012E17E /* format_xxx.c */; };
-		594887D02E8681B300684ABD /* tim_animator.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887CF2E8681B300684ABD /* tim_animator.c */; };
 		594887D32E8681C000684ABD /* tim_interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887D22E8681C000684ABD /* tim_interpreter.c */; };
 		596F7FFF2EA3EFDE00CC2266 /* format_dat.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F7FE62EA3EFDE00CC2266 /* format_dat.c */; };
 		596F80002EA3EFDE00CC2266 /* format_wsa.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F7FFD2EA3EFDE00CC2266 /* format_wsa.c */; };
@@ -50,6 +49,14 @@
 		59A982582E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59A982572E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib */; };
 		59E91FED2E6A271200D1D45C /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59E91FEC2E6A271200D1D45C /* libSDL2-2.0.0.dylib */; };
 		59E91FEF2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59E91FEE2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib */; };
+		59F7378A2F07EA14007E2EF7 /* format_config.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F737892F07EA14007E2EF7 /* format_config.c */; };
+		59F7378D2F07EA32007E2EF7 /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F7378C2F07EA32007E2EF7 /* config.c */; };
+		59F737902F07EA42007E2EF7 /* audio.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F7378F2F07EA42007E2EF7 /* audio.c */; };
+		59F737932F07EA57007E2EF7 /* format_voc.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F737922F07EA57007E2EF7 /* format_voc.c */; };
+		59F737962F07EA69007E2EF7 /* game_char_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F737952F07EA69007E2EF7 /* game_char_inventory.c */; };
+		59F737992F07EA87007E2EF7 /* game_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F737982F07EA87007E2EF7 /* game_rules.c */; };
+		59F737A02F07EB07007E2EF7 /* automap_render.c in Sources */ = {isa = PBXBuildFile; fileRef = 59F7379F2F07EB07007E2EF7 /* automap_render.c */; };
+		59F737A22F07EBD5007E2EF7 /* libsndfile.1.0.37.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 59F737A12F07EBD5007E2EF7 /* libsndfile.1.0.37.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -73,8 +80,6 @@
 		5914084B2EB3AE430012E17E /* ui.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ui.c; path = src/game/ui.c; sourceTree = SOURCE_ROOT; };
 		5914084E2EB3AE580012E17E /* format_xxx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_xxx.h; sourceTree = "<group>"; };
 		5914084F2EB3AE580012E17E /* format_xxx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = format_xxx.c; sourceTree = "<group>"; };
-		594887CE2E8681B300684ABD /* tim_animator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_animator.h; sourceTree = "<group>"; };
-		594887CF2E8681B300684ABD /* tim_animator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tim_animator.c; sourceTree = "<group>"; };
 		594887D12E8681C000684ABD /* tim_interpreter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_interpreter.h; sourceTree = "<group>"; };
 		594887D22E8681C000684ABD /* tim_interpreter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tim_interpreter.c; sourceTree = "<group>"; };
 		596F7FDF2EA3EFDE00CC2266 /* format_40.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_40.h; sourceTree = "<group>"; };
@@ -150,6 +155,21 @@
 		59E91F992E6A267E00D1D45C /* LandsOfLore */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LandsOfLore; sourceTree = BUILT_PRODUCTS_DIR; };
 		59E91FEC2E6A271200D1D45C /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "../../../../../opt/homebrew/Cellar/sdl2/2.32.8/lib/libSDL2-2.0.0.dylib"; sourceTree = "<group>"; };
 		59E91FEE2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../../opt/homebrew/Cellar/sdl2_image/2.8.8/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
+		59F737882F07EA14007E2EF7 /* format_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_config.h; sourceTree = "<group>"; };
+		59F737892F07EA14007E2EF7 /* format_config.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = format_config.c; sourceTree = "<group>"; };
+		59F7378B2F07EA32007E2EF7 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		59F7378C2F07EA32007E2EF7 /* config.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = config.c; sourceTree = "<group>"; };
+		59F7378E2F07EA42007E2EF7 /* audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = audio.h; sourceTree = "<group>"; };
+		59F7378F2F07EA42007E2EF7 /* audio.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = audio.c; sourceTree = "<group>"; };
+		59F737912F07EA57007E2EF7 /* format_voc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_voc.h; sourceTree = "<group>"; };
+		59F737922F07EA57007E2EF7 /* format_voc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = format_voc.c; sourceTree = "<group>"; };
+		59F737942F07EA69007E2EF7 /* game_char_inventory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game_char_inventory.h; sourceTree = "<group>"; };
+		59F737952F07EA69007E2EF7 /* game_char_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = game_char_inventory.c; sourceTree = "<group>"; };
+		59F737972F07EA87007E2EF7 /* game_rules.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game_rules.h; sourceTree = "<group>"; };
+		59F737982F07EA87007E2EF7 /* game_rules.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = game_rules.c; sourceTree = "<group>"; };
+		59F7379E2F07EB07007E2EF7 /* automap_render.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = automap_render.h; sourceTree = "<group>"; };
+		59F7379F2F07EB07007E2EF7 /* automap_render.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = automap_render.c; sourceTree = "<group>"; };
+		59F737A12F07EBD5007E2EF7 /* libsndfile.1.0.37.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.0.37.dylib; path = /opt/homebrew/Cellar/libsndfile/1.2.2_1/lib/libsndfile.1.0.37.dylib; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,6 +179,7 @@
 			files = (
 				59E91FED2E6A271200D1D45C /* libSDL2-2.0.0.dylib in Frameworks */,
 				59E91FEF2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib in Frameworks */,
+				59F737A22F07EBD5007E2EF7 /* libsndfile.1.0.37.dylib in Frameworks */,
 				59A982582E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -169,6 +190,10 @@
 		596F7FFE2EA3EFDE00CC2266 /* formats */ = {
 			isa = PBXGroup;
 			children = (
+				59F737912F07EA57007E2EF7 /* format_voc.h */,
+				59F737922F07EA57007E2EF7 /* format_voc.c */,
+				59F737882F07EA14007E2EF7 /* format_config.h */,
+				59F737892F07EA14007E2EF7 /* format_config.c */,
 				596F7FDF2EA3EFDE00CC2266 /* format_40.h */,
 				596F7FE02EA3EFDE00CC2266 /* format_40.c */,
 				596F7FE12EA3EFDE00CC2266 /* format_cmz.h */,
@@ -221,6 +246,8 @@
 				596F7FFE2EA3EFDE00CC2266 /* formats */,
 				596F802F2EA3F13A00CC2266 /* game_envir.h */,
 				596F80302EA3F13A00CC2266 /* game_envir.c */,
+				59F737972F07EA87007E2EF7 /* game_rules.h */,
+				59F737982F07EA87007E2EF7 /* game_rules.c */,
 				596F80322EA3F15400CC2266 /* logger.h */,
 				596F80332EA3F15400CC2266 /* logger.c */,
 				59A981F92E8306F800A6A596 /* bytes.h */,
@@ -233,8 +260,6 @@
 				59A981FC2E8306F800A6A596 /* emc_asm.c */,
 				594887D12E8681C000684ABD /* tim_interpreter.h */,
 				594887D22E8681C000684ABD /* tim_interpreter.c */,
-				594887CE2E8681B300684ABD /* tim_animator.h */,
-				594887CF2E8681B300684ABD /* tim_animator.c */,
 				59A982172E8306F800A6A596 /* pak_file.h */,
 				59A982182E8306F800A6A596 /* pak_file.c */,
 				59A982192E8306F800A6A596 /* renderer.h */,
@@ -254,7 +279,15 @@
 		59A982312E8306F800A6A596 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				59F737942F07EA69007E2EF7 /* game_char_inventory.h */,
+				59F737952F07EA69007E2EF7 /* game_char_inventory.c */,
+				59F7378B2F07EA32007E2EF7 /* config.h */,
+				59F7378C2F07EA32007E2EF7 /* config.c */,
+				59F7378E2F07EA42007E2EF7 /* audio.h */,
+				59F7378F2F07EA42007E2EF7 /* audio.c */,
 				596F800F2EA3F03500CC2266 /* dbg_server.h */,
+				59F7379E2F07EB07007E2EF7 /* automap_render.h */,
+				59F7379F2F07EB07007E2EF7 /* automap_render.c */,
 				596F80102EA3F03500CC2266 /* dbg_server.c */,
 				596F80112EA3F03500CC2266 /* defs.h */,
 				596F80122EA3F03500CC2266 /* game.h */,
@@ -306,6 +339,7 @@
 		59E91FEB2E6A271200D1D45C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				59F737A12F07EBD5007E2EF7 /* libsndfile.1.0.37.dylib */,
 				59A982572E83077B00A6A596 /* libSDL2_ttf-2.0.0.dylib */,
 				59E91FEE2E6A277000D1D45C /* libSDL2_image-2.0.0.dylib */,
 				59E91FEC2E6A271200D1D45C /* libSDL2-2.0.0.dylib */,
@@ -373,6 +407,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59F737902F07EA42007E2EF7 /* audio.c in Sources */,
 				59A9823F2E8306F800A6A596 /* script_disassembler.c in Sources */,
 				59A982412E8306F800A6A596 /* emc_asm.c in Sources */,
 				59A982422E8306F800A6A596 /* bytes.c in Sources */,
@@ -389,16 +424,20 @@
 				596F80042EA3EFDE00CC2266 /* format_cps.c in Sources */,
 				596F80052EA3EFDE00CC2266 /* format_lcw.c in Sources */,
 				596F80342EA3F15400CC2266 /* logger.c in Sources */,
+				59F737A02F07EB07007E2EF7 /* automap_render.c in Sources */,
 				596F80062EA3EFDE00CC2266 /* format_40.c in Sources */,
 				596F80072EA3EFDE00CC2266 /* format_inf.c in Sources */,
 				596F80082EA3EFDE00CC2266 /* format_fnt.c in Sources */,
 				596F80312EA3F13A00CC2266 /* game_envir.c in Sources */,
 				596F802D2EA3F10B00CC2266 /* debugger.c in Sources */,
 				591408502EB3AE580012E17E /* format_xxx.c in Sources */,
+				59F7378A2F07EA14007E2EF7 /* format_config.c in Sources */,
 				596F80092EA3EFDE00CC2266 /* format_cmz.c in Sources */,
+				59F737932F07EA57007E2EF7 /* format_voc.c in Sources */,
 				596F800A2EA3EFDE00CC2266 /* format_lang.c in Sources */,
 				596F800B2EA3EFDE00CC2266 /* format_vcn.c in Sources */,
 				596F800C2EA3EFDE00CC2266 /* format_tim.c in Sources */,
+				59F7378D2F07EA32007E2EF7 /* config.c in Sources */,
 				596F800D2EA3EFDE00CC2266 /* format_vmp.c in Sources */,
 				596F80202EA3F03500CC2266 /* game_ctx.c in Sources */,
 				596F80212EA3F03500CC2266 /* render.c in Sources */,
@@ -407,10 +446,11 @@
 				5914084D2EB3AE430012E17E /* ui.c in Sources */,
 				596F80232EA3F03500CC2266 /* geometry.c in Sources */,
 				596F80242EA3F03500CC2266 /* game_render.c in Sources */,
+				59F737962F07EA69007E2EF7 /* game_char_inventory.c in Sources */,
 				596F80252EA3F03500CC2266 /* game_tim_animator.c in Sources */,
+				59F737992F07EA87007E2EF7 /* game_rules.c in Sources */,
 				596F80262EA3F03500CC2266 /* game_callbacks.c in Sources */,
 				596F80272EA3F03500CC2266 /* dbg_server.c in Sources */,
-				594887D02E8681B300684ABD /* tim_animator.c in Sources */,
 				591408472EB3AE280012E17E /* animator.c in Sources */,
 				594887D32E8681C000684ABD /* tim_interpreter.c in Sources */,
 			);
@@ -557,6 +597,8 @@
 					/opt/homebrew/Cellar/sdl2/2.32.8/lib,
 					/opt/homebrew/Cellar/sdl2_image/2.8.8/lib,
 					/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib,
+					"$(PROJECT_DIR)",
+					/opt/homebrew/Cellar/libsndfile/1.2.2_1/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -579,6 +621,8 @@
 					/opt/homebrew/Cellar/sdl2/2.32.8/lib,
 					/opt/homebrew/Cellar/sdl2_image/2.8.8/lib,
 					/opt/homebrew/Cellar/sdl2_ttf/2.24.0/lib,
+					"$(PROJECT_DIR)",
+					/opt/homebrew/Cellar/libsndfile/1.2.2_1/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
