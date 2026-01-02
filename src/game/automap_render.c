@@ -30,7 +30,6 @@ static int mapGetStartPosX(const GameContext *gameCtx) {
   } while (c < 32 && a == 32);
 
   int d = 31;
-  a = 32;
 
   do {
     for (a = 0; a < 32; a++) {
@@ -59,7 +58,6 @@ static int mapGetStartPosY(const GameContext *gameCtx) {
   } while (c < 32 && a == 32);
 
   int d = 31;
-  a = 32;
 
   do {
     for (a = 0; a < 32; a++) {
