@@ -262,9 +262,6 @@ int GameContextNewGame(GameContext *gameCtx) {
   gameCtx->chars[0].id = -9; // Ak'shel for the win
   gameCtx->chars[0].flags = 1;
   snprintf(gameCtx->chars[0].name, 11, "Ak'shel");
-  // temp until we get the value from script/tim
-  gameCtx->currentBock = 0X24D;
-  gameCtx->orientation = North;
   gameCtx->inventory[0] = GameContextCreateItem(gameCtx, 216); // salve
   gameCtx->inventory[1] = GameContextCreateItem(gameCtx, 217); // aloe
   gameCtx->inventory[2] = GameContextCreateItem(gameCtx, 218); // Ginseng
