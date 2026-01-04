@@ -711,9 +711,11 @@ static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
                                              uint16_t redrawPlayField,
                                              uint16_t releaseTimScripts,
                                              uint16_t sceneUpdateMode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("[unimplemented] restoreAfterSpecialScene fadeFlag=%X "
          "redrawPlayField=%X releaseTimScripts=%X sceneUpdateMode=%X\n",
          fadeFlag, redrawPlayField, releaseTimScripts, sceneUpdateMode);
+  gameCtx->showBitmap = 0;
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {

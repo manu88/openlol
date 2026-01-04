@@ -34,6 +34,9 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
   renderCPSAt(gameCtx->pixBuf, gameCtx->loadedbitMap.data,
               gameCtx->loadedbitMap.imageSize, gameCtx->loadedbitMap.palette,
               destX, destY, w, h, 320, 200);
+  printf("render bitmap srcX=%i srcY=%i dstX=%i dstY=%i w=%i h=%i\n", srcX,
+         srcY, destX, destY, w, h);
+  gameCtx->showBitmap = 1;
 }
 
 static void renderDialog(GameContext *gameCtx) {
@@ -344,6 +347,13 @@ void GameRender(GameContext *gameCtx) {
     renderCharInventory(gameCtx);
   } else {
     GameRenderMaze(gameCtx);
+
+    if (gameCtx->showBitmap) {
+      printf("show bitmap\n");
+      renderCPSAt(gameCtx->pixBuf, gameCtx->loadedbitMap.data,
+                  gameCtx->loadedbitMap.imageSize,
+                  gameCtx->loadedbitMap.palette, 112, 0, 176, 120, 320, 200);
+    }
     if (gameCtx->state == GameState_TimAnimation) {
       if (GameTimInterpreterRender(&gameCtx->timInterpreter) == 0) {
         GameContextSetState(gameCtx, GameState_PlayGame);

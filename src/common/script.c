@@ -22,8 +22,8 @@ static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode,
   if (funcCode >= getNumBuiltinFunctions()) {
     EMCDisassemblerEmitLine(disasm, instOffset, "%s 0X%X", MNEMONIC_CALL,
                             funcCode);
-    printf("func %X is outside builtins (size=%zx)\n", funcCode,
-           getNumBuiltinFunctions());
+    printf("func %X is outside builtins (size=%zx) at offset 0X%X\n", funcCode,
+           getNumBuiltinFunctions(), instOffset);
     return;
   }
   assert(getBuiltinFunctions()[funcCode].name);
@@ -34,8 +34,16 @@ static void emitLineFunctionCall(EMCDisassembler *disasm, uint16_t funcCode,
 static void StackPush(EMCState *s, uint16_t val) { s->stack[--s->sp] = val; }
 static uint16_t StackPop(EMCState *s) { return s->stack[s->sp++]; }
 
-static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
-                       int16_t parameter, uint32_t instOffset) {
+static void execOpCode(EMCInterpreter *interp, EMCState *script,
+                       uint16_t opCode, uint16_t parameter,
+                       uint32_t instOffset) {
+  if (interp->disassembler) {
+    int offsetIndex = INFScriptIsOffset(script->dataPtr, instOffset + 1);
+    if (offsetIndex != -1) {
+      EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s %i",
+                              MNEMONIC_LABEL_OFFSET, offsetIndex);
+    }
+  }
 
   switch ((ScriptCommand)opCode) {
   case OP_JUMP:
@@ -44,7 +52,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_JUMP, parameter);
     } else {
-      script->ip = script->dataPtr->data + parameter;
+      script->ip = script->dataPtr->scriptData + parameter;
 #if 0
       printf("After jump ip=%lX\n", script->ip - script->dataPtr->data);
       if (script->ip - script->dataPtr->data == 0) {
@@ -75,7 +83,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         return;
       case 1:
         Log("SCRIPT", "PUSHRETLOC");
-        StackPush(script, script->ip - script->dataPtr->data + 1);
+        StackPush(script, script->ip - script->dataPtr->scriptData + 1);
         StackPush(script, script->bp);
         script->bp = script->sp + 2;
         return;
@@ -120,7 +128,8 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_PUSH_ARG, parameter);
     } else {
-      StackPush(script, script->stack[script->bp + parameter - 1]);
+      uint16_t val = script->stack[script->bp + parameter - 1];
+      StackPush(script, val);
     }
     return;
   case OP_POP_RETURN_OR_LOCATION:
@@ -136,14 +145,12 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
 
       case 1:
         Log("SCRIPT", "POPLOC");
-
         if (script->sp >= kStackLastEntry) {
           // assert(0);
           script->ip = NULL;
         } else {
-
           script->bp = StackPop(script);
-          script->ip = script->dataPtr->data + StackPop(script);
+          script->ip = script->dataPtr->scriptData + StackPop(script);
         }
         break;
       default:
@@ -211,7 +218,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
                               MNEMONIC_JUMP_NE, parameter);
     } else {
       if (!StackPop(script)) {
-        script->ip = script->dataPtr->data + parameter;
+        script->ip = script->dataPtr->scriptData + parameter;
       }
     }
     return;
@@ -444,10 +451,12 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script, int16_t opCode,
         script->retValue = StackPop(script);
         uint16_t temp = StackPop(script);
         script->stack[kStackLastEntry] = 0;
-        script->ip = &script->dataPtr->data[temp];
+        script->ip = &script->dataPtr->scriptData[temp];
       }
     }
     return;
+  case OP_LABEL_OFFSET:
+    assert(0); // Implement me :)
   }
 }
 
@@ -460,10 +469,11 @@ void EMCStateInit(EMCState *scriptState, const INFScript *script) {
   scriptState->stack[kStackLastEntry] = 0;
   scriptState->bp = kStackSize + 1;
   scriptState->sp = kStackLastEntry;
+  EMCStateSetOffset(scriptState, 0);
 }
 
 int EMCStateSetOffset(EMCState *script, uint16_t offset) {
-  script->ip = &script->dataPtr->data[offset];
+  script->ip = script->dataPtr->scriptData + offset;
   return 1;
 }
 
@@ -482,8 +492,9 @@ int EMCStateStart(EMCState *state, int function) {
     return 0;
   }
   functionOffset++;
-  if (functionOffset >= (int)state->dataPtr->dataSize / 2) {
-    printf("%X >= %X\n", functionOffset, (int)state->dataPtr->dataSize / 2);
+  if (functionOffset >= (int)state->dataPtr->scriptDataSize / 2) {
+    printf("%X >= %X\n", functionOffset,
+           (int)state->dataPtr->scriptDataSize / 2);
     return 0;
   }
   return EMCStateSetOffset(state, functionOffset);
@@ -500,18 +511,20 @@ int EMCInterpreterRun(EMCInterpreter *interp, EMCState *state) {
     return 0;
   }
 
-  const uint32_t instOffset = (uint32_t)((const uint8_t *)state->ip -
-                                         (const uint8_t *)state->dataPtr->data);
-  if ((int32_t)instOffset < 0 || instOffset >= state->dataPtr->dataSize) {
+  const uint32_t instOffset =
+      (ptrdiff_t)(state->ip - state->dataPtr->scriptData);
+
+  if ((int32_t)instOffset < 0 ||
+      instOffset >= state->dataPtr->scriptDataSize / 2) {
     printf("Attempt to execute out of bounds: 0x%.08X out of 0x%.08X\n",
-           instOffset, state->dataPtr->dataSize);
+           instOffset, state->dataPtr->scriptDataSize);
     state->ip = NULL;
     return 0;
   }
-  int16_t code = swap_uint16(*state->ip++);
-  int16_t opcode = (code >> 8) & 0x1F;
+  uint16_t code = swap_uint16(*state->ip++);
+  uint16_t opcode = (code >> 8) & 0x1F;
 
-  int16_t parameter = 0;
+  uint16_t parameter = 0;
   if (code & 0x8000) {
     opcode = 0;
     parameter = code & 0x7FFF;

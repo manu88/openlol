@@ -258,6 +258,7 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
                              const RenderWall *wall, uint16_t decorationId) {
   const DatDecoration *deco = level->datHandle.datDecoration + decorationId;
   if (deco->shapeIndex[wall->decoIndex] != DECORATION_EMPTY_INDEX) {
+    printf("scale flag = %X\n", deco->scaleFlag[wall->decoIndex]);
     SHPFrame frame = {0};
     size_t index = deco->shapeIndex[wall->decoIndex];
     SHPHandleGetFrame(&level->shpHandle, &frame, index);
@@ -307,16 +308,22 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
 }
 
 static RenderWall renderWalls[] = {
+
     {CELL_A, East, A_east},
     {CELL_B, East, B_east},
     {CELL_C, East, C_east},
+
     {CELL_E, East, E_west},
-    {CELL_F, West, F_west},
+
+    {CELL_F, West, F_west, 5, 0, 0, -1},
+
     {CELL_G, West, G_west},
     {CELL_B, South, B_south},
     {CELL_C, South, C_south, DecorationIndex_C_SOUTH, 16, 26, 0},
     {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0},
+
     {CELL_E, South, E_south, DecorationIndex_E_SOUTH, 17, 26, -1},
+
     {CELL_F, South, F_south},
     {CELL_H, East, H_east},
     {CELL_I, West, I_east},
@@ -327,11 +334,9 @@ static RenderWall renderWalls[] = {
     {CELL_K, South, K_south, DecorationIndex_K_SOUTH, 128, 20, 0},
     {CELL_M, East, M_east, DecorationIndex_M_WEST, 24, 10, 0},
     {CELL_O, West, O_west, DecorationIndex_O_EAST, 24, 10, 1},
-
     {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 153, 8, 1},
     {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8, 0},
     {CELL_O, South, O_south, DecorationIndex_O_SOUTH, 153, 8, 0},
-
     {CELL_P, East, P_east, DecorationIndex_P_EAST, 0, 0, 0},
     {CELL_Q, West, Q_west, DecorationIndex_Q_WEST, 0, 0, 1},
 
@@ -370,13 +375,12 @@ void GameRenderMaze(GameContext *gameCtx) {
       if (r->orientation == South && r->cellId == CELL_N &&
           wallType == 3) { // door
         SHPFrame frame = {0};
-        if (gameCtx->level->doors.originalBuffer) {
-          SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
-          SHPFrameGetImageData(&frame);
-          drawSHPMazeFrame(texture, &frame, 52, 16,
-                           gameCtx->level->vcnHandle.palette, 0);
-          SHPFrameRelease(&frame);
-        }
+
+        SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+        SHPFrameGetImageData(&frame);
+        drawSHPMazeFrame(texture, &frame, 52, 16,
+                         gameCtx->level->vcnHandle.palette, 0);
+        SHPFrameRelease(&frame);
       }
     }
     if (r->decoIndex == 0) {

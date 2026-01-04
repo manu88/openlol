@@ -192,6 +192,7 @@ typedef struct _GameContext {
   CPSImage inventoryBackgrounds[INVENTORY_TYPES_NUM];
   CPSImage playField;
   CPSImage loadedbitMap;
+  int showBitmap;
   CPSImage mapBackground;
 
   CPSImage gameTitle;

@@ -365,6 +365,18 @@ void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
   }
 }
 
+static int runInitScript(GameContext *gameCtx, INFScript *script) {
+  EMCState state = {0};
+  EMCStateInit(&state, script);
+  for (int i = 0; i < INFScriptGetNumFunctions(script); i++) {
+    EMCStateStart(&state, i);
+    while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
+      EMCInterpreterRun(&gameCtx->interp, &state);
+    }
+  }
+  return 1;
+}
+
 int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   GameRenderResetDialog(ctx);
 
@@ -392,7 +404,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     assert(GameEnvironmentGetFile(&f, iniFile));
     assert(INFScriptFromBuffer(&iniScript, f.buffer, f.bufferSize));
     printf("->Run INI SCRIPT\n");
-    runScript(ctx, &iniScript);
+    runInitScript(ctx, &iniScript);
     printf("<-DONE INI SCRIPT\n");
   }
   {
@@ -549,6 +561,9 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
     }
   }
   GameRenderResetDialog(gameCtx);
+  // FIXME: temporary clear screen here to avoid for cps background to remain on
+  // screen
+  gameCtx->showBitmap = 0;
 }
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {

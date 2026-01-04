@@ -32,7 +32,9 @@ typedef enum {
                       // last entry on the stack is non-zero.
   OP_UNARY = 0X10,    // Perform unary operations.
   OP_BINARY = 0X11,   // Perform binary operations.
-  OP_RETURN = 0X12    // Return from a subroutine.
+  OP_RETURN = 0X12,   // Return from a subroutine.
+
+  OP_LABEL_OFFSET = 0X13 // Not a real opcode, marks a code offset
 } ScriptCommand;
 
 typedef enum {
@@ -93,6 +95,7 @@ typedef enum {
 #define MNEMONIC_MINUS (const char *)"MINUS"
 #define MNEMONIC_EQUAL (const char *)"EQUAL"
 #define MNEMONIC_NOT_EQUAL (const char *)"NEQUAL"
+#define MNEMONIC_LABEL_OFFSET (const char *)"LABEL"
 
 typedef struct _EMCState {
   enum { kStackSize = 100, kStackLastEntry = kStackSize - 1 };

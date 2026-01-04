@@ -42,8 +42,8 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       uint32_t dataSize = swap_uint32(*(uint32_t *)buff);
       buff += 4;
       readSize += 4;
-      script->dataSize = dataSize;
-      script->data = (uint16_t *)buff;
+      script->scriptDataSize = dataSize;
+      script->scriptData = (uint16_t *)buff;
       buff += dataSize;
       readSize += dataSize;
     } else {
@@ -53,11 +53,10 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
       readSize += 4;
       if (strcmp((char *)chunkName, "EMC2ORDR") == 0) {
         uint32_t chunkSize = swap_uint32(*(uint32_t *)buff);
-        script->numSegments = chunkSize / 2;
+        script->numOffsets = chunkSize / 2;
         buff += 4;
         readSize += 4;
-        script->ordr = (uint16_t *)buff;
-
+        script->functionOffsets = (uint16_t *)buff;
         buff += chunkSize;
         readSize += chunkSize;
       } else {
@@ -83,13 +82,25 @@ int INFScriptFromBuffer(INFScript *script, uint8_t *buffer, size_t bufferSize) {
 }
 
 int INFScriptGetNumFunctions(const INFScript *script) {
-  return script->numSegments;
+  return script->numOffsets;
+}
+
+int INFScriptIsOffset(const INFScript *script, uint16_t instOffset) {
+  for (int i = 0; i < INFScriptGetNumFunctions(script); i++) {
+    if (script->functionOffsets[i] != 0XFFFF) {
+      uint16_t v = swap_uint16(script->functionOffsets[i]);
+      if (v == instOffset) {
+        return i;
+      }
+    }
+  }
+  return -1;
 }
 
 int INFScriptGetFunctionOffset(const INFScript *script, uint16_t functionNum) {
   assert(functionNum < INFScriptGetNumFunctions(script));
-  if (script->ordr[functionNum] != 0XFFFF) {
-    return swap_uint16(script->ordr[functionNum]);
+  if (script->functionOffsets[functionNum] != 0XFFFF) {
+    return swap_uint16(script->functionOffsets[functionNum]);
   }
   return -1;
 }

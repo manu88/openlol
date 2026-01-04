@@ -225,7 +225,7 @@ static int cmdScriptDisasm(const char *filepath, int functionNum) {
 
   printf("%s\n", disassembler.disasmBuffer);
   EMCDisassemblerRelease(&disassembler);
-  printf("Exec'ed %i / %i instructions\n", n, script.dataSize);
+  printf("Exec'ed %i / %i instructions\n", n, script.scriptDataSize);
   if (freeBuffer) {
     free(iffData);
   }
@@ -252,7 +252,7 @@ static int cmdScriptTest(const char *filepath, int functionNum) {
   if (functionNum != -1) {
     EMCStateStart(&state, functionNum);
   } else {
-    state.ip = script.data;
+    state.ip = script.scriptData;
   }
   int n = 0;
 
@@ -610,7 +610,6 @@ static int cmdDat(int argc, char *argv[]) {
   DatHandleRelease(&handle);
   return 0;
 }
-
 
 static void usageCPS(void) {
   printf("cps extract|extract-pal|info cpsfile [outputfile]\n");
