@@ -3,20 +3,15 @@
 #include "animator.h"
 #include "audio.h"
 #include "config.h"
-#include "formats/format_cmz.h"
 #include "formats/format_cps.h"
-#include "formats/format_dat.h"
 #include "formats/format_fnt.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
-#include "formats/format_vcn.h"
-#include "formats/format_vmp.h"
-#include "formats/format_wll.h"
-#include "formats/format_xxx.h"
 #include "game_tim_animator.h"
 #include "geometry.h"
+#include "level.h"
 #include "menu.h"
 #include "monster.h"
 #include "pak_file.h"
@@ -31,8 +26,6 @@
 
 #define DIALOG_BUFFER_SIZE (size_t)1024
 
-#define MAX_MONSTER_PROPERTIES 5
-#define MAX_MONSTERS 30
 #define MAX_IN_GAME_ITEMS 400
 
 typedef struct {
@@ -45,34 +38,6 @@ typedef struct {
   uint16_t protection;
   uint16_t flags;
 } ItemProperty;
-
-typedef struct {
-  uint8_t walls[4];
-  uint8_t direction;
-  uint16_t flags;
-} BlockProperty;
-
-typedef struct {
-  VCNHandle vcnHandle;
-  VMPHandle vmpHandle;
-  WllHandle wllHandle;
-  DatHandle datHandle;
-  SHPHandle shpHandle;
-  LangHandle levelLang;
-
-  SHPHandle doors;
-  SHPHandle monsterShapes[MAX_MONSTERS];
-
-  MonsterProperties monsterProperties[MAX_MONSTER_PROPERTIES];
-  Monster monsters[MAX_MONSTERS];
-
-  PAKFile currentTlkFile;
-  int currentTlkFileIndex;
-
-  BlockProperty blockProperties[MAZE_NUM_CELL];
-  XXXHandle legendData;
-
-} LevelContext;
 
 typedef enum {
   GameState_Invalid,

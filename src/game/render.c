@@ -258,7 +258,6 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
                              const RenderWall *wall, uint16_t decorationId) {
   const DatDecoration *deco = level->datHandle.datDecoration + decorationId;
   if (deco->shapeIndex[wall->decoIndex] != DECORATION_EMPTY_INDEX) {
-    printf("scale flag = %X\n", deco->scaleFlag[wall->decoIndex]);
     SHPFrame frame = {0};
     size_t index = deco->shapeIndex[wall->decoIndex];
     SHPHandleGetFrame(&level->shpHandle, &frame, index);

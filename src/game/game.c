@@ -15,6 +15,7 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "geometry.h"
+#include "level.h"
 #include "logger.h"
 #include "menu.h"
 #include "script.h"
@@ -95,7 +96,7 @@ int cmdGame(int argc, char *argv[]) {
   GameContextStartup(&gameCtx);
   LevelContext levelCtx = {0};
   gameCtx.level = &levelCtx;
-  gameCtx.level->currentTlkFileIndex = -1;
+  LevelInit(gameCtx.level);
 
   if (savFileOrDir && pathIsFile(savFileOrDir)) {
     printf("Loading sav file '%s'\n", savFileOrDir);
