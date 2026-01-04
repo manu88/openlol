@@ -258,7 +258,7 @@ static void showBigDialogZone(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 }
 
-static void growDialogBox(GameContext *gameCtx) {
+int GameRenderRenderExpandDialogBox(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
@@ -267,16 +267,15 @@ static void growDialogBox(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 
   if (gameCtx->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
-    gameCtx->dialogBoxFrames++;
+    gameCtx->dialogBoxFrames += 1;
   } else {
-    // done
-    assert(gameCtx->prevState != GameState_Invalid);
-    gameCtx->state = gameCtx->prevState;
     gameCtx->showBigDialog = 1;
+    return 1;
   }
+  return 0;
 }
 
-static void shrinkDialogBox(GameContext *gameCtx) {
+int GameRenderRenderShrinkDialogBox(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
@@ -287,12 +286,12 @@ static void shrinkDialogBox(GameContext *gameCtx) {
   SDL_UnlockTexture(gameCtx->pixBuf);
 
   if (gameCtx->dialogBoxFrames > 0) {
-    gameCtx->dialogBoxFrames--;
+    gameCtx->dialogBoxFrames -= 1;
   } else {
-    assert(gameCtx->prevState != GameState_Invalid);
-    gameCtx->state = gameCtx->prevState;
     gameCtx->showBigDialog = 0;
+    return 1;
   }
+  return 0;
 }
 
 static void renderExitButton(GameContext *gameCtx) {
@@ -368,37 +367,30 @@ void GameRender(GameContext *gameCtx) {
     return;
   }
 
-  if (gameCtx->state == GameState_GrowDialogBox) {
-    growDialogBox(gameCtx);
-  } else if (gameCtx->state == GameState_ShrinkDialogBox) {
-    shrinkDialogBox(gameCtx);
-  } else if (gameCtx->showBigDialog) {
+  if (gameCtx->showBigDialog) {
     showBigDialogZone(gameCtx);
   }
   if (gameCtx->drawExitSceneButton) {
     renderExitButton(gameCtx);
   }
 
-  if (gameCtx->state != GameState_GrowDialogBox &&
-      gameCtx->state != GameState_ShrinkDialogBox) {
-    if (gameCtx->buttonText[0]) {
-      UIDrawTextButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON1_X,
-                       DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                       gameCtx->buttonText[0]);
-    }
-
-    if (gameCtx->buttonText[1]) {
-      UIDrawTextButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON2_X,
-                       DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                       gameCtx->buttonText[1]);
-    }
-    if (gameCtx->buttonText[2]) {
-      UIDrawTextButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON3_X,
-                       DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                       gameCtx->buttonText[2]);
-    }
-    renderDialog(gameCtx);
+  if (gameCtx->buttonText[0]) {
+    UIDrawTextButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON1_X,
+                     DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                     gameCtx->buttonText[0]);
   }
+
+  if (gameCtx->buttonText[1]) {
+    UIDrawTextButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON2_X,
+                     DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                     gameCtx->buttonText[1]);
+  }
+  if (gameCtx->buttonText[2]) {
+    UIDrawTextButton(&gameCtx->defaultFont, gameCtx->pixBuf, DIALOG_BUTTON3_X,
+                     DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                     gameCtx->buttonText[2]);
+  }
+  renderDialog(gameCtx);
 }
 
 void GameRenderResetDialog(GameContext *gameCtx) { gameCtx->dialogText = NULL; }

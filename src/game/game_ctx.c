@@ -267,7 +267,6 @@ int GameContextNewGame(GameContext *gameCtx) {
   gameCtx->inventory[2] = GameContextCreateItem(gameCtx, 218); // Ginseng
   GameContextLoadChars(gameCtx);
   if (GameContextLoadLevel(gameCtx, gameCtx->levelId)) {
-
     GameContextSetState(gameCtx, GameState_PlayGame);
     return 1;
   }
@@ -544,14 +543,14 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
 }
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
-  GameContextSetState(gameCtx, GameState_GrowDialogBox);
+  GameExpandDialogBox(gameCtx);
   gameCtx->controlDisabled = 1;
 }
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   printf("GameContextCleanupSceneDialog\n");
   if (gameCtx->showBigDialog) {
-    GameContextSetState(gameCtx, GameState_ShrinkDialogBox);
+    GameShrinkDialogBox(gameCtx);
   }
   gameCtx->controlDisabled = 0;
   for (int i = 0; i < 3; i++) {

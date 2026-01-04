@@ -46,9 +46,6 @@ typedef enum {
   GameState_GameMenu,
   GameState_TimAnimation,
   GameState_ShowInventory,
-  GameState_GrowDialogBox,
-  GameState_ShrinkDialogBox,
-
   GameState_ShowMap,
 } GameState;
 

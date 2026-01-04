@@ -517,8 +517,6 @@ static int processMouse(GameContext *gameCtx) {
     return processCharInventoryMouse(gameCtx);
   case GameState_TimAnimation:
     return processAnimationMouse(gameCtx);
-  case GameState_GrowDialogBox:
-    break;
   case GameState_MainMenu:
   case GameState_GameMenu: {
     int ret = MenuMouse(gameCtx->currentMenu, gameCtx, &gameCtx->mouseEv.pos);
@@ -527,8 +525,6 @@ static int processMouse(GameContext *gameCtx) {
     }
     return ret;
   }
-
-  case GameState_ShrinkDialogBox:
   case GameState_Invalid:
     assert(0);
     break;
@@ -670,6 +666,7 @@ static void GamePreUpdate(GameContext *gameCtx) {
 void GameDoSceneFade(GameContext *gameCtx, int numFrames) {
   while (numFrames--) {
     SDL_Delay(gameCtx->conf.tickLength);
+    SDL_PollEvent(NULL);
     GameRenderRenderSceneFade(gameCtx);
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                      PIX_BUF_HEIGHT * SCREEN_FACTOR};
@@ -678,6 +675,35 @@ void GameDoSceneFade(GameContext *gameCtx, int numFrames) {
     SDL_RenderPresent(gameCtx->renderer);
   }
 }
+
+void GameExpandDialogBox(GameContext *gameCtx) {
+  int ret = 0;
+  do {
+    ret = GameRenderRenderExpandDialogBox(gameCtx);
+    SDL_Delay(gameCtx->conf.tickLength);
+    SDL_PollEvent(NULL);
+    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
+    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) ==
+           0);
+    SDL_RenderPresent(gameCtx->renderer);
+  } while (!ret);
+}
+
+void GameShrinkDialogBox(GameContext *gameCtx) {
+  int ret = 0;
+  do {
+    ret = GameRenderRenderShrinkDialogBox(gameCtx);
+    SDL_Delay(gameCtx->conf.tickLength);
+    SDL_PollEvent(NULL);
+    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
+    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) ==
+           0);
+    SDL_RenderPresent(gameCtx->renderer);
+  } while (!ret);
+}
+
 static void GameRunOnce(GameContext *gameCtx) {
   if (DBGServerUpdate(gameCtx)) {
     gameCtx->shouldUpdate = 1;
@@ -709,10 +735,6 @@ static void GameRunOnce(GameContext *gameCtx) {
       gameCtx->mouseEv.pos.y = e.motion.y / SCREEN_FACTOR;
       gameCtx->mouseEv.isRightClick = e.button.button == 3;
     }
-    break;
-  case GameState_GrowDialogBox:
-  case GameState_ShrinkDialogBox:
-    gameCtx->shouldUpdate = 1;
     break;
   case GameState_Invalid:
     assert(0);

@@ -105,23 +105,18 @@ static int MainMenuMouse_MainMenu(Menu *menu, GameContext *context,
   const int width = 128;
   const int height = 8;
   if (zoneClicked(pt, 86, 144, width, height)) {
-    printf("Start a new game\n");
     MainMenuSetState(menu, MenuState_StartNew);
     return 1;
   } else if (zoneClicked(pt, 86, 153, width, height)) {
-    printf("Introduction\n");
     MainMenuSetState(menu, MenuState_Introduction);
     return 1;
   } else if (zoneClicked(pt, 86, 162, width, height)) {
-    printf("Lore of the lands\n");
     MainMenuSetState(menu, MenuState_LoreOfTheLands);
     return 1;
   } else if (zoneClicked(pt, 86, 171, width, height)) {
-    printf("Load a game\n");
     MainMenuSetState(menu, MenuState_LoadGame);
     return 1;
   } else if (zoneClicked(pt, 86, 180, width, height)) {
-    printf("Exit\n");
     GameContextExitGame(context);
   }
   return 0;
