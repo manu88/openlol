@@ -86,6 +86,8 @@ static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
     break;
   }
   case EMCGlobalVarID_CurrentDir:
+    ctx->orientation = b;
+    break;
   case EMCGlobalVarID_CurrentLevel:
   case EMCGlobalVarID_ItemInHand:
   case EMCGlobalVarID_Brightness:
