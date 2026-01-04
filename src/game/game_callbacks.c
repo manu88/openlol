@@ -630,10 +630,19 @@ static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
   }
 }
 
-static void callbackInitMonster(EMCInterpreter *interp, uint16_t block,
-                                uint16_t xOff, uint16_t yOff,
-                                uint16_t orientation, uint16_t monsterType,
-                                uint16_t flags, uint16_t monsterMode) {}
+static int callbackInitMonster(EMCInterpreter *interp, uint16_t block,
+                               uint16_t xOff, uint16_t yOff,
+                               uint16_t orientation, uint16_t monsterType,
+                               uint16_t flags, uint16_t monsterMode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  int index = MonsterGetAvailableSlot(gameCtx);
+  if (index == -1) {
+    return -1;
+  }
+  Monster *monster = &gameCtx->level->monsters[index];
+  monster->available = 0;
+  return index;
+}
 
 static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
                                                  uint16_t xMin, uint16_t yMin,

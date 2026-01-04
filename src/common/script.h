@@ -323,7 +323,8 @@ typedef struct _EMCInterpreterCallbacks {
       EMCInterpreter *interp, uint16_t fadeFlag, uint16_t redrawPlayField,
       uint16_t releaseTimScripts, uint16_t sceneUpdateMode);
 
-  void (*EMCInterpreterCallbacks_InitMonster)(
+  // returns the slot in which is allocated the monster. -1 otherwise
+  int (*EMCInterpreterCallbacks_InitMonster)(
       EMCInterpreter *interp, uint16_t block, uint16_t xOff, uint16_t yOff,
       uint16_t orientation, uint16_t monsterType, uint16_t flags,
       uint16_t monsterMode);

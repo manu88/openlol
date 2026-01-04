@@ -375,6 +375,9 @@ static int runInitScript(GameContext *gameCtx, INFScript *script) {
 }
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum) {
+  for (int i = 0; i < MAX_MONSTERS; i++) {
+    MonsterInit(&ctx->level->monsters[i]);
+  }
   GameRenderResetDialog(ctx);
 
   GameEnvironmentLoadLevel(levelNum);
