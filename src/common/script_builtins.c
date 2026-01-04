@@ -275,7 +275,8 @@ static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
          "flags=%X monsterMode=%X p7=%X p8=%X p9=%X p10=%X\n",
          block, xOff, yOff, orientation, monsterType, flags, monsterMode, p7,
          p8, p9, p10);
-  // ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_InitMonster(
+      interp, block, xOff, yOff, orientation, monsterType, flags, monsterMode);
   return 1;
 }
 

@@ -630,6 +630,11 @@ static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
   }
 }
 
+static void callbackInitMonster(EMCInterpreter *interp, uint16_t block,
+                                uint16_t xOff, uint16_t yOff,
+                                uint16_t orientation, uint16_t monsterType,
+                                uint16_t flags, uint16_t monsterMode) {}
+
 static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
                                                  uint16_t xMin, uint16_t yMin,
                                                  uint16_t xMax, uint16_t yMax) {
@@ -807,4 +812,5 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackPrepareSpecialScene;
   interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSpecialScene =
       callbackRestoreAfterSpecialScene;
+  interp->callbacks.EMCInterpreterCallbacks_InitMonster = callbackInitMonster;
 }
