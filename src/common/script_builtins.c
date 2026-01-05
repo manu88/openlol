@@ -273,15 +273,13 @@ static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
   uint16_t monsterType = EMCStateStackVal(state, 4);
   uint16_t flags = EMCStateStackVal(state, 5);
   uint16_t monsterMode = EMCStateStackVal(state, 6);
-  // Looks like those are optionals
+// Looks like those are optionals
+#if 0
   uint16_t p7 = EMCStateStackVal(state, 7);
   uint16_t p8 = EMCStateStackVal(state, 8);
   uint16_t p9 = EMCStateStackVal(state, 9);
   uint16_t p10 = EMCStateStackVal(state, 10);
-  printf("initMonster block=%X xOff=%X yOff=%X orientation=%X monsterType=%X "
-         "flags=%X monsterMode=%X p7=%X p8=%X p9=%X p10=%X\n",
-         block, xOff, yOff, orientation, monsterType, flags, monsterMode, p7,
-         p8, p9, p10);
+#endif
   return interp->callbacks.EMCInterpreterCallbacks_InitMonster(
       interp, block, xOff, yOff, orientation, monsterType, flags, monsterMode);
 }
@@ -812,6 +810,11 @@ static uint16_t paletteFlash(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t assignSpecialGuiShape(EMCInterpreter *interp, EMCState *state) {
+  printf("assignSpecialGuiShape\n");
+  return 1;
+}
+
 static uint16_t return1(EMCInterpreter *interp, EMCState *state) { return 1; }
 
 static ScriptFunDesc functions[] = {
@@ -1010,7 +1013,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {assignSpecialGuiShape, "assignSpecialGuiShape"},
     {NULL},
     {NULL},
     {NULL},

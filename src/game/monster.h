@@ -28,6 +28,7 @@ typedef struct {
 typedef struct {
   uint8_t available;
   uint8_t destDirection;
+  uint16_t block;
   int8_t shiftStep;
   uint16_t destX;
   uint16_t destY;
@@ -39,13 +40,13 @@ typedef struct {
   int8_t fightCurTick;
   uint8_t id;
   uint8_t direction;
-  uint8_t facing;
+  uint8_t orientation;
   uint16_t flags;
   uint16_t damageReceived;
   int16_t hitPoints;
   uint8_t speedTick;
   uint8_t type;
-  MonsterProperties *properties;
+
   uint8_t numDistAttacks;
   uint8_t curDistWeapon;
   int8_t distAttackTick;

@@ -8,6 +8,7 @@
 #include "game_render.h"
 #include "game_tim_animator.h"
 #include "logger.h"
+#include "monster.h"
 #include "render.h"
 #include "script.h"
 #include <assert.h>
@@ -279,8 +280,8 @@ static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
   assert(p2 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
-  assert(SHPHandleFromBuffer(&gameCtx->level->monsterShapes[monsterId],
-                             f.buffer, f.bufferSize));
+  assert(SHPHandleFromCompressedBuffer(
+      &gameCtx->level->monsterShapes[monsterId], f.buffer, f.bufferSize));
 }
 
 static void callbackMoveParty(EMCInterpreter *interp, uint16_t how) {
@@ -318,7 +319,10 @@ static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
                                 uint16_t yOff, uint16_t destDir) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Monster *monster = &gameCtx->level->monsters[monsterId];
-  printf("--> MoveMonster %X\n", monsterId);
+  monster->block = destBlock;
+  monster->destDirection = destDir;
+  monster->destX = xOff;
+  monster->destY = yOff;
 }
 
 static void callbackClearDialogField(EMCInterpreter *interp) {
@@ -652,13 +656,24 @@ static int callbackInitMonster(EMCInterpreter *interp, uint16_t block,
                                uint16_t xOff, uint16_t yOff,
                                uint16_t orientation, uint16_t monsterType,
                                uint16_t flags, uint16_t monsterMode) {
+  Log(LOG_PREFIX,
+      "callbackInitMonster block=0X%X xOff=0X%X yOff=0X%X orientation=0X%X "
+      "monsterType=0X%X flags=0X%X monsterMode=0X%X \n",
+      block, xOff, yOff, orientation, monsterType, flags, monsterMode);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   int index = MonsterGetAvailableSlot(gameCtx);
   if (index == -1) {
     return -1;
   }
   Monster *monster = &gameCtx->level->monsters[index];
+  MonsterInit(monster);
   monster->available = 0;
+  monster->id = index;
+  printf("InitMonster: using index %i\n", index);
+  monster->block = block;
+  monster->orientation = orientation;
+  monster->type = monsterType;
+  monster->flags = flags;
   return index;
 }
 
