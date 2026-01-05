@@ -268,14 +268,13 @@ int GameRenderRenderExpandDialogBox(GameContext *gameCtx) {
 
   if (gameCtx->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
     gameCtx->dialogBoxFrames += 1;
-  } else {
-    gameCtx->showBigDialog = 1;
-    return 1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
 int GameRenderRenderShrinkDialogBox(GameContext *gameCtx) {
+  GameRender(gameCtx);
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
@@ -287,11 +286,9 @@ int GameRenderRenderShrinkDialogBox(GameContext *gameCtx) {
 
   if (gameCtx->dialogBoxFrames > 0) {
     gameCtx->dialogBoxFrames -= 1;
-  } else {
-    gameCtx->showBigDialog = 0;
-    return 1;
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
 static void renderExitButton(GameContext *gameCtx) {

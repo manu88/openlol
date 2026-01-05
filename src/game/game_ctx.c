@@ -552,10 +552,6 @@ void GameContextInitSceneDialog(GameContext *gameCtx) {
 }
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
-  printf("GameContextCleanupSceneDialog\n");
-  if (gameCtx->showBigDialog) {
-    GameShrinkDialogBox(gameCtx);
-  }
   gameCtx->controlDisabled = 0;
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {
@@ -564,6 +560,9 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
     }
   }
   GameRenderResetDialog(gameCtx);
+  if (gameCtx->showBigDialog) {
+    GameShrinkDialogBox(gameCtx);
+  }
   // FIXME: temporary clear screen here to avoid for cps background to remain on
   // screen
   gameCtx->showBitmap = 0;

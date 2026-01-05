@@ -688,6 +688,8 @@ void GameExpandDialogBox(GameContext *gameCtx) {
            0);
     SDL_RenderPresent(gameCtx->renderer);
   } while (!ret);
+
+  gameCtx->showBigDialog = 1;
 }
 
 void GameShrinkDialogBox(GameContext *gameCtx) {
@@ -702,6 +704,8 @@ void GameShrinkDialogBox(GameContext *gameCtx) {
            0);
     SDL_RenderPresent(gameCtx->renderer);
   } while (!ret);
+
+  gameCtx->showBigDialog = 0;
 }
 
 static void GameRunOnce(GameContext *gameCtx) {
