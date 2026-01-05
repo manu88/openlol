@@ -4,6 +4,7 @@
 #include "formats/format_xxx.h"
 #include "game_ctx.h"
 #include "geometry.h"
+#include "level.h"
 #include "render.h"
 #include "renderer.h"
 #include "ui.h"
@@ -132,6 +133,22 @@ void mapOverlay(SDL_Texture *texture, int startX, int startY, int w, int h) {
   SDL_UnlockTexture(texture);
 }
 
+void colorBlock(SDL_Texture *texture, int startX, int startY, int w, int h,
+                SDL_Color col) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {startX, startY, w, h};
+  SDL_LockTexture(texture, &rect, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+      row[x] = 0XFF000000 + (col.r << 0X10) + (col.g << 0X8) + col.b;
+      // 158	115	69
+    }
+  }
+  SDL_UnlockTexture(texture);
+}
+
 void AutomapRender(GameContext *gameCtx) {
   memset(legendTypes, 0, NUM_LEGENDS * sizeof(uint16_t));
   UISetDefaultStyle();
@@ -227,6 +244,15 @@ void AutomapRender(GameContext *gameCtx) {
                      West);
       }
       mapOverlay(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H);
+      if (gameCtx->conf.showMonstersInMap) {
+        for (int i = 0; i < MAX_MONSTERS; i++) {
+          const Monster *m = &gameCtx->level->monsters[i];
+          if (m->block == bl) {
+            colorBlock(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H,
+                       (SDL_Color){.r = 255, 0, 0});
+          }
+        }
+      }
     }
 
     sx += BLOCK_W;
