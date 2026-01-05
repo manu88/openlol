@@ -216,7 +216,9 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
   {
     GameFile f = {0};
     snprintf(fileName, 12, "%s.VCN", file);
-    assert(GameEnvironmentGetFileFromPak(&f, fileName, pakFile));
+    if (GameEnvironmentGetFileFromPak(&f, fileName, pakFile) == 0) {
+      assert(GameEnvironmentGetFile(&f, fileName));
+    }
     // assert(GameEnvironmentGetFileWithExt(&f, file, "VCN"));
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
@@ -226,7 +228,9 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
   {
     GameFile f = {0};
     snprintf(fileName, 12, "%s.VMP", file);
-    assert(GameEnvironmentGetFileFromPak(&f, fileName, pakFile));
+    if (GameEnvironmentGetFileFromPak(&f, fileName, pakFile) == 0) {
+      assert(GameEnvironmentGetFile(&f, fileName));
+    }
     // assert(GameEnvironmentGetFileWithExt(&f, file, "VMP"));
     assert(VMPHandleFromLCWBuffer(&gameCtx->level->vmpHandle, f.buffer,
                                   f.bufferSize));
