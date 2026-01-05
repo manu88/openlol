@@ -603,6 +603,21 @@ static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
   return 1;
 }
 
+static uint16_t callbackCreateLevelItem(EMCInterpreter *interp,
+                                        uint16_t itemType, uint16_t frame,
+                                        uint16_t flags, uint16_t level,
+                                        uint16_t block, uint16_t xOff,
+                                        uint16_t yOff, uint16_t flyingHeight) {
+  Log(LOG_PREFIX,
+      "[INCOMPLETE] callbackCreateLevelItem itemType=0X%X frame=0X%X "
+      "flags=0X%X\n "
+      "level=%i block=0X%X xOff=0X%X yOff=0X%X flyingHeight=0X%X\n",
+      itemType, frame, flags, level, block, xOff, yOff, flyingHeight);
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  uint16_t index = GameContextCreateItem(gameCtx, itemType);
+  return index;
+}
+
 static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackProcessDialog\n");
@@ -822,4 +837,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSpecialScene =
       callbackRestoreAfterSpecialScene;
   interp->callbacks.EMCInterpreterCallbacks_InitMonster = callbackInitMonster;
+  interp->callbacks.EMCInterpreterCallbacks_CreateLevelItem =
+      callbackCreateLevelItem;
 }

@@ -159,9 +159,16 @@ static uint16_t getItemParam(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t createLevelItem(EMCInterpreter *interp, EMCState *state) {
-  printf("createLevelItem\n");
-  ASSERT_UNIMPLEMENTED;
-  return 0;
+  uint16_t itemType = EMCStateStackVal(state, 0);
+  uint16_t frame = EMCStateStackVal(state, 1);
+  uint16_t flag = EMCStateStackVal(state, 2);
+  uint16_t level = EMCStateStackVal(state, 3);
+  uint16_t block = EMCStateStackVal(state, 4);
+  uint16_t xOff = EMCStateStackVal(state, 5);
+  uint16_t yOff = EMCStateStackVal(state, 6);
+  uint16_t flyingHeight = EMCStateStackVal(state, 7);
+  return interp->callbacks.EMCInterpreterCallbacks_CreateLevelItem(
+      interp, itemType, frame, flag, level, block, xOff, yOff, flyingHeight);
 }
 
 static uint16_t playAnimationPart(EMCInterpreter *interp, EMCState *state) {

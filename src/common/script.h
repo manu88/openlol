@@ -285,7 +285,10 @@ typedef struct _EMCInterpreterCallbacks {
   uint16_t (*EMCInterpreterCallbacks_CreateHandItem)(EMCInterpreter *interp,
                                                      uint16_t itemType,
                                                      uint16_t p1, uint16_t p2);
-
+  uint16_t (*EMCInterpreterCallbacks_CreateLevelItem)(
+      EMCInterpreter *interp, uint16_t itemType, uint16_t frame, uint16_t flags,
+      uint16_t level, uint16_t block, uint16_t xOff, uint16_t yOff,
+      uint16_t flyingHeight);
   void (*EMCInterpreterCallbacks_PlayAnimationPart)(EMCInterpreter *interp,
                                                     uint16_t animIndex,
                                                     uint16_t firstFrame,
