@@ -58,3 +58,4 @@ void SHPHandlePrint(const SHPHandle *handle);
 void SHPFramePrint(const SHPFrame *frame);
 void SHPFrameRelease(SHPFrame *frame);
 int SHPFrameGetImageData(SHPFrame *frame);
+int SHPFrameScale(SHPFrame *frame, int targetWidth, int targetHeight);

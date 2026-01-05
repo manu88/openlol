@@ -149,3 +149,68 @@ void SHPHandlePrint(const SHPHandle *handle) {
     SHPFramePrint(&frame);
   }
 }
+// from https://nerdhut.de/2021/09/01/resize-bitmaps-with-cpp/
+int SHPFrameScale(SHPFrame *frame, int targetWidth, int targetHeight) {
+  int copiedColumns = 0;
+  int copiedLines = 0;
+
+  // Calculate the ratio between the target and source image
+  // We'll use this value later to determine how many lines/columns we need to
+  // skip before copying another line/column to the target buffer
+  float horizontalRatio = (float)targetWidth / (float)frame->header.width;
+  float verticalRatio = (float)targetHeight / (float)frame->header.height;
+
+  // 'current' values = arbitrary number that tells the program when to copy a
+  // pixel to the target image. The program copies a pixel whenever one of these
+  // values is at least 1. We start with both values set to 1 so that we keep
+  // the first column and line of the source image.
+  float horizontalCurrent = 1.0f;
+  float verticalCurrent = 1.0f;
+
+  uint8_t *imageBuffer = malloc(targetWidth * targetHeight);
+  if (imageBuffer == NULL) {
+    return 0;
+  }
+
+  // Iterate over all columns of the source image
+  for (int x = 0; x < frame->header.width; x++) {
+    // If we reached the target width, abort
+    if (copiedColumns == targetWidth)
+      break;
+
+    // Copy the current column to the resulting image if the current value is at
+    // least 1
+    if (horizontalCurrent >= 1.0f) {
+      // Iterate over each pixel in the current column (from the top of the
+      // image to the bottom)
+      for (int y = 0; y < frame->header.height; y++) {
+        if (copiedLines == targetHeight)
+          break;
+
+        // But make sure to only copy the needed pixels of the current column
+        if (verticalCurrent >= 1.0f) {
+          int sourceP = x + (y * frame->header.width);
+          int destP = copiedColumns + (copiedLines * targetWidth);
+          imageBuffer[destP] = frame->imageBuffer[sourceP];
+          copiedLines += 1;
+          verticalCurrent -= 1.0f;
+        }
+
+        verticalCurrent += verticalRatio;
+      }
+
+      copiedLines = 0;
+      copiedColumns += 1;
+      horizontalCurrent -= 1.0f;
+      verticalCurrent = 1.0f;
+    }
+
+    horizontalCurrent += horizontalRatio;
+  }
+
+  frame->header.width = targetWidth;
+  frame->header.height = targetHeight;
+  free(frame->imageBuffer);
+  frame->imageBuffer = imageBuffer;
+  return 1;
+}
