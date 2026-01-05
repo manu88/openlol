@@ -364,27 +364,25 @@ void GameRenderMaze(GameContext *gameCtx) {
 
     uint8_t wmi = gameCtx->level->blockProperties[blockId].walls[absOri];
 
-    if (!wmi) {
-      continue;
-    }
-    uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
-    if (wallType) {
-      drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
-               r->wallRenderIndex);
-      if (r->orientation == South && r->cellId == CELL_N &&
-          wallType == 3) { // door
-        SHPFrame frame = {0};
+    if (wmi) {
+      uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
+      if (wallType) {
+        drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
+                 r->wallRenderIndex);
+        if (r->orientation == South && r->cellId == CELL_N &&
+            wallType == 3) { // door
+          SHPFrame frame = {0};
 
-        SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
-        SHPFrameGetImageData(&frame);
-        drawSHPMazeFrame(texture, &frame, 52, 16,
-                         gameCtx->level->vcnHandle.palette, 0);
-        SHPFrameRelease(&frame);
+          SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+          SHPFrameGetImageData(&frame);
+          drawSHPMazeFrame(texture, &frame, 52, 16,
+                           gameCtx->level->vcnHandle.palette, 0);
+          SHPFrameRelease(&frame);
+        }
+      }
+      if (r->decoIndex != 0) {
+        renderWallDecoration(texture, level, r, wmi);
       }
     }
-    if (r->decoIndex == 0) {
-      continue;
-    }
-    renderWallDecoration(texture, level, r, wmi);
   }
 }
