@@ -11,6 +11,8 @@
 		5914084C2EB3AE430012E17E /* menu.c in Sources */ = {isa = PBXBuildFile; fileRef = 591408492EB3AE430012E17E /* menu.c */; };
 		5914084D2EB3AE430012E17E /* ui.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084B2EB3AE430012E17E /* ui.c */; };
 		591408502EB3AE580012E17E /* format_xxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084F2EB3AE580012E17E /* format_xxx.c */; };
+		59308A512F0C0650006CB21F /* monster.c in Sources */ = {isa = PBXBuildFile; fileRef = 59308A502F0C0650006CB21F /* monster.c */; };
+		59308A542F0C065D006CB21F /* level.c in Sources */ = {isa = PBXBuildFile; fileRef = 59308A532F0C065D006CB21F /* level.c */; };
 		594887D32E8681C000684ABD /* tim_interpreter.c in Sources */ = {isa = PBXBuildFile; fileRef = 594887D22E8681C000684ABD /* tim_interpreter.c */; };
 		596F7FFF2EA3EFDE00CC2266 /* format_dat.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F7FE62EA3EFDE00CC2266 /* format_dat.c */; };
 		596F80002EA3EFDE00CC2266 /* format_wsa.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F7FFD2EA3EFDE00CC2266 /* format_wsa.c */; };
@@ -80,6 +82,10 @@
 		5914084B2EB3AE430012E17E /* ui.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ui.c; path = src/game/ui.c; sourceTree = SOURCE_ROOT; };
 		5914084E2EB3AE580012E17E /* format_xxx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_xxx.h; sourceTree = "<group>"; };
 		5914084F2EB3AE580012E17E /* format_xxx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = format_xxx.c; sourceTree = "<group>"; };
+		59308A4F2F0C0650006CB21F /* monster.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = monster.h; sourceTree = "<group>"; };
+		59308A502F0C0650006CB21F /* monster.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = monster.c; sourceTree = "<group>"; };
+		59308A522F0C065D006CB21F /* level.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = level.h; sourceTree = "<group>"; };
+		59308A532F0C065D006CB21F /* level.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = level.c; sourceTree = "<group>"; };
 		594887D12E8681C000684ABD /* tim_interpreter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tim_interpreter.h; sourceTree = "<group>"; };
 		594887D22E8681C000684ABD /* tim_interpreter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tim_interpreter.c; sourceTree = "<group>"; };
 		596F7FDF2EA3EFDE00CC2266 /* format_40.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format_40.h; sourceTree = "<group>"; };
@@ -289,12 +295,16 @@
 				59F7379E2F07EB07007E2EF7 /* automap_render.h */,
 				59F7379F2F07EB07007E2EF7 /* automap_render.c */,
 				596F80102EA3F03500CC2266 /* dbg_server.c */,
+				59308A522F0C065D006CB21F /* level.h */,
+				59308A532F0C065D006CB21F /* level.c */,
 				596F80112EA3F03500CC2266 /* defs.h */,
 				596F80122EA3F03500CC2266 /* game.h */,
 				596F80132EA3F03500CC2266 /* game.c */,
 				596F80142EA3F03500CC2266 /* game_callbacks.h */,
 				596F80152EA3F03500CC2266 /* game_callbacks.c */,
 				596F80162EA3F03500CC2266 /* game_ctx.h */,
+				59308A4F2F0C0650006CB21F /* monster.h */,
+				59308A502F0C0650006CB21F /* monster.c */,
 				596F80172EA3F03500CC2266 /* game_ctx.c */,
 				596F80182EA3F03500CC2266 /* game_render.h */,
 				596F80192EA3F03500CC2266 /* game_render.c */,
@@ -407,11 +417,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59308A542F0C065D006CB21F /* level.c in Sources */,
 				59F737902F07EA42007E2EF7 /* audio.c in Sources */,
 				59A9823F2E8306F800A6A596 /* script_disassembler.c in Sources */,
 				59A982412E8306F800A6A596 /* emc_asm.c in Sources */,
 				59A982422E8306F800A6A596 /* bytes.c in Sources */,
 				59A982432E8306F800A6A596 /* pak_file.c in Sources */,
+				59308A512F0C0650006CB21F /* monster.c in Sources */,
 				59A982442E8306F800A6A596 /* script_builtins.c in Sources */,
 				59A9824A2E8306F800A6A596 /* main.c in Sources */,
 				59A9824C2E8306F800A6A596 /* renderer.c in Sources */,

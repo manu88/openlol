@@ -479,7 +479,6 @@ void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag) {
 }
 
 void GameContextSetState(GameContext *gameCtx, GameState newState) {
-  printf("GameContextSetState from %i to %i\n", gameCtx->state, newState);
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
   if (gameCtx->state == GameState_GameMenu) {
