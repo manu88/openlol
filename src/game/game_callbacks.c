@@ -262,10 +262,9 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadDoorShapes %s %x %x %x %x", file, p1, p2, p3,
       p4);
-  assert(p1 == 0);
-  assert(p2 == 0);
-  assert(p3 == 0);
-  assert(p4 == 0);
+  if (p1 != 0 || p2 != 0 || p3 != 0 || p4 != 0) {
+    printf("FIXME: not supported yet\n");
+  }
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
   assert(SHPHandleFromCompressedBuffer(&gameCtx->level->doors, f.buffer,
