@@ -386,7 +386,7 @@ void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
 
       int xx = x + xPos;
       int yy = y + yPos;
-
+      assert(xx >= 0 && xx < 320 && yy >= 0 && yy < 200);
       drawPix(data, pitch, r, g, b, xx, yy);
     }
   }

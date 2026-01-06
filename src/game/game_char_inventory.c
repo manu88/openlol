@@ -86,6 +86,9 @@ static InventoryLayout *layouts[] = {
 static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
                            int invType, CharItemIndex itemIndex) {
   const InventoryLayout *layout = layouts[invType];
+  if (layout->slot[itemIndex].type == 0) { // invalid
+    return;
+  }
   const GameObject *obj = &gameCtx->itemsInGame[character->items[itemIndex]];
   uint16_t frameId =
       GameContextGetItemSHPFrameIndex(gameCtx, obj->itemPropertyIndex);
@@ -107,10 +110,8 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
     return;
   }
   SHPFrame bFrame = {0};
-
   SHPHandleGetFrame(&gameCtx->gameShapes, &bFrame, bIndex);
-  SHPFrameGetImageData(&bFrame);
-
+  assert(SHPFrameGetImageData(&bFrame));
   drawSHPFrame(gameCtx->pixBuf, &bFrame, backgroundPt.x, backgroundPt.y,
                gameCtx->defaultPalette);
   SHPFrameRelease(&bFrame);
