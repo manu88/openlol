@@ -349,19 +349,25 @@ void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
   pakFile[strlen(pakFile) - 3] = 'P';
   {
     GameFile f = {0};
-    if (GameEnvironmentGetFileFromPak(&f, shpFile, pakFile) == 0) {
-      assert(GameEnvironmentGetFile(&f, shpFile));
+    int ok = GameEnvironmentGetFileFromPak(&f, shpFile, pakFile);
+    if (!ok) {
+      ok = GameEnvironmentGetFile(&f, shpFile);
     }
-    assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
-                               f.bufferSize));
+    if (ok) {
+      assert(SHPHandleFromBuffer(&gameCtx->level->shpHandle, f.buffer,
+                                 f.bufferSize));
+    }
   }
   {
     GameFile f = {0};
-    if (GameEnvironmentGetFileFromPak(&f, datFile, pakFile) == 0) {
-      assert(GameEnvironmentGetFile(&f, datFile));
+    int ok = GameEnvironmentGetFileFromPak(&f, datFile, pakFile);
+    if (!ok) {
+      ok = GameEnvironmentGetFile(&f, datFile);
     }
-    assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
-                               f.bufferSize));
+    if (ok) {
+      assert(DatHandleFromBuffer(&gameCtx->level->datHandle, f.buffer,
+                                 f.bufferSize));
+    }
   }
 }
 
