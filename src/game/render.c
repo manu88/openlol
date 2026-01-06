@@ -305,12 +305,41 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   }
 }
 
-static void renderDoor(GameContext *gameCtx, int blockId) {
+static void renderDoor(GameContext *gameCtx, int cellId) {
+  const ViewConeCell *cell = &viewConeCell[cellId];
   SHPFrame frame = {0};
-
   SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
   SHPFrameGetImageData(&frame);
-  drawSHPMazeFrame(gameCtx->pixBuf, &frame, 52, 16,
+  int x = 52;
+  int y = 16;
+  float ratioX = 1.0f;
+  float ratioY = 1.0f;
+  switch (cell->frontDist) {
+  case 1:
+    break;
+  case 2:
+    ratioX = 1.38;
+    ratioY = 1.45;
+    x = 62;
+    y = 24;
+
+    x -= cell->leftDist * 80;
+    break;
+  case 3:
+    ratioX = 2.11;
+    ratioY = 2.41;
+    x = 71;
+    y = 30;
+    x -= cell->leftDist * 40;
+    break;
+  }
+
+  if (cell->frontDist > 1) {
+    SHPFrameScale(&frame, frame.header.width / ratioX,
+                  frame.header.height / ratioY);
+  }
+
+  drawSHPMazeFrame(gameCtx->pixBuf, &frame, x, y,
                    gameCtx->level->vcnHandle.palette, 0);
   SHPFrameRelease(&frame);
 }
@@ -376,12 +405,17 @@ void GameRenderMaze(GameContext *gameCtx) {
     if (wmi) {
       uint16_t wallType = WllHandleGetWallType(&level->wllHandle, wmi);
       if (wallType) {
+
+        if (r->orientation == South &&
+            (r->cellId == CELL_N || r->cellId == CELL_J ||
+             r->cellId == CELL_I || r->cellId == CELL_K ||
+             r->cellId == CELL_C || r->cellId == CELL_E ||
+             r->cellId == CELL_D) &&
+            wallType == 3) { // door
+          renderDoor(gameCtx, r->cellId);
+        }
         drawWall(texture, &level->vcnHandle, &level->vmpHandle, wallType,
                  r->wallRenderIndex);
-        if (r->orientation == South && r->cellId == CELL_N &&
-            wallType == 3) { // door
-          renderDoor(gameCtx, blockId);
-        }
       }
       if (r->decoIndex != 0) {
         renderWallDecoration(texture, level, r, wmi);
