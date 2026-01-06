@@ -340,6 +340,13 @@ static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
 
 #pragma mark PARTY PEOPLE
 
+static uint16_t calcNewBlockPosition(EMCInterpreter *interp, EMCState *state) {
+  uint16_t block = EMCStateStackVal(state, 0);
+  uint16_t direction = EMCStateStackVal(state, 1);
+  static const int16_t blockPosTable[] = {-32, 1, 32, -1};
+  return (block + blockPosTable[direction]) & 0x3FF;
+}
+
 static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
   uint16_t how = EMCStateStackVal(state, 0);
   interp->callbacks.EMCInterpreterCallbacks_MoveParty(interp, how);
@@ -462,6 +469,11 @@ static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
 
 #pragma mark SCREEN
 
+static uint16_t updateDrawPage2(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] updateDrawPage2\n");
+  return 1;
+}
+
 static uint16_t drawScene(EMCInterpreter *interp, EMCState *state) {
   int16_t pageNum = EMCStateStackVal(state, 0);
   printf("drawScene %X\n", pageNum);
@@ -478,6 +490,10 @@ static uint16_t fadeSequencePalette(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] fadeSequencePalette\n");
   // ASSERT_UNIMPLEMENTED;
   return 1;
+}
+
+static uint16_t restoreFadePalette(EMCInterpreter *interp, EMCState *state) {
+  return 0;
 }
 
 static uint16_t paletteFlash(EMCInterpreter *interp, EMCState *state) {
@@ -613,6 +629,11 @@ static uint16_t countAllMonsters(EMCInterpreter *interp, EMCState *state) {
 }
 
 #pragma mark SOUND/MUSIC
+
+static uint16_t queueSpeech(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] queueSpeech\n");
+  return 1;
+}
 
 static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] loadSoundFile\n");
@@ -1043,7 +1064,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {assignSpecialGuiShape, "assignSpecialGuiShape"},
     {NULL},
-    {NULL},
+    {restoreFadePalette, "restoreFadePalette"},
     {NULL},
     {NULL},
     {NULL},
@@ -1060,6 +1081,15 @@ static ScriptFunDesc functions[] = {
     {return1, "stubB2"},
     {disableControls, "disableControls"},
     {enableControls, "enableControls"},
+    {NULL},
+    {NULL},
+    {calcNewBlockPosition, "calcNewBlockPosition"},
+    {NULL},
+    {updateDrawPage2, "updateDrawPage2"},
+    // BA
+    {NULL},
+    {NULL},
+    {queueSpeech, "queueSpeech"},
 };
 
 static const size_t numFunctions = sizeof(functions) / sizeof(ScriptFunDesc);
