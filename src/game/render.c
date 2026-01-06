@@ -293,7 +293,6 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   memset(gameCtx->viewConeEntries, 0,
          sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
-
     Point p;
     BlockGetCoordinates(&p.x, &p.y, gameCtx->currentBock, 0x80, 0x80);
     GetRealCoords(p.x, p.y, &p.x, &p.y);
@@ -304,6 +303,16 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
       gameCtx->viewConeEntries[i].valid = 1;
     }
   }
+}
+
+static void renderDoor(GameContext *gameCtx, int blockId) {
+  SHPFrame frame = {0};
+
+  SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+  SHPFrameGetImageData(&frame);
+  drawSHPMazeFrame(gameCtx->pixBuf, &frame, 52, 16,
+                   gameCtx->level->vcnHandle.palette, 0);
+  SHPFrameRelease(&frame);
 }
 
 static RenderWall renderWalls[] = {
@@ -371,13 +380,7 @@ void GameRenderMaze(GameContext *gameCtx) {
                  r->wallRenderIndex);
         if (r->orientation == South && r->cellId == CELL_N &&
             wallType == 3) { // door
-          SHPFrame frame = {0};
-
-          SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
-          SHPFrameGetImageData(&frame);
-          drawSHPMazeFrame(texture, &frame, 52, 16,
-                           gameCtx->level->vcnHandle.palette, 0);
-          SHPFrameRelease(&frame);
+          renderDoor(gameCtx, blockId);
         }
       }
       if (r->decoIndex != 0) {
