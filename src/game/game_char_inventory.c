@@ -33,16 +33,16 @@ typedef struct {
 
 static InventoryLayout humanLayout = {{
     {{117, 52}, ItemType_Weapon},  // CharItemIndex_Hand
-    {{192, 25}, ItemType_Shield},  // CharItemIndex_Shield
+    {{192, 28}, ItemType_Shield},  // CharItemIndex_Shield
     INVALID_ITEM,                  // CharItemIndex_Hand2
     INVALID_ITEM,                  // CharItemIndex_Shield2
-    {{117, 1}, ItemType_Helm},     // CharItemIndex_Helm
+    {{117, 4}, ItemType_Helm},     // CharItemIndex_Helm
     {{117, 28}, ItemType_Armor},   // CharItemIndex_Armor
-    {{192, 1}, ItemType_Necklace}, // CharItemIndex_Necklace
-    {{192, 49}, ItemType_Bracers}, // CharItemIndex_Bracers
+    {{192, 4}, ItemType_Necklace}, // CharItemIndex_Necklace
+    {{192, 52}, ItemType_Bracers}, // CharItemIndex_Bracers
     {{117, 93}, ItemType_Shoes},   // CharItemIndex_Shoes
-    {{191, 78}, ItemType_Ring},    // CharItemIndex_RingLeft
-    {{126, 78}, ItemType_Ring},    // CharItemIndex_RingRight
+    {{192, 78}, ItemType_Ring},    // CharItemIndex_RingLeft
+    {{127, 78}, ItemType_Ring},    // CharItemIndex_RingRight
 }};
 
 static InventoryLayout ulineLayout = {{
@@ -110,9 +110,11 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
 
   SHPHandleGetFrame(&gameCtx->gameShapes, &bFrame, bIndex);
   SHPFrameGetImageData(&bFrame);
+
   drawSHPFrame(gameCtx->pixBuf, &bFrame, backgroundPt.x, backgroundPt.y,
                gameCtx->defaultPalette);
   SHPFrameRelease(&bFrame);
+
   drawSHPFrame(gameCtx->pixBuf, &itemFrame, itemPt.x, itemPt.y,
                gameCtx->defaultPalette);
   SHPFrameRelease(&itemFrame);
