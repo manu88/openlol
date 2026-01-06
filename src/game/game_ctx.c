@@ -438,6 +438,7 @@ int GameContextLoadChars(GameContext *gameCtx) {
     if (charId == 0) {
       continue;
     }
+    assert(charId < 100);
     snprintf(faceFile, 11, "FACE%02i.SHP", charId);
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, faceFile));
@@ -659,6 +660,7 @@ void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
   if (gameCtx->inventoryBackgrounds[invId].data == NULL) {
     GameFile f = {0};
     char name[12] = "";
+    assert(invId > 0 && invId < 7);
     snprintf(name, 12, "INVENT%1i.CPS", invId);
     assert(GameEnvironmentGetGeneralFile(&f, name));
     assert(CPSImageFromBuffer(&gameCtx->inventoryBackgrounds[invId], f.buffer,
