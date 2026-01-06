@@ -97,16 +97,17 @@ typedef enum {
 #define MNEMONIC_NOT_EQUAL (const char *)"NEQUAL"
 #define MNEMONIC_LABEL_OFFSET (const char *)"LABEL"
 
-typedef struct _EMCState {
-  enum { kStackSize = 100, kStackLastEntry = kStackSize - 1 };
+#define STACK_SIZE 100
+#define STACK_LAST_ENTRY STACK_SIZE - 1
 
+typedef struct _EMCState {
   const uint16_t *ip;
   const INFScript *dataPtr;
   int16_t retValue;
   uint16_t bp;
   uint16_t sp;
   int16_t regs[30];          // VM registers
-  int16_t stack[kStackSize]; // VM stack
+  int16_t stack[STACK_SIZE]; // VM stack
 } EMCState;
 
 static inline int16_t EMCStateStackVal(const EMCState *state, uint8_t i) {

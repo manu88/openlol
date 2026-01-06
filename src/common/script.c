@@ -145,7 +145,7 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
 
       case 1:
         Log("SCRIPT", "POPLOC");
-        if (script->sp >= kStackLastEntry) {
+        if (script->sp >= STACK_LAST_ENTRY) {
           // assert(0);
           script->ip = NULL;
         } else {
@@ -444,13 +444,13 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
     if (interp->disassembler) {
       EMCDisassemblerEmitLine(interp->disassembler, instOffset, MNEMONIC_RET);
     } else {
-      if (script->sp >= kStackLastEntry) {
+      if (script->sp >= STACK_LAST_ENTRY) {
         script->ip = NULL;
         assert(0);
       } else {
         script->retValue = StackPop(script);
         uint16_t temp = StackPop(script);
-        script->stack[kStackLastEntry] = 0;
+        script->stack[STACK_LAST_ENTRY] = 0;
         script->ip = &script->dataPtr->scriptData[temp];
       }
     }
@@ -466,9 +466,9 @@ void EMCStateInit(EMCState *scriptState, const INFScript *script) {
   memset(scriptState, 0, sizeof(EMCState));
   scriptState->dataPtr = script;
   scriptState->ip = NULL;
-  scriptState->stack[kStackLastEntry] = 0;
-  scriptState->bp = kStackSize + 1;
-  scriptState->sp = kStackLastEntry;
+  scriptState->stack[STACK_LAST_ENTRY] = 0;
+  scriptState->bp = STACK_SIZE + 1;
+  scriptState->sp = STACK_LAST_ENTRY;
   EMCStateSetOffset(scriptState, 0);
 }
 
