@@ -186,6 +186,14 @@ class LOL:
             return False
         return True
 
+    def extract_vcn(self, file: str, pak: str, out_file: str) -> bool:
+        argv = [self.tool_path, "-p", pak, "vcn", file, out_file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            print(resp)
+            return False
+        return True
+
     def extract_cps(self, file: str, pak: str, out_file: str) -> bool:
         argv = [self.tool_path, "-p", pak, "cps", "extract", file, out_file]
         resp = _do_exec(argv)

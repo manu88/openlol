@@ -82,6 +82,19 @@ class BaseRender(tk.Frame):
     def update_for_item(self, file_name: str, pak_name: str):
         pass
 
+class VCNRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.img_label = tk.Label(self)
+        self.img_label.pack()
+
+    def update_for_item(self, file_name, pak_name):
+        out_file = lol.get_temp_path_for("display.png")
+        if lol.extract_vcn(file_name, pak_name, out_file):
+            img_data = PIL.Image.open(out_file)
+            img = PIL.ImageTk.PhotoImage(img_data)
+            self.img_label.configure(image=img)
+            self.img_label.image = img
 
 class CPSRender(BaseRender):
     def __init__(self, parent):
@@ -358,6 +371,7 @@ class UI:
         self._register_renderer("TIM", TIMRender)
         self._register_renderer("LANG", LANGRender)
         self._register_renderer("VOC", VOCRender)
+        self._register_renderer("VCN", VCNRender)
 
     def _register_renderer(self, name: str, cls):
         self.renders[name] = cls(self.details_frame)
