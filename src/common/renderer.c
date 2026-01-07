@@ -302,7 +302,8 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
 }
 
 void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
-                      int yPos, const uint8_t *palette, uint8_t xFlip) {
+                      int yPos, const uint8_t *palette, uint8_t xFlip,
+                      float att) {
   void *data;
   int pitch;
   SDL_LockTexture(pixBuf, NULL, &data, &pitch);
@@ -320,6 +321,11 @@ void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
         r = VGA6To8(palette[(v * 3) + 0]);
         g = VGA6To8(palette[(v * 3) + 1]);
         b = VGA6To8(palette[(v * 3) + 2]);
+      }
+      if (att != 1.0f) {
+        r /= att;
+        g /= att;
+        b /= att;
       }
 
       int xx = x + xPos;

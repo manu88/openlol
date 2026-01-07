@@ -5,6 +5,7 @@
 #include "formats/format_shp.h"
 #include "game_ctx.h"
 #include "geometry.h"
+#include "level.h"
 #include "renderer.h"
 #include <assert.h>
 #include <stdint.h>
@@ -264,13 +265,13 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
     SHPFrameGetImageData(&frame);
     drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
                      deco->shapeY[wall->decoIndex] + wall->y,
-                     level->vcnHandle.palette, wall->xFlip);
+                     level->vcnHandle.palette, wall->xFlip, 1);
     int isFrontWall = (wall->cellId == CELL_N || wall->cellId == CELL_J ||
                        wall->cellId == CELL_D);
     if (isFrontWall && deco->flags & DatDecorationFlags_Mirror) {
       drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
                        deco->shapeY[wall->decoIndex] + wall->y,
-                       level->vcnHandle.palette, 1);
+                       level->vcnHandle.palette, 1, 1);
     }
     SHPFrameRelease(&frame);
   }
@@ -305,11 +306,70 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
   }
 }
 
+static const uint8_t monsterDirFlags[] = {0x08, 0x14, 0x00, 0x04, 0x04, 0x08,
+                                          0x14, 0x00, 0x00, 0x04, 0x08, 0x14,
+                                          0x14, 0x00, 0x04, 0x08};
+
+static void renderEnemy(GameContext *gameCtx, const Monster *monster,
+                        int monsterIndex, int cellId) {
+  const ViewConeCell *cell = &viewConeCell[cellId];
+  int x = 62;
+  int y = 8;
+  float ratioX = 1.0f;
+  float ratioY = 1.0f;
+  switch (cell->frontDist) {
+  case 1:
+    break;
+  case 2:
+    ratioX = 1.6;
+    ratioY = 1.6; // 50
+    x = 70;
+    y = 16;
+    x -= cell->leftDist * 80;
+    break;
+  case 3:
+    ratioX = 2.2;
+    ratioY = 2.2;
+    x = 74;
+    y = 22;
+    x -= cell->leftDist * 40;
+    break;
+  }
+  const MonsterProperties *props =
+      gameCtx->level->monsterProperties + monster->type;
+  assert(props);
+  const SHPHandle *shp = &gameCtx->level->monsterShapes[props->shapeIndex];
+  assert(shp);
+  SHPFrame f = {0};
+
+  int16_t frameIdx =
+      monsterDirFlags[(gameCtx->orientation << 2) + monster->orientation];
+  SHPHandleGetFrame(shp, &f, frameIdx);
+  SHPFrameGetImageData(&f);
+  if (cell->frontDist > 1) {
+    SHPFrameScale(&f, f.header.width / ratioX, f.header.height / ratioY);
+  }
+  float att = 1.0f;
+  if (cell->frontDist > 1) {
+    att = 1.5f * abs(cell->frontDist);
+  }
+
+  drawSHPMazeFrame(gameCtx->pixBuf, &f, x, y, gameCtx->level->vcnHandle.palette,
+                   0, att);
+  SHPFrameRelease(&f);
+}
+
+static void renderEnemies(GameContext *gameCtx, int blockId, int cellId) {
+  for (int i = 0; i < MAX_MONSTERS; i++) {
+    const Monster *monster = gameCtx->level->monsters + i;
+    if (monster->block == blockId) {
+      renderEnemy(gameCtx, monster, i, cellId);
+    }
+  }
+}
+
 static void renderDoor(GameContext *gameCtx, int cellId) {
   const ViewConeCell *cell = &viewConeCell[cellId];
-  SHPFrame frame = {0};
-  SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
-  SHPFrameGetImageData(&frame);
   int x = 52;
   int y = 16;
   float ratioX = 1.0f;
@@ -333,34 +393,30 @@ static void renderDoor(GameContext *gameCtx, int cellId) {
     x -= cell->leftDist * 40;
     break;
   }
-
+  SHPFrame frame = {0};
+  SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+  SHPFrameGetImageData(&frame);
   if (cell->frontDist > 1) {
     SHPFrameScale(&frame, frame.header.width / ratioX,
                   frame.header.height / ratioY);
   }
-
+  float att = 1.f * abs(cell->frontDist);
   drawSHPMazeFrame(gameCtx->pixBuf, &frame, x, y,
-                   gameCtx->level->vcnHandle.palette, 0);
+                   gameCtx->level->vcnHandle.palette, 0, att);
   SHPFrameRelease(&frame);
 }
 
 static RenderWall renderWalls[] = {
-
     {CELL_A, East, A_east},
     {CELL_B, East, B_east},
     {CELL_C, East, C_east},
-
     {CELL_E, East, E_west},
-
     {CELL_F, West, F_west, 5, 0, 0, -1},
-
     {CELL_G, West, G_west},
     {CELL_B, South, B_south},
     {CELL_C, South, C_south, DecorationIndex_C_SOUTH, 16, 26, 0},
     {CELL_D, South, D_south, DecorationIndex_D_SOUTH, 64, 26, 0},
-
     {CELL_E, South, E_south, DecorationIndex_E_SOUTH, 17, 26, -1},
-
     {CELL_F, South, F_south},
     {CELL_H, East, H_east},
     {CELL_I, West, I_east},
@@ -372,7 +428,8 @@ static RenderWall renderWalls[] = {
     {CELL_M, East, M_east, DecorationIndex_M_WEST, 24, 10, 0},
     {CELL_O, West, O_west, DecorationIndex_O_EAST, 24, 10, 1},
     {CELL_M, South, M_south, DecorationIndex_M_SOUTH, 153, 8, 1},
-    {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8, 0},
+    {CELL_N, South, N_south, DecorationIndex_N_SOUTH, 24, 8,
+     0}, // the one in front
     {CELL_O, South, O_south, DecorationIndex_O_SOUTH, 153, 8, 0},
     {CELL_P, East, P_east, DecorationIndex_P_EAST, 0, 0, 0},
     {CELL_Q, West, Q_west, DecorationIndex_Q_WEST, 0, 0, 1},
@@ -420,6 +477,11 @@ void GameRenderMaze(GameContext *gameCtx) {
       if (r->decoIndex != 0) {
         renderWallDecoration(texture, level, r, wmi);
       }
+    }
+    if (r->cellId == CELL_N || r->cellId == CELL_J || r->cellId == CELL_I ||
+        r->cellId == CELL_K || r->cellId == CELL_C || r->cellId == CELL_E ||
+        r->cellId == CELL_D) {
+      renderEnemies(gameCtx, blockId, r->cellId);
     }
   }
 }
