@@ -55,22 +55,33 @@ static uint8_t *getFileContent(const char *filepath, size_t *dataSize,
 }
 
 static int cmdWLL(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("missing input file\n");
+    return 1;
+  }
+  const char *inputFile = argv[0];
   size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(argv[0], &fileSize, &readSize);
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(inputFile, &fileSize, &freeBuffer);
   if (!buffer) {
+    printf("file not found\n");
     return 1;
   }
-  if (readSize == 0) {
-    free(buffer);
+  if (fileSize == 0) {
+    if (freeBuffer) {
+      free(buffer);
+    }
+    printf("invalid file\n");
     return 1;
   }
-  assert(readSize == fileSize);
+  assert(fileSize == fileSize);
 
   WllHandle handle = {0};
-  WllHandleFromBuffer(&handle, buffer, readSize);
+  WllHandleFromBuffer(&handle, buffer, fileSize);
   WLLHandlePrint(&handle);
-  WllHandleRelease(&handle);
+  if (freeBuffer) {
+    WllHandleRelease(&handle);
+  }
   return 0;
 }
 
@@ -1223,7 +1234,7 @@ static int cmdLang(int argc, char *argv[]) {
 }
 
 static void usage(const char *progName) {
-  printf("%s: pak|cmz|map|script|inf|wll|render|game|dat|shp|lang "
+  printf("%s: pak|cmz|script|inf|wll|render|game|dat|shp|lang "
          "subcommand "
          "...\n",
          progName);
