@@ -84,34 +84,40 @@ static char *strAppend(const char *str, char *toAdd) {
   return outStr;
 }
 
+static void usageVCN(void) { printf("vcn subcommands: input output\n"); }
+
 static int cmdVCN(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageVCN();
+    return 1;
+  }
   size_t fileSize = 0;
-  size_t readSize = 0;
+  int freebuffer = 0;
   const char *inputFile = argv[0];
-  uint8_t *buffer = readBinaryFile(inputFile, &fileSize, &readSize);
+  const char *outputFile = argv[1];
+  uint8_t *buffer = getFileContent(inputFile, &fileSize, &freebuffer);
   if (!buffer) {
     return 1;
   }
-  if (readSize == 0) {
+  if (fileSize == 0) {
     free(buffer);
     return 1;
   }
-  assert(readSize == fileSize);
+
   VCNHandle handle = {0};
   if (!VCNHandleFromLCWBuffer(&handle, buffer, fileSize)) {
     printf("VCNDataFromLCWBuffer error\n");
-    free(buffer);
+    if (freebuffer) {
+      free(buffer);
+    }
+
     return 1;
   }
-  char *outFilePath = strAppend(inputFile, ".png");
-  if (!outFilePath) {
+
+  VCNImageToPng(&handle, outputFile);
+  if (freebuffer) {
     VCNHandleRelease(&handle);
-    return 1;
   }
-  printf("Write VCN image '%s'\n", outFilePath);
-  VCNImageToPng(&handle, outFilePath);
-  VCNHandleRelease(&handle);
-  free(outFilePath);
   return 0;
 }
 

@@ -279,25 +279,29 @@ void VCNImageToPng(const VCNHandle *handle, const char *savePngPath) {
   const int widthBlocks = 32;
   const int heightBlocks = (int)handle->nbBlocks / 32;
   const int imageWidth = widthBlocks * BLOCK_SIZE;
+  const int imageHeight = heightBlocks * BLOCK_SIZE;
   SDL_Init(SDL_INIT_VIDEO);
-  SDL_Surface *surface = SDL_CreateRGBSurface(
-      0, imageWidth, heightBlocks * BLOCK_SIZE, 32, 0, 0, 0, 0);
+  SDL_Surface *surface =
+      SDL_CreateRGBSurface(0, imageWidth, imageHeight, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
+  SDL_Texture *pixbuf =
+      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_XRGB8888,
+                        SDL_TEXTUREACCESS_STREAMING, imageWidth, imageHeight);
 
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
-  assert(0 && "will fail because we're passing a SDL_Renderer to blitBlock "
-              "instead of a pixel buffer -- this is easy to fix");
   for (int i = 0; i < handle->nbBlocks; i++) {
     int blockX = i % widthBlocks;
     int blockY = i / widthBlocks;
-    blitBlock(NULL, handle, i, blockX * BLOCK_SIZE, blockY * BLOCK_SIZE, 0);
+    blitBlock(pixbuf, handle, i, blockX * BLOCK_SIZE, blockY * BLOCK_SIZE, 0);
   }
 
+  SDL_RenderCopy(renderer, pixbuf, NULL, NULL);
   SDL_RenderPresent(renderer);
   IMG_SavePNG(surface, savePngPath);
 
+  SDL_DestroyTexture(pixbuf);
   SDL_DestroyRenderer(renderer);
 }
 
