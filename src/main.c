@@ -608,23 +608,31 @@ static int cmdShp(int argc, char *argv[]) {
 }
 
 static int cmdDat(int argc, char *argv[]) {
+  if (argc < 1) {
+    printf("missing input file\n");
+    return 1;
+  }
   const char *datFile = argv[0];
   printf("open DAT file '%s'\n", datFile);
   size_t fileSize = 0;
-  size_t readSize = 0;
-  uint8_t *buffer = readBinaryFile(datFile, &fileSize, &readSize);
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(datFile, &fileSize, &freeBuffer);
   if (!buffer) {
     perror("readBinaryFile");
     return 1;
   }
   DatHandle handle = {0};
-  if (!DatHandleFromBuffer(&handle, buffer, readSize)) {
+  if (!DatHandleFromBuffer(&handle, buffer, fileSize)) {
     perror("DatHandleFromBuffer");
-    free(buffer);
+    if (freeBuffer) {
+      free(buffer);
+    }
     return 1;
   }
   DatHandlePrint(&handle);
-  DatHandleRelease(&handle);
+  if (freeBuffer) {
+    DatHandleRelease(&handle);
+  }
   return 0;
 }
 

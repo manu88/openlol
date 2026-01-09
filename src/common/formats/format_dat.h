@@ -31,3 +31,4 @@ typedef struct {
 void DatHandleRelease(DatHandle *handle);
 int DatHandleFromBuffer(DatHandle *handle, uint8_t *buffer, size_t size);
 void DatHandlePrint(const DatHandle *handle);
+void DatDecorationPrint(const DatDecoration *deco);
