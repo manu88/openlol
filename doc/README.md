@@ -14,7 +14,7 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - ‘.VCN‘ : .vcn files contains graphics for the walls including the background.
 - ‘.LBM‘ : IFF https://moddingwiki.shikadi.net/wiki/LBM_Format, use this parser? https://github.com/svanderburg/libiff
 - ‘.XXX‘ : map legend data, see https://github.com/scummvm/scummvm/blob/2816913460d4bd73795ca1356059b491f7248b05/engines/kyra/engine/lol.cpp#L4257
-- ‘.WLL‘ : WaLL data, maybe decoration data?
+- ‘.WLL‘ : Wall decorations & definitions
 - ‘.FRE‘ : FREnch text compressed with a Dizio-Encoding
 - ‘.INF‘ : Script data similar to Eob inf, Data is arranged using Legend of Kyrandia's script format (info about Dune II's EMC: https://web.archive.org/web/20080922215518/http://minniatian.republika.pl/Dune2/EMC.HTM)
 - ‘.INI‘ : INF script in disguise, used for level initialization.
