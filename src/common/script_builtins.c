@@ -221,6 +221,11 @@ static uint16_t resetBlockShapeAssignment(EMCInterpreter *interp,
   return 1;
 }
 
+static uint16_t countBlockItems(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] countBlockItems\n");
+  return 0;
+}
+
 #pragma mark SYSTEM
 
 static uint16_t copyRegion(EMCInterpreter *interp, EMCState *state) {
@@ -987,7 +992,7 @@ static ScriptFunDesc functions[] = {
     {loadSoundFile, "loadSoundFile"},
     {playMusicTrack, "playMusicTrack"},
     {NULL},
-    {NULL},
+    {countBlockItems, "countBlockItems"},
     {NULL},
     {countAllMonsters, "countAllMonsters"},
     {NULL},
