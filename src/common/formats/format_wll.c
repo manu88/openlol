@@ -50,10 +50,10 @@ uint16_t *WllHandleGetIndex(const WllHandle *handle, size_t index) {
 void WLLHandlePrint(const WllHandle *handle) {
   printf("Got %zu entries\n", handle->numEntries);
   for (int i = 0; i < handle->numEntries; i++) {
-    const uint16_t *entry = WllHandleGetIndex(handle, i);
-    for (int i = 0; i < 6; i++) {
-      printf("0X%04X ", entry[i]);
-    }
-    printf("\n");
+    const WllWallMapping *map =
+        (const WllWallMapping *)WllHandleGetIndex(handle, i);
+    printf("wmi=0X%X type=0X%X specialType=%X decoId=%i flags=0X%X\n",
+           map->wallMappingIndex, map->wallType, map->specialType,
+           map->decorationId, map->flags);
   }
 }
