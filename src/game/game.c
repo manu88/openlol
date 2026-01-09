@@ -137,16 +137,22 @@ static void inspectFrontWall(GameContext *gameCtx) {
   const WllWallMapping *mapping =
       WllHandleGetWallMapping(&gameCtx->level->wllHandle, wmi);
   if (mapping) {
-    printf("clickOnFrontWall WallType wallType=0X%X decorationId=%X "
+    printf("clickOnFrontWall wmi=%i WallType wallType=0X%X decorationId=%X "
            "specialType=%X "
            "flags=%X automapData=%X\n",
-           mapping->wallType, mapping->decorationId, mapping->specialType,
+           wmi, mapping->wallType, mapping->decorationId, mapping->specialType,
            mapping->flags, mapping->automapData);
   }
 }
 
 static void runBlockScript(GameContext *gameCtx) {
   GameContextRunScript(gameCtx, gameCtx->currentBock);
+}
+
+static void clickDoorSwitch(GameContext *gameCtx, uint16_t block) {
+  printf("clickDoorSwitch\n");
+  GameContextPlaySoundFX(gameCtx, 78);
+  GameContextRunScript(gameCtx, block);
 }
 
 static void clickOnFrontWall(GameContext *gameCtx) {
@@ -167,7 +173,8 @@ static void clickOnFrontWall(GameContext *gameCtx) {
     break;
   case WallSpecialType_WallShape:
     printf("WallSpecialType_WallShape\n");
-    break;
+    GameContextRunScript(gameCtx, nextBlock);
+    return;
   case WallSpecialType_LeverOn:
     printf("WallSpecialType_LeverOn\n");
     break;
@@ -176,17 +183,17 @@ static void clickOnFrontWall(GameContext *gameCtx) {
     break;
   case WallSpecialType_OnlyScript:
     printf("WallSpecialType_OnlyScript\n");
-    break;
+    GameContextRunScript(gameCtx, nextBlock);
+    return;
   case WallSpecialType_DoorSwitch:
-    printf("WallSpecialType_DoorSwitch\n");
-    break;
+    clickDoorSwitch(gameCtx, nextBlock);
+    return;
   case WallSpecialType_Niche:
     printf("WallSpecialType_Niche\n");
     break;
   default:
     assert(0);
   }
-  GameContextRunScript(gameCtx, nextBlock);
 }
 
 static int charZoneClicked(const GameContext *gameCtx) {
