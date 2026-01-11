@@ -14,6 +14,7 @@
 #include "game_strings.h"
 #include "game_tim_animator.h"
 #include "menu.h"
+#include "pak_file.h"
 #include "render.h"
 #include "script.h"
 #include <assert.h>
@@ -190,6 +191,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
            SDL_GetError());
     return 0;
   }
+  assert(GameEnvironmentLoadPak(&gameCtx->defaultTlkFile, "00.TLK"));
   assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
   AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
   gameCtx->window =
@@ -304,6 +306,8 @@ void GameContextRelease(GameContext *gameCtx) {
     }
   }
   free(gameCtx->defaultPalette);
+  PAKFileRelease(&gameCtx->sfxPak);
+  PAKFileRelease(&gameCtx->defaultTlkFile);
 }
 
 int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
@@ -744,6 +748,49 @@ void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex) {
   gameCtx->level->currentTlkFileIndex = levelIndex;
 }
 
+static int getTLKSequence(GameContext *gameCtx, PAKFile *pak, int16_t charId,
+                          uint16_t soundId, const char *pattern2,
+                          int fileSequence[]) {
+
+  int fileSequenceIndex = 0;
+  char pattern1[8] = "";
+  char file3[8] = "";
+  if (soundId & 0x4000) {
+    snprintf(pattern1, 8, "%03X", soundId & 0x3FFF);
+  } else if (soundId < 1000) {
+    snprintf(pattern1, 8, "%03d", soundId);
+  } else {
+    snprintf(file3, 8, "@%04d%c.%s", soundId - 1000, (char)charId, pattern2);
+    int file3index = PakFileGetEntryIndex(pak, file3);
+    if (file3index != -1) {
+      fileSequence[fileSequenceIndex++] = file3index;
+    }
+  }
+
+  char file1[9] = "";
+  char file2[9] = "";
+  if (strlen(file3) == 0) {
+    for (char i = 0; i < 100; i++) {
+      char symbol = '0' + i;
+      snprintf(file1, 9, "%s%c%c.%s", pattern1, (char)charId, symbol, pattern2);
+      snprintf(file2, 9, "%s%c%c.%s", pattern1, '_', symbol, pattern2);
+
+      int file1index = PakFileGetEntryIndex(pak, file1);
+      int file2index = PakFileGetEntryIndex(pak, file2);
+      if (file1index != -1) {
+        printf("found file1='%s'\n", file1);
+        fileSequence[fileSequenceIndex++] = file1index;
+      } else if (file2index != -1) {
+        printf("found file2='%s'\n", file2);
+        fileSequence[fileSequenceIndex++] = file2index;
+      } else {
+        break;
+      }
+    }
+  }
+  return fileSequenceIndex;
+}
+
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
                                  uint16_t soundId) {
   printf("GameContextPlayDialogSpeech charId=%X strId=%X\n", charId, soundId);
@@ -760,57 +807,24 @@ void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
            soundId & 0x4000 ? 0 : gameCtx->level->currentTlkFileIndex);
 
   int fileSequence[MAX_VOC_SEQ_ENTRIES] = {0};
-  int fileSequenceIndex = 0;
 
-  char pattern1[8] = "";
-  char file3[8] = "";
-  if (soundId & 0x4000) {
-    snprintf(pattern1, 8, "%03X", soundId & 0x3FFF);
-  } else if (soundId < 1000) {
-    snprintf(pattern1, 8, "%03d", soundId);
-  } else {
-    snprintf(file3, 8, "@%04d%c.%s", soundId - 1000, (char)charId, pattern2);
-    int file3index =
-        PakFileGetEntryIndex(&gameCtx->level->currentTlkFile, file3);
-    if (file3index != -1) {
-      fileSequence[fileSequenceIndex++] = file3index;
-    }
+  int fileSequenceIndex =
+      getTLKSequence(gameCtx, &gameCtx->level->currentTlkFile, charId, soundId,
+                     pattern2, fileSequence);
+
+  if (fileSequenceIndex > 0) {
+    AudioSystemPlayVoiceSequence(&gameCtx->audio,
+                                 &gameCtx->level->currentTlkFile, fileSequence,
+                                 fileSequenceIndex);
+    return;
   }
+  // is the sequence in default TLK file?
+  fileSequenceIndex = getTLKSequence(gameCtx, &gameCtx->defaultTlkFile, charId,
+                                     soundId, pattern2, fileSequence);
 
-  // printf("file3='%s'\n", file3);
-
-  char file1[9] = "";
-  char file2[9] = "";
-  if (strlen(file3) == 0) {
-    for (char i = 0; i < 100; i++) {
-      char symbol = '0' + i;
-      snprintf(file1, 9, "%s%c%c.%s", pattern1, (char)charId, symbol, pattern2);
-      snprintf(file2, 9, "%s%c%c.%s", pattern1, '_', symbol, pattern2);
-
-      // printf("file1='%s' file2='%s'\n", file1, file2);
-      int file1index =
-          PakFileGetEntryIndex(&gameCtx->level->currentTlkFile, file1);
-      int file2index =
-          PakFileGetEntryIndex(&gameCtx->level->currentTlkFile, file2);
-      if (file1index != -1) {
-        printf("found file1='%s'\n", file1);
-        fileSequence[fileSequenceIndex++] = file1index;
-      } else if (file2index != -1) {
-        printf("found file2='%s'\n", file2);
-        fileSequence[fileSequenceIndex++] = file2index;
-      } else {
-        break;
-      }
-    }
-    if (fileSequenceIndex > 0) {
-      AudioSystemPlayVoiceSequence(&gameCtx->audio,
-                                   &gameCtx->level->currentTlkFile,
-                                   fileSequence, fileSequenceIndex);
-    } else {
-      printf("GameContextPlayDialogSpeech: No file found for charid='%c' "
-             "file3='%s' file1='%s' file2='%s'\n",
-             charId, file3, file2, file1);
-    }
+  if (fileSequenceIndex > 0) {
+    AudioSystemPlayVoiceSequence(&gameCtx->audio, &gameCtx->defaultTlkFile,
+                                 fileSequence, fileSequenceIndex);
   }
 }
 

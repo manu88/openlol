@@ -159,7 +159,7 @@ typedef struct _GameContext {
   char *savDir;
 
   PAKFile sfxPak;
-
+  PAKFile defaultTlkFile; // 00.TLK
   GameConfig conf;
 } GameContext;
 
