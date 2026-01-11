@@ -1,6 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define MAZE_COORDS_X (int)112
 #define MAZE_COORDS_Y (int)0
@@ -127,6 +128,10 @@ typedef struct {
   uint16_t x;
   uint16_t y;
 } Point;
+
+static inline int PointDistance(const Point *p1, const Point *p2) {
+  return abs(p1->x - p2->x) + abs(p1->y - p2->y);
+}
 
 typedef struct {
   Point coords;

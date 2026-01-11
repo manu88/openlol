@@ -155,6 +155,18 @@ typedef enum {
   EMCGetItemParam_SkillMight = 17,
 } EMCGetItemParam;
 
+typedef enum {
+  GetMonsterStatHow_Mode = 0,
+  GetMonsterStatHow_HitPoints = 1,
+  GetMonsterStatHow_Block = 2,
+  GetMonsterStatHow_Facing = 3,
+  GetMonsterStatHow_Type = 4,
+  GetMonsterStatHow_PropertyHitPoint = 5,
+  GetMonsterStatHow_Flags = 6,
+  GetMonsterStatHow_PropertyFlags = 7,
+  GetMonsterStatHow_AnimType = 8,
+} GetMonsterStatHow;
+
 typedef struct _EMCInterpreter EMCInterpreter;
 
 typedef struct _EMCInterpreterCallbacks {
@@ -332,6 +344,17 @@ typedef struct _EMCInterpreterCallbacks {
       EMCInterpreter *interp, uint16_t block, uint16_t xOff, uint16_t yOff,
       uint16_t orientation, uint16_t monsterType, uint16_t flags,
       uint16_t monsterMode);
+
+  uint16_t (*EMCInterpreterCallbacks_GetMonsterStat)(EMCInterpreter *interp,
+                                                     uint16_t monsterId,
+                                                     GetMonsterStatHow how);
+  void (*EMCInterpreterCallbacks_PrintWindowText)(EMCInterpreter *interp,
+                                                  uint16_t dim, uint16_t flags,
+                                                  uint16_t stringId);
+  void (*EMCInterpreterCallbacks_RedrawPlayfield)(EMCInterpreter *interp);
+
+  int (*EMCInterpreterCallbacks_TriggerEventOnMouseButtonClick)(
+      EMCInterpreter *interp, uint16_t event);
 
 } EMCInterpreterCallbacks;
 

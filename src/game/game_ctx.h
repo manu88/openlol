@@ -186,6 +186,9 @@ void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
 int GameContextLoadChars(GameContext *ctx);
 int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
+int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
+                             uint16_t itemId, uint16_t flags, uint16_t next,
+                             uint16_t reg4);
 
 uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag);
 void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag);
@@ -203,6 +206,9 @@ uint16_t GameContextGetString(const GameContext *ctx, uint16_t stringId,
 char *GameContextGetString2(const GameContext *ctx, uint16_t stringId);
 uint16_t GameContextGetLevelName(const GameContext *gameCtx, char *outBuffer,
                                  size_t outBufferSize);
+
+// returns a string with %n replaced with hero name. Needs to be freed!
+char *GameContextGetString3(const GameContext *ctx, uint16_t stringId);
 
 uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx, uint16_t itemId);
 

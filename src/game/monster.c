@@ -15,3 +15,23 @@ int MonsterGetAvailableSlot(const GameContext *ctx) {
   }
   return -1;
 }
+
+int MonsterGetNearest(const GameContext *ctx, int charBlock) {
+  int minDist = 10000;
+  int id = -1;
+  Point posChar;
+  BlockGetCoordinates(&posChar.x, &posChar.y, charBlock, 0x80, 0x80);
+
+  for (int i = 0; i < MAX_MONSTERS; i++) {
+    const Monster *monster = ctx->level->monsters + i;
+    Point posMonster;
+    BlockGetCoordinates(&posMonster.x, &posMonster.y, monster->block, 0x80,
+                        0x80);
+    int dist = PointDistance(&posChar, &posMonster);
+    if (dist < minDist) {
+      minDist = dist;
+      id = monster->id;
+    }
+  }
+  return id;
+}

@@ -343,6 +343,15 @@ static uint16_t enableSysTimer(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t printWindowText(EMCInterpreter *interp, EMCState *state) {
+  uint16_t dim = EMCStateStackVal(state, 0);
+  uint16_t flags = EMCStateStackVal(state, 1);
+  uint16_t stringId = EMCStateStackVal(state, 2);
+  interp->callbacks.EMCInterpreterCallbacks_PrintWindowText(interp, dim, flags,
+                                                            stringId);
+  return 1;
+}
+
 #pragma mark PARTY PEOPLE
 
 static uint16_t calcNewBlockPosition(EMCInterpreter *interp, EMCState *state) {
@@ -359,6 +368,12 @@ static uint16_t moveParty(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t getCharacterStat(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] getCharacterStat\n");
+  return 0;
+}
+
+static uint16_t setCharacterStat(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] setCharacterStat\n");
   return 0;
 }
 
@@ -380,17 +395,22 @@ static uint16_t battleHitSkillTest(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t calcInflictableDamagePerItem(EMCInterpreter *interp,
                                              EMCState *state) {
-  printf("calcInflictableDamagePerItem\n");
+  printf("[UNIMPLEMENTED] calcInflictableDamagePerItem\n");
   return 1;
 }
 
 static uint16_t getInflictedDamage(EMCInterpreter *interp, EMCState *state) {
-  printf("getInflictedDamage\n");
+  printf("[UNIMPLEMENTED] getInflictedDamage\n");
+  return 1;
+}
+
+static uint16_t calcInflictableDamage(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] calcInflictableDamage\n");
   return 1;
 }
 
 static uint16_t inflictDamage(EMCInterpreter *interp, EMCState *state) {
-  printf("inflictDamage\n");
+  printf("[UNIMPLEMENTED] inflictDamage\n");
   return 1;
 }
 
@@ -476,6 +496,11 @@ static uint16_t setupBackgroundAnimationPart(EMCInterpreter *interp,
 
 static uint16_t updateDrawPage2(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] updateDrawPage2\n");
+  return 1;
+}
+
+static uint16_t redrawPlayfield(EMCInterpreter *interp, EMCState *state) {
+  interp->callbacks.EMCInterpreterCallbacks_RedrawPlayfield(interp);
   return 1;
 }
 
@@ -623,6 +648,13 @@ static uint16_t changeMonsterStat(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t getMonsterStat(EMCInterpreter *interp, EMCState *state) {
+  uint16_t monsterId = EMCStateStackVal(state, 0);
+  uint8_t how = (uint8_t)EMCStateStackVal(state, 1);
+  return interp->callbacks.EMCInterpreterCallbacks_GetMonsterStat(
+      interp, monsterId, how);
+}
+
 static uint16_t countSpecificMonsters(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] countSpecificMonsters\n");
   return 0;
@@ -634,6 +666,16 @@ static uint16_t countAllMonsters(EMCInterpreter *interp, EMCState *state) {
 }
 
 #pragma mark SOUND/MUSIC
+
+static uint16_t characterSays(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] characterSays\n");
+  return 1;
+}
+
+static uint16_t playAttackSound(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] playAttackSound\n");
+  return 1;
+}
 
 static uint16_t queueSpeech(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] queueSpeech\n");
@@ -765,10 +807,9 @@ static uint16_t drawExitButton(EMCInterpreter *interp, EMCState *state) {
 
 static uint16_t triggerEventOnMouseButtonClick(EMCInterpreter *interp,
                                                EMCState *state) {
-  int evt = EMCStateStackVal(state, 0);
-  printf("triggerEventOnMouseButtonClick evt=%X\n", evt);
-  ASSERT_UNIMPLEMENTED;
-  return 1;
+  int event = EMCStateStackVal(state, 0);
+  return interp->callbacks
+      .EMCInterpreterCallbacks_TriggerEventOnMouseButtonClick(interp, event);
 }
 
 static uint16_t printMessage(EMCInterpreter *interp, EMCState *state) {
@@ -895,7 +936,7 @@ static ScriptFunDesc functions[] = {
     {createLevelItem, "createLevelItem"},
     {getItemParam, "getItemParam"},
     {getCharacterStat, "getCharacterStat"},
-    {NULL},
+    {setCharacterStat, "setCharacterStat"},
     {loadLevelShapes, "loadLevelShapes"},
     {closeLevelShapeFile, "closeLevelShapeFile"},
     {NULL},
@@ -941,7 +982,7 @@ static ScriptFunDesc functions[] = {
     {fadeClearSceneWindow, "fadeClearSceneWindow"},
     // 0X3A
     {fadeSequencePalette, "fadeSequencePalette"},
-    {NULL},
+    {redrawPlayfield, "redrawPlayfield"},
     {loadNewLevel, "loadNewLevel"},
     {NULL},
     {NULL},
@@ -959,7 +1000,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {createHandItem, "createHandItem"},
     // 0X4A
-    {NULL},
+    {playAttackSound, "playAttackSound"},
     {NULL},
     {NULL},
     {NULL},
@@ -980,7 +1021,7 @@ static ScriptFunDesc functions[] = {
     // 0X5A
     {getWallFlags, "getWallFlags"},
     {changeMonsterStat, "changeMonsterStat"},
-    {NULL},
+    {getMonsterStat, "getMonsterStat"},
     {NULL},
     {playCharacterScriptChat, "playCharacterScriptChat"},
     {update, "update"},
@@ -999,7 +1040,7 @@ static ScriptFunDesc functions[] = {
     // 0X6A
     {stopPortraitSpeechAnim, "stopPortraitSpeechAnim"},
     {setPaletteBrightness, "setPaletteBrightness"},
-    {NULL},
+    {calcInflictableDamage, "calcInflictableDamage"},
     {getInflictedDamage, "getInflictedDamage"},
     {checkForCertainPartyMember, "checkForCertainPartyMember"},
     {printMessage, "printMessage"},
@@ -1026,7 +1067,7 @@ static ScriptFunDesc functions[] = {
     // 0X80
     {NULL},
     {triggerEventOnMouseButtonClick, "triggerEventOnMouseButtonClick"},
-    {NULL},
+    {printWindowText, "printWindowText"},
     {countSpecificMonsters, "countSpecificMonsters"},
     {NULL},
     {NULL},
@@ -1070,7 +1111,7 @@ static ScriptFunDesc functions[] = {
     {assignSpecialGuiShape, "assignSpecialGuiShape"},
     {NULL},
     {restoreFadePalette, "restoreFadePalette"},
-    {NULL},
+    {calcNewBlockPosition, "calcNewBlockPosition"},
     {NULL},
     {NULL},
     {NULL},
@@ -1093,7 +1134,7 @@ static ScriptFunDesc functions[] = {
     {updateDrawPage2, "updateDrawPage2"},
     // BA
     {NULL},
-    {NULL},
+    {characterSays, "characterSays"},
     {queueSpeech, "queueSpeech"},
 };
 

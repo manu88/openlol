@@ -470,6 +470,39 @@ int GameContextRunScript(GameContext *gameCtx, int function) {
   return 1;
 }
 
+int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
+                             uint16_t itemId, uint16_t flags, uint16_t next,
+                             uint16_t reg4) {
+  uint8_t func = 3;
+  if (itemId) {
+    func =
+        gameCtx->itemProperties[gameCtx->itemsInGame[itemId].itemPropertyIndex]
+            .scriptFun;
+  }
+  printf("func=%X\n", func);
+  if (func == 0xFF) {
+    return 0;
+  }
+
+  EMCState state = {0};
+  EMCStateInit(&state, &gameCtx->itemScript);
+  if (!EMCStateStart(&state, func)) {
+    printf("EMCStateStart error\n");
+    return 0;
+  }
+
+  state.regs[0] = flags;
+  state.regs[1] = charId;
+  state.regs[2] = itemId;
+  state.regs[3] = next;
+  state.regs[4] = next;
+
+  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
+    EMCInterpreterRun(&gameCtx->interp, &state);
+  }
+  return 1;
+}
+
 uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag) {
   assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
   return ((gameCtx->gameFlags[flag >> 3] >> (flag & 7)) & 1);
@@ -519,6 +552,25 @@ uint8_t GameContextGetNumChars(const GameContext *ctx) {
     }
   }
   return c;
+}
+
+char *GameContextGetString3(const GameContext *gameCtx, uint16_t stringId) {
+  char *str = GameContextGetString2(gameCtx, stringId);
+  char *format = strdup(str);
+
+  int placeholderIndex = 0;
+  do {
+    placeholderIndex = stringHasCharName(format, placeholderIndex);
+    if (placeholderIndex != -1) {
+      char *newFormat = stringReplaceHeroNameAt(
+          gameCtx, format, DIALOG_BUFFER_SIZE, placeholderIndex);
+      free(format);
+      format = newFormat;
+    }
+  } while (placeholderIndex != -1);
+
+  free(str);
+  return format;
 }
 
 char *GameContextGetString2(const GameContext *ctx, uint16_t stringId) {

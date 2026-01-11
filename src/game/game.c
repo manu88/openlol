@@ -18,6 +18,7 @@
 #include "level.h"
 #include "logger.h"
 #include "menu.h"
+#include "monster.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
@@ -402,6 +403,50 @@ int tryMove(GameContext *gameCtx, Direction dir) {
   return 1;
 }
 
+static void charUseItem(GameContext *gameCtx) {
+  if (!gameCtx->itemIndexInHand) {
+    return;
+  }
+  printf("charUseItem: char %i item 0X%X\n", gameCtx->selectedChar,
+         gameCtx->itemIndexInHand);
+
+  int flags =
+      gameCtx
+          ->itemProperties[gameCtx->itemsInGame[gameCtx->itemIndexInHand]
+                               .itemPropertyIndex]
+          .flags;
+  printf("charUseItem: char %i item 0X%X flag=0X%X\n", gameCtx->selectedChar,
+         gameCtx->itemIndexInHand, flags);
+  if (flags & 1) {
+    if (!(gameCtx->chars[gameCtx->selectedChar].flags & 8) || (flags & 0X20)) {
+      printf("Run script\n");
+      GameContextRunItemScript(gameCtx, gameCtx->selectedChar,
+                               gameCtx->itemIndexInHand, 0X400, 0, 0);
+    }
+  }
+}
+
+static void charAttack(GameContext *gameCtx) {
+  printf("Attack: char %i\n", gameCtx->selectedChar);
+  SAVCharacter *c = gameCtx->chars + gameCtx->selectedChar;
+  printf("char flags=0X%X\n", c->flags);
+
+  int destBlock =
+      BlockCalcNewPosition(gameCtx->currentBock, gameCtx->orientation);
+
+  int monsterId = MonsterGetNearest(gameCtx, destBlock);
+  printf("nearest %i\n", monsterId);
+  int s = 0;
+  for (int i = 0; i < 4; i++) {
+    if (c->items[i] == 0) {
+      continue;
+    }
+
+    GameContextRunItemScript(gameCtx, gameCtx->selectedChar, c->items[i], 0x400,
+                             monsterId, s);
+  }
+}
+
 static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
                                 int coordX) {
   int prevSelectedChar = gameCtx->selectedChar;
@@ -414,10 +459,15 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
     gameCtx->selectedCharIsCastingSpell = 0;
   } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX, CHAR_ZONE_Y,
                          CHAR_FACE_W, CHAR_FACE_H)) {
-    GameContextSetState(gameCtx, GameState_ShowInventory);
+    if (gameCtx->mouseEv.isRightClick) {
+      charUseItem(gameCtx);
+    } else {
+      GameContextSetState(gameCtx, GameState_ShowInventory);
+    }
+
   } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y, 22,
                          18)) {
-    printf("Attack: char %i\n", gameCtx->selectedChar);
+    charAttack(gameCtx);
     gameCtx->selectedCharIsCastingSpell = 0;
   } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y + 16,
                          22, 18)) {
@@ -667,6 +717,23 @@ static void GamePreUpdate(GameContext *gameCtx) {
     printf("Exec next func %X\n", gameCtx->nextFunc);
     GameContextRunScript(gameCtx, gameCtx->nextFunc);
     gameCtx->nextFunc = 0;
+  }
+}
+
+int GameWaitForClick(GameContext *gameCtx) {
+  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
+  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
+  SDL_RenderPresent(gameCtx->renderer);
+  while (1) {
+    SDL_Event event = {0};
+    SDL_WaitEvent(&event);
+    if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_KEYDOWN) {
+      return 1;
+    } else if (event.type == SDL_QUIT) {
+      gameCtx->_shouldRun = 0;
+      return 1;
+    }
   }
 }
 

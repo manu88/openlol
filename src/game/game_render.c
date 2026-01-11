@@ -392,7 +392,7 @@ void GameRender(GameContext *gameCtx) {
 
 void GameRenderResetDialog(GameContext *gameCtx) { gameCtx->dialogText = NULL; }
 
-static inline int stringHasCharName(const char *s, int startIndex) {
+int stringHasCharName(const char *s, int startIndex) {
   size_t strLen = strlen(s);
   int i = 0;
   if (startIndex) {
@@ -406,13 +406,13 @@ static inline int stringHasCharName(const char *s, int startIndex) {
       char next = s[i + 1];
       if (next == 'n') {
         return i;
-      } // XXX handle other special string aliasing types here if any
+      } // FIXME: handle other special string aliasing types here if any
     }
   }
   return -1;
 }
 
-static inline char *stringReplaceHeroNameAt(GameContext *gameCtx, char *string,
+char *stringReplaceHeroNameAt(const GameContext *gameCtx, char *string,
                                             size_t bufferSize, int index) {
   const char *heroName = gameCtx->chars[0].name;
   size_t totalNewSize = strlen(string) - 2 + strlen(heroName) + 1;
@@ -430,7 +430,6 @@ void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...) {
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   char *format = strdup(gameCtx->dialogTextBuffer);
-
   int placeholderIndex = 0;
   do {
     placeholderIndex = stringHasCharName(format, placeholderIndex);

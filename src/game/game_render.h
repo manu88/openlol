@@ -15,3 +15,7 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
 void GameRenderResetDialog(GameContext *gameCtx);
 
 void GameRenderSetDialogF(GameContext *gameCtx, int stringId, ...);
+
+char *stringReplaceHeroNameAt(const GameContext *gameCtx, char *string,
+                              size_t bufferSize, int index);
+int stringHasCharName(const char *s, int startIndex);

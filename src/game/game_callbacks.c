@@ -7,10 +7,12 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "game_tim_animator.h"
+#include "geometry.h"
 #include "logger.h"
 #include "monster.h"
 #include "render.h"
 #include "script.h"
+#include "ui.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -246,6 +248,11 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
   GameContextLoadLevelShapes(gameCtx, fileName, fileName2);
 }
 
+static void callbackRedrawPlayfield(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  gameCtx->showBitmap = 0;
+}
+
 static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,
                                uint16_t param) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -405,30 +412,45 @@ static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,
                                      EMCGetItemParam how) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   const GameObject *item = &gameCtx->itemsInGame[itemId];
-  Log(LOG_PREFIX, "callbackGetItemParam %x %x", itemId, how);
-  // const ItemProperty *p = &gameCtx->itemProperties[item->itemPropertyIndex];
+  Log(LOG_PREFIX, "callbackGetItemParam itemId=0X%x how=0X%x", itemId, how);
+  const ItemProperty *p = &gameCtx->itemProperties[item->itemPropertyIndex];
   switch (how) {
-  case EMCGetItemParam_Block:
-  case EMCGetItemParam_X:
-  case EMCGetItemParam_Y:
   case EMCGetItemParam_LEVEL:
     return item->level;
   case EMCGetItemParam_PropertyIndex:
     return item->itemPropertyIndex;
   case EMCGetItemParam_CurrentFrameFlag:
+    return item->shpCurFrame_flg;
   case EMCGetItemParam_NameStringId:
+    return p->stringId;
   case EMCGetItemParam_UNUSED_7:
+    assert(0);
   case EMCGetItemParam_ShpIndex:
+    return p->shapeId;
   case EMCGetItemParam_Type:
+    return p->type;
   case EMCGetItemParam_ScriptFun:
+    return p->scriptFun;
   case EMCGetItemParam_Might:
+    return p->might;
   case EMCGetItemParam_Skill:
+    return p->skill;
   case EMCGetItemParam_Protection:
+    return p->protection;
   case EMCGetItemParam_14:
+    assert(0);
   case EMCGetItemParam_CurrentFrameFlag2:
+    return item->shpCurFrame_flg & 0x1FFF;
   case EMCGetItemParam_Flags:
+    return p->flags;
   case EMCGetItemParam_SkillMight:
-    break;
+    return (p->skill << 8) | ((uint8_t)p->might);
+  case EMCGetItemParam_Block:
+    return item->block;
+  case EMCGetItemParam_X:
+    return item->x;
+  case EMCGetItemParam_Y:
+    return item->y;
   }
   assert(0);
   return 0;
@@ -652,6 +674,16 @@ static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
   }
 }
 
+static void callbackPrintWindowText(EMCInterpreter *interp, uint16_t dim,
+                                    uint16_t flags, uint16_t stringId) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  char *text = GameContextGetString3(gameCtx, stringId);
+  UISetStyle(UIStyle_Inventory);
+  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, MAZE_COORDS_X + 10,
+               MAZE_COORDS_Y + 20, MAZE_COORDS_W - 20, text);
+  free(text);
+}
+
 static int callbackInitMonster(EMCInterpreter *interp, uint16_t block,
                                uint16_t xOff, uint16_t yOff,
                                uint16_t orientation, uint16_t monsterType,
@@ -675,6 +707,38 @@ static int callbackInitMonster(EMCInterpreter *interp, uint16_t block,
   monster->type = monsterType;
   monster->flags = flags;
   return index;
+}
+
+static uint16_t callbackGetMonsterStat(EMCInterpreter *interp,
+                                       uint16_t monsterId,
+                                       GetMonsterStatHow how) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  const Monster *monster = gameCtx->level->monsters + monsterId;
+  const MonsterProperties *props =
+      gameCtx->level->monsterProperties + monster->type;
+  switch (how) {
+  case GetMonsterStatHow_Mode:
+    return monster->mode;
+  case GetMonsterStatHow_HitPoints:
+    return monster->hitPoints;
+  case GetMonsterStatHow_Block:
+    return monster->block;
+  case GetMonsterStatHow_Facing:
+    return monster->orientation;
+  case GetMonsterStatHow_Type:
+    return monster->type;
+  case GetMonsterStatHow_PropertyHitPoint:
+    return props->hitPoints;
+  case GetMonsterStatHow_Flags:
+    return monster->flags;
+  case GetMonsterStatHow_PropertyFlags:
+    return props->flags;
+  case GetMonsterStatHow_AnimType:
+    return 0;
+  default:
+    assert(0);
+  }
+  return 0;
 }
 
 static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
@@ -739,6 +803,12 @@ static uint16_t callbackGetCredits(EMCInterpreter *interp) {
 static void callbackCreditsTransaction(EMCInterpreter *interp, int16_t amount) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   gameCtx->credits += amount;
+}
+
+static int callbackTriggerEventOnMouseButtonClick(EMCInterpreter *interp,
+                                                  uint16_t event) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  return GameWaitForClick(gameCtx);
 }
 
 static void
@@ -857,4 +927,13 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_InitMonster = callbackInitMonster;
   interp->callbacks.EMCInterpreterCallbacks_CreateLevelItem =
       callbackCreateLevelItem;
+
+  interp->callbacks.EMCInterpreterCallbacks_GetMonsterStat =
+      callbackGetMonsterStat;
+  interp->callbacks.EMCInterpreterCallbacks_PrintWindowText =
+      callbackPrintWindowText;
+  interp->callbacks.EMCInterpreterCallbacks_RedrawPlayfield =
+      callbackRedrawPlayfield;
+  interp->callbacks.EMCInterpreterCallbacks_TriggerEventOnMouseButtonClick =
+      callbackTriggerEventOnMouseButtonClick;
 }
