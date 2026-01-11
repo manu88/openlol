@@ -6,6 +6,7 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
+#include "game_strings.h"
 #include "game_tim_animator.h"
 #include "geometry.h"
 #include "logger.h"
@@ -36,7 +37,7 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   if (charId == 1) {
     charId = ctx->selectedChar;
   }
-  GameRenderSetDialogF(ctx, strId);
+  GameContextSetDialogF(ctx, strId);
   GameContextPlayDialogSpeech(ctx, charId, strId);
 }
 
@@ -45,7 +46,7 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   Log(LOG_PREFIX, "callbackPrintMessage %x %x %x", type, strId, soundId);
-  GameRenderSetDialogF(ctx, strId);
+  GameContextSetDialogF(ctx, strId);
   GameContextPlayDialogSpeech(ctx, 1, soundId);
 }
 
@@ -335,7 +336,7 @@ static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
 static void callbackClearDialogField(EMCInterpreter *interp) {
   Log(LOG_PREFIX, "callbackClearDialogField");
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameRenderResetDialog(gameCtx);
+  GameContextResetDialog(gameCtx);
 }
 
 static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,

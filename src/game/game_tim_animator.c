@@ -6,6 +6,7 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
+#include "game_strings.h"
 #include "tim_interpreter.h"
 #include <assert.h>
 #include <stdint.h>
@@ -31,7 +32,7 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
   GameTimInterpreter *timInterp = &gameCtx->timInterpreter;
   assert(timInterp);
 
-  printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i fram=%i x=%i "
+  printf("GameTimAnimator: callbackWSADisplayFrame animIndex=%i frame=%i x=%i "
          "y=%i\n",
          animIndex, frame, timInterp->animator->wsaX,
          timInterp->animator->wsaY);
@@ -74,7 +75,7 @@ static void callbackTIM_CharChat(TIMInterpreter *interp, uint16_t charId,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
-  GameRenderSetDialogF(gameCtx, stringId);
+  GameContextSetDialogF(gameCtx, stringId);
   if (charId == 1) {
     charId = gameCtx->selectedChar;
   }
@@ -87,7 +88,7 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
 
   GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
-  GameRenderSetDialogF(gameCtx, stringId);
+  GameContextSetDialogF(gameCtx, stringId);
   GameContextPlayDialogSpeech(gameCtx, 0, stringId);
 }
 

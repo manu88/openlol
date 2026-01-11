@@ -14,6 +14,7 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
+#include "game_strings.h"
 #include "geometry.h"
 #include "level.h"
 #include "logger.h"
@@ -479,8 +480,9 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
     }
   } else {
     const SAVCharacter *c = gameCtx->chars + charIndex;
-    GameRenderSetDialogF(gameCtx, 0X4047, c->name, c->hitPointsCur,
-                         c->hitPointsMax, c->magicPointsCur, c->magicPointsMax);
+    GameContextSetDialogF(gameCtx, 0X4047, c->name, c->hitPointsCur,
+                          c->hitPointsMax, c->magicPointsCur,
+                          c->magicPointsMax);
   }
   return 1;
 }

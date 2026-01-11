@@ -1,8 +1,8 @@
 #include "game_char_inventory.h"
 #include "formats/format_sav.h"
 #include "game_ctx.h"
-#include "game_render.h"
 #include "game_rules.h"
+#include "game_strings.h"
 #include "geometry.h"
 #include "render.h"
 #include "renderer.h"
@@ -320,12 +320,12 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
         char *itemName = GameContextGetString2(gameCtx, props->stringId);
         char *destName =
             GameContextGetString2(gameCtx, getSlotNameStringID(slot->type));
-        GameRenderSetDialogF(gameCtx, 0X418A, itemName, destName);
+        GameContextSetDialogF(gameCtx, 0X418A, itemName, destName);
         free(itemName);
         free(destName);
       }
     } else {
-      GameRenderSetDialogF(gameCtx, getSlotDescStringID(slot->type));
+      GameContextSetDialogF(gameCtx, getSlotDescStringID(slot->type));
     }
   }
   if (updateCursor) {

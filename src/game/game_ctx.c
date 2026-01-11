@@ -11,7 +11,7 @@
 #include "formats/format_shp.h"
 #include "game.h"
 #include "game_envir.h"
-#include "game_render.h"
+#include "game_strings.h"
 #include "game_tim_animator.h"
 #include "menu.h"
 #include "render.h"
@@ -387,7 +387,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   for (int i = 0; i < MAX_MONSTERS; i++) {
     MonsterInit(&ctx->level->monsters[i]);
   }
-  GameRenderResetDialog(ctx);
+  GameContextResetDialog(ctx);
 
   GameEnvironmentLoadLevel(levelNum);
   {
@@ -617,7 +617,7 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
       gameCtx->buttonText[i] = NULL;
     }
   }
-  GameRenderResetDialog(gameCtx);
+  GameContextResetDialog(gameCtx);
   if (gameCtx->showBigDialog) {
     GameShrinkDialogBox(gameCtx);
   }
@@ -658,7 +658,7 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
 
   char *itemName =
       GameContextGetString2(gameCtx, gameCtx->itemProperties[itemId].stringId);
-  GameRenderSetDialogF(gameCtx, STR_TAKEN_INDEX, itemName);
+  GameContextSetDialogF(gameCtx, STR_TAKEN_INDEX, itemName);
   free(itemName);
 }
 
