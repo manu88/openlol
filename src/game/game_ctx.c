@@ -803,8 +803,9 @@ void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
       }
     }
     if (fileSequenceIndex > 0) {
-      AudioSystemPlaySequence(&gameCtx->audio, &gameCtx->level->currentTlkFile,
-                              fileSequence, fileSequenceIndex);
+      AudioSystemPlayVoiceSequence(&gameCtx->audio,
+                                   &gameCtx->level->currentTlkFile,
+                                   fileSequence, fileSequenceIndex);
     } else {
       printf("GameContextPlayDialogSpeech: No file found for charid='%c' "
              "file3='%s' file1='%s' file2='%s'\n",

@@ -48,8 +48,10 @@ void AudioSystemSetVoiceVolume(AudioSystem *audioSystem, int8_t vol);
 uint8_t AudioSystemGetVoiceVolume(const AudioSystem *audioSystem);
 
 void AudioSystemClearVoiceQueue(AudioSystem *audioSystem);
+void AudioSystemStopSpeech(AudioSystem *audioSystem);
 
-void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
-                             int *sequence, size_t sequenceSize);
+void AudioSystemPlayVoiceSequence(AudioSystem *audioSystem, const PAKFile *pak,
+                                  int *sequence, size_t sequenceSize);
+
 void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
                             const char *filename);

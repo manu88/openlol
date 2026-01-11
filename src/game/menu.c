@@ -648,8 +648,8 @@ static void handleSlider(GameContext *context, int sliderID, uint16_t ptX) {
   case 2:
     AudioSystemSetVoiceVolume(&context->audio, soundVal);
     int seq = GetRandom(0, context->level->currentTlkFile.count - 1);
-    AudioSystemPlaySequence(&context->audio, &context->level->currentTlkFile,
-                            &seq, 1);
+    AudioSystemPlayVoiceSequence(&context->audio,
+                                 &context->level->currentTlkFile, &seq, 1);
     break;
   default:
     assert(0);

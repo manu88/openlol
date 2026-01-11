@@ -187,8 +187,12 @@ void AudioSystemClearVoiceQueue(AudioSystem *audioSystem) {
   SDL_UnlockAudioDevice(audioSystem->deviceID);
 }
 
-void AudioSystemPlaySequence(AudioSystem *audioSystem, const PAKFile *pak,
-                             int *sequence, size_t sequenceSize) {
+void AudioSystemStopSpeech(AudioSystem *audioSystem) {
+  AudioSystemClearVoiceQueue(audioSystem);
+}
+
+void AudioSystemPlayVoiceSequence(AudioSystem *audioSystem, const PAKFile *pak,
+                                  int *sequence, size_t sequenceSize) {
   SDL_LockAudioDevice(audioSystem->deviceID);
   for (int i = 0; i < sequenceSize; i++) {
     int entryIndex = sequence[i];

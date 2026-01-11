@@ -38,6 +38,22 @@ static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   return ctx->orientation;
 }
 
+static int callbackCharacterSays(EMCInterpreter *interp, int16_t trackId,
+                                 uint16_t charId, int redraw) {
+  GameContext *ctx = (GameContext *)interp->callbackCtx;
+  Log(LOG_PREFIX, "characterSays trackId=0X%X charId=0X%X redraw=0X%X\n",
+      trackId, charId, redraw);
+  if (trackId == -1) {
+    AudioSystemStopSpeech(&ctx->audio);
+    return 1;
+  }
+  if (trackId == -2) {
+    assert(0); // FIXME: implement me :)
+  }
+  GameContextPlayDialogSpeech(ctx, charId, trackId);
+  return 1;
+}
+
 static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
                                  int16_t mode, uint16_t strId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
@@ -947,4 +963,6 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackRedrawPlayfield;
   interp->callbacks.EMCInterpreterCallbacks_TriggerEventOnMouseButtonClick =
       callbackTriggerEventOnMouseButtonClick;
+  interp->callbacks.EMCInterpreterCallbacks_CharacterSays =
+      callbackCharacterSays;
 }

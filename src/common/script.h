@@ -358,6 +358,10 @@ typedef struct _EMCInterpreterCallbacks {
   int (*EMCInterpreterCallbacks_TriggerEventOnMouseButtonClick)(
       EMCInterpreter *interp, uint16_t event);
 
+  int (*EMCInterpreterCallbacks_CharacterSays)(EMCInterpreter *interp,
+                                               int16_t trackId, uint16_t charId,
+                                               int redraw);
+
 } EMCInterpreterCallbacks;
 
 typedef struct _EMCInterpreter {

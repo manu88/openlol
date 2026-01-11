@@ -667,8 +667,11 @@ static uint16_t countAllMonsters(EMCInterpreter *interp, EMCState *state) {
 #pragma mark SOUND/MUSIC
 
 static uint16_t characterSays(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] characterSays\n");
-  return 1;
+  int16_t trackId = (int16_t)EMCStateStackVal(state, 0);
+  uint16_t charId = EMCStateStackVal(state, 1);
+  uint16_t redraw = EMCStateStackVal(state, 2);
+  return interp->callbacks.EMCInterpreterCallbacks_CharacterSays(
+      interp, trackId, charId, redraw);
 }
 
 static uint16_t playAttackSound(EMCInterpreter *interp, EMCState *state) {
