@@ -18,7 +18,9 @@ typedef enum {
 
 void CPSImageRelease(CPSImage *image) {
   free(image->data);
+  image->data = NULL;
   free(image->palette);
+  image->palette = NULL;
 }
 
 typedef struct {
