@@ -27,7 +27,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static int runScript(GameContext *gameCtx, INFScript *script);
+uint16_t GetRandom(uint16_t min, uint16_t max) {
+  uint16_t r = (min + (uint16_t)arc4random()) % max;
+  printf("GetRandom %i<=%i<%i\n", min, r, max);
+  return r;
+}
 
 int GameContextSetSavDir(GameContext *gameCtx, const char *path) {
   if (path == NULL) {

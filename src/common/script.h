@@ -170,6 +170,8 @@ typedef enum {
 typedef struct _EMCInterpreter EMCInterpreter;
 
 typedef struct _EMCInterpreterCallbacks {
+  uint16_t (*EMCInterpreterCallbacks_RollDices)(EMCInterpreter *interp,
+                                               int16_t times, int16_t maxVal);
   uint16_t (*EMCInterpreterCallbacks_SetGlobalVar)(EMCInterpreter *interp,
                                                    EMCGlobalVarID id,
                                                    uint16_t a, uint16_t b);

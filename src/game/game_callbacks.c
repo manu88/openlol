@@ -22,6 +22,15 @@
 
 #define LOG_PREFIX "CALLBCK"
 
+static uint16_t callbackRollDices(EMCInterpreter *interp, int16_t times,
+                                  int16_t maxVal) {
+  int res = 0;
+  while (times--)
+    res += GetRandom(1, maxVal);
+
+  return res;
+}
+
 static uint16_t callbackGetDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackGetDirection");
@@ -837,6 +846,7 @@ static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
+  interp->callbacks.EMCInterpreterCallbacks_RollDices = callbackRollDices;
   interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
   interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
   interp->callbacks.EMCInterpreterCallbacks_PrintMessage = callbackPrintMessage;

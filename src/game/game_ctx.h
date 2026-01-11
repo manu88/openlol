@@ -242,3 +242,5 @@ typedef enum {
 } ButtonType;
 
 void GameContextButtonClicked(GameContext *gameCtx, ButtonType button);
+
+uint16_t GetRandom(uint16_t min, uint16_t max);
