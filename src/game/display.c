@@ -152,15 +152,46 @@ void DisplayRelease(Display *renderer) {
   free(renderer->defaultPalette);
 }
 
-void DisplayLoadBackgroundInventoryIfNeeded(GameContext *gameCtx, int charId) {
+void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId) {
   int invId = inventoryTypeForId[charId];
-  if (gameCtx->display->inventoryBackgrounds[invId].data == NULL) {
+  if (display->inventoryBackgrounds[invId].data == NULL) {
     GameFile f = {0};
     char name[12] = "";
     assert(invId > 0 && invId < 7);
     snprintf(name, 12, "INVENT%1i.CPS", invId);
     assert(GameEnvironmentGetGeneralFile(&f, name));
-    assert(CPSImageFromBuffer(&gameCtx->display->inventoryBackgrounds[invId],
-                              f.buffer, f.bufferSize));
+    assert(CPSImageFromBuffer(&display->inventoryBackgrounds[invId], f.buffer,
+                              f.bufferSize));
+  }
+}
+
+void DimRect(SDL_Texture *texture, int startX, int startY, int w, int h) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {startX, startY, w, h};
+  SDL_LockTexture(texture, &rect, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
+      uint8_t r = ((row[x] & 0X00FF0000) >> 16) / 1.5;
+      uint8_t g = ((row[x] & 0X0000FF00) >> 8) / 1.5;
+      uint8_t b = ((row[x] & 0X000000FF)) / 1.5;
+      row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
+    }
+  }
+  SDL_UnlockTexture(texture);
+}
+
+void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
+  while (numFrames--) {
+    SDL_Delay(tickLength);
+    SDL_PollEvent(NULL);
+    DimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
+            MAZE_COORDS_H);
+    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
+    assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) ==
+           0);
+    SDL_RenderPresent(display->renderer);
   }
 }

@@ -599,7 +599,7 @@ static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t blockId,
 static void callbackFadeScene(EMCInterpreter *interp, uint16_t mode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackFadeScene mode=0X%X\n", mode);
-  GameDoSceneFade(gameCtx, 10);
+  DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
 }
 
 static void callbackSetupDialogueButtons(EMCInterpreter *interp,

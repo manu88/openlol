@@ -51,7 +51,7 @@ static void callbackTIM_FadeClearWindow(TIMInterpreter *interp,
                                         uint16_t param) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("GameTimAnimator: callbackFadeClearWindow param=%x\n", param);
-  GameDoSceneFade(gameCtx, 10);
+  DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
 }
 
 static uint16_t callbackTIM_GiveItem(TIMInterpreter *interp, uint16_t p0,

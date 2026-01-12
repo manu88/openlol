@@ -11,6 +11,6 @@ void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);
 int tryMove(GameContext *gameCtx, Direction dir);
 int GameWaitForClick(GameContext *gameCtx);
-void GameDoSceneFade(GameContext *gameCtx, int numFrames);
+
 void GameExpandDialogBox(GameContext *gameCtx);
 void GameShrinkDialogBox(GameContext *gameCtx);

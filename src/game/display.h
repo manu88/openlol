@@ -51,5 +51,6 @@ typedef struct {
 int DisplayInit(Display *context);
 void DisplayRelease(Display *context);
 
-void DisplayLoadBackgroundInventoryIfNeeded(GameContext *gameCtx, int charId);
+void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);
 
+void DisplayDoSceneFade(Display *display, int numFrames, int tickLength);

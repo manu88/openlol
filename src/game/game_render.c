@@ -305,27 +305,7 @@ static void renderExitButton(GameContext *gameCtx) {
   }
 }
 
-void DimRect(SDL_Texture *texture, int startX, int startY, int w, int h) {
-  void *data;
-  int pitch;
-  SDL_Rect rect = {startX, startY, w, h};
-  SDL_LockTexture(texture, &rect, &data, &pitch);
-  for (int x = 0; x < w; x++) {
-    for (int y = 0; y < h; y++) {
-      uint32_t *row = (unsigned int *)((char *)data + pitch * y);
-      uint8_t r = ((row[x] & 0X00FF0000) >> 16) / 1.5;
-      uint8_t g = ((row[x] & 0X0000FF00) >> 8) / 1.5;
-      uint8_t b = ((row[x] & 0X000000FF)) / 1.5;
-      row[x] = 0XFF000000 + (r << 0X10) + (g << 0X8) + b;
-    }
-  }
-  SDL_UnlockTexture(texture);
-}
 
-void GameRenderRenderSceneFade(GameContext *gameCtx) {
-  DimRect(gameCtx->display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
-          MAZE_COORDS_H);
-}
 
 void GameRender(GameContext *gameCtx) {
   // SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
