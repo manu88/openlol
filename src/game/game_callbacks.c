@@ -658,7 +658,7 @@ static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
   gameCtx->itemIndexInHand = GameContextCreateItem(gameCtx, itemType);
   uint16_t frameId =
       itemType ? GameContextGetItemSHPFrameIndex(gameCtx, itemType) : 0;
-  createCursorForItem(gameCtx, frameId);
+  DisplayCreateCursorForItem(gameCtx->display, frameId);
   return 1;
 }
 

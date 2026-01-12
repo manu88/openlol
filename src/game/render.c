@@ -11,34 +11,6 @@
 #include <stdint.h>
 #include <string.h>
 
-void createCursorForItem(GameContext *ctx, uint16_t frameId) {
-  SDL_Cursor *prevCursor = ctx->display->cursor;
-
-  const int w = 20 * SCREEN_FACTOR;
-  SDL_Surface *s = SDL_CreateRGBSurface(0, w, w, 32, 0, 0, 0, 0);
-  assert(s);
-  SDL_Renderer *r = SDL_CreateSoftwareRenderer(s);
-  assert(r);
-  SHPFrame frame = {0};
-  SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 127, 127, 127));
-  assert(SHPHandleGetFrame(&ctx->display->itemShapes, &frame, frameId));
-  assert(SHPFrameGetImageData(&frame));
-
-  SDL_RenderClear(r);
-  SDL_SetRenderDrawColor(r, 127, 127, 127, 255);
-  SDL_RenderFillRect(r, NULL);
-  drawSHPFrameCursor(r, &frame, 0, 0, ctx->display->defaultPalette);
-  ctx->display->cursor = SDL_CreateColorCursor(s, frameId == 0 ? 0 : w / 2,
-                                               frameId == 0 ? 0 : w / 2);
-  SDL_SetCursor(ctx->display->cursor);
-  SDL_DestroyRenderer(r);
-  SDL_FreeSurface(s);
-  SHPFrameRelease(&frame);
-  if (prevCursor) {
-    SDL_FreeCursor(prevCursor);
-  }
-}
-
 void renderCPSPart(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
                    const uint8_t *paletteBuffer, int destX, int destY,
                    int sourceX, int sourceY, int imageW, int imageH,
@@ -140,7 +112,7 @@ void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
   SDL_UnlockTexture(pixBuf);
 }
 
-void clearMazeZone(GameContext *gameCtx) {
+static void clearMazeZone(GameContext *gameCtx) {
   void *data;
   int pitch;
   SDL_LockTexture(gameCtx->display->pixBuf, NULL, &data, &pitch);

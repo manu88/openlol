@@ -408,7 +408,7 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
   if (gameCtx->state == GameState_GameMenu) {
-    createCursorForItem(gameCtx, 0);
+    DisplayCreateCursorForItem(gameCtx->display, 0);
     gameCtx->display->currentMenu = gameMenu;
   } else if (gameCtx->state == GameState_MainMenu) {
     gameCtx->display->currentMenu = mainMenu;
@@ -537,7 +537,7 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
       gameCtx->itemsInGame[gameCtx->itemIndexInHand].itemPropertyIndex;
   uint16_t frameId =
       itemId ? GameContextGetItemSHPFrameIndex(gameCtx, itemId) : 0;
-  createCursorForItem(gameCtx, frameId);
+  DisplayCreateCursorForItem(gameCtx->display, frameId);
 
   if (itemId == 0) {
     return;

@@ -322,3 +322,31 @@ void DisplayShrinkDialogBox(Display *display, int tickLength) {
 
   display->showBigDialog = 0;
 }
+
+void DisplayCreateCursorForItem(Display *display, uint16_t frameId) {
+  SDL_Cursor *prevCursor = display->cursor;
+
+  const int w = 20 * SCREEN_FACTOR;
+  SDL_Surface *s = SDL_CreateRGBSurface(0, w, w, 32, 0, 0, 0, 0);
+  assert(s);
+  SDL_Renderer *r = SDL_CreateSoftwareRenderer(s);
+  assert(r);
+  SHPFrame frame = {0};
+  SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 127, 127, 127));
+  assert(SHPHandleGetFrame(&display->itemShapes, &frame, frameId));
+  assert(SHPFrameGetImageData(&frame));
+
+  SDL_RenderClear(r);
+  SDL_SetRenderDrawColor(r, 127, 127, 127, 255);
+  SDL_RenderFillRect(r, NULL);
+  drawSHPFrameCursor(r, &frame, 0, 0, display->defaultPalette);
+  display->cursor = SDL_CreateColorCursor(s, frameId == 0 ? 0 : w / 2,
+                                          frameId == 0 ? 0 : w / 2);
+  SDL_SetCursor(display->cursor);
+  SDL_DestroyRenderer(r);
+  SDL_FreeSurface(s);
+  SHPFrameRelease(&frame);
+  if (prevCursor) {
+    SDL_FreeCursor(prevCursor);
+  }
+}
