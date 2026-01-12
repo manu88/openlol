@@ -613,10 +613,11 @@ static void callbackSetupDialogueButtons(EMCInterpreter *interp,
          strIds[1], strIds[2]);
   for (int i = 0; i < numStrs; i++) {
     assert(strIds[i] != 0XFFFF);
-    gameCtx->buttonText[i] = malloc(16);
-    assert(gameCtx->buttonText[i]);
-    memset(gameCtx->buttonText[i], 0, 16);
-    GameContextGetString(gameCtx, strIds[i], gameCtx->buttonText[i], 16);
+    gameCtx->display->buttonText[i] = malloc(16);
+    assert(gameCtx->display->buttonText[i]);
+    memset(gameCtx->display->buttonText[i], 0, 16);
+    GameContextGetString(gameCtx, strIds[i], gameCtx->display->buttonText[i],
+                         16);
   }
 }
 
@@ -806,8 +807,8 @@ static void callbackDrawExitButton(EMCInterpreter *interp, uint16_t p0,
                                    uint16_t p1) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackDrawExitButton %x %x", p0, p1);
-  gameCtx->drawExitSceneButton = 1;
-  gameCtx->exitSceneButtonDisabled = 1;
+  gameCtx->display->drawExitSceneButton = 1;
+  gameCtx->display->exitSceneButtonDisabled = 1;
 }
 
 static void callbackCopyPage(EMCInterpreter *interp, uint16_t srcX,

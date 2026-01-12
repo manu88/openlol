@@ -46,6 +46,12 @@ typedef struct {
   SDL_Cursor *cursor;
   Menu *currentMenu;
   int shouldUpdate;
+
+  int dialogBoxFrames;
+  int showBigDialog;
+  int drawExitSceneButton;
+  int exitSceneButtonDisabled;
+  char *buttonText[3];
 } Display;
 
 int DisplayInit(Display *display);

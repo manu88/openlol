@@ -222,7 +222,7 @@ static void renderCharFaces(GameContext *gameCtx) {
 
 static void animateDialogZoneOnce(GameContext *gameCtx, void *data, int pitch) {
   // copy outline
-  int offset = gameCtx->dialogBoxFrames;
+  int offset = gameCtx->display->dialogBoxFrames;
   const int size = 20;
   for (int y = DIALOG_BOX_H - size; y < DIALOG_BOX_H; y++) {
     const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
@@ -232,10 +232,10 @@ static void animateDialogZoneOnce(GameContext *gameCtx, void *data, int pitch) {
     }
   }
 
-  if (gameCtx->dialogBoxFrames >= size) {
+  if (gameCtx->display->dialogBoxFrames >= size) {
     // need to copy the dialog background
     int size = DIALOG_BOX_H - 1;
-    if (gameCtx->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
+    if (gameCtx->display->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
       size++;
     }
     for (int y = 1; y < size; y++) {
@@ -268,8 +268,8 @@ int GameRenderRenderExpandDialogBox(GameContext *gameCtx) {
   animateDialogZoneOnce(gameCtx, data, pitch);
   SDL_UnlockTexture(gameCtx->display->pixBuf);
 
-  if (gameCtx->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
-    gameCtx->dialogBoxFrames += 1;
+  if (gameCtx->display->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
+    gameCtx->display->dialogBoxFrames += 1;
     return 0;
   }
   return 1;
@@ -281,13 +281,14 @@ int GameRenderRenderShrinkDialogBox(GameContext *gameCtx) {
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
   SDL_LockTexture(gameCtx->display->pixBuf, &rect, &data, &pitch);
-  for (int i = 0; i < 1 + DIALOG_BOX_H2 + gameCtx->dialogBoxFrames; i++) {
+  for (int i = 0; i < 1 + DIALOG_BOX_H2 + gameCtx->display->dialogBoxFrames;
+       i++) {
     animateDialogZoneOnce(gameCtx, data, pitch);
   }
   SDL_UnlockTexture(gameCtx->display->pixBuf);
 
-  if (gameCtx->dialogBoxFrames > 0) {
-    gameCtx->dialogBoxFrames -= 1;
+  if (gameCtx->display->dialogBoxFrames > 0) {
+    gameCtx->display->dialogBoxFrames -= 1;
     return 0;
   }
   return 1;
@@ -298,14 +299,12 @@ static void renderExitButton(GameContext *gameCtx) {
                    UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
                    UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H, "EXIT");
 
-  if (gameCtx->exitSceneButtonDisabled) {
+  if (gameCtx->display->exitSceneButtonDisabled) {
     drawDisabledOverlay(gameCtx, gameCtx->display->pixBuf,
                         UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
                         UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H);
   }
 }
-
-
 
 void GameRender(GameContext *gameCtx) {
   // SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
@@ -347,28 +346,28 @@ void GameRender(GameContext *gameCtx) {
     return;
   }
 
-  if (gameCtx->showBigDialog) {
+  if (gameCtx->display->showBigDialog) {
     showBigDialogZone(gameCtx);
   }
-  if (gameCtx->drawExitSceneButton) {
+  if (gameCtx->display->drawExitSceneButton) {
     renderExitButton(gameCtx);
   }
 
-  if (gameCtx->buttonText[0]) {
+  if (gameCtx->display->buttonText[0]) {
     UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
                      DIALOG_BUTTON1_X, DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W,
-                     DIALOG_BUTTON_H, gameCtx->buttonText[0]);
+                     DIALOG_BUTTON_H, gameCtx->display->buttonText[0]);
   }
 
-  if (gameCtx->buttonText[1]) {
+  if (gameCtx->display->buttonText[1]) {
     UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
                      DIALOG_BUTTON2_X, DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W,
-                     DIALOG_BUTTON_H, gameCtx->buttonText[1]);
+                     DIALOG_BUTTON_H, gameCtx->display->buttonText[1]);
   }
-  if (gameCtx->buttonText[2]) {
+  if (gameCtx->display->buttonText[2]) {
     UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
                      DIALOG_BUTTON3_X, DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W,
-                     DIALOG_BUTTON_H, gameCtx->buttonText[2]);
+                     DIALOG_BUTTON_H, gameCtx->display->buttonText[2]);
   }
   renderDialog(gameCtx);
 }

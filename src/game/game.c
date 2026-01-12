@@ -761,7 +761,7 @@ void DisplayExpandDialogBox(GameContext *gameCtx, int tickLength) {
     SDL_RenderPresent(gameCtx->display->renderer);
   } while (!ret);
 
-  gameCtx->showBigDialog = 1;
+  gameCtx->display->showBigDialog = 1;
 }
 
 void DisplayShrinkDialogBox(GameContext *gameCtx, int tickLength) {
@@ -777,7 +777,7 @@ void DisplayShrinkDialogBox(GameContext *gameCtx, int tickLength) {
     SDL_RenderPresent(gameCtx->display->renderer);
   } while (!ret);
 
-  gameCtx->showBigDialog = 0;
+  gameCtx->display->showBigDialog = 0;
 }
 
 static void GameRunOnce(GameContext *gameCtx) {

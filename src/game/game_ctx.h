@@ -65,12 +65,6 @@ typedef struct _GameContext {
   GameState state;
   GameState prevState;
 
-  int dialogBoxFrames;
-  int showBigDialog;
-  int drawExitSceneButton;
-  int exitSceneButtonDisabled;
-  char *buttonText[3];
-
   uint16_t currentBock;
   Orientation orientation;
 
@@ -179,8 +173,6 @@ void GameContextDeleteItem(GameContext *gameCtx, uint16_t itemIndex);
 void GameContextUpdateCursor(GameContext *gameCtx);
 void GameContextExitGame(GameContext *gameCtx);
 int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath);
-
-
 
 void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,

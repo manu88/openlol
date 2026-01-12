@@ -103,11 +103,12 @@ static void callbackTIM_ShowDialogButtons(TIMInterpreter *interp,
     if (buttonStrIds[i] == 0XFFFF) {
       break;
     }
-    if (gameCtx->buttonText[i] == NULL) {
-      gameCtx->buttonText[i] = malloc(16);
+    if (gameCtx->display->buttonText[i] == NULL) {
+      gameCtx->display->buttonText[i] = malloc(16);
     }
-    GameContextGetString(gameCtx, buttonStrIds[i], gameCtx->buttonText[i], 16);
-    printf("button %i = %s\n", i, gameCtx->buttonText[i]);
+    GameContextGetString(gameCtx, buttonStrIds[i],
+                         gameCtx->display->buttonText[i], 16);
+    printf("button %i = %s\n", i, gameCtx->display->buttonText[i]);
   }
 }
 

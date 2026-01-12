@@ -179,8 +179,8 @@ void GameContextRelease(GameContext *gameCtx) {
   DisplayRelease(gameCtx->display);
 
   for (int i = 0; i < 3; i++) {
-    if (gameCtx->buttonText[i]) {
-      free(gameCtx->buttonText[i]);
+    if (gameCtx->display->buttonText[i]) {
+      free(gameCtx->display->buttonText[i]);
     }
   }
 
@@ -498,13 +498,13 @@ void GameContextInitSceneDialog(GameContext *gameCtx) {
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   gameCtx->display->controlDisabled = 0;
   for (int i = 0; i < 3; i++) {
-    if (gameCtx->buttonText[i]) {
-      free(gameCtx->buttonText[i]);
-      gameCtx->buttonText[i] = NULL;
+    if (gameCtx->display->buttonText[i]) {
+      free(gameCtx->display->buttonText[i]);
+      gameCtx->display->buttonText[i] = NULL;
     }
   }
   GameContextResetDialog(gameCtx);
-  if (gameCtx->showBigDialog) {
+  if (gameCtx->display->showBigDialog) {
     DisplayShrinkDialogBox(gameCtx, gameCtx->conf.tickLength);
   }
   // FIXME: temporary clear screen here to avoid for cps background to remain on
