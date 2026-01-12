@@ -17,6 +17,7 @@
 #include "pak_file.h"
 #include "render.h"
 #include "script.h"
+#include "spells.h"
 #include <assert.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -106,6 +107,7 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
 
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
+  gameCtx->spellProperties = SpellPropertiesGet();
   if (!GameConfigFromFile(&gameCtx->conf, "conf.txt")) {
     printf("Create default config\n");
     GameConfigCreateDefault(&gameCtx->conf);
@@ -961,4 +963,14 @@ void GameContextButtonClicked(GameContext *gameCtx, ButtonType button) {
     AudioSystemPlaySoundFX(&gameCtx->audio, &gameCtx->sfxPak, "TURNPAG2.VOC");
     break;
   }
+}
+
+int GameContextCheckMagic(GameContext *gameCtx, uint16_t charId,
+                          uint16_t spellNum, uint16_t spellLevel) {
+  const SAVCharacter *ch = gameCtx->chars + charId;
+  const SpellProperties *spellprop = gameCtx->spellProperties + spellNum;
+  if (spellprop->mpRequired[spellLevel] > ch->magicPointsCur) {
+    GameContextSetDialogF(gameCtx, 0X4043, ch->name);
+  }
+  return 0;
 }

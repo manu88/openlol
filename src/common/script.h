@@ -171,7 +171,7 @@ typedef struct _EMCInterpreter EMCInterpreter;
 
 typedef struct _EMCInterpreterCallbacks {
   uint16_t (*EMCInterpreterCallbacks_RollDices)(EMCInterpreter *interp,
-                                               int16_t times, int16_t maxVal);
+                                                int16_t times, int16_t maxVal);
   uint16_t (*EMCInterpreterCallbacks_SetGlobalVar)(EMCInterpreter *interp,
                                                    EMCGlobalVarID id,
                                                    uint16_t a, uint16_t b);
@@ -361,6 +361,9 @@ typedef struct _EMCInterpreterCallbacks {
   int (*EMCInterpreterCallbacks_CharacterSays)(EMCInterpreter *interp,
                                                int16_t trackId, uint16_t charId,
                                                int redraw);
+  int (*EMCInterpreterCallbacks_CheckMagic)(EMCInterpreter *interp,
+                                            uint16_t charId, uint16_t spellNum,
+                                            uint16_t spellLevel);
 
 } EMCInterpreterCallbacks;
 

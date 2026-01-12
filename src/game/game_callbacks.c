@@ -658,6 +658,15 @@ static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
   return 1;
 }
 
+static int callbackCheckMagic(EMCInterpreter *interp, uint16_t charId,
+                              uint16_t spellNum, uint16_t spellLevel) {
+  Log(LOG_PREFIX,
+      "callbackCheckMagic charId=0X%X spellNum=0X%X spellLevel=0X%X\n ", charId,
+      spellNum, spellLevel);
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  return GameContextCheckMagic(gameCtx, charId, spellNum, spellLevel);
+}
+
 static uint16_t callbackCreateLevelItem(EMCInterpreter *interp,
                                         uint16_t itemType, uint16_t frame,
                                         uint16_t flags, uint16_t level,
@@ -965,4 +974,5 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       callbackTriggerEventOnMouseButtonClick;
   interp->callbacks.EMCInterpreterCallbacks_CharacterSays =
       callbackCharacterSays;
+  interp->callbacks.EMCInterpreterCallbacks_CheckMagic = callbackCheckMagic;
 }

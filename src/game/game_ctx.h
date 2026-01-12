@@ -16,6 +16,7 @@
 #include "monster.h"
 #include "pak_file.h"
 #include "script.h"
+#include "spells.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -161,6 +162,8 @@ typedef struct _GameContext {
   PAKFile sfxPak;
   PAKFile defaultTlkFile; // 00.TLK
   GameConfig conf;
+
+  const SpellProperties *spellProperties; // count is SPELL_PROPERTIES_COUNT
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);
@@ -244,3 +247,6 @@ typedef enum {
 void GameContextButtonClicked(GameContext *gameCtx, ButtonType button);
 
 uint16_t GetRandom(uint16_t min, uint16_t max);
+
+int GameContextCheckMagic(GameContext *gameCtx, uint16_t charId,
+                          uint16_t spellNum, uint16_t spellLevel);

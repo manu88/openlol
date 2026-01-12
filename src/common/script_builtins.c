@@ -353,6 +353,11 @@ static uint16_t printWindowText(EMCInterpreter *interp, EMCState *state) {
 
 #pragma mark PARTY PEOPLE
 
+static uint16_t castSpell(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] castSpell\n");
+  return 0;
+}
+
 static uint16_t calcNewBlockPosition(EMCInterpreter *interp, EMCState *state) {
   uint16_t block = EMCStateStackVal(state, 0);
   uint16_t direction = EMCStateStackVal(state, 1);
@@ -411,6 +416,14 @@ static uint16_t calcInflictableDamage(EMCInterpreter *interp, EMCState *state) {
 static uint16_t inflictDamage(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] inflictDamage\n");
   return 1;
+}
+
+static uint16_t checkMagic(EMCInterpreter *interp, EMCState *state) {
+  uint16_t charId = EMCStateStackVal(state, 0);
+  uint16_t spellNum = EMCStateStackVal(state, 1);
+  uint16_t spellLevel = EMCStateStackVal(state, 2);
+  return interp->callbacks.EMCInterpreterCallbacks_CheckMagic(
+      interp, charId, spellNum, spellLevel);
 }
 
 #pragma mark MONEY
@@ -680,12 +693,11 @@ static uint16_t playAttackSound(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t queueSpeech(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] queueSpeech\n");
-  return 1;
-}
+  uint16_t voiceId = EMCStateStackVal(state, 0);
+  uint16_t speaker = EMCStateStackVal(state, 1);
 
-static uint16_t loadSoundFile(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] loadSoundFile\n");
+  voiceId += 1000;
+  printf("[UNIMPLEMENTED] queueSpeech 0X%X 0X%X\n", voiceId, speaker);
   return 1;
 }
 
@@ -698,6 +710,12 @@ static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
 static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
   printf("[UNIMPLEMENTED] playMusicTrack\n");
   // ASSERT_UNIMPLEMENTED;
+  return 1;
+}
+
+static uint16_t loadMusicTrack(EMCInterpreter *interp, EMCState *state) {
+  uint16_t file = EMCStateStackVal(state, 0);
+  printf("[UNIMPLEMENTED] loadMusicTrack 0X%X\n", file);
   return 1;
 }
 
@@ -1014,7 +1032,7 @@ static ScriptFunDesc functions[] = {
     {initSceneWindowDialogue, "initSceneWindowDialogue"},
     {restoreAfterSceneWindowDialogue, "restoreAfterSceneWindowDialogue"},
     {getItemInHand, "getItemInHand"},
-    {NULL},
+    {checkMagic, "checkMagic"},
     {giveItemToMonster, "giveItemToMonster"},
     {loadLangFile, "loadLangFile"},
     {playSoundEffect, "playSoundEffect"},
@@ -1032,7 +1050,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {drawExitButton, "drawExitButton"},
-    {loadSoundFile, "loadSoundFile"},
+    {loadMusicTrack, "loadSoundFile"},
     {playMusicTrack, "playMusicTrack"},
     {NULL},
     {countBlockItems, "countBlockItems"},
@@ -1119,7 +1137,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {NULL},
-    {NULL},
+    {castSpell, "castSpell"},
     {NULL},
     {NULL},
 
