@@ -1,6 +1,7 @@
 #include "display.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "renderer.h"
 #include <string.h>
 
 static int initSDL(Display *display) {
@@ -197,4 +198,21 @@ void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
             MAZE_COORDS_H);
     DisplayRender(display);
   }
+}
+
+void DisplayDrawDisabledOverlay(Display *display, int x, int y, int w, int h) {
+  void *data;
+  int pitch;
+  SDL_Rect r = {.x = x, .y = y, .w = w, .h = h};
+  SDL_LockTexture(display->pixBuf, &r, &data, &pitch);
+  for (int x = 0; x < r.w; x++) {
+    for (int y = 0; y < r.h; y++) {
+      if (x % 2 == 0 && y % 2 == 0) {
+        drawPix(data, pitch, 0, 0, 0, x, y);
+      } else if (x % 2 == 1 && y % 2 == 1) {
+        drawPix(data, pitch, 0, 0, 0, x, y);
+      }
+    }
+  }
+  SDL_UnlockTexture(display->pixBuf);
 }

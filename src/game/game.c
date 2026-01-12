@@ -751,7 +751,7 @@ int GameWaitForClick(GameContext *gameCtx) {
 void DisplayExpandDialogBox(GameContext *gameCtx, int tickLength) {
   int ret = 0;
   do {
-    ret = GameRenderRenderExpandDialogBox(gameCtx);
+    ret = GameRenderRenderExpandDialogBox(gameCtx->display);
     SDL_Delay(tickLength);
     SDL_PollEvent(NULL);
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,

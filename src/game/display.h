@@ -62,3 +62,4 @@ void DisplayRender(Display *display);
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);
 
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength);
+void DisplayDrawDisabledOverlay(Display *display, int x, int y, int w, int h);

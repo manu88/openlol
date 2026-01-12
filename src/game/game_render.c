@@ -2,6 +2,7 @@
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "automap_render.h"
+#include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_shp.h"
 #include "game_char_inventory.h"
@@ -48,24 +49,6 @@ static void renderDialog(GameContext *gameCtx) {
   }
 }
 
-static void drawDisabledOverlay(GameContext *gameCtx, SDL_Texture *texture,
-                                int x, int y, int w, int h) {
-  void *data;
-  int pitch;
-  SDL_Rect r = {.x = x, .y = y, .w = w, .h = h};
-  SDL_LockTexture(texture, &r, &data, &pitch);
-  for (int x = 0; x < r.w; x++) {
-    for (int y = 0; y < r.h; y++) {
-      if (x % 2 == 0 && y % 2 == 0) {
-        drawPix(data, pitch, 0, 0, 0, x, y);
-      } else if (x % 2 == 1 && y % 2 == 1) {
-        drawPix(data, pitch, 0, 0, 0, x, y);
-      }
-    }
-  }
-  SDL_UnlockTexture(texture);
-}
-
 static void renderGameMenu(GameContext *gameCtx) {
   MenuRender(gameCtx->display->currentMenu, gameCtx,
              &gameCtx->display->defaultFont, gameCtx->display->pixBuf);
@@ -80,38 +63,18 @@ static void renderPlayField(GameContext *gameCtx) {
   renderCPS(gameCtx->display->pixBuf, gameCtx->display->playField.data,
             gameCtx->display->playField.imageSize,
             gameCtx->display->playField.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-#if 0            
-  // left part
-  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
-                gameCtx->playField.imageSize, gameCtx->playField.palette, 0, 0,
-                0, 0, MAZE_COORDS_X, PIX_BUF_HEIGHT, PIX_BUF_WIDTH);
-
-  // bottom part
-  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
-                gameCtx->playField.imageSize, gameCtx->playField.palette,
-                MAZE_COORDS_X, MAZE_COORDS_H, MAZE_COORDS_X, MAZE_COORDS_H,
-                PIX_BUF_WIDTH - MAZE_COORDS_X, PIX_BUF_HEIGHT - MAZE_COORDS_H,
-                PIX_BUF_WIDTH);
-
-  // right part
-  renderCPSPart(gameCtx->pixBuf, gameCtx->playField.data,
-                gameCtx->playField.imageSize, gameCtx->playField.palette,
-                MAZE_COORDS_X + MAZE_COORDS_W, 0, MAZE_COORDS_X + MAZE_COORDS_W,
-                0, PIX_BUF_WIDTH - MAZE_COORDS_X + MAZE_COORDS_W,
-                PIX_BUF_HEIGHT, PIX_BUF_WIDTH);
-#endif
   renderCPSPart(gameCtx->display->pixBuf, gameCtx->display->playField.data,
                 gameCtx->display->playField.imageSize,
                 gameCtx->display->playField.palette, UI_MAP_BUTTON_X,
                 UI_MAP_BUTTON_Y, 114, 65, UI_MAP_BUTTON_W, UI_MAP_BUTTON_H,
                 320);
   if (gameCtx->display->controlDisabled) {
-    drawDisabledOverlay(gameCtx, gameCtx->display->pixBuf,
-                        UI_TURN_LEFT_BUTTON_X, UI_TURN_LEFT_BUTTON_Y,
-                        UI_DIR_BUTTON_W * 3, UI_DIR_BUTTON_H * 2);
-    drawDisabledOverlay(gameCtx, gameCtx->display->pixBuf, UI_MENU_BUTTON_X,
-                        UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
-                        UI_MENU_INV_BUTTON_H);
+    DisplayDrawDisabledOverlay(gameCtx->display, UI_TURN_LEFT_BUTTON_X,
+                               UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,
+                               UI_DIR_BUTTON_H * 2);
+    DisplayDrawDisabledOverlay(gameCtx->display, UI_MENU_BUTTON_X,
+                               UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
+                               UI_MENU_INV_BUTTON_H);
   }
 }
 
@@ -168,8 +131,8 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
       SHPFrameRelease(&frame);
 
       if (gameCtx->display->controlDisabled) {
-        drawDisabledOverlay(gameCtx, gameCtx->display->pixBuf, x + 44,
-                            CHAR_ZONE_Y, 22, 18);
+        DisplayDrawDisabledOverlay(gameCtx->display, x + 44, CHAR_ZONE_Y, 22,
+                                   18);
       }
     }
     {
@@ -180,8 +143,8 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
                    gameCtx->display->defaultPalette);
       SHPFrameRelease(&frame);
       if (gameCtx->display->controlDisabled) {
-        drawDisabledOverlay(gameCtx, gameCtx->display->pixBuf, x + 44,
-                            CHAR_ZONE_Y + 16, 22, 18);
+        DisplayDrawDisabledOverlay(gameCtx->display, x + 44, CHAR_ZONE_Y + 16,
+                                   22, 18);
       }
     }
   }
@@ -220,9 +183,9 @@ static void renderCharFaces(GameContext *gameCtx) {
   }
 }
 
-static void animateDialogZoneOnce(GameContext *gameCtx, void *data, int pitch) {
+static void animateDialogZoneOnce(Display *display, void *data, int pitch) {
   // copy outline
-  int offset = gameCtx->display->dialogBoxFrames;
+  int offset = display->dialogBoxFrames;
   const int size = 20;
   for (int y = DIALOG_BOX_H - size; y < DIALOG_BOX_H; y++) {
     const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
@@ -232,10 +195,10 @@ static void animateDialogZoneOnce(GameContext *gameCtx, void *data, int pitch) {
     }
   }
 
-  if (gameCtx->display->dialogBoxFrames >= size) {
+  if (display->dialogBoxFrames >= size) {
     // need to copy the dialog background
     int size = DIALOG_BOX_H - 1;
-    if (gameCtx->display->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
+    if (display->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
       size++;
     }
     for (int y = 1; y < size; y++) {
@@ -249,27 +212,27 @@ static void animateDialogZoneOnce(GameContext *gameCtx, void *data, int pitch) {
   }
 }
 
-static void showBigDialogZone(GameContext *gameCtx) {
+static void showBigDialogZone(Display *display) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->display->pixBuf, &rect, &data, &pitch);
+  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
   for (int i = 0; i < 1 + DIALOG_BOX_H2 - DIALOG_BOX_H; i++) {
-    animateDialogZoneOnce(gameCtx, data, pitch);
+    animateDialogZoneOnce(display, data, pitch);
   }
-  SDL_UnlockTexture(gameCtx->display->pixBuf);
+  SDL_UnlockTexture(display->pixBuf);
 }
 
-int GameRenderRenderExpandDialogBox(GameContext *gameCtx) {
+int GameRenderRenderExpandDialogBox(Display *display) {
   void *data;
   int pitch;
   SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->display->pixBuf, &rect, &data, &pitch);
-  animateDialogZoneOnce(gameCtx, data, pitch);
-  SDL_UnlockTexture(gameCtx->display->pixBuf);
+  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
+  animateDialogZoneOnce(display, data, pitch);
+  SDL_UnlockTexture(display->pixBuf);
 
-  if (gameCtx->display->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
-    gameCtx->display->dialogBoxFrames += 1;
+  if (display->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
+    display->dialogBoxFrames += 1;
     return 0;
   }
   return 1;
@@ -283,7 +246,7 @@ int GameRenderRenderShrinkDialogBox(GameContext *gameCtx) {
   SDL_LockTexture(gameCtx->display->pixBuf, &rect, &data, &pitch);
   for (int i = 0; i < 1 + DIALOG_BOX_H2 + gameCtx->display->dialogBoxFrames;
        i++) {
-    animateDialogZoneOnce(gameCtx, data, pitch);
+    animateDialogZoneOnce(gameCtx->display, data, pitch);
   }
   SDL_UnlockTexture(gameCtx->display->pixBuf);
 
@@ -300,15 +263,13 @@ static void renderExitButton(GameContext *gameCtx) {
                    UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H, "EXIT");
 
   if (gameCtx->display->exitSceneButtonDisabled) {
-    drawDisabledOverlay(gameCtx, gameCtx->display->pixBuf,
-                        UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
-                        UI_SCENE_EXIT_BUTTON_W, UI_SCENE_EXIT_BUTTON_H);
+    DisplayDrawDisabledOverlay(gameCtx->display, UI_SCENE_EXIT_BUTTON_X,
+                               UI_SCENE_EXIT_BUTTON_Y, UI_SCENE_EXIT_BUTTON_W,
+                               UI_SCENE_EXIT_BUTTON_H);
   }
 }
 
 void GameRender(GameContext *gameCtx) {
-  // SDL_SetRenderDrawColor(gameCtx->renderer, 0, 0, 0, 0);
-  //  SDL_RenderClear(gameCtx->renderer);
   if (gameCtx->state == GameState_MainMenu) {
     renderMainMenu(gameCtx);
     return;
@@ -347,7 +308,7 @@ void GameRender(GameContext *gameCtx) {
   }
 
   if (gameCtx->display->showBigDialog) {
-    showBigDialogZone(gameCtx);
+    showBigDialogZone(gameCtx->display);
   }
   if (gameCtx->display->drawExitSceneButton) {
     renderExitButton(gameCtx);
