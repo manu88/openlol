@@ -48,8 +48,10 @@ typedef struct {
   int shouldUpdate;
 } Display;
 
-int DisplayInit(Display *context);
-void DisplayRelease(Display *context);
+int DisplayInit(Display *display);
+void DisplayRelease(Display *display);
+
+void DisplayRender(Display *display);
 
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);
 

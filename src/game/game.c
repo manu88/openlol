@@ -735,11 +735,7 @@ static void GamePreUpdate(GameContext *gameCtx) {
 }
 
 int GameWaitForClick(GameContext *gameCtx) {
-  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->display->renderer, gameCtx->display->pixBuf,
-                        NULL, &dest) == 0);
-  SDL_RenderPresent(gameCtx->display->renderer);
+  DisplayRender(gameCtx->display);
   while (1) {
     SDL_Event event = {0};
     SDL_WaitEvent(&event);
@@ -833,11 +829,7 @@ static void GameRunOnce(GameContext *gameCtx) {
     gameCtx->display->shouldUpdate = 0;
   }
 
-  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->display->renderer, gameCtx->display->pixBuf,
-                        NULL, &dest) == 0);
-  SDL_RenderPresent(gameCtx->display->renderer);
+  DisplayRender(gameCtx->display);
 }
 
 static int GameRun(GameContext *gameCtx) {

@@ -3,7 +3,7 @@
 #include "game_envir.h"
 #include <string.h>
 
-static int initSDL(Display *renderer) {
+static int initSDL(Display *display) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
@@ -11,51 +11,51 @@ static int initSDL(Display *renderer) {
     return 0;
   }
 
-  renderer->window =
+  display->window =
       SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
                        SDL_WINDOWPOS_UNDEFINED, PIX_BUF_WIDTH * SCREEN_FACTOR,
                        PIX_BUF_HEIGHT * SCREEN_FACTOR, SDL_WINDOW_SHOWN);
-  if (!renderer->window) {
+  if (!display->window) {
     printf("Window could not be created!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 0;
   }
-  renderer->renderer =
-      SDL_CreateRenderer(renderer->window, -1, SDL_RENDERER_ACCELERATED);
-  if (!renderer->renderer) {
+  display->renderer =
+      SDL_CreateRenderer(display->window, -1, SDL_RENDERER_ACCELERATED);
+  if (!display->renderer) {
     printf("Renderer could not be created!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 0;
   }
 
-  renderer->pixBuf = SDL_CreateTexture(
-      renderer->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
+  display->pixBuf = SDL_CreateTexture(
+      display->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
       PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  if (renderer->pixBuf == NULL) {
+  if (display->pixBuf == NULL) {
     printf("Error: %s\n", SDL_GetError());
     return 0;
   }
   return 1;
 }
 
-int DisplayInit(Display *renderer) {
-  memset(renderer, 0, sizeof(Display));
+int DisplayInit(Display *display) {
+  memset(display, 0, sizeof(Display));
 
-  if (!initSDL(renderer)) {
+  if (!initSDL(display)) {
     return 0;
   }
-  renderer->shouldUpdate = 1;
+  display->shouldUpdate = 1;
 
-  renderer->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
-  assert(renderer->dialogTextBuffer);
+  display->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
+  assert(display->dialogTextBuffer);
 
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));
 
-    if (CPSImageFromBuffer(&renderer->gameTitle, f.buffer, f.bufferSize) == 0) {
+    if (CPSImageFromBuffer(&display->gameTitle, f.buffer, f.bufferSize) == 0) {
       printf("unable to get Title.CPS Data\n");
     }
   }
@@ -63,7 +63,7 @@ int DisplayInit(Display *renderer) {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PARCH.CPS"));
 
-    if (CPSImageFromBuffer(&renderer->mapBackground, f.buffer, f.bufferSize) ==
+    if (CPSImageFromBuffer(&display->mapBackground, f.buffer, f.bufferSize) ==
         0) {
       printf("unable to get mapBackground Data\n");
     }
@@ -72,14 +72,14 @@ int DisplayInit(Display *renderer) {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PLAYFLD.CPS"));
 
-    if (CPSImageFromBuffer(&renderer->playField, f.buffer, f.bufferSize) == 0) {
+    if (CPSImageFromBuffer(&display->playField, f.buffer, f.bufferSize) == 0) {
       printf("unable to get playFieldData\n");
     }
   }
   {
     GameFile f = {0};
     assert(GameEnvironmentGetStartupFile(&f, "ITEMICN.SHP"));
-    if (SHPHandleFromCompressedBuffer(&renderer->itemShapes, f.buffer,
+    if (SHPHandleFromCompressedBuffer(&display->itemShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get ITEMICN.SHP\n");
       assert(0);
@@ -88,7 +88,7 @@ int DisplayInit(Display *renderer) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "GAMESHP.SHP"));
-    if (SHPHandleFromCompressedBuffer(&renderer->gameShapes, f.buffer,
+    if (SHPHandleFromCompressedBuffer(&display->gameShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get GAMESHP.SHP\n");
       assert(0);
@@ -97,7 +97,7 @@ int DisplayInit(Display *renderer) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "AUTOBUT.SHP"));
-    if (SHPHandleFromCompressedBuffer(&renderer->automapShapes, f.buffer,
+    if (SHPHandleFromCompressedBuffer(&display->automapShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get AUTOBUT.SHP\n");
       assert(0);
@@ -106,7 +106,7 @@ int DisplayInit(Display *renderer) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "FONT9PN.FNT"));
-    if (FNTHandleFromBuffer(&renderer->defaultFont, f.buffer, f.bufferSize) ==
+    if (FNTHandleFromBuffer(&display->defaultFont, f.buffer, f.bufferSize) ==
         0) {
       printf("unable to get FONT9P.FNT data\n");
     }
@@ -115,7 +115,7 @@ int DisplayInit(Display *renderer) {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "FONT6P.FNT"));
 
-    if (FNTHandleFromBuffer(&renderer->font6p, f.buffer, f.bufferSize) == 0) {
+    if (FNTHandleFromBuffer(&display->font6p, f.buffer, f.bufferSize) == 0) {
       printf("unable to get FONT6P.FNT data\n");
     }
   }
@@ -124,8 +124,8 @@ int DisplayInit(Display *renderer) {
     assert(GameEnvironmentGetFileFromPak(&f, "GERIM.CPS", "O01A.PAK"));
     CPSImage img = {0};
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
-    renderer->defaultPalette = malloc(img.paletteSize);
-    memcpy(renderer->defaultPalette, img.palette, img.paletteSize);
+    display->defaultPalette = malloc(img.paletteSize);
+    memcpy(display->defaultPalette, img.palette, img.paletteSize);
     CPSImageRelease(&img);
   }
 
@@ -182,16 +182,19 @@ void DimRect(SDL_Texture *texture, int startX, int startY, int w, int h) {
   SDL_UnlockTexture(texture);
 }
 
+void DisplayRender(Display *display) {
+  SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                   PIX_BUF_HEIGHT * SCREEN_FACTOR};
+  assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) == 0);
+  SDL_RenderPresent(display->renderer);
+}
+
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
   while (numFrames--) {
     SDL_Delay(tickLength);
     SDL_PollEvent(NULL);
     DimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
             MAZE_COORDS_H);
-    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
-    assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) ==
-           0);
-    SDL_RenderPresent(display->renderer);
+    DisplayRender(display);
   }
 }
