@@ -1,5 +1,6 @@
 #include "automap_render.h"
 #include "SDL_pixels.h"
+#include "display.h"
 #include "formats/format_shp.h"
 #include "formats/format_xxx.h"
 #include "game_ctx.h"
@@ -8,7 +9,6 @@
 #include "menu.h"
 #include "render.h"
 #include "renderer.h"
-#include "rendering_ctx.h"
 #include "ui.h"
 #include <stdint.h>
 #include <stdio.h>

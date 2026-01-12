@@ -3,6 +3,7 @@
 #include "animator.h"
 #include "audio.h"
 #include "config.h"
+#include "display.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
@@ -12,7 +13,6 @@
 #include "menu.h"
 #include "monster.h"
 #include "pak_file.h"
-#include "rendering_ctx.h"
 #include "script.h"
 #include "spells.h"
 #include <stddef.h>

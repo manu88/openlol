@@ -1,9 +1,9 @@
 #include "game_ctx.h"
-#include "SDL_render.h"
 #include "audio.h"
 #include "bytes.h"
 #include "config.h"
 #include "dbg_server.h"
+#include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
@@ -16,7 +16,6 @@
 #include "menu.h"
 #include "pak_file.h"
 #include "render.h"
-#include "rendering_ctx.h"
 #include "script.h"
 #include "spells.h"
 #include <assert.h>

@@ -1,4 +1,4 @@
-#include "rendering_ctx.h"
+#include "display.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include <string.h>
