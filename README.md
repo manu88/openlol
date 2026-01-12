@@ -10,7 +10,7 @@ make
 note: SDL2 and libsndfile are required.
 
 ## game assets
-You need to create a "data" folder in the root of the repo and copy all ‘pak' files into it.
+You need to create a "data" folder in the root of the repo and copy all ‘PAK' and 'TLK' files into it.
 
 
 ## Usage
