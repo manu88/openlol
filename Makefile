@@ -1,4 +1,5 @@
 CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags SDL2_image` `pkg-config --cflags SDL2_ttf` `pkg-config --cflags sndfile` -Wpedantic -Wall -MD -fsanitize=address -Isrc/common -Isrc/game -Isrc/dbg
+CCFLAGS+=-Wno-unknown-pragmas
 
 LDFLAGS=  `pkg-config --libs SDL2_image` `pkg-config --libs SDL2_ttf` `pkg-config --libs sndfile`
 
