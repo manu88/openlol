@@ -265,13 +265,11 @@ static uint16_t enableControls(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t hideMouse(EMCInterpreter *interp, EMCState *state) {
-  printf("hideMouse\n");
-  ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_ShowHidMouse(interp, 0);
   return 0;
 }
 static uint16_t showMouse(EMCInterpreter *interp, EMCState *state) {
-  printf("showMouse\n");
-  ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_ShowHidMouse(interp, 1);
   return 0;
 }
 

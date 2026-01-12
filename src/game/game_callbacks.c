@@ -1,4 +1,6 @@
 #include "game_callbacks.h"
+#include "SDL_events.h"
+#include "SDL_mouse.h"
 #include "formats/format_cps.h"
 #include "formats/format_shp.h"
 #include "formats/format_tim.h"
@@ -658,6 +660,13 @@ static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
   return 1;
 }
 
+static void callbackShowHidMouse(EMCInterpreter *interp, int show) {
+  Log(LOG_PREFIX, "callbackShowHidMouse show=%i", show);
+  if (show) {
+    SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
+  }
+}
+
 static int callbackCheckMagic(EMCInterpreter *interp, uint16_t charId,
                               uint16_t spellNum, uint16_t spellLevel) {
   Log(LOG_PREFIX,
@@ -975,4 +984,5 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
   interp->callbacks.EMCInterpreterCallbacks_CharacterSays =
       callbackCharacterSays;
   interp->callbacks.EMCInterpreterCallbacks_CheckMagic = callbackCheckMagic;
+  interp->callbacks.EMCInterpreterCallbacks_ShowHidMouse = callbackShowHidMouse;
 }
