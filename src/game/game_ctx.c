@@ -491,7 +491,7 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
 }
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
-  GameExpandDialogBox(gameCtx);
+  DisplayExpandDialogBox(gameCtx, gameCtx->conf.tickLength);
   gameCtx->display->controlDisabled = 1;
 }
 
@@ -505,7 +505,7 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   }
   GameContextResetDialog(gameCtx);
   if (gameCtx->showBigDialog) {
-    GameShrinkDialogBox(gameCtx);
+    DisplayShrinkDialogBox(gameCtx, gameCtx->conf.tickLength);
   }
   // FIXME: temporary clear screen here to avoid for cps background to remain on
   // screen
