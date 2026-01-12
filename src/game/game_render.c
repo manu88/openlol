@@ -1,6 +1,5 @@
 #include "game_render.h"
 #include "SDL_pixels.h"
-#include "SDL_render.h"
 #include "automap_render.h"
 #include "display.h"
 #include "formats/format_cps.h"

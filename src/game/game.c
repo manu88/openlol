@@ -2,8 +2,6 @@
 #include "SDL_events.h"
 #include "SDL_keyboard.h"
 #include "SDL_keycode.h"
-#include "SDL_rect.h"
-#include "SDL_render.h"
 #include "dbg_server.h"
 #include "display.h"
 #include "formats/format_lang.h"

@@ -2,7 +2,6 @@
 #include "animator.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
-#include "game.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
