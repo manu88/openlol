@@ -110,7 +110,7 @@ static Display _renderCtx = {0};
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
   gameCtx->display = &_renderCtx;
-  RenderingContextInit(gameCtx->display);
+  DisplayInit(gameCtx->display);
   gameCtx->spellProperties = SpellPropertiesGet();
   if (!GameConfigFromFile(&gameCtx->conf, "conf.txt")) {
     printf("Create default config\n");
@@ -176,7 +176,7 @@ int GameContextNewGame(GameContext *gameCtx) {
 void GameContextRelease(GameContext *gameCtx) {
   DBGServerRelease();
   AudioSystemRelease(&gameCtx->audio);
-  RenderingContextRelease(gameCtx->display);
+  DisplayRelease(gameCtx->display);
 
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {

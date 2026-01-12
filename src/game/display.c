@@ -40,7 +40,7 @@ static int initSDL(Display *renderer) {
   return 1;
 }
 
-int RenderingContextInit(Display *renderer) {
+int DisplayInit(Display *renderer) {
   memset(renderer, 0, sizeof(Display));
 
   if (!initSDL(renderer)) {
@@ -132,7 +132,7 @@ int RenderingContextInit(Display *renderer) {
   return 1;
 }
 
-void RenderingContextRelease(Display *renderer) {
+void DisplayRelease(Display *renderer) {
   SDL_DestroyRenderer(renderer->renderer);
   SDL_DestroyWindow(renderer->window);
   SDL_DestroyTexture(renderer->pixBuf);

@@ -48,5 +48,5 @@ typedef struct {
   int shouldUpdate;
 } Display;
 
-int RenderingContextInit(Display *context);
-void RenderingContextRelease(Display *context);
+int DisplayInit(Display *context);
+void DisplayRelease(Display *context);
