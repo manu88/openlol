@@ -47,3 +47,6 @@ typedef struct {
   Menu *currentMenu;
   int shouldUpdate;
 } RenderingContext;
+
+int RenderingContextInit(RenderingContext *context);
+void RenderingContextRelease(RenderingContext *context);
