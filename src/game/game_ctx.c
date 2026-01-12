@@ -16,6 +16,7 @@
 #include "menu.h"
 #include "pak_file.h"
 #include "render.h"
+#include "rendering_ctx.h"
 #include "script.h"
 #include "spells.h"
 #include <assert.h>
@@ -105,8 +106,11 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
   return files;
 }
 
+static RenderingContext _renderCtx = {0};
+
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
+  gameCtx->renderer = &_renderCtx;
   gameCtx->spellProperties = SpellPropertiesGet();
   if (!GameConfigFromFile(&gameCtx->conf, "conf.txt")) {
     printf("Create default config\n");
@@ -115,12 +119,13 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
 
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
-  gameCtx->shouldUpdate = 1;
+  gameCtx->renderer->shouldUpdate = 1;
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "TITLE.CPS"));
 
-    if (CPSImageFromBuffer(&gameCtx->gameTitle, f.buffer, f.bufferSize) == 0) {
+    if (CPSImageFromBuffer(&gameCtx->renderer->gameTitle, f.buffer,
+                           f.bufferSize) == 0) {
       printf("unable to get Title.CPS Data\n");
     }
   }
@@ -128,8 +133,8 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PARCH.CPS"));
 
-    if (CPSImageFromBuffer(&gameCtx->mapBackground, f.buffer, f.bufferSize) ==
-        0) {
+    if (CPSImageFromBuffer(&gameCtx->renderer->mapBackground, f.buffer,
+                           f.bufferSize) == 0) {
       printf("unable to get mapBackground Data\n");
     }
   }
@@ -137,14 +142,15 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "PLAYFLD.CPS"));
 
-    if (CPSImageFromBuffer(&gameCtx->playField, f.buffer, f.bufferSize) == 0) {
+    if (CPSImageFromBuffer(&gameCtx->renderer->playField, f.buffer,
+                           f.bufferSize) == 0) {
       printf("unable to get playFieldData\n");
     }
   }
   {
     GameFile f = {0};
     assert(GameEnvironmentGetStartupFile(&f, "ITEMICN.SHP"));
-    if (SHPHandleFromCompressedBuffer(&gameCtx->itemShapes, f.buffer,
+    if (SHPHandleFromCompressedBuffer(&gameCtx->renderer->itemShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get ITEMICN.SHP\n");
       assert(0);
@@ -163,7 +169,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "GAMESHP.SHP"));
-    if (SHPHandleFromCompressedBuffer(&gameCtx->gameShapes, f.buffer,
+    if (SHPHandleFromCompressedBuffer(&gameCtx->renderer->gameShapes, f.buffer,
                                       f.bufferSize) == 0) {
       printf("unable to get GAMESHP.SHP\n");
       assert(0);
@@ -172,8 +178,8 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, "AUTOBUT.SHP"));
-    if (SHPHandleFromCompressedBuffer(&gameCtx->automapShapes, f.buffer,
-                                      f.bufferSize) == 0) {
+    if (SHPHandleFromCompressedBuffer(&gameCtx->renderer->automapShapes,
+                                      f.buffer, f.bufferSize) == 0) {
       printf("unable to get AUTOBUT.SHP\n");
       assert(0);
     }
@@ -196,29 +202,29 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   assert(GameEnvironmentLoadPak(&gameCtx->defaultTlkFile, "00.TLK"));
   assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
   AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
-  gameCtx->window =
+  gameCtx->renderer->window =
       SDL_CreateWindow("Lands Of Lore", SDL_WINDOWPOS_UNDEFINED,
                        SDL_WINDOWPOS_UNDEFINED, PIX_BUF_WIDTH * SCREEN_FACTOR,
                        PIX_BUF_HEIGHT * SCREEN_FACTOR, SDL_WINDOW_SHOWN);
-  if (!gameCtx->window) {
+  if (!gameCtx->renderer->window) {
     printf("Window could not be created!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 1;
   }
-  gameCtx->renderer =
-      SDL_CreateRenderer(gameCtx->window, -1, SDL_RENDERER_ACCELERATED);
-  if (!gameCtx->renderer) {
+  gameCtx->renderer->renderer = SDL_CreateRenderer(
+      gameCtx->renderer->window, -1, SDL_RENDERER_ACCELERATED);
+  if (!gameCtx->renderer->renderer) {
     printf("Renderer could not be created!\n"
            "SDL_Error: %s\n",
            SDL_GetError());
     return 1;
   }
 
-  gameCtx->pixBuf = SDL_CreateTexture(
-      gameCtx->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
-      PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  if (gameCtx->pixBuf == NULL) {
+  gameCtx->renderer->pixBuf = SDL_CreateTexture(
+      gameCtx->renderer->renderer, SDL_PIXELFORMAT_XRGB8888,
+      SDL_TEXTUREACCESS_STREAMING, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+  if (gameCtx->renderer->pixBuf == NULL) {
     printf("Error: %s\n", SDL_GetError());
     return 1;
   }
@@ -226,8 +232,8 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "FONT9PN.FNT"));
-    if (FNTHandleFromBuffer(&gameCtx->defaultFont, f.buffer, f.bufferSize) ==
-        0) {
+    if (FNTHandleFromBuffer(&gameCtx->renderer->defaultFont, f.buffer,
+                            f.bufferSize) == 0) {
       printf("unable to get FONT9P.FNT data\n");
     }
   }
@@ -235,24 +241,25 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
     GameFile f = {0};
     assert(GameEnvironmentGetFile(&f, "FONT6P.FNT"));
 
-    if (FNTHandleFromBuffer(&gameCtx->font6p, f.buffer, f.bufferSize) == 0) {
+    if (FNTHandleFromBuffer(&gameCtx->renderer->font6p, f.buffer,
+                            f.bufferSize) == 0) {
       printf("unable to get FONT6P.FNT data\n");
     }
   }
 
-  AnimatorInit(&gameCtx->animator, gameCtx->pixBuf);
+  AnimatorInit(&gameCtx->animator, gameCtx->renderer->pixBuf);
   GameTimInterpreterInit(&gameCtx->timInterpreter, &gameCtx->animator);
   gameCtx->timInterpreter.timInterpreter.callbackCtx = gameCtx;
-  gameCtx->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
-  assert(gameCtx->dialogTextBuffer);
+  gameCtx->renderer->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
+  assert(gameCtx->renderer->dialogTextBuffer);
 
   {
     GameFile f = {0};
     assert(GameEnvironmentGetFileFromPak(&f, "GERIM.CPS", "O01A.PAK"));
     CPSImage img = {0};
     assert(CPSImageFromBuffer(&img, f.buffer, f.bufferSize));
-    gameCtx->defaultPalette = malloc(img.paletteSize);
-    memcpy(gameCtx->defaultPalette, img.palette, img.paletteSize);
+    gameCtx->renderer->defaultPalette = malloc(img.paletteSize);
+    memcpy(gameCtx->renderer->defaultPalette, img.palette, img.paletteSize);
     CPSImageRelease(&img);
   }
 
@@ -284,18 +291,18 @@ int GameContextNewGame(GameContext *gameCtx) {
 void GameContextRelease(GameContext *gameCtx) {
   DBGServerRelease();
   AudioSystemRelease(&gameCtx->audio);
-  SDL_DestroyRenderer(gameCtx->renderer);
-  SDL_DestroyWindow(gameCtx->window);
+  SDL_DestroyRenderer(gameCtx->renderer->renderer);
+  SDL_DestroyWindow(gameCtx->renderer->window);
 
-  SDL_DestroyTexture(gameCtx->pixBuf);
+  SDL_DestroyTexture(gameCtx->renderer->pixBuf);
 
-  CPSImageRelease(&gameCtx->playField);
-  CPSImageRelease(&gameCtx->gameTitle);
-  CPSImageRelease(&gameCtx->mapBackground);
-  SHPHandleRelease(&gameCtx->automapShapes);
-  SHPHandleRelease(&gameCtx->gameShapes);
-  free(gameCtx->dialogTextBuffer);
-  SDL_FreeCursor(gameCtx->cursor);
+  CPSImageRelease(&gameCtx->renderer->playField);
+  CPSImageRelease(&gameCtx->renderer->gameTitle);
+  CPSImageRelease(&gameCtx->renderer->mapBackground);
+  SHPHandleRelease(&gameCtx->renderer->automapShapes);
+  SHPHandleRelease(&gameCtx->renderer->gameShapes);
+  free(gameCtx->renderer->dialogTextBuffer);
+  SDL_FreeCursor(gameCtx->renderer->cursor);
 
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {
@@ -303,11 +310,11 @@ void GameContextRelease(GameContext *gameCtx) {
     }
   }
   for (int i = 0; i < INVENTORY_TYPES_NUM; i++) {
-    if (gameCtx->inventoryBackgrounds[i].data) {
-      CPSImageRelease(&gameCtx->inventoryBackgrounds[i]);
+    if (gameCtx->renderer->inventoryBackgrounds[i].data) {
+      CPSImageRelease(&gameCtx->renderer->inventoryBackgrounds[i]);
     }
   }
-  free(gameCtx->defaultPalette);
+  free(gameCtx->renderer->defaultPalette);
   PAKFileRelease(&gameCtx->sfxPak);
   PAKFileRelease(&gameCtx->defaultTlkFile);
 }
@@ -458,7 +465,7 @@ int GameContextLoadChars(GameContext *gameCtx) {
     snprintf(faceFile, 11, "FACE%02i.SHP", charId);
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, faceFile));
-    SHPHandleFromCompressedBuffer(&gameCtx->charFaces[i], f.buffer,
+    SHPHandleFromCompressedBuffer(&gameCtx->renderer->charFaces[i], f.buffer,
                                   f.bufferSize);
   }
   return 1;
@@ -533,20 +540,20 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->state = newState;
   if (gameCtx->state == GameState_GameMenu) {
     createCursorForItem(gameCtx, 0);
-    gameCtx->currentMenu = gameMenu;
+    gameCtx->renderer->currentMenu = gameMenu;
   } else if (gameCtx->state == GameState_MainMenu) {
-    gameCtx->currentMenu = mainMenu;
-  } else if (gameCtx->currentMenu) {
-    MenuReset(gameCtx->currentMenu);
-    gameCtx->currentMenu = NULL;
+    gameCtx->renderer->currentMenu = mainMenu;
+  } else if (gameCtx->renderer->currentMenu) {
+    MenuReset(gameCtx->renderer->currentMenu);
+    gameCtx->renderer->currentMenu = NULL;
   }
   if (gameCtx->state == GameState_ShowInventory ||
       gameCtx->state == GameState_ShowMap ||
       gameCtx->state == GameState_GameMenu) {
     gameCtx->selectedCharIsCastingSpell = 0;
-    gameCtx->controlDisabled = 1;
+    gameCtx->renderer->controlDisabled = 1;
   } else {
-    gameCtx->controlDisabled = 0;
+    gameCtx->renderer->controlDisabled = 0;
   }
   if (gameCtx->prevState == GameState_GameMenu &&
       gameCtx->state == GameState_PlayGame) {
@@ -616,11 +623,11 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
   GameExpandDialogBox(gameCtx);
-  gameCtx->controlDisabled = 1;
+  gameCtx->renderer->controlDisabled = 1;
 }
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
-  gameCtx->controlDisabled = 0;
+  gameCtx->renderer->controlDisabled = 0;
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {
       free(gameCtx->buttonText[i]);
@@ -633,7 +640,7 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   }
   // FIXME: temporary clear screen here to avoid for cps background to remain on
   // screen
-  gameCtx->showBitmap = 0;
+  gameCtx->renderer->showBitmap = 0;
 }
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
@@ -725,14 +732,14 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
 void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
                                                 int charId) {
   int invId = inventoryTypeForId[charId];
-  if (gameCtx->inventoryBackgrounds[invId].data == NULL) {
+  if (gameCtx->renderer->inventoryBackgrounds[invId].data == NULL) {
     GameFile f = {0};
     char name[12] = "";
     assert(invId > 0 && invId < 7);
     snprintf(name, 12, "INVENT%1i.CPS", invId);
     assert(GameEnvironmentGetGeneralFile(&f, name));
-    assert(CPSImageFromBuffer(&gameCtx->inventoryBackgrounds[invId], f.buffer,
-                              f.bufferSize));
+    assert(CPSImageFromBuffer(&gameCtx->renderer->inventoryBackgrounds[invId],
+                              f.buffer, f.bufferSize));
   }
 }
 

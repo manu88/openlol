@@ -5,8 +5,10 @@
 #include "game_ctx.h"
 #include "geometry.h"
 #include "level.h"
+#include "menu.h"
 #include "render.h"
 #include "renderer.h"
+#include "rendering_ctx.h"
 #include "ui.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -104,7 +106,7 @@ static int automapToIndex(uint16_t automapData) {
                           // orientations (N/S/E/W) per automap data.
 }
 
-static void drawMapShape(const GameContext *gameCtx, int index, int x, int y,
+static void drawMapShape(const RenderingContext *ctx, int index, int x, int y,
                          int direction) {
   if (index < 0) {
     return;
@@ -112,9 +114,9 @@ static void drawMapShape(const GameContext *gameCtx, int index, int x, int y,
   SHPFrame f = {0};
   x = x + mapCoords[10][direction] - 2;
   y = y + mapCoords[11][direction] - 2;
-  SHPHandleGetFrame(&gameCtx->automapShapes, &f, index + 11 + direction);
+  SHPHandleGetFrame(&ctx->automapShapes, &f, index + 11 + direction);
   SHPFrameGetImageData(&f);
-  drawSHPFrame(gameCtx->pixBuf, &f, x, y, gameCtx->defaultPalette);
+  drawSHPFrame(ctx->pixBuf, &f, x, y, ctx->defaultPalette);
   SHPFrameRelease(&f);
 }
 
@@ -152,18 +154,20 @@ void colorBlock(SDL_Texture *texture, int startX, int startY, int w, int h,
 void AutomapRender(GameContext *gameCtx) {
   memset(legendTypes, 0, NUM_LEGENDS * sizeof(uint16_t));
   UISetDefaultStyle();
-  renderCPS(gameCtx->pixBuf, gameCtx->mapBackground.data,
-            gameCtx->mapBackground.imageSize, gameCtx->mapBackground.palette,
-            PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+  renderCPS(gameCtx->renderer->pixBuf, gameCtx->renderer->mapBackground.data,
+            gameCtx->renderer->mapBackground.imageSize,
+            gameCtx->renderer->mapBackground.palette, PIX_BUF_WIDTH,
+            PIX_BUF_HEIGHT);
 
   char c[20] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf,
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf,
                MAP_SCREEN_EXIT_BUTTON_X + 2, MAP_SCREEN_BUTTONS_Y + 4, 50, c);
 
   GameContextGetLevelName(gameCtx, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, MAP_SCREEN_NAME_X,
-               MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf,
+               MAP_SCREEN_NAME_X, MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y,
+               c);
 
   uint16_t blX = mapGetStartPosX(gameCtx);
   uint16_t bl = (mapGetStartPosY(gameCtx) << 5) + blX;
@@ -212,43 +216,43 @@ void AutomapRender(GameContext *gameCtx) {
 
       if (eastMapping) {
         if (eastMapping->automapData & 0xC0) {
-          UIFillRect(gameCtx->pixBuf, sx + BLOCK_W - 1, sy, 1, BLOCK_H,
-                     (SDL_Color){.0, 0, 0});
+          UIFillRect(gameCtx->renderer->pixBuf, sx + BLOCK_W - 1, sy, 1,
+                     BLOCK_H, (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, automapToIndex(eastMapping->automapData), sx, sy,
-                     East);
+        drawMapShape(gameCtx->renderer,
+                     automapToIndex(eastMapping->automapData), sx, sy, East);
       }
       if (northMapping) {
         if (northMapping->automapData & 0XC0) {
-          UIFillRect(gameCtx->pixBuf, sx, sy, BLOCK_W, 1,
+          UIFillRect(gameCtx->renderer->pixBuf, sx, sy, BLOCK_W, 1,
                      (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, automapToIndex(northMapping->automapData), sx, sy,
-                     North);
+        drawMapShape(gameCtx->renderer,
+                     automapToIndex(northMapping->automapData), sx, sy, North);
       }
 
       if (southMapping) {
         if (southMapping->automapData & 0XC0) {
-          UIFillRect(gameCtx->pixBuf, sx, sy + BLOCK_H - 1, BLOCK_W, 1,
-                     (SDL_Color){.0, 0, 0});
+          UIFillRect(gameCtx->renderer->pixBuf, sx, sy + BLOCK_H - 1, BLOCK_W,
+                     1, (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, automapToIndex(southMapping->automapData), sx, sy,
-                     South);
+        drawMapShape(gameCtx->renderer,
+                     automapToIndex(southMapping->automapData), sx, sy, South);
       }
       if (westMapping) {
         if (westMapping->automapData & 0XC0) {
-          UIFillRect(gameCtx->pixBuf, sx, sy, 1, BLOCK_H,
+          UIFillRect(gameCtx->renderer->pixBuf, sx, sy, 1, BLOCK_H,
                      (SDL_Color){.0, 0, 0});
         }
-        drawMapShape(gameCtx, automapToIndex(westMapping->automapData), sx, sy,
-                     West);
+        drawMapShape(gameCtx->renderer,
+                     automapToIndex(westMapping->automapData), sx, sy, West);
       }
-      mapOverlay(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H);
+      mapOverlay(gameCtx->renderer->pixBuf, sx, sy, BLOCK_W, BLOCK_H);
       if (gameCtx->conf.showMonstersInMap) {
         for (int i = 0; i < MAX_MONSTERS; i++) {
           const Monster *m = &gameCtx->level->monsters[i];
           if (m->block == bl) {
-            colorBlock(gameCtx->pixBuf, sx, sy, BLOCK_W, BLOCK_H,
+            colorBlock(gameCtx->renderer->pixBuf, sx, sy, BLOCK_W, BLOCK_H,
                        (SDL_Color){.r = 255, 0, 0});
           }
         }
@@ -271,7 +275,8 @@ void AutomapRender(GameContext *gameCtx) {
   int partY =
       _automapTopLeftY + (((gameCtx->currentBock - (sy << 5)) / 32) * BLOCK_H);
 
-  drawMapShape(gameCtx, 48 + gameCtx->orientation, partyX, partY + BLOCK_H, 0);
+  drawMapShape(gameCtx->renderer, 48 + gameCtx->orientation, partyX,
+               partY + BLOCK_H, 0);
 
   printf("Got %zu legend entries\n", gameCtx->level->legendData.numEntries);
   char buf[64];

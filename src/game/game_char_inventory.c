@@ -93,7 +93,7 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
   uint16_t frameId =
       GameContextGetItemSHPFrameIndex(gameCtx, obj->itemPropertyIndex);
   SHPFrame itemFrame = {0};
-  SHPHandleGetFrame(&gameCtx->itemShapes, &itemFrame, frameId);
+  SHPHandleGetFrame(&gameCtx->renderer->itemShapes, &itemFrame, frameId);
   SHPFrameGetImageData(&itemFrame);
 
   Point itemPt = layout->slot[itemIndex].coords;
@@ -110,14 +110,14 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
     return;
   }
   SHPFrame bFrame = {0};
-  SHPHandleGetFrame(&gameCtx->gameShapes, &bFrame, bIndex);
+  SHPHandleGetFrame(&gameCtx->renderer->gameShapes, &bFrame, bIndex);
   assert(SHPFrameGetImageData(&bFrame));
-  drawSHPFrame(gameCtx->pixBuf, &bFrame, backgroundPt.x, backgroundPt.y,
-               gameCtx->defaultPalette);
+  drawSHPFrame(gameCtx->renderer->pixBuf, &bFrame, backgroundPt.x,
+               backgroundPt.y, gameCtx->renderer->defaultPalette);
   SHPFrameRelease(&bFrame);
 
-  drawSHPFrame(gameCtx->pixBuf, &itemFrame, itemPt.x, itemPt.y,
-               gameCtx->defaultPalette);
+  drawSHPFrame(gameCtx->renderer->pixBuf, &itemFrame, itemPt.x, itemPt.y,
+               gameCtx->renderer->defaultPalette);
   SHPFrameRelease(&itemFrame);
 }
 
@@ -144,7 +144,7 @@ static void renderCharInventoryExperience(GameContext *gameCtx,
     break;
   }
   int w = maxW * percent;
-  UIFillRect(gameCtx->pixBuf, x, y, w, 5, (SDL_Color){255, 0, 0});
+  UIFillRect(gameCtx->renderer->pixBuf, x, y, w, 5, (SDL_Color){255, 0, 0});
 }
 
 void renderCharInventory(GameContext *gameCtx) {
@@ -155,10 +155,11 @@ void renderCharInventory(GameContext *gameCtx) {
   GameContextLoadBackgroundInventoryIfNeeded(gameCtx, id);
 
   const CPSImage *background =
-      &gameCtx->inventoryBackgrounds[inventoryTypeForId[id]];
-  renderCPSAt(gameCtx->pixBuf, background->data, background->imageSize,
-              background->palette, INVENTORY_SCREEN_X, INVENTORY_SCREEN_Y,
-              INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320, 200);
+      &gameCtx->renderer->inventoryBackgrounds[inventoryTypeForId[id]];
+  renderCPSAt(gameCtx->renderer->pixBuf, background->data,
+              background->imageSize, background->palette, INVENTORY_SCREEN_X,
+              INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320,
+              200);
 
   for (int i = 0; i < 11; i++) {
     if (character->items[i] == 0) {
@@ -169,69 +170,80 @@ void renderCharInventory(GameContext *gameCtx) {
   UISetStyle(UIStyle_Inventory);
 
   // char name
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 250, 10, 50,
-               character->name);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 250,
+               10, 50, character->name);
 
   char c[16] = "";
   // force
   int y = 24;
   GameContextGetString(gameCtx, 0X4014, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 98, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 218,
+               y, 98, c);
 
   snprintf(c, 16, "%i", GameRuleGetCharacterMight(character));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 307,
+               y, 20, c);
 
   // protection
   y = 36;
   GameContextGetString(gameCtx, 0X4015, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 98, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 218,
+               y, 98, c);
 
   snprintf(c, 16, "%i", GameRuleGetCharacterProtection(character));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 307,
+               y, 20, c);
 
   // Fighter stats
   y = 62;
   GameContextGetString(gameCtx, 0X4016, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 40, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 218,
+               y, 40, c);
 
   snprintf(c, 16, "%i", GameRuleGetCharacterSkillFight(character));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 307,
+               y, 20, c);
 
   renderCharInventoryExperience(gameCtx, character, SkillIndex_Fighter);
 
   // Rogue stats
   y = 72;
   GameContextGetString(gameCtx, 0X4017, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 40, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 218,
+               y, 40, c);
 
   snprintf(c, 16, "%i", GameRuleGetCharacterSkillRogue(character));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 307,
+               y, 20, c);
 
   renderCharInventoryExperience(gameCtx, character, SkillIndex_Rogue);
   // Mage stats
   y = 82;
   GameContextGetString(gameCtx, 0X4018, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 218, y, 40, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 218,
+               y, 40, c);
 
   snprintf(c, 16, "%i", GameRuleGetCharacterSkillMage(character));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 307, y, 20, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 307,
+               y, 20, c);
 
   renderCharInventoryExperience(gameCtx, character, SkillIndex_Mage);
 
   // exit button
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, 277, 104, 50, c);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf, 277,
+               104, 50, c);
 }
 
 static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
                                 uint16_t frameId) {
   assert(slot <= 9);
   SHPFrame frame = {0};
-  SHPHandleGetFrame(&gameCtx->itemShapes, &frame, frameId);
+  SHPHandleGetFrame(&gameCtx->renderer->itemShapes, &frame, frameId);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->pixBuf, &frame,
+  drawSHPFrame(gameCtx->renderer->pixBuf, &frame,
                UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
-               UI_INVENTORY_BUTTON_Y, gameCtx->defaultPalette);
+               UI_INVENTORY_BUTTON_Y, gameCtx->renderer->defaultPalette);
   SHPFrameRelease(&frame);
 }
 
@@ -313,9 +325,10 @@ static void selectFromCharItems(GameContext *gameCtx, SAVCharacter *character,
     } else if (gameCtx->itemIndexInHand) {
       updateCursor = 0;
       if (props->type == 0) {
-        GameContextGetString(gameCtx, 0X418C, gameCtx->dialogTextBuffer,
+        GameContextGetString(gameCtx, 0X418C,
+                             gameCtx->renderer->dialogTextBuffer,
                              DIALOG_BUFFER_SIZE);
-        gameCtx->dialogText = gameCtx->dialogTextBuffer;
+        gameCtx->renderer->dialogText = gameCtx->renderer->dialogTextBuffer;
       } else {
         char *itemName = GameContextGetString2(gameCtx, props->stringId);
         char *destName =
@@ -348,7 +361,7 @@ int processCharInventoryItemsMouse(GameContext *gameCtx) {
       width = 12;
       height = 11;
     }
-    if (zoneClicked(&gameCtx->mouseEv.pos, layout->slot[i].coords.x,
+    if (zoneClicked(&gameCtx->renderer->mouseEv.pos, layout->slot[i].coords.x,
                     layout->slot[i].coords.y, width, height)) {
       selectFromCharItems(gameCtx, character, &layout->slot[i], i);
       return 1;

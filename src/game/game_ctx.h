@@ -1,20 +1,18 @@
 #pragma once
-#include "SDL_render.h"
+
 #include "animator.h"
 #include "audio.h"
 #include "config.h"
-#include "formats/format_cps.h"
-#include "formats/format_fnt.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
-#include "formats/format_shp.h"
 #include "game_tim_animator.h"
 #include "geometry.h"
 #include "level.h"
 #include "menu.h"
 #include "monster.h"
 #include "pak_file.h"
+#include "rendering_ctx.h"
 #include "script.h"
 #include "spells.h"
 #include <stddef.h>
@@ -56,64 +54,35 @@ typedef enum {
   DialogState_Done,
 } DialogState;
 
-typedef struct {
-  Point pos;
-  uint8_t pending;
-  uint8_t isRightClick;
-} MouseEvent;
-
 #define NUM_GAME_FLAGS 100
 
 #define INVENTORY_TYPES_NUM 7
 static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
 
 typedef struct _GameContext {
+  RenderingContext *renderer;
   AudioSystem audio;
   GameState state;
   GameState prevState;
 
   int dialogBoxFrames;
   int showBigDialog;
-
   int drawExitSceneButton;
   int exitSceneButtonDisabled;
-
   char *buttonText[3];
 
-  MouseEvent mouseEv;
   uint16_t currentBock;
   Orientation orientation;
 
   LevelContext *level;
   int levelId;
 
-  SDL_Texture *pixBuf;
-  SDL_Renderer *renderer;
-  SDL_Window *window;
-  ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
-
-  SHPHandle itemShapes;
   Language language;
   LangHandle lang;
 
-  SHPHandle charFaces[NUM_CHARACTERS];
   SAVCharacter chars[NUM_CHARACTERS];
   uint8_t selectedChar;
   uint8_t selectedCharIsCastingSpell;
-
-  SHPHandle automapShapes;
-  SHPHandle gameShapes;
-
-  CPSImage inventoryBackgrounds[INVENTORY_TYPES_NUM];
-  CPSImage playField;
-  CPSImage loadedbitMap;
-  int showBitmap;
-  CPSImage mapBackground;
-
-  CPSImage gameTitle;
-
-  SDL_Surface *textSurface;
-  SDL_Texture *textTexture;
 
   INFScript script;
   INFScript itemScript;
@@ -123,13 +92,8 @@ typedef struct _GameContext {
   EMCInterpreter interp;
   EMCState interpState;
 
-  char *dialogTextBuffer;
-  char *dialogText; // will either be NULL or pointing to dialogTextBuffer
-
   uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS];
 
-  FNTHandle defaultFont;
-  FNTHandle font6p;
   uint8_t gameFlags[NUM_GAME_FLAGS];
 
   GameTimInterpreter timInterpreter;
@@ -140,12 +104,6 @@ typedef struct _GameContext {
   uint16_t itemIndexInHand;
   uint16_t credits;
 
-  uint8_t *defaultPalette;
-
-  int controlDisabled;
-
-  SDL_Cursor *cursor;
-
   ItemProperty *itemProperties;
   GameObject *itemsInGame;
   uint16_t itemsCount;
@@ -153,9 +111,6 @@ typedef struct _GameContext {
   int _shouldRun;
 
   DialogState dialogState;
-
-  Menu *currentMenu;
-  int shouldUpdate;
 
   char *savDir;
 

@@ -278,7 +278,7 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
 
 static void callbackRedrawPlayfield(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  gameCtx->showBitmap = 0;
+  gameCtx->renderer->showBitmap = 0;
 }
 
 static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,
@@ -289,7 +289,8 @@ static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,
   GameFile f = {0};
   assert(GameEnvironmentGetFile(&f, file));
 
-  assert(CPSImageFromBuffer(&gameCtx->loadedbitMap, f.buffer, f.bufferSize));
+  assert(CPSImageFromBuffer(&gameCtx->renderer->loadedbitMap, f.buffer,
+                            f.bufferSize));
 }
 
 static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
@@ -517,13 +518,13 @@ static void callbackDisableControls(EMCInterpreter *interp, uint16_t mode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackDisableControls %x", mode);
   assert(mode == 0);
-  gameCtx->controlDisabled = 1;
+  gameCtx->renderer->controlDisabled = 1;
 }
 
 static void callbackEnableControls(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackEnableControls");
-  gameCtx->controlDisabled = 0;
+  gameCtx->renderer->controlDisabled = 0;
 }
 
 static void callbackSetGlobalScriptVar(EMCInterpreter *interp, uint16_t index,
@@ -723,8 +724,9 @@ static void callbackPrintWindowText(EMCInterpreter *interp, uint16_t dim,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   char *text = GameContextGetString3(gameCtx, stringId);
   UISetStyle(UIStyle_Inventory);
-  UIRenderText(&gameCtx->defaultFont, gameCtx->pixBuf, MAZE_COORDS_X + 10,
-               MAZE_COORDS_Y + 20, MAZE_COORDS_W - 20, text);
+  UIRenderText(&gameCtx->renderer->defaultFont, gameCtx->renderer->pixBuf,
+               MAZE_COORDS_X + 10, MAZE_COORDS_Y + 20, MAZE_COORDS_W - 20,
+               text);
   free(text);
 }
 
@@ -876,7 +878,7 @@ static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
   printf("[unimplemented] restoreAfterSpecialScene fadeFlag=%X "
          "redrawPlayField=%X releaseTimScripts=%X sceneUpdateMode=%X\n",
          fadeFlag, redrawPlayField, releaseTimScripts, sceneUpdateMode);
-  gameCtx->showBitmap = 0;
+  gameCtx->renderer->showBitmap = 0;
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {

@@ -199,37 +199,40 @@ static void clickOnFrontWall(GameContext *gameCtx) {
 }
 
 static int charZoneClicked(const GameContext *gameCtx) {
-  if (gameCtx->mouseEv.pos.y < CHAR_ZONE_Y ||
-      gameCtx->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_ZONE_H) {
+  if (gameCtx->renderer->mouseEv.pos.y < CHAR_ZONE_Y ||
+      gameCtx->renderer->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_ZONE_H) {
     return -1;
   }
 
   uint8_t numChars = GameContextGetNumChars(gameCtx);
   switch (numChars) {
   case 1:
-    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_1_X &&
-        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_ZONE_W) {
+    if (gameCtx->renderer->mouseEv.pos.x > CHAR_ZONE_0_1_X &&
+        gameCtx->renderer->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_ZONE_W) {
       return 0;
     }
     break;
   case 2: {
-    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_2_X &&
-        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_ZONE_W) {
+    if (gameCtx->renderer->mouseEv.pos.x > CHAR_ZONE_0_2_X &&
+        gameCtx->renderer->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_ZONE_W) {
       return 0;
-    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_2_X &&
-               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_2_X + CHAR_ZONE_W) {
+    } else if (gameCtx->renderer->mouseEv.pos.x > CHAR_ZONE_1_2_X &&
+               gameCtx->renderer->mouseEv.pos.x <
+                   CHAR_ZONE_1_2_X + CHAR_ZONE_W) {
       return 1;
     }
   } break;
   case 3: {
-    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_3_X &&
-        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_3_X + CHAR_ZONE_W) {
+    if (gameCtx->renderer->mouseEv.pos.x > CHAR_ZONE_0_3_X &&
+        gameCtx->renderer->mouseEv.pos.x < CHAR_ZONE_0_3_X + CHAR_ZONE_W) {
       return 0;
-    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_3_X &&
-               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_3_X + CHAR_ZONE_W) {
+    } else if (gameCtx->renderer->mouseEv.pos.x > CHAR_ZONE_1_3_X &&
+               gameCtx->renderer->mouseEv.pos.x <
+                   CHAR_ZONE_1_3_X + CHAR_ZONE_W) {
       return 1;
-    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_2_3_X &&
-               gameCtx->mouseEv.pos.x < CHAR_ZONE_2_3_X + CHAR_ZONE_W) {
+    } else if (gameCtx->renderer->mouseEv.pos.x > CHAR_ZONE_2_3_X &&
+               gameCtx->renderer->mouseEv.pos.x <
+                   CHAR_ZONE_2_3_X + CHAR_ZONE_W) {
       return 2;
     }
   } break;
@@ -254,29 +257,29 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
 }
 
 static int mouseIsInInventoryStrip(GameContext *gameCtx) {
-  return gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
-         gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
-         gameCtx->mouseEv.pos.x <
+  return gameCtx->renderer->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
+         gameCtx->renderer->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
+         gameCtx->renderer->mouseEv.pos.x <
              (UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * 11)) &&
-         gameCtx->mouseEv.pos.y <
+         gameCtx->renderer->mouseEv.pos.y <
              (UI_INVENTORY_BUTTON_Y + (UI_MENU_INV_BUTTON_W * 1));
 }
 
 static int processInventoryStripMouse(GameContext *gameCtx) {
-  int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
+  int x = gameCtx->renderer->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
   int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
   // 0 is left arrow, 10 is right arrow
   if (buttonX == 0) {
-    int inventoryIndex =
-        gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
+    int inventoryIndex = gameCtx->inventoryIndex -
+                         (gameCtx->renderer->mouseEv.isRightClick ? 9 : 1);
     if (inventoryIndex < 0) {
       inventoryIndex = INVENTORY_SIZE - 1;
     }
     gameCtx->inventoryIndex = inventoryIndex;
     return 1;
   } else if (buttonX == 10) {
-    int inventoryIndex =
-        gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
+    int inventoryIndex = gameCtx->inventoryIndex +
+                         (gameCtx->renderer->mouseEv.isRightClick ? 9 : 1);
     if (inventoryIndex >= INVENTORY_SIZE) {
       inventoryIndex = 0;
     }
@@ -290,10 +293,10 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
 }
 
 static int processAnimationMouse(GameContext *gameCtx) {
-  if (gameCtx->mouseEv.pos.y >= DIALOG_BUTTON_Y_2 &&
-      gameCtx->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
-    if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON1_X &&
-        gameCtx->mouseEv.pos.x < DIALOG_BUTTON1_X + DIALOG_BUTTON_W) {
+  if (gameCtx->renderer->mouseEv.pos.y >= DIALOG_BUTTON_Y_2 &&
+      gameCtx->renderer->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
+    if (gameCtx->renderer->mouseEv.pos.x >= DIALOG_BUTTON1_X &&
+        gameCtx->renderer->mouseEv.pos.x < DIALOG_BUTTON1_X + DIALOG_BUTTON_W) {
       printf("button 0\n");
       if (gameCtx->dialogState == DialogState_InProgress) {
         gameCtx->dialogState = DialogState_Done;
@@ -301,16 +304,18 @@ static int processAnimationMouse(GameContext *gameCtx) {
         TIMInterpreterButtonClicked(&gameCtx->timInterpreter.timInterpreter, 0);
       }
 
-    } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON2_X &&
-               gameCtx->mouseEv.pos.x < DIALOG_BUTTON2_X + DIALOG_BUTTON_W) {
+    } else if (gameCtx->renderer->mouseEv.pos.x >= DIALOG_BUTTON2_X &&
+               gameCtx->renderer->mouseEv.pos.x <
+                   DIALOG_BUTTON2_X + DIALOG_BUTTON_W) {
       printf("button 1\n");
       if (gameCtx->dialogState == DialogState_InProgress) {
         assert(0);
       } else {
         TIMInterpreterButtonClicked(&gameCtx->timInterpreter.timInterpreter, 1);
       }
-    } else if (gameCtx->mouseEv.pos.x >= DIALOG_BUTTON3_X &&
-               gameCtx->mouseEv.pos.x < DIALOG_BUTTON3_X + DIALOG_BUTTON_W) {
+    } else if (gameCtx->renderer->mouseEv.pos.x >= DIALOG_BUTTON3_X &&
+               gameCtx->renderer->mouseEv.pos.x <
+                   DIALOG_BUTTON3_X + DIALOG_BUTTON_W) {
       printf("button 2\n");
       if (gameCtx->dialogState == DialogState_InProgress) {
         assert(0);
@@ -324,30 +329,33 @@ static int processAnimationMouse(GameContext *gameCtx) {
 }
 
 static int processMapViewMouse(GameContext *gameCtx) {
-  if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_EXIT_BUTTON_X,
+  if (zoneClicked(&gameCtx->renderer->mouseEv.pos, MAP_SCREEN_EXIT_BUTTON_X,
                   MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_EXIT_BUTTON_W,
                   MAP_SCREEN_EXIT_BUTTON_H)) {
     GameContextSetState(gameCtx, GameState_PlayGame);
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_PREV_BUTTON_X,
-                         MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_PREV_NEXT_BUTTON_W,
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos,
+                         MAP_SCREEN_PREV_BUTTON_X, MAP_SCREEN_BUTTONS_Y,
+                         MAP_SCREEN_PREV_NEXT_BUTTON_W,
                          MAP_SCREEN_PREV_NEXT_BUTTON_H)) {
     printf("PREV\n");
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_NEXT_BUTTON_X,
-                         MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_PREV_NEXT_BUTTON_W,
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos,
+                         MAP_SCREEN_NEXT_BUTTON_X, MAP_SCREEN_BUTTONS_Y,
+                         MAP_SCREEN_PREV_NEXT_BUTTON_W,
                          MAP_SCREEN_PREV_NEXT_BUTTON_H)) {
     printf("NEXT\n");
   } else {
-    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+    printf("mouse %i %i\n", gameCtx->renderer->mouseEv.pos.x,
+           gameCtx->renderer->mouseEv.pos.y);
   }
   return 1;
 }
 
 static int processCharInventoryMouse(GameContext *gameCtx) {
-  if (gameCtx->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
-      gameCtx->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
-      gameCtx->mouseEv.pos.x <
+  if (gameCtx->renderer->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
+      gameCtx->renderer->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
+      gameCtx->renderer->mouseEv.pos.x <
           INVENTORY_SCREEN_EXIT_BUTTON_X + INVENTORY_SCREEN_EXIT_BUTTON_W &&
-      gameCtx->mouseEv.pos.y <
+      gameCtx->renderer->mouseEv.pos.y <
           INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H) {
     printf("exit inventory\n");
     GameContextSetState(gameCtx, GameState_PlayGame);
@@ -399,7 +407,8 @@ int tryMove(GameContext *gameCtx, Direction dir) {
     runBlockScript(gameCtx);
   } else {
     GameContextGetString(gameCtx, STR_CANT_GO_THAT_WAY_INDEX,
-                         gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE);
+                         gameCtx->renderer->dialogTextBuffer,
+                         DIALOG_BUFFER_SIZE);
   }
   return 1;
 }
@@ -454,24 +463,24 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
   gameCtx->selectedChar = charIndex;
   if (gameCtx->selectedCharIsCastingSpell &&
       prevSelectedChar == gameCtx->selectedChar) {
-    int spellLevel = (gameCtx->mouseEv.pos.y - CHAR_ZONE_Y) / 8;
+    int spellLevel = (gameCtx->renderer->mouseEv.pos.y - CHAR_ZONE_Y) / 8;
     printf("actually perform magic %i: char %i\n", spellLevel,
            gameCtx->selectedChar);
     gameCtx->selectedCharIsCastingSpell = 0;
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX, CHAR_ZONE_Y,
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos, coordX, CHAR_ZONE_Y,
                          CHAR_FACE_W, CHAR_FACE_H)) {
-    if (gameCtx->mouseEv.isRightClick) {
+    if (gameCtx->renderer->mouseEv.isRightClick) {
       charUseItem(gameCtx);
     } else {
       GameContextSetState(gameCtx, GameState_ShowInventory);
     }
 
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y, 22,
-                         18)) {
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos, coordX + 44,
+                         CHAR_ZONE_Y, 22, 18)) {
     charAttack(gameCtx);
     gameCtx->selectedCharIsCastingSpell = 0;
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y + 16,
-                         22, 18)) {
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos, coordX + 44,
+                         CHAR_ZONE_Y + 16, 22, 18)) {
     if (gameCtx->selectedCharIsCastingSpell &&
         prevSelectedChar == gameCtx->selectedChar) {
 
@@ -500,17 +509,18 @@ static int processCharZonesMouse(GameContext *gameCtx) {
     int coordX = charZoneXcoord[numChars - 1][charIndex];
     return processCharZoneMouse(gameCtx, charIndex, coordX);
   } else {
-    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
+    printf("mouse %i %i\n", gameCtx->renderer->mouseEv.pos.x,
+           gameCtx->renderer->mouseEv.pos.y);
   }
   return 0;
 }
 
 static int processPlayGameMouse(GameContext *gameCtx) {
-  if (zoneClicked(&gameCtx->mouseEv.pos, UI_TURN_LEFT_BUTTON_X,
+  if (zoneClicked(&gameCtx->renderer->mouseEv.pos, UI_TURN_LEFT_BUTTON_X,
                   UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,
                   UI_DIR_BUTTON_W * 2)) {
-    int x = gameCtx->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
-    int y = gameCtx->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
+    int x = gameCtx->renderer->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
+    int y = gameCtx->renderer->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
     int buttonX = (int)(x / UI_DIR_BUTTON_W);
     int buttonY = (int)(y / UI_DIR_BUTTON_W);
     if (buttonX <= 2 && buttonY <= 1) {
@@ -533,10 +543,10 @@ static int processPlayGameMouse(GameContext *gameCtx) {
       }
       return 1;
     }
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MENU_BUTTON_X,
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos, UI_MENU_BUTTON_X,
                          UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
                          UI_MENU_INV_BUTTON_H)) {
-    int x = gameCtx->mouseEv.pos.x - UI_MENU_BUTTON_X;
+    int x = gameCtx->renderer->mouseEv.pos.x - UI_MENU_BUTTON_X;
     int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
     if (buttonX == 0) {
       GameContextSetState(gameCtx, GameState_GameMenu);
@@ -546,14 +556,14 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     }
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAZE_COORDS_X, MAZE_COORDS_Y,
-                         MAZE_COORDS_W, MAZE_COORDS_H)) {
-    int x = gameCtx->mouseEv.pos.x - MAZE_COORDS_X;
-    int y = gameCtx->mouseEv.pos.y - MAZE_COORDS_Y;
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos, MAZE_COORDS_X,
+                         MAZE_COORDS_Y, MAZE_COORDS_W, MAZE_COORDS_H)) {
+    int x = gameCtx->renderer->mouseEv.pos.x - MAZE_COORDS_X;
+    int y = gameCtx->renderer->mouseEv.pos.y - MAZE_COORDS_Y;
     printf("maze click %i %i\n", x, y);
     clickOnFrontWall(gameCtx);
     return 1;
-  } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MAP_BUTTON_X,
+  } else if (zoneClicked(&gameCtx->renderer->mouseEv.pos, UI_MAP_BUTTON_X,
                          UI_MAP_BUTTON_Y, UI_MAP_BUTTON_W, UI_MAP_BUTTON_H)) {
     GameContextButtonClicked(gameCtx, ButtonType_Automap);
     return 1;
@@ -578,8 +588,9 @@ static int processMouse(GameContext *gameCtx) {
     return processAnimationMouse(gameCtx);
   case GameState_MainMenu:
   case GameState_GameMenu: {
-    int ret = MenuMouse(gameCtx->currentMenu, gameCtx, &gameCtx->mouseEv.pos);
-    if (gameCtx->currentMenu->returnToGame) {
+    int ret = MenuMouse(gameCtx->renderer->currentMenu, gameCtx,
+                        &gameCtx->renderer->mouseEv.pos);
+    if (gameCtx->renderer->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
     return ret;
@@ -593,29 +604,30 @@ static int processMouse(GameContext *gameCtx) {
 
 static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   if (e->type == SDL_MOUSEBUTTONDOWN) {
-    assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
-    gameCtx->mouseEv.pending = 1;
-    gameCtx->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
-    gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
-    gameCtx->mouseEv.isRightClick = e->button.button == 3;
+    assert(gameCtx->renderer->mouseEv.pending ==
+           0); // prev one needs to be handled
+    gameCtx->renderer->mouseEv.pending = 1;
+    gameCtx->renderer->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
+    gameCtx->renderer->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
+    gameCtx->renderer->mouseEv.isRightClick = e->button.button == 3;
   } else if (e->type != SDL_KEYDOWN) {
     return;
   }
 
   if (gameCtx->state == GameState_GameMenu ||
       gameCtx->state == GameState_MainMenu) {
-    int ret = MenuKeyDown(gameCtx->currentMenu, gameCtx, e);
-    if (gameCtx->currentMenu->returnToGame) {
+    int ret = MenuKeyDown(gameCtx->renderer->currentMenu, gameCtx, e);
+    if (gameCtx->renderer->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
-    gameCtx->shouldUpdate = ret;
+    gameCtx->renderer->shouldUpdate = ret;
   } else if (gameCtx->state == GameState_ShowInventory ||
              gameCtx->state == GameState_ShowMap) {
     switch (e->key.keysym.sym) {
     case SDLK_ESCAPE:
     case SDLK_TAB:
       GameContextSetState(gameCtx, GameState_PlayGame);
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       return;
     }
     if (!gameCtx->conf.moveInAutomap) {
@@ -624,81 +636,81 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Up);
       break;
     case SDLK_s:
       // go back
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Down);
       break;
     case SDLK_q:
       // go left
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Left);
       break;
     case SDLK_d:
       // go right
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Right);
       break;
     case SDLK_a:
       // turn anti-clockwise
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
       break;
     case SDLK_e:
       // turn clockwise
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     }
-  } else if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
+  } else if (!gameCtx->renderer->controlDisabled && e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Up);
       break;
     case SDLK_s:
       // go back
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Down);
       break;
     case SDLK_q:
       // go left
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Left);
       break;
     case SDLK_d:
       // go right
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Right);
       break;
     case SDLK_a:
       // turn anti-clockwise
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
       break;
     case SDLK_e:
       // turn clockwise
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     case SDLK_p:
       inspectFrontWall(gameCtx);
       break;
     case SDLK_SPACE:
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       runBlockScript(gameCtx);
       break;
     case SDLK_TAB:
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Automap);
       break;
     case SDLK_ESCAPE:
       GameContextSetState(gameCtx, GameState_GameMenu);
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
       return;
     default:
       break;
@@ -710,7 +722,7 @@ static void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
          EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
     EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
-    gameCtx->shouldUpdate = 1;
+    gameCtx->renderer->shouldUpdate = 1;
     if (gameCtx->dialogState == DialogState_InProgress) {
       return;
     }
@@ -725,8 +737,9 @@ static void GamePreUpdate(GameContext *gameCtx) {
 int GameWaitForClick(GameContext *gameCtx) {
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                    PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
-  SDL_RenderPresent(gameCtx->renderer);
+  assert(SDL_RenderCopy(gameCtx->renderer->renderer, gameCtx->renderer->pixBuf,
+                        NULL, &dest) == 0);
+  SDL_RenderPresent(gameCtx->renderer->renderer);
   while (1) {
     SDL_Event event = {0};
     SDL_WaitEvent(&event);
@@ -746,9 +759,9 @@ void GameDoSceneFade(GameContext *gameCtx, int numFrames) {
     GameRenderRenderSceneFade(gameCtx);
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                      PIX_BUF_HEIGHT * SCREEN_FACTOR};
-    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) ==
-           0);
-    SDL_RenderPresent(gameCtx->renderer);
+    assert(SDL_RenderCopy(gameCtx->renderer->renderer,
+                          gameCtx->renderer->pixBuf, NULL, &dest) == 0);
+    SDL_RenderPresent(gameCtx->renderer->renderer);
   }
 }
 
@@ -760,9 +773,9 @@ void GameExpandDialogBox(GameContext *gameCtx) {
     SDL_PollEvent(NULL);
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                      PIX_BUF_HEIGHT * SCREEN_FACTOR};
-    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) ==
-           0);
-    SDL_RenderPresent(gameCtx->renderer);
+    assert(SDL_RenderCopy(gameCtx->renderer->renderer,
+                          gameCtx->renderer->pixBuf, NULL, &dest) == 0);
+    SDL_RenderPresent(gameCtx->renderer->renderer);
   } while (!ret);
 
   gameCtx->showBigDialog = 1;
@@ -776,9 +789,9 @@ void GameShrinkDialogBox(GameContext *gameCtx) {
     SDL_PollEvent(NULL);
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                      PIX_BUF_HEIGHT * SCREEN_FACTOR};
-    assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) ==
-           0);
-    SDL_RenderPresent(gameCtx->renderer);
+    assert(SDL_RenderCopy(gameCtx->renderer->renderer,
+                          gameCtx->renderer->pixBuf, NULL, &dest) == 0);
+    SDL_RenderPresent(gameCtx->renderer->renderer);
   } while (!ret);
 
   gameCtx->showBigDialog = 0;
@@ -786,7 +799,7 @@ void GameShrinkDialogBox(GameContext *gameCtx) {
 
 static void GameRunOnce(GameContext *gameCtx) {
   if (DBGServerUpdate(gameCtx)) {
-    gameCtx->shouldUpdate = 1;
+    gameCtx->renderer->shouldUpdate = 1;
   }
 
   GamePreUpdate(gameCtx);
@@ -807,13 +820,14 @@ static void GameRunOnce(GameContext *gameCtx) {
     break;
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
     } else if (e.type == SDL_MOUSEBUTTONDOWN) {
-      assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
-      gameCtx->mouseEv.pending = 1;
-      gameCtx->mouseEv.pos.x = e.motion.x / SCREEN_FACTOR;
-      gameCtx->mouseEv.pos.y = e.motion.y / SCREEN_FACTOR;
-      gameCtx->mouseEv.isRightClick = e.button.button == 3;
+      assert(gameCtx->renderer->mouseEv.pending ==
+             0); // prev one needs to be handled
+      gameCtx->renderer->mouseEv.pending = 1;
+      gameCtx->renderer->mouseEv.pos.x = e.motion.x / SCREEN_FACTOR;
+      gameCtx->renderer->mouseEv.pos.y = e.motion.y / SCREEN_FACTOR;
+      gameCtx->renderer->mouseEv.isRightClick = e.button.button == 3;
     }
     break;
   case GameState_Invalid:
@@ -821,21 +835,22 @@ static void GameRunOnce(GameContext *gameCtx) {
     break;
   }
 
-  if (gameCtx->mouseEv.pending) {
+  if (gameCtx->renderer->mouseEv.pending) {
     if (processMouse(gameCtx)) {
-      gameCtx->shouldUpdate = 1;
+      gameCtx->renderer->shouldUpdate = 1;
     }
-    gameCtx->mouseEv.pending = 0;
+    gameCtx->renderer->mouseEv.pending = 0;
   }
-  if (gameCtx->shouldUpdate) {
+  if (gameCtx->renderer->shouldUpdate) {
     GameRender(gameCtx);
-    gameCtx->shouldUpdate = 0;
+    gameCtx->renderer->shouldUpdate = 0;
   }
 
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                    PIX_BUF_HEIGHT * SCREEN_FACTOR};
-  assert(SDL_RenderCopy(gameCtx->renderer, gameCtx->pixBuf, NULL, &dest) == 0);
-  SDL_RenderPresent(gameCtx->renderer);
+  assert(SDL_RenderCopy(gameCtx->renderer->renderer, gameCtx->renderer->pixBuf,
+                        NULL, &dest) == 0);
+  SDL_RenderPresent(gameCtx->renderer->renderer);
 }
 
 static int GameRun(GameContext *gameCtx) {

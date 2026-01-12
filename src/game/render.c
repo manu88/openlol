@@ -12,7 +12,7 @@
 #include <string.h>
 
 void createCursorForItem(GameContext *ctx, uint16_t frameId) {
-  SDL_Cursor *prevCursor = ctx->cursor;
+  SDL_Cursor *prevCursor = ctx->renderer->cursor;
 
   const int w = 20 * SCREEN_FACTOR;
   SDL_Surface *s = SDL_CreateRGBSurface(0, w, w, 32, 0, 0, 0, 0);
@@ -21,16 +21,16 @@ void createCursorForItem(GameContext *ctx, uint16_t frameId) {
   assert(r);
   SHPFrame frame = {0};
   SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, 127, 127, 127));
-  assert(SHPHandleGetFrame(&ctx->itemShapes, &frame, frameId));
+  assert(SHPHandleGetFrame(&ctx->renderer->itemShapes, &frame, frameId));
   assert(SHPFrameGetImageData(&frame));
 
   SDL_RenderClear(r);
   SDL_SetRenderDrawColor(r, 127, 127, 127, 255);
   SDL_RenderFillRect(r, NULL);
-  drawSHPFrameCursor(r, &frame, 0, 0, ctx->defaultPalette);
-  ctx->cursor = SDL_CreateColorCursor(s, frameId == 0 ? 0 : w / 2,
-                                      frameId == 0 ? 0 : w / 2);
-  SDL_SetCursor(ctx->cursor);
+  drawSHPFrameCursor(r, &frame, 0, 0, ctx->renderer->defaultPalette);
+  ctx->renderer->cursor = SDL_CreateColorCursor(s, frameId == 0 ? 0 : w / 2,
+                                                frameId == 0 ? 0 : w / 2);
+  SDL_SetCursor(ctx->renderer->cursor);
   SDL_DestroyRenderer(r);
   SDL_FreeSurface(s);
   SHPFrameRelease(&frame);
@@ -143,13 +143,13 @@ void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
 void clearMazeZone(GameContext *gameCtx) {
   void *data;
   int pitch;
-  SDL_LockTexture(gameCtx->pixBuf, NULL, &data, &pitch);
+  SDL_LockTexture(gameCtx->renderer->pixBuf, NULL, &data, &pitch);
   for (int x = 0; x < MAZE_COORDS_W; x++) {
     for (int y = 0; y < MAZE_COORDS_H; y++) {
       drawPix(data, pitch, 0, 0, 0, MAZE_COORDS_X + x, MAZE_COORDS_Y + y);
     }
   }
-  SDL_UnlockTexture(gameCtx->pixBuf);
+  SDL_UnlockTexture(gameCtx->renderer->pixBuf);
 }
 
 typedef struct {
@@ -291,7 +291,7 @@ static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *level,
 }
 
 static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
-  memset(gameCtx->viewConeEntries, 0,
+  memset(gameCtx->renderer->viewConeEntries, 0,
          sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
     Point p;
@@ -300,8 +300,8 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
     p = PointGo(&p, gameCtx->orientation, viewConeCell[i].frontDist,
                 viewConeCell[i].leftDist);
     if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
-      gameCtx->viewConeEntries[i].coords = p;
-      gameCtx->viewConeEntries[i].valid = 1;
+      gameCtx->renderer->viewConeEntries[i].coords = p;
+      gameCtx->renderer->viewConeEntries[i].valid = 1;
     }
   }
 }
@@ -354,8 +354,8 @@ static void renderEnemy(GameContext *gameCtx, const Monster *monster,
     att = 1.5f * abs(cell->frontDist);
   }
 
-  drawSHPMazeFrame(gameCtx->pixBuf, &f, x, y, gameCtx->level->vcnHandle.palette,
-                   0, att);
+  drawSHPMazeFrame(gameCtx->renderer->pixBuf, &f, x, y,
+                   gameCtx->level->vcnHandle.palette, 0, att);
   SHPFrameRelease(&f);
 }
 
@@ -401,7 +401,7 @@ static void renderDoor(GameContext *gameCtx, int cellId) {
                   frame.header.height / ratioY);
   }
   float att = 1.f * abs(cell->frontDist);
-  drawSHPMazeFrame(gameCtx->pixBuf, &frame, x, y,
+  drawSHPMazeFrame(gameCtx->renderer->pixBuf, &frame, x, y,
                    gameCtx->level->vcnHandle.palette, 0, att);
   SHPFrameRelease(&frame);
 }
@@ -444,13 +444,14 @@ void GameRenderMaze(GameContext *gameCtx) {
     }
   }
   LevelContext *level = gameCtx->level;
-  drawCeilingAndFloor(gameCtx->pixBuf, &level->vcnHandle, &level->vmpHandle);
+  drawCeilingAndFloor(gameCtx->renderer->pixBuf, &level->vcnHandle,
+                      &level->vmpHandle);
 
-  SDL_Texture *texture = gameCtx->pixBuf;
+  SDL_Texture *texture = gameCtx->renderer->pixBuf;
 
   for (int i = 0; i < sizeof(renderWalls) / sizeof(RenderWall); i++) {
     const RenderWall *r = renderWalls + i;
-    const ViewConeEntry *entry = gameCtx->viewConeEntries + r->cellId;
+    const ViewConeEntry *entry = gameCtx->renderer->viewConeEntries + r->cellId;
     if (!entry) {
       continue;
     }

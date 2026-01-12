@@ -35,9 +35,9 @@ char *stringReplaceHeroNameAt(const GameContext *gameCtx, char *string,
 }
 
 void GameContextSetDialogF(GameContext *gameCtx, int stringId, ...) {
-  GameContextGetString(gameCtx, stringId, gameCtx->dialogTextBuffer,
+  GameContextGetString(gameCtx, stringId, gameCtx->renderer->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
-  char *format = strdup(gameCtx->dialogTextBuffer);
+  char *format = strdup(gameCtx->renderer->dialogTextBuffer);
   int placeholderIndex = 0;
   do {
     placeholderIndex = stringHasCharName(format, placeholderIndex);
@@ -51,8 +51,9 @@ void GameContextSetDialogF(GameContext *gameCtx, int stringId, ...) {
 
   va_list args;
   va_start(args, stringId);
-  vsnprintf(gameCtx->dialogTextBuffer, DIALOG_BUFFER_SIZE, format, args);
+  vsnprintf(gameCtx->renderer->dialogTextBuffer, DIALOG_BUFFER_SIZE, format,
+            args);
   va_end(args);
   free(format);
-  gameCtx->dialogText = gameCtx->dialogTextBuffer;
+  gameCtx->renderer->dialogText = gameCtx->renderer->dialogTextBuffer;
 }
