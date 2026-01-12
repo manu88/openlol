@@ -59,7 +59,14 @@ void DisplayRelease(Display *display);
 
 void DisplayRender(Display *display);
 
+void DisplayResetDialog(Display *display);
+
+void showBigDialogZone(Display *display);
+
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);
 
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength);
 void DisplayDrawDisabledOverlay(Display *display, int x, int y, int w, int h);
+
+void DisplayExpandDialogBox(Display *display, int tickLength);
+void DisplayShrinkDialogBox(Display *display, int tickLength);

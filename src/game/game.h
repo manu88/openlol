@@ -12,5 +12,4 @@ int cmdGame(int argc, char *argv[]);
 int tryMove(GameContext *gameCtx, Direction dir);
 int GameWaitForClick(GameContext *gameCtx);
 
-void DisplayExpandDialogBox(GameContext *gameCtx, int tickLength);
-void DisplayShrinkDialogBox(GameContext *gameCtx, int tickLength);
+

@@ -5,6 +5,7 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include "dbg_server.h"
+#include "display.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
@@ -746,38 +747,6 @@ int GameWaitForClick(GameContext *gameCtx) {
       return 1;
     }
   }
-}
-
-void DisplayExpandDialogBox(GameContext *gameCtx, int tickLength) {
-  int ret = 0;
-  do {
-    ret = GameRenderRenderExpandDialogBox(gameCtx->display);
-    SDL_Delay(tickLength);
-    SDL_PollEvent(NULL);
-    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
-    assert(SDL_RenderCopy(gameCtx->display->renderer, gameCtx->display->pixBuf,
-                          NULL, &dest) == 0);
-    SDL_RenderPresent(gameCtx->display->renderer);
-  } while (!ret);
-
-  gameCtx->display->showBigDialog = 1;
-}
-
-void DisplayShrinkDialogBox(GameContext *gameCtx, int tickLength) {
-  int ret = 0;
-  do {
-    ret = GameRenderRenderShrinkDialogBox(gameCtx);
-    SDL_Delay(tickLength);
-    SDL_PollEvent(NULL);
-    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
-                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
-    assert(SDL_RenderCopy(gameCtx->display->renderer, gameCtx->display->pixBuf,
-                          NULL, &dest) == 0);
-    SDL_RenderPresent(gameCtx->display->renderer);
-  } while (!ret);
-
-  gameCtx->display->showBigDialog = 0;
 }
 
 static void GameRunOnce(GameContext *gameCtx) {

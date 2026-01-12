@@ -4,13 +4,13 @@
 #include "config.h"
 #include "dbg_server.h"
 #include "display.h"
-#include "formats/format_cps.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "game.h"
 #include "game_envir.h"
+#include "game_render.h"
 #include "game_strings.h"
 #include "game_tim_animator.h"
 #include "menu.h"
@@ -273,7 +273,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
   for (int i = 0; i < MAX_MONSTERS; i++) {
     MonsterInit(&ctx->level->monsters[i]);
   }
-  GameContextResetDialog(ctx);
+  DisplayResetDialog(ctx->display);
 
   GameEnvironmentLoadLevel(levelNum);
   {
@@ -491,7 +491,7 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
 }
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
-  DisplayExpandDialogBox(gameCtx, gameCtx->conf.tickLength);
+  DisplayExpandDialogBox(gameCtx->display, gameCtx->conf.tickLength);
   gameCtx->display->controlDisabled = 1;
 }
 
@@ -503,9 +503,10 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
       gameCtx->display->buttonText[i] = NULL;
     }
   }
-  GameContextResetDialog(gameCtx);
+  DisplayResetDialog(gameCtx->display);
   if (gameCtx->display->showBigDialog) {
-    DisplayShrinkDialogBox(gameCtx, gameCtx->conf.tickLength);
+    GameRender(gameCtx);
+    DisplayShrinkDialogBox(gameCtx->display, gameCtx->conf.tickLength);
   }
   // FIXME: temporary clear screen here to avoid for cps background to remain on
   // screen

@@ -7,6 +7,7 @@
 #include "formats/format_shp.h"
 #include "game_char_inventory.h"
 #include "game_ctx.h"
+#include "game_render.h"
 #include "geometry.h"
 #include "menu.h"
 #include "render.h"
@@ -183,79 +184,7 @@ static void renderCharFaces(GameContext *gameCtx) {
   }
 }
 
-static void animateDialogZoneOnce(Display *display, void *data, int pitch) {
-  // copy outline
-  int offset = display->dialogBoxFrames;
-  const int size = 20;
-  for (int y = DIALOG_BOX_H - size; y < DIALOG_BOX_H; y++) {
-    const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
-    uint32_t *rowDest = (unsigned int *)((char *)data + pitch * (y + offset));
-    for (int x = 0; x < DIALOG_BOX_W; x++) {
-      rowDest[x] = rowSource[x];
-    }
-  }
 
-  if (display->dialogBoxFrames >= size) {
-    // need to copy the dialog background
-    int size = DIALOG_BOX_H - 1;
-    if (display->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
-      size++;
-    }
-    for (int y = 1; y < size; y++) {
-      const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
-      uint32_t *rowDest =
-          (unsigned int *)((char *)data + pitch * (y + (DIALOG_BOX_H - 2)));
-      for (int x = 0; x < DIALOG_BOX_W; x++) {
-        rowDest[x] = rowSource[x];
-      }
-    }
-  }
-}
-
-static void showBigDialogZone(Display *display) {
-  void *data;
-  int pitch;
-  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
-  for (int i = 0; i < 1 + DIALOG_BOX_H2 - DIALOG_BOX_H; i++) {
-    animateDialogZoneOnce(display, data, pitch);
-  }
-  SDL_UnlockTexture(display->pixBuf);
-}
-
-int GameRenderRenderExpandDialogBox(Display *display) {
-  void *data;
-  int pitch;
-  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
-  animateDialogZoneOnce(display, data, pitch);
-  SDL_UnlockTexture(display->pixBuf);
-
-  if (display->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
-    display->dialogBoxFrames += 1;
-    return 0;
-  }
-  return 1;
-}
-
-int GameRenderRenderShrinkDialogBox(GameContext *gameCtx) {
-  GameRender(gameCtx);
-  void *data;
-  int pitch;
-  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
-  SDL_LockTexture(gameCtx->display->pixBuf, &rect, &data, &pitch);
-  for (int i = 0; i < 1 + DIALOG_BOX_H2 + gameCtx->display->dialogBoxFrames;
-       i++) {
-    animateDialogZoneOnce(gameCtx->display, data, pitch);
-  }
-  SDL_UnlockTexture(gameCtx->display->pixBuf);
-
-  if (gameCtx->display->dialogBoxFrames > 0) {
-    gameCtx->display->dialogBoxFrames -= 1;
-    return 0;
-  }
-  return 1;
-}
 
 static void renderExitButton(GameContext *gameCtx) {
   UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
@@ -331,8 +260,4 @@ void GameRender(GameContext *gameCtx) {
                      DIALOG_BUTTON_H, gameCtx->display->buttonText[2]);
   }
   renderDialog(gameCtx);
-}
-
-void GameContextResetDialog(GameContext *gameCtx) {
-  gameCtx->display->dialogText = NULL;
 }

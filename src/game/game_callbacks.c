@@ -364,7 +364,7 @@ static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
 static void callbackClearDialogField(EMCInterpreter *interp) {
   Log(LOG_PREFIX, "callbackClearDialogField");
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextResetDialog(gameCtx);
+  DisplayResetDialog(gameCtx->display);
 }
 
 static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,

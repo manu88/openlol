@@ -1,7 +1,7 @@
 #pragma once
 #include "game_ctx.h"
 
-void GameContextResetDialog(GameContext *gameCtx);
+
 
 void GameContextSetDialogF(GameContext *gameCtx, int stringId, ...);
 char *stringReplaceHeroNameAt(const GameContext *gameCtx, char *string,

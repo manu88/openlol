@@ -166,6 +166,8 @@ void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId) {
   }
 }
 
+void DisplayResetDialog(Display *display) { display->dialogText = NULL; }
+
 void DimRect(SDL_Texture *texture, int startX, int startY, int w, int h) {
   void *data;
   int pitch;
@@ -215,4 +217,108 @@ void DisplayDrawDisabledOverlay(Display *display, int x, int y, int w, int h) {
     }
   }
   SDL_UnlockTexture(display->pixBuf);
+}
+
+static void animateDialogZoneOnce(Display *display, void *data, int pitch) {
+  // copy outline
+  int offset = display->dialogBoxFrames;
+  const int size = 20;
+  for (int y = DIALOG_BOX_H - size; y < DIALOG_BOX_H; y++) {
+    const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
+    uint32_t *rowDest = (unsigned int *)((char *)data + pitch * (y + offset));
+    for (int x = 0; x < DIALOG_BOX_W; x++) {
+      rowDest[x] = rowSource[x];
+    }
+  }
+
+  if (display->dialogBoxFrames >= size) {
+    // need to copy the dialog background
+    int size = DIALOG_BOX_H - 1;
+    if (display->dialogBoxFrames == DIALOG_BOX_H2 - DIALOG_BOX_H) {
+      size++;
+    }
+    for (int y = 1; y < size; y++) {
+      const uint32_t *rowSource = (unsigned int *)((char *)data + pitch * y);
+      uint32_t *rowDest =
+          (unsigned int *)((char *)data + pitch * (y + (DIALOG_BOX_H - 2)));
+      for (int x = 0; x < DIALOG_BOX_W; x++) {
+        rowDest[x] = rowSource[x];
+      }
+    }
+  }
+}
+
+static int renderExpandDialogBox(Display *display) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
+  animateDialogZoneOnce(display, data, pitch);
+  SDL_UnlockTexture(display->pixBuf);
+
+  if (display->dialogBoxFrames <= DIALOG_BOX_H2 - DIALOG_BOX_H) {
+    display->dialogBoxFrames += 1;
+    return 0;
+  }
+  return 1;
+}
+
+void DisplayExpandDialogBox(Display *display, int tickLength) {
+  int ret = 0;
+  do {
+    ret = renderExpandDialogBox(display);
+    SDL_Delay(tickLength);
+    SDL_PollEvent(NULL);
+    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
+    assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) ==
+           0);
+    SDL_RenderPresent(display->renderer);
+  } while (!ret);
+
+  display->showBigDialog = 1;
+}
+
+void showBigDialogZone(Display *display) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
+  for (int i = 0; i < 1 + DIALOG_BOX_H2 - DIALOG_BOX_H; i++) {
+    animateDialogZoneOnce(display, data, pitch);
+  }
+  SDL_UnlockTexture(display->pixBuf);
+}
+
+static int renderShrinkDialogBox(Display *display) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {DIALOG_BOX_X, DIALOG_BOX_Y, DIALOG_BOX_W, DIALOG_BOX_H2};
+  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
+  for (int i = 0; i < 1 + DIALOG_BOX_H2 + display->dialogBoxFrames; i++) {
+    animateDialogZoneOnce(display, data, pitch);
+  }
+  SDL_UnlockTexture(display->pixBuf);
+
+  if (display->dialogBoxFrames > 0) {
+    display->dialogBoxFrames -= 1;
+    return 0;
+  }
+  return 1;
+}
+
+void DisplayShrinkDialogBox(Display *display, int tickLength) {
+  int ret = 0;
+  do {
+    ret = renderShrinkDialogBox(display);
+    SDL_Delay(tickLength);
+    SDL_PollEvent(NULL);
+    SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
+                     PIX_BUF_HEIGHT * SCREEN_FACTOR};
+    assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) ==
+           0);
+    SDL_RenderPresent(display->renderer);
+  } while (!ret);
+
+  display->showBigDialog = 0;
 }
