@@ -290,9 +290,15 @@ static void renderWallDecoration(SDL_Texture *pixBuf, LevelContext *level,
   }
 }
 
+typedef struct {
+  Point coords;
+  uint8_t valid;
+} ViewConeEntry;
+
+static ViewConeEntry _viewConeEntries[VIEW_CONE_NUM_CELLS];
+
 static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
-  memset(gameCtx->display->viewConeEntries, 0,
-         sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
+  memset(_viewConeEntries, 0, sizeof(ViewConeEntry) * VIEW_CONE_NUM_CELLS);
   for (int i = 0; i < VIEW_CONE_NUM_CELLS; i++) {
     Point p;
     BlockGetCoordinates(&p.x, &p.y, gameCtx->currentBock, 0x80, 0x80);
@@ -300,8 +306,8 @@ static void computeViewConeCells(GameContext *gameCtx, int x, int y) {
     p = PointGo(&p, gameCtx->orientation, viewConeCell[i].frontDist,
                 viewConeCell[i].leftDist);
     if (p.x >= 0 && p.x < 32 && p.y >= 0 && p.y < 32) {
-      gameCtx->display->viewConeEntries[i].coords = p;
-      gameCtx->display->viewConeEntries[i].valid = 1;
+      _viewConeEntries[i].coords = p;
+      _viewConeEntries[i].valid = 1;
     }
   }
 }
@@ -451,7 +457,7 @@ void GameRenderMaze(GameContext *gameCtx) {
 
   for (int i = 0; i < sizeof(renderWalls) / sizeof(RenderWall); i++) {
     const RenderWall *r = renderWalls + i;
-    const ViewConeEntry *entry = gameCtx->display->viewConeEntries + r->cellId;
+    const ViewConeEntry *entry = _viewConeEntries + r->cellId;
     if (!entry) {
       continue;
     }

@@ -24,7 +24,6 @@ typedef struct {
   SDL_Texture *pixBuf;
   SDL_Renderer *renderer;
   SDL_Window *window;
-  ViewConeEntry viewConeEntries[VIEW_CONE_NUM_CELLS];
   SHPHandle itemShapes;
   SHPHandle charFaces[NUM_CHARACTERS];
   SHPHandle automapShapes;

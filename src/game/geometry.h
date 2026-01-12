@@ -133,10 +133,7 @@ static inline int PointDistance(const Point *p1, const Point *p2) {
   return abs(p1->x - p2->x) + abs(p1->y - p2->y);
 }
 
-typedef struct {
-  Point coords;
-  uint8_t valid;
-} ViewConeEntry;
+
 
 #define VIEW_CONE_NUM_CELLS 17
 
