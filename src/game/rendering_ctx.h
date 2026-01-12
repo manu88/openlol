@@ -46,7 +46,7 @@ typedef struct {
   SDL_Cursor *cursor;
   Menu *currentMenu;
   int shouldUpdate;
-} RenderingContext;
+} Display;
 
-int RenderingContextInit(RenderingContext *context);
-void RenderingContextRelease(RenderingContext *context);
+int RenderingContextInit(Display *context);
+void RenderingContextRelease(Display *context);

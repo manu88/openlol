@@ -285,9 +285,9 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
   // up arrow
   if (menu->selectedIndex > 0) {
     SHPFrame frame = {0};
-    assert(SHPHandleGetFrame(&context->renderer->gameShapes, &frame, 17));
+    assert(SHPHandleGetFrame(&context->display->gameShapes, &frame, 17));
     SHPFrameGetImageData(&frame);
-    drawSHPFrame(pixBuf, &frame, 150, 50, context->renderer->defaultPalette);
+    drawSHPFrame(pixBuf, &frame, 150, 50, context->display->defaultPalette);
     SHPFrameRelease(&frame);
   }
 
@@ -313,15 +313,15 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
   // down arrow
   if (menu->numSavFiles > 0 && menu->selectedIndex < menu->numSavFiles - 4) {
     SHPFrame frame = {0};
-    assert(SHPHandleGetFrame(&context->renderer->gameShapes, &frame, 18));
+    assert(SHPHandleGetFrame(&context->display->gameShapes, &frame, 18));
     SHPFrameGetImageData(&frame);
-    drawSHPFrame(pixBuf, &frame, 150, 148, context->renderer->defaultPalette);
+    drawSHPFrame(pixBuf, &frame, 150, 148, context->display->defaultPalette);
     SHPFrameRelease(&frame);
   }
 
   // cancel
   GameContextGetString(context, 0X4011, textBuf, 128);
-  UIDrawTextButton(&context->renderer->defaultFont, context->renderer->pixBuf,
+  UIDrawTextButton(&context->display->defaultFont, context->display->pixBuf,
                    winX + 168, winY + 118, 96, 15, textBuf);
   UISetStyle(current);
 }
@@ -349,7 +349,7 @@ static void MainMenuRender_MainMenu(Menu *menu, GameContext *context,
                                     const FNTHandle *font,
                                     SDL_Texture *pixBuf) {
   UISetStyle(UIStyle_MainMenu);
-  UIDrawMenuWindow(context->renderer->pixBuf, 86, 140, 128, 51);
+  UIDrawMenuWindow(context->display->pixBuf, 86, 140, 128, 51);
 
   const int xCenter = 86 + (128 / 2);
 
@@ -357,49 +357,48 @@ static void MainMenuRender_MainMenu(Menu *menu, GameContext *context,
   if (menu->selectedIndex == 0) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
-  UIRenderTextCentered(&context->renderer->defaultFont,
-                       context->renderer->pixBuf, xCenter, 144, textBuf);
+  UIRenderTextCentered(&context->display->defaultFont, context->display->pixBuf,
+                       xCenter, 144, textBuf);
   UIResetTextStyle();
 
   if (menu->selectedIndex == 1) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X4249, textBuf, 128);
-  UIRenderTextCentered(&context->renderer->defaultFont,
-                       context->renderer->pixBuf, xCenter, 153, textBuf);
+  UIRenderTextCentered(&context->display->defaultFont, context->display->pixBuf,
+                       xCenter, 153, textBuf);
   UIResetTextStyle();
 
   if (menu->selectedIndex == 2) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X42DD, textBuf, 128);
-  UIRenderTextCentered(&context->renderer->defaultFont,
-                       context->renderer->pixBuf, xCenter, 162, textBuf);
+  UIRenderTextCentered(&context->display->defaultFont, context->display->pixBuf,
+                       xCenter, 162, textBuf);
   UIResetTextStyle();
 
   if (menu->selectedIndex == 3) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X4001, textBuf, 128);
-  UIRenderTextCentered(&context->renderer->defaultFont,
-                       context->renderer->pixBuf, xCenter, 171, textBuf);
+  UIRenderTextCentered(&context->display->defaultFont, context->display->pixBuf,
+                       xCenter, 171, textBuf);
   UIResetTextStyle();
 
   if (menu->selectedIndex == 4) {
     UISetTextStyle(UITextStyle_Highlighted);
   }
   GameContextGetString(context, 0X424A, textBuf, 128);
-  UIRenderTextCentered(&context->renderer->defaultFont,
-                       context->renderer->pixBuf, xCenter, 180, textBuf);
+  UIRenderTextCentered(&context->display->defaultFont, context->display->pixBuf,
+                       xCenter, 180, textBuf);
   UIResetTextStyle();
 }
 
 static void MainMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
-  renderCPS(context->renderer->pixBuf, context->renderer->gameTitle.data,
-            context->renderer->gameTitle.imageSize,
-            context->renderer->gameTitle.palette, PIX_BUF_WIDTH,
-            PIX_BUF_HEIGHT);
+  renderCPS(context->display->pixBuf, context->display->gameTitle.data,
+            context->display->gameTitle.imageSize,
+            context->display->gameTitle.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
   switch (menu->state) {
   case MenuState_GameMenu:
     MainMenuRender_MainMenu(menu, context, font, pixBuf);
@@ -517,27 +516,27 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
 
   SHPFrame sliderFrame = {0};
 
-  assert(SHPHandleGetFrame(&context->renderer->gameShapes, &sliderFrame, 85));
+  assert(SHPHandleGetFrame(&context->display->gameShapes, &sliderFrame, 85));
   SHPFrameGetImageData(&sliderFrame);
 
   int sliderX = GAME_MENU_AUDIO_CONTROLS_X + 127;
   // music volume
   drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 25,
-               context->renderer->defaultPalette);
+               context->display->defaultPalette);
   GameContextGetString(context, 0X42DB, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 27, textBuf);
 
   // sound volume
   drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 41,
-               context->renderer->defaultPalette);
+               context->display->defaultPalette);
   GameContextGetString(context, 0X42DA, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 43, textBuf);
 
   // talking volume
   drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 58,
-               context->renderer->defaultPalette);
+               context->display->defaultPalette);
   GameContextGetString(context, 0X42DC, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 61, textBuf);
@@ -545,7 +544,7 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
 
   // buttons
   SHPFrame buttonFrame = {0};
-  assert(SHPHandleGetFrame(&context->renderer->gameShapes, &buttonFrame, 86));
+  assert(SHPHandleGetFrame(&context->display->gameShapes, &buttonFrame, 86));
   SHPFrameGetImageData(&buttonFrame);
 
   int xOffset = 12;
@@ -553,25 +552,25 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
   int musicVolVal = AudioSystemGetMusicVolume(&context->audio) * 10;
   drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + musicVolVal,
                GAME_MENU_AUDIO_CONTROLS_Y + 25,
-               context->renderer->defaultPalette);
+               context->display->defaultPalette);
 
   // sound button
   int soundVolVal = AudioSystemGetSoundVolume(&context->audio) * 10;
   drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + soundVolVal,
                GAME_MENU_AUDIO_CONTROLS_Y + 41,
-               context->renderer->defaultPalette);
+               context->display->defaultPalette);
 
   // talking button
   int talkVolVal = AudioSystemGetVoiceVolume(&context->audio) * 10;
   drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + talkVolVal,
                GAME_MENU_AUDIO_CONTROLS_Y + 58,
-               context->renderer->defaultPalette);
+               context->display->defaultPalette);
 
   SHPFrameRelease(&buttonFrame);
 
   // main menu
   GameContextGetString(context, 0X4072, textBuf, 128);
-  UIDrawTextButton(&context->renderer->defaultFont, context->renderer->pixBuf,
+  UIDrawTextButton(&context->display->defaultFont, context->display->pixBuf,
                    GAME_MENU_AUDIO_CONTROLS_X + 152,
                    GAME_MENU_AUDIO_CONTROLS_Y + 76, 96, 15, textBuf);
 }

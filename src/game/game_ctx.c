@@ -106,12 +106,12 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
   return files;
 }
 
-static RenderingContext _renderCtx = {0};
+static Display _renderCtx = {0};
 
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
-  gameCtx->renderer = &_renderCtx;
-  RenderingContextInit(gameCtx->renderer);
+  gameCtx->display = &_renderCtx;
+  RenderingContextInit(gameCtx->display);
   gameCtx->spellProperties = SpellPropertiesGet();
   if (!GameConfigFromFile(&gameCtx->conf, "conf.txt")) {
     printf("Create default config\n");
@@ -145,7 +145,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
   AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
 
-  AnimatorInit(&gameCtx->animator, gameCtx->renderer->pixBuf);
+  AnimatorInit(&gameCtx->animator, gameCtx->display->pixBuf);
   GameTimInterpreterInit(&gameCtx->timInterpreter, &gameCtx->animator);
   gameCtx->timInterpreter.timInterpreter.callbackCtx = gameCtx;
 
@@ -177,7 +177,7 @@ int GameContextNewGame(GameContext *gameCtx) {
 void GameContextRelease(GameContext *gameCtx) {
   DBGServerRelease();
   AudioSystemRelease(&gameCtx->audio);
-  RenderingContextRelease(gameCtx->renderer);
+  RenderingContextRelease(gameCtx->display);
 
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {
@@ -335,7 +335,7 @@ int GameContextLoadChars(GameContext *gameCtx) {
     snprintf(faceFile, 11, "FACE%02i.SHP", charId);
     GameFile f = {0};
     assert(GameEnvironmentGetGeneralFile(&f, faceFile));
-    SHPHandleFromCompressedBuffer(&gameCtx->renderer->charFaces[i], f.buffer,
+    SHPHandleFromCompressedBuffer(&gameCtx->display->charFaces[i], f.buffer,
                                   f.bufferSize);
   }
   return 1;
@@ -410,20 +410,20 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->state = newState;
   if (gameCtx->state == GameState_GameMenu) {
     createCursorForItem(gameCtx, 0);
-    gameCtx->renderer->currentMenu = gameMenu;
+    gameCtx->display->currentMenu = gameMenu;
   } else if (gameCtx->state == GameState_MainMenu) {
-    gameCtx->renderer->currentMenu = mainMenu;
-  } else if (gameCtx->renderer->currentMenu) {
-    MenuReset(gameCtx->renderer->currentMenu);
-    gameCtx->renderer->currentMenu = NULL;
+    gameCtx->display->currentMenu = mainMenu;
+  } else if (gameCtx->display->currentMenu) {
+    MenuReset(gameCtx->display->currentMenu);
+    gameCtx->display->currentMenu = NULL;
   }
   if (gameCtx->state == GameState_ShowInventory ||
       gameCtx->state == GameState_ShowMap ||
       gameCtx->state == GameState_GameMenu) {
     gameCtx->selectedCharIsCastingSpell = 0;
-    gameCtx->renderer->controlDisabled = 1;
+    gameCtx->display->controlDisabled = 1;
   } else {
-    gameCtx->renderer->controlDisabled = 0;
+    gameCtx->display->controlDisabled = 0;
   }
   if (gameCtx->prevState == GameState_GameMenu &&
       gameCtx->state == GameState_PlayGame) {
@@ -493,11 +493,11 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
   GameExpandDialogBox(gameCtx);
-  gameCtx->renderer->controlDisabled = 1;
+  gameCtx->display->controlDisabled = 1;
 }
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
-  gameCtx->renderer->controlDisabled = 0;
+  gameCtx->display->controlDisabled = 0;
   for (int i = 0; i < 3; i++) {
     if (gameCtx->buttonText[i]) {
       free(gameCtx->buttonText[i]);
@@ -510,7 +510,7 @@ void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   }
   // FIXME: temporary clear screen here to avoid for cps background to remain on
   // screen
-  gameCtx->renderer->showBitmap = 0;
+  gameCtx->display->showBitmap = 0;
 }
 
 uint16_t GameContextCreateItem(GameContext *gameCtx, uint16_t itemType) {
@@ -602,13 +602,13 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
 void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
                                                 int charId) {
   int invId = inventoryTypeForId[charId];
-  if (gameCtx->renderer->inventoryBackgrounds[invId].data == NULL) {
+  if (gameCtx->display->inventoryBackgrounds[invId].data == NULL) {
     GameFile f = {0};
     char name[12] = "";
     assert(invId > 0 && invId < 7);
     snprintf(name, 12, "INVENT%1i.CPS", invId);
     assert(GameEnvironmentGetGeneralFile(&f, name));
-    assert(CPSImageFromBuffer(&gameCtx->renderer->inventoryBackgrounds[invId],
+    assert(CPSImageFromBuffer(&gameCtx->display->inventoryBackgrounds[invId],
                               f.buffer, f.bufferSize));
   }
 }

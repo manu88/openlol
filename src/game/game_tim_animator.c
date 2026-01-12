@@ -73,7 +73,7 @@ static void callbackTIM_CharChat(TIMInterpreter *interp, uint16_t charId,
       "GameTimAnimator: callbackTIM_CharChat charId=%x mode=%x stringId=%x\n",
       charId, mode, stringId);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextGetString(gameCtx, stringId, gameCtx->renderer->dialogTextBuffer,
+  GameContextGetString(gameCtx, stringId, gameCtx->display->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   GameContextSetDialogF(gameCtx, stringId);
   if (charId == 1) {
@@ -86,7 +86,7 @@ static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
                                      int argc, const uint16_t *argv) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
 
-  GameContextGetString(gameCtx, stringId, gameCtx->renderer->dialogTextBuffer,
+  GameContextGetString(gameCtx, stringId, gameCtx->display->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   GameContextSetDialogF(gameCtx, stringId);
   GameContextPlayDialogSpeech(gameCtx, 0, stringId);

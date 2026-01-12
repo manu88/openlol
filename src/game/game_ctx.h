@@ -60,7 +60,7 @@ typedef enum {
 static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
 
 typedef struct _GameContext {
-  RenderingContext *renderer;
+  Display *display;
   AudioSystem audio;
   GameState state;
   GameState prevState;

@@ -3,7 +3,7 @@
 #include "game_envir.h"
 #include <string.h>
 
-static int initSDL(RenderingContext *renderer) {
+static int initSDL(Display *renderer) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
     printf("SDL could not be initialized!\n"
            "SDL_Error: %s\n",
@@ -40,8 +40,8 @@ static int initSDL(RenderingContext *renderer) {
   return 1;
 }
 
-int RenderingContextInit(RenderingContext *renderer) {
-  memset(renderer, 0, sizeof(RenderingContext));
+int RenderingContextInit(Display *renderer) {
+  memset(renderer, 0, sizeof(Display));
 
   if (!initSDL(renderer)) {
     return 0;
@@ -132,7 +132,7 @@ int RenderingContextInit(RenderingContext *renderer) {
   return 1;
 }
 
-void RenderingContextRelease(RenderingContext *renderer) {
+void RenderingContextRelease(Display *renderer) {
   SDL_DestroyRenderer(renderer->renderer);
   SDL_DestroyWindow(renderer->window);
   SDL_DestroyTexture(renderer->pixBuf);
