@@ -152,7 +152,7 @@ void renderCharInventory(GameContext *gameCtx) {
 
   int id = character->id < 0 ? -character->id : character->id;
   int invType = inventoryTypeForId[id];
-  GameContextLoadBackgroundInventoryIfNeeded(gameCtx, id);
+  DisplayLoadBackgroundInventoryIfNeeded(gameCtx, id);
 
   const CPSImage *background =
       &gameCtx->display->inventoryBackgrounds[inventoryTypeForId[id]];

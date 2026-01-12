@@ -180,8 +180,7 @@ void GameContextUpdateCursor(GameContext *gameCtx);
 void GameContextExitGame(GameContext *gameCtx);
 int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath);
 
-void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
-                                                int charId);
+
 
 void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,

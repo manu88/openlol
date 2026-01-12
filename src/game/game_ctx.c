@@ -598,20 +598,6 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
   return 1;
 }
 
-void GameContextLoadBackgroundInventoryIfNeeded(GameContext *gameCtx,
-                                                int charId) {
-  int invId = inventoryTypeForId[charId];
-  if (gameCtx->display->inventoryBackgrounds[invId].data == NULL) {
-    GameFile f = {0};
-    char name[12] = "";
-    assert(invId > 0 && invId < 7);
-    snprintf(name, 12, "INVENT%1i.CPS", invId);
-    assert(GameEnvironmentGetGeneralFile(&f, name));
-    assert(CPSImageFromBuffer(&gameCtx->display->inventoryBackgrounds[invId],
-                              f.buffer, f.bufferSize));
-  }
-}
-
 void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex) {
   printf("Load TLK File index %i\n", levelIndex);
   if (gameCtx->level->currentTlkFileIndex != -1) {

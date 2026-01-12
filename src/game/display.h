@@ -50,3 +50,6 @@ typedef struct {
 
 int DisplayInit(Display *context);
 void DisplayRelease(Display *context);
+
+void DisplayLoadBackgroundInventoryIfNeeded(GameContext *gameCtx, int charId);
+

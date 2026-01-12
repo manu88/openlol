@@ -151,3 +151,16 @@ void DisplayRelease(Display *renderer) {
   }
   free(renderer->defaultPalette);
 }
+
+void DisplayLoadBackgroundInventoryIfNeeded(GameContext *gameCtx, int charId) {
+  int invId = inventoryTypeForId[charId];
+  if (gameCtx->display->inventoryBackgrounds[invId].data == NULL) {
+    GameFile f = {0};
+    char name[12] = "";
+    assert(invId > 0 && invId < 7);
+    snprintf(name, 12, "INVENT%1i.CPS", invId);
+    assert(GameEnvironmentGetGeneralFile(&f, name));
+    assert(CPSImageFromBuffer(&gameCtx->display->inventoryBackgrounds[invId],
+                              f.buffer, f.bufferSize));
+  }
+}
