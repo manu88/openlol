@@ -69,7 +69,7 @@ static int processRecvMsg(GameContext *gameCtx, const DBGMsg_Header *header,
                                sizeof(DBGMsg_Status)};
     write(cltSocket, &outHeader, sizeof(DBGMsg_Header));
     DBGMsg_Status s = {.currentBock = gameCtx->currentBock};
-    memcpy(s.gameFlags, gameCtx->gameFlags, NUM_GAME_FLAGS);
+    memcpy(s.gameFlags, gameCtx->engine->gameFlags, NUM_GAME_FLAGS);
     write(cltSocket, &s, sizeof(DBGMsg_Status));
   } break;
   case DBGMsgType_GiveItemRequest: {

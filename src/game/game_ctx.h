@@ -4,6 +4,7 @@
 #include "audio.h"
 #include "config.h"
 #include "display.h"
+#include "engine.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
@@ -54,8 +55,6 @@ typedef enum {
   DialogState_Done,
 } DialogState;
 
-#define NUM_GAME_FLAGS 100
-
 #define INVENTORY_TYPES_NUM 7
 static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
 
@@ -86,9 +85,7 @@ typedef struct _GameContext {
   EMCInterpreter interp;
   EMCState interpState;
 
-  uint16_t globalScriptVars[NUM_GLOBAL_SCRIPT_VARS];
-
-  uint8_t gameFlags[NUM_GAME_FLAGS];
+  GameEngine *engine;
 
   GameTimInterpreter timInterpreter;
   Animator animator;
@@ -141,10 +138,6 @@ int GameContextRunScript(GameContext *gameCtx, int function);
 int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
                              uint16_t itemId, uint16_t flags, uint16_t next,
                              uint16_t reg4);
-
-uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag);
-void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag);
-void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag);
 
 void GameContextSetState(GameContext *gameCtx, GameState newState);
 

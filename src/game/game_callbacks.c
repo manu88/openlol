@@ -224,16 +224,16 @@ static void setGameFlag(EMCInterpreter *interp, uint16_t flag, uint16_t set) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetGameFlag %x %x", flag, set);
   if (set) {
-    GameContextSetGameFlag(gameCtx, flag);
+    GameEngineSetGameFlag(gameCtx->engine, flag);
   } else {
-    GameContextResetGameFlag(gameCtx, flag);
+    GameEngineResetGameFlag(gameCtx->engine, flag);
   }
 }
 
 static uint16_t testGameFlag(EMCInterpreter *interp, uint16_t flag) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackTestGameFlag %x", flag);
-  return GameContextGetGameFlag(gameCtx, flag);
+  return GameEngineGetGameFlag(gameCtx->engine, flag);
 }
 
 static void levelGraphics(EMCInterpreter *interp, const char *file,
@@ -526,13 +526,13 @@ static void setGlobalScriptVar(EMCInterpreter *interp, uint16_t index,
                                uint16_t val) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetGlobalScriptVar %x %x", index, val);
-  gameCtx->globalScriptVars[index] = val;
+  gameCtx->engine->globalScriptVars[index] = val;
 }
 
 static uint16_t getGlobalScriptVar(EMCInterpreter *interp, uint16_t index) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackGetGlobalScriptVar %x", index);
-  return gameCtx->globalScriptVars[index];
+  return gameCtx->engine->globalScriptVars[index];
 }
 
 static void WSAInit(EMCInterpreter *interp, uint16_t index, const char *wsaFile,

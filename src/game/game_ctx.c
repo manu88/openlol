@@ -4,6 +4,7 @@
 #include "config.h"
 #include "dbg_server.h"
 #include "display.h"
+#include "engine.h"
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
@@ -106,11 +107,14 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
 }
 
 static Display _renderCtx = {0};
+static GameEngine _engine = {0};
 
 int GameContextInit(GameContext *gameCtx, Language lang) {
   memset(gameCtx, 0, sizeof(GameContext));
   gameCtx->display = &_renderCtx;
   DisplayInit(gameCtx->display);
+  gameCtx->engine = &_engine;
+  GameEngineInit(gameCtx->engine);
   gameCtx->spellProperties = SpellPropertiesGet();
   if (!GameConfigFromFile(&gameCtx->conf, "conf.txt")) {
     printf("Create default config\n");
@@ -382,21 +386,6 @@ int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
   return 1;
 }
 
-uint16_t GameContextGetGameFlag(const GameContext *gameCtx, uint16_t flag) {
-  assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
-  return ((gameCtx->gameFlags[flag >> 3] >> (flag & 7)) & 1);
-}
-
-void GameContextSetGameFlag(GameContext *gameCtx, uint16_t flag) {
-  assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
-  gameCtx->gameFlags[flag >> 3] |= (1 << (flag & 7));
-}
-
-void GameContextResetGameFlag(GameContext *gameCtx, uint16_t flag) {
-  assert((flag >> 3) >= 0 && (flag >> 3) < sizeof(gameCtx->gameFlags));
-  gameCtx->gameFlags[flag >> 3] &= ~(1 << (flag & 7));
-}
-
 void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->prevState = gameCtx->state;
   gameCtx->state = newState;
@@ -577,10 +566,10 @@ int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
   gameCtx->credits = savHandle.slot.credits;
   gameCtx->itemIndexInHand = savHandle.slot.itemIndexInHand;
   gameCtx->selectedChar = savHandle.slot.selectedChar;
-  memcpy(gameCtx->globalScriptVars, savHandle.slot.globalScriptVars,
+  memcpy(gameCtx->engine->globalScriptVars, savHandle.slot.globalScriptVars,
          NUM_GLOBAL_SCRIPT_VARS * 2);
-  memset(gameCtx->gameFlags, 0, NUM_GAME_FLAGS);
-  SAVHandleGetGameFlags(&savHandle, gameCtx->gameFlags, NUM_GAME_FLAGS);
+  memset(gameCtx->engine->gameFlags, 0, NUM_GAME_FLAGS);
+  SAVHandleGetGameFlags(&savHandle, gameCtx->engine->gameFlags, NUM_GAME_FLAGS);
   GameContextLoadLevel(gameCtx, gameCtx->levelId);
   GameContextUpdateCursor(gameCtx);
   GameContextLoadChars(gameCtx);
