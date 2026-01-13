@@ -883,109 +883,74 @@ static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
-  interp->callbacks.EMCInterpreterCallbacks_RollDices = callbackRollDices;
-  interp->callbacks.EMCInterpreterCallbacks_GetDirection = callbackGetDirection;
-  interp->callbacks.EMCInterpreterCallbacks_PlayDialogue = callbackPlayDialogue;
-  interp->callbacks.EMCInterpreterCallbacks_PrintMessage = callbackPrintMessage;
-  interp->callbacks.EMCInterpreterCallbacks_GetGlobalVar = callbackGetGlobalVar;
-  interp->callbacks.EMCInterpreterCallbacks_SetGlobalVar = callbackSetGlobalVar;
-  interp->callbacks.EMCInterpreterCallbacks_LoadLangFile = callbackLoadLangFile;
-  interp->callbacks.EMCInterpreterCallbacks_LoadCMZ = callbackLoadCMZ;
-  interp->callbacks.EMCInterpreterCallbacks_LoadLevelShapes =
-      callbackLoadLevelShapes;
-  interp->callbacks.EMCInterpreterCallbacks_LoadLevelGraphics =
-      callbackLoadLevelGraphics;
-  interp->callbacks.EMCInterpreterCallbacks_LoadLevel = callbackLoadLevel;
-  interp->callbacks.EMCInterpreterCallbacks_SetGameFlag = callbackSetGameFlag;
-  interp->callbacks.EMCInterpreterCallbacks_TestGameFlag = callbackTestGameFlag;
-  interp->callbacks.EMCInterpreterCallbacks_LoadTimScript =
-      callbackLoadTimScript;
-  interp->callbacks.EMCInterpreterCallbacks_RunTimScript = callbackRunTimScript;
-  interp->callbacks.EMCInterpreterCallbacks_ReleaseTimScript =
-      callbackReleaseTimScript;
-  interp->callbacks.EMCInterpreterCallbacks_GetItemIndexInHand =
-      callbackGetItemIndexInHand;
-  interp->callbacks.EMCInterpreterCallbacks_AllocItemProperties =
-      callbackAllocItemProperties;
-  interp->callbacks.EMCInterpreterCallbacks_SetItemProperty =
-      callbackSetItemProperty;
-  interp->callbacks.EMCInterpreterCallbacks_LoadDoorShapes =
-      callbackLoadDoorShapes;
-  interp->callbacks.EMCInterpreterCallbacks_LoadMonsterShapes =
-      callbackLoadMonsterShapes;
-  interp->callbacks.EMCInterpreterCallbacks_LoadMonster = callbackLoadMonster;
-  interp->callbacks.EMCInterpreterCallbacks_ClearDialogField =
-      callbackClearDialogField;
-  interp->callbacks.EMCInterpreterCallbacks_CheckMonsterHostility =
-      callbackCheckMonsterHostility;
-  interp->callbacks.EMCInterpreterCallbacks_GetItemParam = callbackGetItemParam;
-  interp->callbacks.EMCInterpreterCallbacks_EnableControls =
-      callbackEnableControls;
-  interp->callbacks.EMCInterpreterCallbacks_DisableControls =
-      callbackDisableControls;
-  interp->callbacks.EMCInterpreterCallbacks_LoadBitmap = callbackLoadBitmap;
-  interp->callbacks.EMCInterpreterCallbacks_GetGlobalScriptVar =
-      callbackGetGlobalScriptVar;
-  interp->callbacks.EMCInterpreterCallbacks_SetGlobalScriptVar =
-      callbackSetGlobalScriptVar;
-  interp->callbacks.EMCInterpreterCallbacks_WSAInit = callbackWSAInit;
-  interp->callbacks.EMCInterpreterCallbacks_InitSceneDialog =
-      callbackInitSceneDialog;
-  interp->callbacks.EMCInterpreterCallbacks_CopyPage = callbackCopyPage;
-  interp->callbacks.EMCInterpreterCallbacks_DrawExitButton =
-      callbackDrawExitButton;
-  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneDialog =
-      callbackRestoreAfterSceneDialog;
-  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSceneWindowDialog =
-      callbackRestoreAfterSceneWindowDialog;
-  interp->callbacks.EMCInterpreterCallbacks_GetWallType = callbackGetWallType;
-  interp->callbacks.EMCInterpreterCallbacks_SetWallType = callbackSetWallType;
-  interp->callbacks.EMCInterpreterCallbacks_GetWallFlags = callbackGetWallFlags;
-  interp->callbacks.EMCInterpreterCallbacks_CheckRectForMousePointer =
-      callbackCheckRectForMousePointer;
-  interp->callbacks.EMCInterpreterCallbacks_SetupDialogueButtons =
-      callbackSetupDialogueButtons;
-  interp->callbacks.EMCInterpreterCallbacks_ProcessDialog =
-      callbackProcessDialog;
-  interp->callbacks.EMCInterpreterCallbacks_SetupBackgroundAnimationPart =
-      callbackSetupBackgroundAnimationPart;
-  interp->callbacks.EMCInterpreterCallbacks_DeleteHandItem =
-      callbackDeleteHandItem;
-  interp->callbacks.EMCInterpreterCallbacks_PlayAnimationPart =
-      callbackPlayAnimationPart;
-  interp->callbacks.EMCInterpreterCallbacks_CreateHandItem =
-      callbackCreateHandItem;
-  interp->callbacks.EMCInterpreterCallbacks_CheckForCertainPartyMember =
-      callbackCheckForCertainPartyMember;
-  interp->callbacks.EMCInterpreterCallbacks_SetNextFunc = callbackSetNextFunc;
-  interp->callbacks.EMCInterpreterCallbacks_GetCredits = callbackGetCredits;
-  interp->callbacks.EMCInterpreterCallbacks_CreditsTransaction =
-      callbackCreditsTransaction;
-  interp->callbacks.EMCInterpreterCallbacks_MoveMonster = callbackMoveMonster;
-  interp->callbacks.EMCInterpreterCallbacks_PlaySoundFX = callbackPlaySoundFX;
-  interp->callbacks.EMCInterpreterCallbacks_CharacterSurpriseSFX =
-      callbackCharacterSurpriseSFX;
-  interp->callbacks.EMCInterpreterCallbacks_MoveParty = callbackMoveParty;
-  interp->callbacks.EMCInterpreterCallbacks_FadeScene = callbackFadeScene;
 
-  interp->callbacks.EMCInterpreterCallbacks_PrepareSpecialScene =
-      callbackPrepareSpecialScene;
-  interp->callbacks.EMCInterpreterCallbacks_RestoreAfterSpecialScene =
-      callbackRestoreAfterSpecialScene;
-  interp->callbacks.EMCInterpreterCallbacks_InitMonster = callbackInitMonster;
-  interp->callbacks.EMCInterpreterCallbacks_CreateLevelItem =
-      callbackCreateLevelItem;
+  interp->callbacks = (EMCInterpreterCallbacks){
+      callbackRollDices,
+      callbackSetGlobalVar,
+      callbackGetGlobalVar,
+      callbackGetDirection,
+      callbackPlayDialogue,
+      callbackPrintMessage,
+      callbackLoadLangFile,
+      callbackLoadCMZ,
+      callbackLoadLevelShapes,
+      callbackClearDialogField,
+      callbackLoadLevelGraphics,
+      callbackLoadLevel,
+      callbackTestGameFlag,
+      callbackSetGameFlag,
+      callbackLoadBitmap,
+      callbackLoadDoorShapes,
+      callbackLoadMonsterShapes,
+      callbackLoadMonster,
+      callbackLoadTimScript,
+      callbackRunTimScript,
+      callbackReleaseTimScript,
+      callbackGetItemIndexInHand,
+      callbackAllocItemProperties,
+      callbackSetItemProperty,
+      callbackCheckMonsterHostility,
+      callbackGetItemParam,
+      callbackDisableControls,
+      callbackEnableControls,
+      callbackGetGlobalScriptVar,
+      callbackSetGlobalScriptVar,
+      callbackWSAInit,
+      callbackInitSceneDialog,
+      callbackCopyPage,
+      callbackDrawExitButton,
+      callbackRestoreAfterSceneDialog,
+      callbackRestoreAfterSceneWindowDialog,
+      callbackGetWallType,
+      callbackSetWallType,
+      callbackGetWallFlags,
+      callbackCheckRectForMousePointer,
+      callbackSetupDialogueButtons,
+      callbackProcessDialog,
+      callbackSetupBackgroundAnimationPart,
+      callbackDeleteHandItem,
+      callbackCreateHandItem,
+      callbackCreateLevelItem,
+      callbackPlayAnimationPart,
+      callbackCheckForCertainPartyMember,
+      callbackSetNextFunc,
+      callbackGetCredits,
+      callbackCreditsTransaction,
+      callbackMoveMonster,
+      callbackPlaySoundFX,
+      callbackCharacterSurpriseSFX,
+      callbackMoveParty,
+      callbackFadeScene,
+      callbackPrepareSpecialScene,
+      callbackRestoreAfterSpecialScene,
+      callbackInitMonster,
+      callbackGetMonsterStat,
+      callbackPrintWindowText,
+      callbackRedrawPlayfield,
+      callbackTriggerEventOnMouseButtonClick,
+      callbackCharacterSays,
+      callbackCheckMagic,
+      callbackShowHidMouse,
 
-  interp->callbacks.EMCInterpreterCallbacks_GetMonsterStat =
-      callbackGetMonsterStat;
-  interp->callbacks.EMCInterpreterCallbacks_PrintWindowText =
-      callbackPrintWindowText;
-  interp->callbacks.EMCInterpreterCallbacks_RedrawPlayfield =
-      callbackRedrawPlayfield;
-  interp->callbacks.EMCInterpreterCallbacks_TriggerEventOnMouseButtonClick =
-      callbackTriggerEventOnMouseButtonClick;
-  interp->callbacks.EMCInterpreterCallbacks_CharacterSays =
-      callbackCharacterSays;
-  interp->callbacks.EMCInterpreterCallbacks_CheckMagic = callbackCheckMagic;
-  interp->callbacks.EMCInterpreterCallbacks_ShowHidMouse = callbackShowHidMouse;
+  };
 }
