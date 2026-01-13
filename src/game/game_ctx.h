@@ -73,9 +73,14 @@ typedef struct _GameContext {
   Language language;
   LangHandle lang;
 
+  // party
   SAVCharacter chars[NUM_CHARACTERS];
   uint8_t selectedChar;
   uint8_t selectedCharIsCastingSpell;
+  uint16_t inventory[INVENTORY_SIZE];
+  uint16_t inventoryIndex;
+  uint16_t itemIndexInHand;
+  uint16_t credits;
 
   INFScript script;
   INFScript itemScript;
@@ -89,11 +94,6 @@ typedef struct _GameContext {
 
   GameTimInterpreter timInterpreter;
   Animator animator;
-
-  uint16_t inventory[INVENTORY_SIZE];
-  uint16_t inventoryIndex;
-  uint16_t itemIndexInHand;
-  uint16_t credits;
 
   ItemProperty *itemProperties;
   GameObject *itemsInGame;
