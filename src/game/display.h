@@ -21,31 +21,37 @@ typedef struct {
 
 typedef struct {
   MouseEvent mouseEv;
+  int controlDisabled;
+
   SDL_Texture *pixBuf;
   SDL_Renderer *renderer;
   SDL_Window *window;
+  SDL_Surface *textSurface;
+  SDL_Texture *textTexture;
+  SDL_Cursor *cursor;
+
+  FNTHandle defaultFont;
+  FNTHandle font6p;
+
   SHPHandle itemShapes;
   SHPHandle charFaces[NUM_CHARACTERS];
   SHPHandle automapShapes;
   SHPHandle gameShapes;
   CPSImage inventoryBackgrounds[INVENTORY_TYPES_NUM];
   CPSImage playField;
-  CPSImage loadedbitMap;
-  int showBitmap;
   CPSImage mapBackground;
   CPSImage gameTitle;
-  SDL_Surface *textSurface;
-  SDL_Texture *textTexture;
+  CPSImage loadedbitMap;
+
   char *dialogTextBuffer;
   char *dialogText; // will either be NULL or pointing to dialogTextBuffer
-  FNTHandle defaultFont;
-  FNTHandle font6p;
-  uint8_t *defaultPalette;
-  int controlDisabled;
-  SDL_Cursor *cursor;
-  Menu *currentMenu;
-  int shouldUpdate;
 
+  uint8_t *defaultPalette;
+
+  Menu *currentMenu;
+
+  int shouldUpdate;
+  int showBitmap;
   int dialogBoxFrames;
   int showBigDialog;
   int drawExitSceneButton;
