@@ -91,8 +91,8 @@ int cmdGame(int argc, char *argv[]) {
     return 1;
   }
 
-  GameContextInstallCallbacks(&gameCtx.interp);
-  gameCtx.interp.callbackCtx = &gameCtx;
+  GameContextInstallCallbacks(&gameCtx.engine->interp);
+  gameCtx.engine->interp.callbackCtx = &gameCtx;
 
   GameContextStartup(&gameCtx);
   LevelContext levelCtx = {0};
@@ -719,17 +719,18 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
 
 static void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
-         EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
-    EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
+         EMCInterpreterIsValid(&gameCtx->engine->interp,
+                               &gameCtx->engine->interpState)) {
+    EMCInterpreterRun(&gameCtx->engine->interp, &gameCtx->engine->interpState);
     gameCtx->display->shouldUpdate = 1;
     if (gameCtx->dialogState == DialogState_InProgress) {
       return;
     }
   }
-  if (gameCtx->nextFunc) {
-    printf("Exec next func %X\n", gameCtx->nextFunc);
-    GameContextRunScript(gameCtx, gameCtx->nextFunc);
-    gameCtx->nextFunc = 0;
+  if (gameCtx->engine->nextFunc) {
+    printf("Exec next func %X\n", gameCtx->engine->nextFunc);
+    GameContextRunScript(gameCtx, gameCtx->engine->nextFunc);
+    gameCtx->engine->nextFunc = 0;
   }
 }
 

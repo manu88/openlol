@@ -574,8 +574,8 @@ static uint16_t checkForCertainPartyMember(EMCInterpreter *interp,
 static void setNextFunc(EMCInterpreter *interp, uint16_t func) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetNextFunc %x", func);
-  assert(gameCtx->nextFunc == 0);
-  gameCtx->nextFunc = func;
+  assert(gameCtx->engine->nextFunc == 0);
+  gameCtx->engine->nextFunc = func;
 }
 
 static uint16_t getWallFlags(EMCInterpreter *interp, uint16_t blockId,

@@ -137,8 +137,8 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   {
     GameFile f = {0};
     assert(GameEnvironmentGetStartupFile(&f, "ITEM.INF"));
-    if (INFScriptFromBuffer(&gameCtx->itemScript, f.buffer, f.bufferSize) ==
-        0) {
+    if (INFScriptFromBuffer(&gameCtx->engine->itemScript, f.buffer,
+                            f.bufferSize) == 0) {
       printf("unable to get ITEMS.INF\n");
       assert(0);
     }
@@ -204,8 +204,8 @@ static int runScript(GameContext *gameCtx, INFScript *script) {
   EMCStateInit(&state, script);
   EMCStateSetOffset(&state, 0);
   EMCStateStart(&state, 0);
-  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
-    EMCInterpreterRun(&gameCtx->interp, &state);
+  while (EMCInterpreterIsValid(&gameCtx->engine->interp, &state)) {
+    EMCInterpreterRun(&gameCtx->engine->interp, &state);
   }
   return 1;
 }
@@ -259,8 +259,8 @@ static int runInitScript(GameContext *gameCtx, INFScript *script) {
   EMCStateInit(&state, script);
   for (int i = 0; i < INFScriptGetNumFunctions(script); i++) {
     EMCStateStart(&state, i);
-    while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
-      EMCInterpreterRun(&gameCtx->interp, &state);
+    while (EMCInterpreterIsValid(&gameCtx->engine->interp, &state)) {
+      EMCInterpreterRun(&gameCtx->engine->interp, &state);
     }
   }
   return 1;
@@ -286,7 +286,7 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     char infFile[12];
     snprintf(infFile, 12, "LEVEL%i.INF", levelNum);
     assert(GameEnvironmentGetFile(&f, infFile));
-    assert(INFScriptFromBuffer(&ctx->script, f.buffer, f.bufferSize));
+    assert(INFScriptFromBuffer(&ctx->engine->script, f.buffer, f.bufferSize));
   }
   {
     INFScript iniScript = {0};
@@ -342,10 +342,10 @@ int GameContextRunLevelInitScript(GameContext *gameCtx) {
 }
 
 int GameContextRunScript(GameContext *gameCtx, int function) {
-  EMCStateInit(&gameCtx->interpState, &gameCtx->script);
-  EMCStateSetOffset(&gameCtx->interpState, 0);
+  EMCStateInit(&gameCtx->engine->interpState, &gameCtx->engine->script);
+  EMCStateSetOffset(&gameCtx->engine->interpState, 0);
   if (function > 0) {
-    if (!EMCStateStart(&gameCtx->interpState, function)) {
+    if (!EMCStateStart(&gameCtx->engine->interpState, function)) {
       printf("EMCInterpreterStart: invalid\n");
       return 0;
     }
@@ -368,7 +368,7 @@ int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
   }
 
   EMCState state = {0};
-  EMCStateInit(&state, &gameCtx->itemScript);
+  EMCStateInit(&state, &gameCtx->engine->itemScript);
   if (!EMCStateStart(&state, func)) {
     printf("EMCStateStart error\n");
     return 0;
@@ -380,8 +380,8 @@ int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
   state.regs[3] = next;
   state.regs[4] = next;
 
-  while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
-    EMCInterpreterRun(&gameCtx->interp, &state);
+  while (EMCInterpreterIsValid(&gameCtx->engine->interp, &state)) {
+    EMCInterpreterRun(&gameCtx->engine->interp, &state);
   }
   return 1;
 }

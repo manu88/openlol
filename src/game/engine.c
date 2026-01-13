@@ -1,6 +1,10 @@
 #include "engine.h"
+#include <string.h>
 
-int GameEngineInit(GameEngine *engine) { return 1; }
+int GameEngineInit(GameEngine *engine) {
+  memset(engine, 0, sizeof(GameEngine));
+  return 1;
+}
 
 void GameEngineRelease(GameEngine *engine) {}
 
