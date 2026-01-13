@@ -133,24 +133,25 @@ int DisplayInit(Display *display) {
   return 1;
 }
 
-void DisplayRelease(Display *renderer) {
-  SDL_DestroyRenderer(renderer->renderer);
-  SDL_DestroyWindow(renderer->window);
-  SDL_DestroyTexture(renderer->pixBuf);
-  CPSImageRelease(&renderer->playField);
-  CPSImageRelease(&renderer->gameTitle);
-  CPSImageRelease(&renderer->mapBackground);
-  SHPHandleRelease(&renderer->automapShapes);
-  SHPHandleRelease(&renderer->gameShapes);
-  free(renderer->dialogTextBuffer);
-  SDL_FreeCursor(renderer->cursor);
+void DisplayRelease(Display *display) {
+  SDL_DestroyRenderer(display->renderer);
+  SDL_DestroyWindow(display->window);
+  SDL_DestroyTexture(display->pixBuf);
+  CPSImageRelease(&display->playField);
+  CPSImageRelease(&display->gameTitle);
+  CPSImageRelease(&display->mapBackground);
+  SHPHandleRelease(&display->automapShapes);
+  SHPHandleRelease(&display->gameShapes);
+  free(display->dialogTextBuffer);
+  SDL_FreeCursor(display->cursor);
+  DisplayClearDialogButtons(display);
 
   for (int i = 0; i < INVENTORY_TYPES_NUM; i++) {
-    if (renderer->inventoryBackgrounds[i].data) {
-      CPSImageRelease(&renderer->inventoryBackgrounds[i]);
+    if (display->inventoryBackgrounds[i].data) {
+      CPSImageRelease(&display->inventoryBackgrounds[i]);
     }
   }
-  free(renderer->defaultPalette);
+  free(display->defaultPalette);
 }
 
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId) {
@@ -348,5 +349,14 @@ void DisplayCreateCursorForItem(Display *display, uint16_t frameId) {
   SHPFrameRelease(&frame);
   if (prevCursor) {
     SDL_FreeCursor(prevCursor);
+  }
+}
+
+void DisplayClearDialogButtons(Display *display) {
+  for (int i = 0; i < 3; i++) {
+    if (display->buttonText[i]) {
+      free(display->buttonText[i]);
+      display->buttonText[i] = NULL;
+    }
   }
 }

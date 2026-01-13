@@ -71,3 +71,5 @@ void DisplayExpandDialogBox(Display *display, int tickLength);
 void DisplayShrinkDialogBox(Display *display, int tickLength);
 
 void DisplayCreateCursorForItem(Display *display, uint16_t frameId);
+
+void DisplayClearDialogButtons(Display *display);

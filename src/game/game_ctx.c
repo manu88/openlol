@@ -177,13 +177,6 @@ void GameContextRelease(GameContext *gameCtx) {
   DBGServerRelease();
   AudioSystemRelease(&gameCtx->audio);
   DisplayRelease(gameCtx->display);
-
-  for (int i = 0; i < 3; i++) {
-    if (gameCtx->display->buttonText[i]) {
-      free(gameCtx->display->buttonText[i]);
-    }
-  }
-
   PAKFileRelease(&gameCtx->sfxPak);
   PAKFileRelease(&gameCtx->defaultTlkFile);
 }
@@ -497,12 +490,7 @@ void GameContextInitSceneDialog(GameContext *gameCtx) {
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
   gameCtx->display->controlDisabled = 0;
-  for (int i = 0; i < 3; i++) {
-    if (gameCtx->display->buttonText[i]) {
-      free(gameCtx->display->buttonText[i]);
-      gameCtx->display->buttonText[i] = NULL;
-    }
-  }
+  DisplayClearDialogButtons(gameCtx->display);
   DisplayResetDialog(gameCtx->display);
   if (gameCtx->display->showBigDialog) {
     GameRender(gameCtx);

@@ -868,7 +868,6 @@ static void restoreAfterSpecialScene(EMCInterpreter *interp, uint16_t fadeFlag,
 }
 
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
-
   interp->callbacks = (EMCInterpreterCallbacks){
       rollDices,
       setGlobalVar,
