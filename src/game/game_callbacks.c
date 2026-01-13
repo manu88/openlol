@@ -24,8 +24,8 @@
 
 #define LOG_PREFIX "CALLBCK"
 
-static uint16_t callbackRollDices(EMCInterpreter *interp, int16_t times,
-                                  int16_t maxVal) {
+static uint16_t rollDices(EMCInterpreter *interp, int16_t times,
+                          int16_t maxVal) {
   int res = 0;
   while (times--)
     res += GetRandom(1, maxVal);
@@ -33,15 +33,15 @@ static uint16_t callbackRollDices(EMCInterpreter *interp, int16_t times,
   return res;
 }
 
-static uint16_t callbackGetDirection(EMCInterpreter *interp) {
+static uint16_t getDirection(EMCInterpreter *interp) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackGetDirection");
   assert(ctx);
   return ctx->orientation;
 }
 
-static int callbackCharacterSays(EMCInterpreter *interp, int16_t trackId,
-                                 uint16_t charId, int redraw) {
+static int characterSays(EMCInterpreter *interp, int16_t trackId,
+                         uint16_t charId, int redraw) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "characterSays trackId=0X%X charId=0X%X redraw=0X%X\n",
       trackId, charId, redraw);
@@ -56,8 +56,8 @@ static int callbackCharacterSays(EMCInterpreter *interp, int16_t trackId,
   return 1;
 }
 
-static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
-                                 int16_t mode, uint16_t strId) {
+static void playDialogue(EMCInterpreter *interp, int16_t charId, int16_t mode,
+                         uint16_t strId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   Log(LOG_PREFIX, "callbackPlayDialogue %x %x %x", charId, mode, strId);
@@ -68,8 +68,8 @@ static void callbackPlayDialogue(EMCInterpreter *interp, int16_t charId,
   GameContextPlayDialogSpeech(ctx, charId, strId);
 }
 
-static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
-                                 uint16_t strId, uint16_t soundId) {
+static void printMessage(EMCInterpreter *interp, uint16_t type, uint16_t strId,
+                         uint16_t soundId) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   Log(LOG_PREFIX, "callbackPrintMessage %x %x %x", type, strId, soundId);
@@ -77,8 +77,8 @@ static void callbackPrintMessage(EMCInterpreter *interp, uint16_t type,
   GameContextPlayDialogSpeech(ctx, 1, soundId);
 }
 
-static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
-                                     uint16_t a) {
+static uint16_t getGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
+                             uint16_t a) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   assert(ctx);
   Log(LOG_PREFIX, "callbackGetGlobalVar %x %x", id, a);
@@ -107,8 +107,8 @@ static uint16_t callbackGetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   return 0;
 }
 
-static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
-                                     uint16_t a, uint16_t b) {
+static uint16_t setGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
+                             uint16_t a, uint16_t b) {
   GameContext *ctx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetGlobalVar %x %x %x", id, a, b);
   switch (id) {
@@ -139,7 +139,7 @@ static uint16_t callbackSetGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   return 1;
 }
 
-static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
+static void loadLangFile(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameFile langFile = {0};
   Log(LOG_PREFIX, "callbackLoadLangFile %s", file);
@@ -154,7 +154,7 @@ static void callbackLoadLangFile(EMCInterpreter *interp, const char *file) {
   }
 }
 
-static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
+static void loadCMZ(EMCInterpreter *interp, const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadCMZ %s", file);
   memset(gameCtx->level->blockProperties, 0, sizeof(BlockProperty) * 1024);
@@ -181,8 +181,8 @@ static void callbackLoadCMZ(EMCInterpreter *interp, const char *file) {
   MazeHandleRelease(&mazHandle);
 }
 
-static void callbackSetWallType(EMCInterpreter *interp, uint16_t block,
-                                uint16_t wall, uint16_t val) {
+static void setWallType(EMCInterpreter *interp, uint16_t block, uint16_t wall,
+                        uint16_t val) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetWallType %x %x %x", block, wall, val);
   if (wall == 0XFFFF) {
@@ -194,24 +194,24 @@ static void callbackSetWallType(EMCInterpreter *interp, uint16_t block,
   }
 }
 
-static uint16_t callbackGetWallType(EMCInterpreter *interp, uint16_t blockId,
-                                    uint16_t wall) {
+static uint16_t getWallType(EMCInterpreter *interp, uint16_t blockId,
+                            uint16_t wall) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackGetWallType %x %x", blockId, wall);
 
   return gameCtx->level->blockProperties[blockId].walls[wall];
 }
 
-static void callbackLoadLevelShapes(EMCInterpreter *interp, const char *shpFile,
-                                    const char *datFile) {
+static void levelShapes(EMCInterpreter *interp, const char *shpFile,
+                        const char *datFile) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadLevelShapes %s %s", shpFile, datFile);
 
   GameContextLoadLevelShapes(gameCtx, shpFile, datFile);
 }
 
-static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
-                              uint16_t startBlock, uint16_t startDir) {
+static void loadLevel(EMCInterpreter *interp, uint16_t levelNum,
+                      uint16_t startBlock, uint16_t startDir) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadLevel %x %x %x", levelNum, startBlock, startDir);
   gameCtx->currentBock = startBlock;
@@ -220,8 +220,7 @@ static void callbackLoadLevel(EMCInterpreter *interp, uint16_t levelNum,
   GameContextLoadLevel(gameCtx, levelNum);
 }
 
-static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
-                                uint16_t set) {
+static void setGameFlag(EMCInterpreter *interp, uint16_t flag, uint16_t set) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetGameFlag %x %x", flag, set);
   if (set) {
@@ -231,14 +230,14 @@ static void callbackSetGameFlag(EMCInterpreter *interp, uint16_t flag,
   }
 }
 
-static uint16_t callbackTestGameFlag(EMCInterpreter *interp, uint16_t flag) {
+static uint16_t testGameFlag(EMCInterpreter *interp, uint16_t flag) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackTestGameFlag %x", flag);
   return GameContextGetGameFlag(gameCtx, flag);
 }
 
-static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
-                                      const char *paletteFile) {
+static void levelGraphics(EMCInterpreter *interp, const char *file,
+                          const char *paletteFile) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadLevelGraphics %s %s", file, paletteFile);
   char pakFile[12] = "";
@@ -276,13 +275,13 @@ static void callbackLoadLevelGraphics(EMCInterpreter *interp, const char *file,
   GameContextLoadLevelShapes(gameCtx, fileName, fileName2);
 }
 
-static void callbackRedrawPlayfield(EMCInterpreter *interp) {
+static void redrawPlayfield(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   gameCtx->display->showBitmap = 0;
 }
 
-static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,
-                               uint16_t param) {
+static void loadBitmap(EMCInterpreter *interp, const char *file,
+                       uint16_t param) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadBitmap %s %x", file, param);
   assert(param == 2);
@@ -293,9 +292,8 @@ static void callbackLoadBitmap(EMCInterpreter *interp, const char *file,
                             f.bufferSize));
 }
 
-static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
-                                   uint16_t p1, uint16_t p2, uint16_t p3,
-                                   uint16_t p4) {
+static void loadDoorShapes(EMCInterpreter *interp, const char *file,
+                           uint16_t p1, uint16_t p2, uint16_t p3, uint16_t p4) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadDoorShapes %s %x %x %x %x", file, p1, p2, p3,
       p4);
@@ -308,8 +306,8 @@ static void callbackLoadDoorShapes(EMCInterpreter *interp, const char *file,
                                        f.bufferSize));
 }
 
-static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
-                                      uint16_t monsterId, uint16_t p2) {
+static void loadMonsterShapes(EMCInterpreter *interp, const char *file,
+                              uint16_t monsterId, uint16_t p2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadMonsterShapes %s %x %x", file, monsterId, p2);
   assert(monsterId < MAX_MONSTERS);
@@ -320,7 +318,7 @@ static void callbackLoadMonsterShapes(EMCInterpreter *interp, const char *file,
       &gameCtx->level->monsterShapes[monsterId], f.buffer, f.bufferSize));
 }
 
-static void callbackMoveParty(EMCInterpreter *interp, uint16_t how) {
+static void moveParty(EMCInterpreter *interp, uint16_t how) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   if (how > 5 && how < 10) {
     how = (how - 6 - gameCtx->orientation) & 3;
@@ -350,9 +348,9 @@ static void callbackMoveParty(EMCInterpreter *interp, uint16_t how) {
   }
 }
 
-static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
-                                uint16_t destBlock, uint16_t xOff,
-                                uint16_t yOff, uint16_t destDir) {
+static void moveMonster(EMCInterpreter *interp, uint16_t monsterId,
+                        uint16_t destBlock, uint16_t xOff, uint16_t yOff,
+                        uint16_t destDir) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Monster *monster = &gameCtx->level->monsters[monsterId];
   monster->block = destBlock;
@@ -361,14 +359,14 @@ static void callbackMoveMonster(EMCInterpreter *interp, uint16_t monsterId,
   monster->destY = yOff;
 }
 
-static void callbackClearDialogField(EMCInterpreter *interp) {
+static void clearDialogField(EMCInterpreter *interp) {
   Log(LOG_PREFIX, "callbackClearDialogField");
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   DisplayResetDialog(gameCtx->display);
 }
 
-static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,
-                                              uint16_t monsterType) {
+static uint16_t checkMonsterHostility(EMCInterpreter *interp,
+                                      uint16_t monsterType) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, " UNIMPLEMENTED callbackCheckMonsterHostility %x",
       monsterType);
@@ -383,11 +381,10 @@ static uint16_t callbackCheckMonsterHostility(EMCInterpreter *interp,
   return 1;
 }
 
-static void callbackLoadMonster(EMCInterpreter *interp, uint16_t monsterId,
-                                uint16_t shapeId, uint16_t hitChance,
-                                uint16_t protection, uint16_t evadeChance,
-                                uint16_t speed, uint16_t p6, uint16_t p7,
-                                uint16_t p8) {
+static void loadMonster(EMCInterpreter *interp, uint16_t monsterId,
+                        uint16_t shapeId, uint16_t hitChance,
+                        uint16_t protection, uint16_t evadeChance,
+                        uint16_t speed, uint16_t p6, uint16_t p7, uint16_t p8) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, " INCOMPLETE callbackLoadMonster %i %i\n", monsterId,
       shapeId);
@@ -405,15 +402,15 @@ static void callbackLoadMonster(EMCInterpreter *interp, uint16_t monsterId,
   props->fightingStats[8] = 0;
 }
 
-static void callbackLoadTimScript(EMCInterpreter *interp, uint16_t scriptId,
-                                  const char *file) {
+static void loadTimScript(EMCInterpreter *interp, uint16_t scriptId,
+                          const char *file) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadTimScript %x %s", scriptId, file);
   GameTimInterpreterLoadTim(&gameCtx->timInterpreter, scriptId, file);
 }
 
-static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
-                                 uint16_t loop) {
+static void runTimScript(EMCInterpreter *interp, uint16_t scriptId,
+                         uint16_t loop) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRunTimScript %x %i", scriptId, loop);
   if (!gameCtx->timInterpreter.tim[scriptId].avtl) {
@@ -424,21 +421,20 @@ static void callbackRunTimScript(EMCInterpreter *interp, uint16_t scriptId,
   GameTimInterpreterRunTim(&gameCtx->timInterpreter, scriptId);
 }
 
-static void callbackReleaseTimScript(EMCInterpreter *interp,
-                                     uint16_t scriptId) {
+static void releaseTimScript(EMCInterpreter *interp, uint16_t scriptId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackReleaseTimScript %i", scriptId);
   GameTimInterpreterReleaseTim(&gameCtx->timInterpreter, scriptId);
 }
 
-static uint16_t callbackGetItemIndexInHand(EMCInterpreter *interp) {
+static uint16_t getItemIndexInHand(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackGetItemIndexInHand");
   return gameCtx->itemIndexInHand;
 }
 
-static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,
-                                     EMCGetItemParam how) {
+static uint16_t getItemParam(EMCInterpreter *interp, uint16_t itemId,
+                             EMCGetItemParam how) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   const GameObject *item = &gameCtx->itemsInGame[itemId];
   Log(LOG_PREFIX, "callbackGetItemParam itemId=0X%x how=0X%x", itemId, how);
@@ -485,7 +481,7 @@ static uint16_t callbackGetItemParam(EMCInterpreter *interp, uint16_t itemId,
   return 0;
 }
 
-static void callbackAllocItemProperties(EMCInterpreter *interp, uint16_t size) {
+static void allocItemProperties(EMCInterpreter *interp, uint16_t size) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackAllocItemProperties %i", size);
   gameCtx->itemProperties = malloc(size * sizeof(ItemProperty));
@@ -493,11 +489,10 @@ static void callbackAllocItemProperties(EMCInterpreter *interp, uint16_t size) {
   gameCtx->itemsCount = size;
 }
 
-static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
-                                    uint16_t stringId, uint16_t shapeId,
-                                    uint16_t type, uint16_t scriptFun,
-                                    uint16_t might, uint16_t skill,
-                                    uint16_t protection, uint16_t flags) {
+static void setItemProperty(EMCInterpreter *interp, uint16_t index,
+                            uint16_t stringId, uint16_t shapeId, uint16_t type,
+                            uint16_t scriptFun, uint16_t might, uint16_t skill,
+                            uint16_t protection, uint16_t flags) {
 
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetItemProperty %x %x %x %x %x %x %x %x %x", index,
@@ -514,36 +509,34 @@ static void callbackSetItemProperty(EMCInterpreter *interp, uint16_t index,
   gameCtx->itemProperties[index].flags = flags;
 }
 
-static void callbackDisableControls(EMCInterpreter *interp, uint16_t mode) {
+static void disableControls(EMCInterpreter *interp, uint16_t mode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackDisableControls %x", mode);
   assert(mode == 0);
   gameCtx->display->controlDisabled = 1;
 }
 
-static void callbackEnableControls(EMCInterpreter *interp) {
+static void enableControls(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackEnableControls");
   gameCtx->display->controlDisabled = 0;
 }
 
-static void callbackSetGlobalScriptVar(EMCInterpreter *interp, uint16_t index,
-                                       uint16_t val) {
+static void setGlobalScriptVar(EMCInterpreter *interp, uint16_t index,
+                               uint16_t val) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetGlobalScriptVar %x %x", index, val);
   gameCtx->globalScriptVars[index] = val;
 }
 
-static uint16_t callbackGetGlobalScriptVar(EMCInterpreter *interp,
-                                           uint16_t index) {
+static uint16_t getGlobalScriptVar(EMCInterpreter *interp, uint16_t index) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackGetGlobalScriptVar %x", index);
   return gameCtx->globalScriptVars[index];
 }
 
-static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
-                            const char *wsaFile, int x, int y, int offscreen,
-                            int flags) {
+static void WSAInit(EMCInterpreter *interp, uint16_t index, const char *wsaFile,
+                    int x, int y, int offscreen, int flags) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackWSAInit %x %s %i %i %i %i", index, wsaFile, x, y,
       offscreen, flags);
@@ -555,21 +548,20 @@ static void callbackWSAInit(EMCInterpreter *interp, uint16_t index,
                   flags);
 }
 
-static void callbackRestoreAfterSceneDialog(EMCInterpreter *interp, int mode) {
+static void restoreAfterSceneDialog(EMCInterpreter *interp, int mode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRestoreAfterSceneDialog %x", mode);
   GameContextCleanupSceneDialog(gameCtx);
 }
 
-static void callbackRestoreAfterSceneWindowDialog(EMCInterpreter *interp,
-                                                  int redraw) {
+static void restoreAfterSceneWindowDialog(EMCInterpreter *interp, int redraw) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRestoreAfterSceneWindowDialog %x", redraw);
   GameContextCleanupSceneDialog(gameCtx);
 }
 
-static uint16_t callbackCheckForCertainPartyMember(EMCInterpreter *interp,
-                                                   uint16_t charId) {
+static uint16_t checkForCertainPartyMember(EMCInterpreter *interp,
+                                           uint16_t charId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   for (int i = 0; i < NUM_CHARACTERS; i++) {
     if (abs(gameCtx->chars[i].id) == charId) {
@@ -579,15 +571,15 @@ static uint16_t callbackCheckForCertainPartyMember(EMCInterpreter *interp,
   return 0;
 }
 
-static void callbackSetNextFunc(EMCInterpreter *interp, uint16_t func) {
+static void setNextFunc(EMCInterpreter *interp, uint16_t func) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetNextFunc %x", func);
   assert(gameCtx->nextFunc == 0);
   gameCtx->nextFunc = func;
 }
 
-static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t blockId,
-                                     uint16_t wall) {
+static uint16_t getWallFlags(EMCInterpreter *interp, uint16_t blockId,
+                             uint16_t wall) {
   Log(LOG_PREFIX, "callbackGetWallFlags %x %x", blockId, wall);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   uint8_t wmi = gameCtx->level->blockProperties[blockId].walls[wall];
@@ -596,14 +588,14 @@ static uint16_t callbackGetWallFlags(EMCInterpreter *interp, uint16_t blockId,
   return mapping->flags;
 }
 
-static void callbackFadeScene(EMCInterpreter *interp, uint16_t mode) {
+static void fadeScene(EMCInterpreter *interp, uint16_t mode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("callbackFadeScene mode=0X%X\n", mode);
   DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
 }
 
-static void callbackSetupDialogueButtons(EMCInterpreter *interp,
-                                         uint16_t numStrs, uint16_t strIds[3]) {
+static void setupDialogueButtons(EMCInterpreter *interp, uint16_t numStrs,
+                                 uint16_t strIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetupDialogueButtons %x %x %x %x", numStrs,
       strIds[0], strIds[1], strIds[2]);
@@ -621,7 +613,7 @@ static void callbackSetupDialogueButtons(EMCInterpreter *interp,
   }
 }
 
-static void callbackSetupBackgroundAnimationPart(
+static void setupBackgroundAnimationPart(
     EMCInterpreter *interp, uint16_t animIndex, uint16_t part,
     uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles, uint16_t nextPart,
     uint16_t partDelay, uint16_t field, uint16_t sfxIndex, uint16_t sfxFrame) {
@@ -639,7 +631,7 @@ static void callbackSetupBackgroundAnimationPart(
                     sfxIndex, sfxFrame);
 }
 
-static void callbackDeleteHandItem(EMCInterpreter *interp) {
+static void deleteHandItem(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackDeleteHandItem");
   GameContextDeleteItem(gameCtx, gameCtx->itemIndexInHand);
@@ -647,9 +639,8 @@ static void callbackDeleteHandItem(EMCInterpreter *interp) {
   GameContextUpdateCursor(gameCtx);
 }
 
-static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
-                                       uint16_t itemType, uint16_t p1,
-                                       uint16_t p2) {
+static uint16_t createHandItem(EMCInterpreter *interp, uint16_t itemType,
+                               uint16_t p1, uint16_t p2) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackCreateHandItem");
   if (gameCtx->itemIndexInHand) {
@@ -662,15 +653,15 @@ static uint16_t callbackCreateHandItem(EMCInterpreter *interp,
   return 1;
 }
 
-static void callbackShowHidMouse(EMCInterpreter *interp, int show) {
+static void showHideMouse(EMCInterpreter *interp, int show) {
   Log(LOG_PREFIX, "callbackShowHidMouse show=%i", show);
   if (show) {
     SDL_ShowCursor(show ? SDL_ENABLE : SDL_DISABLE);
   }
 }
 
-static int callbackCheckMagic(EMCInterpreter *interp, uint16_t charId,
-                              uint16_t spellNum, uint16_t spellLevel) {
+static int checkMagic(EMCInterpreter *interp, uint16_t charId,
+                      uint16_t spellNum, uint16_t spellLevel) {
   Log(LOG_PREFIX,
       "callbackCheckMagic charId=0X%X spellNum=0X%X spellLevel=0X%X\n ", charId,
       spellNum, spellLevel);
@@ -678,11 +669,10 @@ static int callbackCheckMagic(EMCInterpreter *interp, uint16_t charId,
   return GameContextCheckMagic(gameCtx, charId, spellNum, spellLevel);
 }
 
-static uint16_t callbackCreateLevelItem(EMCInterpreter *interp,
-                                        uint16_t itemType, uint16_t frame,
-                                        uint16_t flags, uint16_t level,
-                                        uint16_t block, uint16_t xOff,
-                                        uint16_t yOff, uint16_t flyingHeight) {
+static uint16_t createLevelItem(EMCInterpreter *interp, uint16_t itemType,
+                                uint16_t frame, uint16_t flags, uint16_t level,
+                                uint16_t block, uint16_t xOff, uint16_t yOff,
+                                uint16_t flyingHeight) {
   Log(LOG_PREFIX,
       "[INCOMPLETE] callbackCreateLevelItem itemType=0X%X frame=0X%X "
       "flags=0X%X\n "
@@ -693,18 +683,18 @@ static uint16_t callbackCreateLevelItem(EMCInterpreter *interp,
   return index;
 }
 
-static uint16_t callbackProcessDialog(EMCInterpreter *interp) {
+static uint16_t processDialog(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackProcessDialog\n");
   return gameCtx->dialogState == DialogState_Done;
 }
 
-static void callbackPlaySoundFX(EMCInterpreter *interp, uint16_t soundId) {
+static void playSoundFX(EMCInterpreter *interp, uint16_t soundId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   GameContextPlaySoundFX(gameCtx, soundId);
 }
 
-static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
+static void characterSurpriseSFX(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   for (int i = 0; i < 4; i++) {
     if (!(gameCtx->chars[i].flags & 1) || gameCtx->chars[i].id >= 0)
@@ -720,8 +710,8 @@ static void callbackCharacterSurpriseSFX(EMCInterpreter *interp) {
   }
 }
 
-static void callbackPrintWindowText(EMCInterpreter *interp, uint16_t dim,
-                                    uint16_t flags, uint16_t stringId) {
+static void printWindowText(EMCInterpreter *interp, uint16_t dim,
+                            uint16_t flags, uint16_t stringId) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   char *text = GameContextGetString3(gameCtx, stringId);
   UISetStyle(UIStyle_Inventory);
@@ -731,10 +721,10 @@ static void callbackPrintWindowText(EMCInterpreter *interp, uint16_t dim,
   free(text);
 }
 
-static int callbackInitMonster(EMCInterpreter *interp, uint16_t block,
-                               uint16_t xOff, uint16_t yOff,
-                               uint16_t orientation, uint16_t monsterType,
-                               uint16_t flags, uint16_t monsterMode) {
+static int initMonster(EMCInterpreter *interp, uint16_t block, uint16_t xOff,
+                       uint16_t yOff, uint16_t orientation,
+                       uint16_t monsterType, uint16_t flags,
+                       uint16_t monsterMode) {
   Log(LOG_PREFIX,
       "callbackInitMonster block=0X%X xOff=0X%X yOff=0X%X orientation=0X%X "
       "monsterType=0X%X flags=0X%X monsterMode=0X%X \n",
@@ -756,9 +746,8 @@ static int callbackInitMonster(EMCInterpreter *interp, uint16_t block,
   return index;
 }
 
-static uint16_t callbackGetMonsterStat(EMCInterpreter *interp,
-                                       uint16_t monsterId,
-                                       GetMonsterStatHow how) {
+static uint16_t getMonsterStat(EMCInterpreter *interp, uint16_t monsterId,
+                               GetMonsterStatHow how) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   const Monster *monster = gameCtx->level->monsters + monsterId;
   const MonsterProperties *props =
@@ -788,9 +777,9 @@ static uint16_t callbackGetMonsterStat(EMCInterpreter *interp,
   return 0;
 }
 
-static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
-                                                 uint16_t xMin, uint16_t yMin,
-                                                 uint16_t xMax, uint16_t yMax) {
+static uint16_t checkRectForMousePointer(EMCInterpreter *interp, uint16_t xMin,
+                                         uint16_t yMin, uint16_t xMax,
+                                         uint16_t yMax) {
   Log(LOG_PREFIX, "callbackCheckRectForMousePointer %i %i %i %i\n", xMin, yMin,
       xMax, yMax);
   int x;
@@ -803,18 +792,16 @@ static uint16_t callbackCheckRectForMousePointer(EMCInterpreter *interp,
   return ret;
 }
 
-static void callbackDrawExitButton(EMCInterpreter *interp, uint16_t p0,
-                                   uint16_t p1) {
+static void drawExitButton(EMCInterpreter *interp, uint16_t p0, uint16_t p1) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackDrawExitButton %x %x", p0, p1);
   gameCtx->display->drawExitSceneButton = 1;
   gameCtx->display->exitSceneButtonDisabled = 1;
 }
 
-static void callbackCopyPage(EMCInterpreter *interp, uint16_t srcX,
-                             uint16_t srcY, uint16_t destX, uint16_t destY,
-                             uint16_t w, uint16_t h, uint16_t srcPage,
-                             uint16_t dstPage) {
+static void copyPage(EMCInterpreter *interp, uint16_t srcX, uint16_t srcY,
+                     uint16_t destX, uint16_t destY, uint16_t w, uint16_t h,
+                     uint16_t srcPage, uint16_t dstPage) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX,
       "callbackCopyPage x1=%i y1=%i x2=%i y2=%i w=%i h=%i "
@@ -823,15 +810,15 @@ static void callbackCopyPage(EMCInterpreter *interp, uint16_t srcX,
   GameCopyPage(gameCtx, srcX, srcY, destX, destY, w, h, srcPage, dstPage);
 }
 
-static void callbackInitSceneDialog(EMCInterpreter *interp, int param) {
+static void initSceneDialog(EMCInterpreter *interp, int param) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackInitSceneDialog %x", param);
   GameContextInitSceneDialog(gameCtx);
 }
 
-static void callbackPlayAnimationPart(EMCInterpreter *interp,
-                                      uint16_t animIndex, uint16_t firstFrame,
-                                      uint16_t lastFrame, uint16_t delay) {
+static void playAnimationPart(EMCInterpreter *interp, uint16_t animIndex,
+                              uint16_t firstFrame, uint16_t lastFrame,
+                              uint16_t delay) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX,
       "callbackPlayAnimationPart animIndex=%x firstFrame=%x lastFrame=%x "
@@ -842,27 +829,26 @@ static void callbackPlayAnimationPart(EMCInterpreter *interp,
                    lastFrame, delay);
 }
 
-static uint16_t callbackGetCredits(EMCInterpreter *interp) {
+static uint16_t getCredits(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   return gameCtx->credits;
 }
 
-static void callbackCreditsTransaction(EMCInterpreter *interp, int16_t amount) {
+static void creditsTransaction(EMCInterpreter *interp, int16_t amount) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   gameCtx->credits += amount;
 }
 
-static int callbackTriggerEventOnMouseButtonClick(EMCInterpreter *interp,
-                                                  uint16_t event) {
+static int triggerEventOnMouseButtonClick(EMCInterpreter *interp,
+                                          uint16_t event) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   return GameWaitForClick(gameCtx);
 }
 
-static void
-callbackPrepareSpecialScene(EMCInterpreter *interp, uint16_t fieldType,
-                            uint16_t hasDialogue, uint16_t suspendGUI,
-                            uint16_t allowSceneUpdate, uint16_t controlMode,
-                            uint16_t fadeFlag) {
+static void prepareSpecialScene(EMCInterpreter *interp, uint16_t fieldType,
+                                uint16_t hasDialogue, uint16_t suspendGUI,
+                                uint16_t allowSceneUpdate, uint16_t controlMode,
+                                uint16_t fadeFlag) {
   printf("[UNIMPLEMENTED] prepareSpecialScene fieldType %X hasDialogue %X "
          "suspendGUI %X "
          "allowSceneUpdate %X controlMode %X  fadeFlag %X \n",
@@ -870,11 +856,10 @@ callbackPrepareSpecialScene(EMCInterpreter *interp, uint16_t fieldType,
          fadeFlag);
 }
 
-static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
-                                             uint16_t fadeFlag,
-                                             uint16_t redrawPlayField,
-                                             uint16_t releaseTimScripts,
-                                             uint16_t sceneUpdateMode) {
+static void restoreAfterSpecialScene(EMCInterpreter *interp, uint16_t fadeFlag,
+                                     uint16_t redrawPlayField,
+                                     uint16_t releaseTimScripts,
+                                     uint16_t sceneUpdateMode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   printf("[unimplemented] restoreAfterSpecialScene fadeFlag=%X "
          "redrawPlayField=%X releaseTimScripts=%X sceneUpdateMode=%X\n",
@@ -885,72 +870,72 @@ static void callbackRestoreAfterSpecialScene(EMCInterpreter *interp,
 void GameContextInstallCallbacks(EMCInterpreter *interp) {
 
   interp->callbacks = (EMCInterpreterCallbacks){
-      callbackRollDices,
-      callbackSetGlobalVar,
-      callbackGetGlobalVar,
-      callbackGetDirection,
-      callbackPlayDialogue,
-      callbackPrintMessage,
-      callbackLoadLangFile,
-      callbackLoadCMZ,
-      callbackLoadLevelShapes,
-      callbackClearDialogField,
-      callbackLoadLevelGraphics,
-      callbackLoadLevel,
-      callbackTestGameFlag,
-      callbackSetGameFlag,
-      callbackLoadBitmap,
-      callbackLoadDoorShapes,
-      callbackLoadMonsterShapes,
-      callbackLoadMonster,
-      callbackLoadTimScript,
-      callbackRunTimScript,
-      callbackReleaseTimScript,
-      callbackGetItemIndexInHand,
-      callbackAllocItemProperties,
-      callbackSetItemProperty,
-      callbackCheckMonsterHostility,
-      callbackGetItemParam,
-      callbackDisableControls,
-      callbackEnableControls,
-      callbackGetGlobalScriptVar,
-      callbackSetGlobalScriptVar,
-      callbackWSAInit,
-      callbackInitSceneDialog,
-      callbackCopyPage,
-      callbackDrawExitButton,
-      callbackRestoreAfterSceneDialog,
-      callbackRestoreAfterSceneWindowDialog,
-      callbackGetWallType,
-      callbackSetWallType,
-      callbackGetWallFlags,
-      callbackCheckRectForMousePointer,
-      callbackSetupDialogueButtons,
-      callbackProcessDialog,
-      callbackSetupBackgroundAnimationPart,
-      callbackDeleteHandItem,
-      callbackCreateHandItem,
-      callbackCreateLevelItem,
-      callbackPlayAnimationPart,
-      callbackCheckForCertainPartyMember,
-      callbackSetNextFunc,
-      callbackGetCredits,
-      callbackCreditsTransaction,
-      callbackMoveMonster,
-      callbackPlaySoundFX,
-      callbackCharacterSurpriseSFX,
-      callbackMoveParty,
-      callbackFadeScene,
-      callbackPrepareSpecialScene,
-      callbackRestoreAfterSpecialScene,
-      callbackInitMonster,
-      callbackGetMonsterStat,
-      callbackPrintWindowText,
-      callbackRedrawPlayfield,
-      callbackTriggerEventOnMouseButtonClick,
-      callbackCharacterSays,
-      callbackCheckMagic,
-      callbackShowHidMouse,
+      rollDices,
+      setGlobalVar,
+      getGlobalVar,
+      getDirection,
+      playDialogue,
+      printMessage,
+      loadLangFile,
+      loadCMZ,
+      levelShapes,
+      clearDialogField,
+      levelGraphics,
+      loadLevel,
+      testGameFlag,
+      setGameFlag,
+      loadBitmap,
+      loadDoorShapes,
+      loadMonsterShapes,
+      loadMonster,
+      loadTimScript,
+      runTimScript,
+      releaseTimScript,
+      getItemIndexInHand,
+      allocItemProperties,
+      setItemProperty,
+      checkMonsterHostility,
+      getItemParam,
+      disableControls,
+      enableControls,
+      getGlobalScriptVar,
+      setGlobalScriptVar,
+      WSAInit,
+      initSceneDialog,
+      copyPage,
+      drawExitButton,
+      restoreAfterSceneDialog,
+      restoreAfterSceneWindowDialog,
+      getWallType,
+      setWallType,
+      getWallFlags,
+      checkRectForMousePointer,
+      setupDialogueButtons,
+      processDialog,
+      setupBackgroundAnimationPart,
+      deleteHandItem,
+      createHandItem,
+      createLevelItem,
+      playAnimationPart,
+      checkForCertainPartyMember,
+      setNextFunc,
+      getCredits,
+      creditsTransaction,
+      moveMonster,
+      playSoundFX,
+      characterSurpriseSFX,
+      moveParty,
+      fadeScene,
+      prepareSpecialScene,
+      restoreAfterSpecialScene,
+      initMonster,
+      getMonsterStat,
+      printWindowText,
+      redrawPlayfield,
+      triggerEventOnMouseButtonClick,
+      characterSays,
+      checkMagic,
+      showHideMouse,
 
   };
 }
