@@ -364,8 +364,8 @@ typedef struct _EMCInterpreterCallbacks {
   int (*EMCInterpreterCallbacks_CheckMagic)(EMCInterpreter *interp,
                                             uint16_t charId, uint16_t spellNum,
                                             uint16_t spellLevel);
-  void (*EMCInterpreterCallbacks_ShowHidMouse)(EMCInterpreter *interp,
-                                               int show);
+  void (*EMCInterpreterCallbacks_ShowHideMouse)(EMCInterpreter *interp,
+                                                int show);
 
 } EMCInterpreterCallbacks;
 
