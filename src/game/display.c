@@ -1,7 +1,11 @@
 #include "display.h"
+#include "SDL_events.h"
+#include "SDL_timer.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "renderer.h"
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 static int initSDL(Display *display) {
@@ -194,10 +198,27 @@ void DisplayRender(Display *display) {
   SDL_RenderPresent(display->renderer);
 }
 
+static int activeDelay(Display *display, int tickLength) {
+  uint64_t time = SDL_GetTicks64();
+  while (1) {
+    SDL_Event event = {0};
+    SDL_WaitEventTimeout(&event, tickLength);
+    if (event.type == SDL_QUIT) {
+      return 0;
+    }
+    uint64_t elapsed = SDL_GetTicks64() - time;
+    if (elapsed >= tickLength) {
+      return 1;
+    }
+  }
+  return 1;
+}
+
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
   while (numFrames--) {
-    SDL_Delay(tickLength);
-    SDL_PollEvent(NULL);
+    if (activeDelay(display, tickLength) == 0) {
+      return;
+    }
     dimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
             MAZE_COORDS_H);
     DisplayRender(display);
@@ -269,8 +290,9 @@ void DisplayExpandDialogBox(Display *display, int tickLength) {
   int ret = 0;
   do {
     ret = renderExpandDialogBox(display);
-    SDL_Delay(tickLength);
-    SDL_PollEvent(NULL);
+    if (activeDelay(display, tickLength) == 0) {
+      return;
+    }
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                      PIX_BUF_HEIGHT * SCREEN_FACTOR};
     assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) ==
@@ -313,8 +335,9 @@ void DisplayShrinkDialogBox(Display *display, int tickLength) {
   int ret = 0;
   do {
     ret = renderShrinkDialogBox(display);
-    SDL_Delay(tickLength);
-    SDL_PollEvent(NULL);
+    if (activeDelay(display, tickLength) == 0) {
+      return;
+    }
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                      PIX_BUF_HEIGHT * SCREEN_FACTOR};
     assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) ==
@@ -323,6 +346,19 @@ void DisplayShrinkDialogBox(Display *display, int tickLength) {
   } while (!ret);
 
   display->showBigDialog = 0;
+}
+
+int DisplayWaitForClickOrKey(Display *display, int tickLength) {
+  DisplayRender(display);
+  while (1) {
+    SDL_Event event = {0};
+    SDL_WaitEventTimeout(&event, tickLength);
+    if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_KEYDOWN ||
+        event.type == SDL_QUIT) {
+      return 1;
+    }
+  }
+  assert(0);
 }
 
 void DisplayCreateCursorForItem(Display *display, uint16_t frameId) {

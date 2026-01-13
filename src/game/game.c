@@ -733,33 +733,13 @@ static void GamePreUpdate(GameContext *gameCtx) {
   }
 }
 
-int GameWaitForClick(GameContext *gameCtx) {
-  DisplayRender(gameCtx->display);
-  while (1) {
-    SDL_Event event = {0};
-    SDL_WaitEvent(&event);
-    if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_KEYDOWN) {
-      return 1;
-    } else if (event.type == SDL_QUIT) {
-      gameCtx->_shouldRun = 0;
-      return 1;
-    }
-  }
-}
-
-static void GameRunOnce(GameContext *gameCtx) {
-  if (DBGServerUpdate(gameCtx)) {
-    gameCtx->display->shouldUpdate = 1;
-  }
-
-  GamePreUpdate(gameCtx);
-  // SDL_EventState(SDL_MOUSEMOTION, SDL_DISABLE);
+static void getInputs(GameContext *gameCtx) {
   SDL_Event e;
   SDL_WaitEventTimeout(&e, gameCtx->conf.tickLength);
   if (e.type == SDL_QUIT) {
     gameCtx->_shouldRun = 0;
+    return;
   }
-
   switch (gameCtx->state) {
   case GameState_PlayGame:
   case GameState_ShowInventory:
@@ -791,6 +771,17 @@ static void GameRunOnce(GameContext *gameCtx) {
     }
     gameCtx->display->mouseEv.pending = 0;
   }
+}
+
+static void GameRunOnce(GameContext *gameCtx) {
+  if (DBGServerUpdate(gameCtx)) {
+    gameCtx->display->shouldUpdate = 1;
+  }
+
+  GamePreUpdate(gameCtx);
+
+  getInputs(gameCtx);
+
   if (gameCtx->display->shouldUpdate) {
     GameRender(gameCtx);
     gameCtx->display->shouldUpdate = 0;

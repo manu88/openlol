@@ -842,7 +842,7 @@ static void creditsTransaction(EMCInterpreter *interp, int16_t amount) {
 static int triggerEventOnMouseButtonClick(EMCInterpreter *interp,
                                           uint16_t event) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  return GameWaitForClick(gameCtx);
+  return DisplayWaitForClickOrKey(gameCtx->display, gameCtx->conf.tickLength);
 }
 
 static void prepareSpecialScene(EMCInterpreter *interp, uint16_t fieldType,
