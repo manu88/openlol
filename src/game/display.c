@@ -169,7 +169,8 @@ void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId) {
 
 void DisplayResetDialog(Display *display) { display->dialogText = NULL; }
 
-void DimRect(SDL_Texture *texture, int startX, int startY, int w, int h) {
+static void dimRect(SDL_Texture *texture, int startX, int startY, int w,
+                    int h) {
   void *data;
   int pitch;
   SDL_Rect rect = {startX, startY, w, h};
@@ -197,7 +198,7 @@ void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
   while (numFrames--) {
     SDL_Delay(tickLength);
     SDL_PollEvent(NULL);
-    DimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
+    dimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
             MAZE_COORDS_H);
     DisplayRender(display);
   }
