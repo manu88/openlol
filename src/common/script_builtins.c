@@ -152,6 +152,12 @@ static uint16_t loadBlockProperties(EMCInterpreter *interp, EMCState *state) {
   return 1;
 }
 
+static uint16_t moveBlockObjects(EMCInterpreter *interp, EMCState *state) {
+  printf("[UNIMPLEMENTED] moveBlockObjects\n");
+  // ASSERT_UNIMPLEMENTED;
+  return 1;
+}
+
 static uint16_t loadLevelGraphics(EMCInterpreter *interp, EMCState *state) {
   const char *file = EMCStateGetDataString(state, EMCStateStackVal(state, 0));
 #if 0  
@@ -1069,7 +1075,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {checkInventoryFull, "checkInventoryFull"},
-    {NULL},
+    {moveBlockObjects},
     {NULL},
     {NULL},
     {NULL},
