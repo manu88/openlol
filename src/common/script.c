@@ -460,8 +460,6 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
   }
 }
 
-void EMCInterpreterUnload(EMCInterpreter *interp) {}
-
 void EMCStateInit(EMCState *scriptState, const INFScript *script) {
   memset(scriptState, 0, sizeof(EMCState));
   scriptState->dataPtr = script;
