@@ -58,6 +58,16 @@ class SHPFileInfo:
             index += 1
 
 
+class ScriptFileInfo:
+    def __init__(self, file: str, pak: str, strings: List[str]):
+        self.file = file
+        self.pak = pak
+        self.strings: List[str] = []
+        for line in strings:
+            _, val = line.split(" '")
+            self.strings.append(val.removesuffix("'"))
+
+
 class VOCFileInfo:
     class VOCBlock:
         def __init__(self):
@@ -294,6 +304,27 @@ class LOL:
             return None
         proc_output = resp.stdout.decode()
         return VOCFileInfo(proc_output.splitlines())
+
+    def get_script_info(self, file: str, pak: str, out_file: str) -> Optional[ScriptFileInfo]:
+        if not self._get_script_asm(file, pak, out_file):
+            return None
+        strings = self._get_script_strings(file, pak)
+        if strings is None:
+            return None
+        return ScriptFileInfo(file, pak, strings=strings)
+
+    def _get_script_strings(self, file: str, pak: str) -> Optional[List[str]]:
+        argv = [self.tool_path, "-p", pak, "script", "strings", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return proc_output.splitlines()
+
+    def _get_script_asm(self, file: str, pak: str, out_file: str) -> bool:
+        argv = [self.tool_path, "-p", pak, "script", "disasm", file, out_file]
+        resp = _do_exec(argv)
+        return resp.returncode == 0
 
 
 lol = LOL()

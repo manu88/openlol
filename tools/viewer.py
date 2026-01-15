@@ -82,6 +82,7 @@ class BaseRender(tk.Frame):
     def update_for_item(self, file_name: str, pak_name: str):
         pass
 
+
 class VCNRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
@@ -95,6 +96,7 @@ class VCNRender(BaseRender):
             img = PIL.ImageTk.PhotoImage(img_data)
             self.img_label.configure(image=img)
             self.img_label.image = img
+
 
 class CPSRender(BaseRender):
     def __init__(self, parent):
@@ -336,6 +338,24 @@ class SHPRender(BaseRender):
                 "", "end", text=f"{frame_id}", values=(frame.width, frame.height))
 
 
+class ScriptRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.text_doc = tk.Text(self)
+        self.text_doc.pack(fill=tk.BOTH, expand=True)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        out_file = lol.get_temp_path_for("script.asm")
+        self.text_doc.delete("1.0", tk.END)
+        script_info = lol.get_script_info(file_name, pak_name, out_file)
+        print(out_file)
+        acc = 1
+        with open(out_file, "r", encoding="utf8") as f:
+            for l in f.readlines():
+                self.text_doc.insert(f"{acc}.0", l)
+                acc += 1
+
+
 class UI:
     def __init__(self):
         self.root = tk.Tk()
@@ -372,6 +392,8 @@ class UI:
         self._register_renderer("LANG", LANGRender)
         self._register_renderer("VOC", VOCRender)
         self._register_renderer("VCN", VCNRender)
+        self._register_renderer("INI", ScriptRender)
+        self._register_renderer("INF", ScriptRender)
 
     def _register_renderer(self, name: str, cls):
         self.renders[name] = cls(self.details_frame)
