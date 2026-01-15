@@ -155,7 +155,7 @@ static int cmdVMP(int argc, char *argv[]) {
 }
 
 static void usageScript(void) {
-  printf("script subcommands: strings|test|offsets|disasm [filepath]\n");
+  printf("script subcommands: strings|offsets|disasm [infile] [outfile] \n");
 }
 
 static int cmdScriptStrings(const char *filepath) {
@@ -172,7 +172,6 @@ static int cmdScriptStrings(const char *filepath) {
     return 1;
   }
 
-  printf("got %i strings\n", script.numTextStrings);
   for (int i = 0; i < script.numTextStrings; i++) {
     printf("%i '%s'\n", i, INFScriptGetDataString(&script, i));
   }
@@ -209,7 +208,7 @@ static int cmdScriptOffsets(const char *filepath) {
   return 0;
 }
 
-static int cmdScriptDisasm(const char *filepath, int functionNum) {
+static int cmdScriptDisasm(const char *filepath, const char *outFile) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -228,9 +227,6 @@ static int cmdScriptDisasm(const char *filepath, int functionNum) {
   EMCState state = {0};
   EMCStateInit(&state, &script);
   EMCStateSetOffset(&state, 0);
-  if (functionNum >= 0) {
-    EMCStateStart(&state, functionNum);
-  }
 
   int n = 0;
   while (EMCInterpreterIsValid(&interp, &state)) {
@@ -240,53 +236,14 @@ static int cmdScriptDisasm(const char *filepath, int functionNum) {
     n++;
   }
 
-  printf("%s\n", disassembler.disasmBuffer);
+  FILE *file = fopen(outFile, "w");
+  if (file) {
+    fprintf(file, "%s\n", disassembler.disasmBuffer);
+    fclose(file);
+  }
+
   EMCDisassemblerRelease(&disassembler);
   printf("Exec'ed %i / %i instructions\n", n, script.scriptDataSize);
-  if (freeBuffer) {
-    free(iffData);
-  }
-  return 0;
-}
-
-static int cmdScriptTest(const char *filepath, int functionNum) {
-  size_t dataSize = 0;
-  int freeBuffer = 0;
-  uint8_t *iffData = getFileContent(filepath, &dataSize, &freeBuffer);
-
-  INFScript script = {0};
-  if (!INFScriptFromBuffer(&script, iffData, dataSize)) {
-    printf("INFScriptFromBuffer error\n");
-    if (freeBuffer) {
-      free(iffData);
-    }
-    return 1;
-  }
-
-  EMCInterpreter interp = {0};
-  EMCState state = {0};
-  EMCStateInit(&state, &script);
-  if (functionNum != -1) {
-    EMCStateStart(&state, functionNum);
-  } else {
-    state.ip = script.scriptData;
-  }
-  int n = 0;
-
-  state.regs[0] = -1; // flags
-  state.regs[1] = -1; // charnum
-  state.regs[2] = 0;  // item
-  state.regs[3] = 0;
-  state.regs[4] = 0;
-  state.regs[5] = functionNum;
-
-  while (EMCInterpreterIsValid(&interp, &state)) {
-    if (EMCInterpreterRun(&interp, &state) == 0) {
-      printf("EMCInterpreterRun returned 0\n");
-    }
-    n++;
-  }
-  printf("Exec'ed %i instructions\n", n);
   if (freeBuffer) {
     free(iffData);
   }
@@ -298,16 +255,14 @@ static int cmdScript(int argc, char *argv[]) {
     usageScript();
     return 1;
   }
-  if (strcmp(argv[0], "test") == 0) {
-    if (argc < 3) {
-      printf("missing functionid\n");
-      return 1;
-    }
-    return cmdScriptTest(argv[1], atoi(argv[2]));
-  } else if (strcmp(argv[0], "offsets") == 0) {
+  if (strcmp(argv[0], "offsets") == 0) {
     return cmdScriptOffsets(argv[1]);
   } else if (strcmp(argv[0], "disasm") == 0) {
-    return cmdScriptDisasm(argv[1], argc >= 3 ? atoi(argv[2]) : -1);
+    if (argc < 3) {
+      usageScript();
+      return 1;
+    }
+    return cmdScriptDisasm(argv[1], argv[2]);
   } else if (strcmp(argv[0], "strings") == 0) {
     return cmdScriptStrings(argv[1]);
   }
