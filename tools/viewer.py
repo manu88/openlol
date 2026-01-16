@@ -8,6 +8,7 @@ from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
 from lol import lol, SHPFileInfo, WSAFileInfo
+from script_tools import analyze_script
 
 pak_files: Dict[str, str] = {}
 
@@ -341,19 +342,31 @@ class SHPRender(BaseRender):
 class ScriptRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
-        self.text_doc = tk.Text(self)
-        self.text_doc.pack(fill=tk.BOTH, expand=True)
+        self.original_asm = tk.Text(self)
+        self.original_asm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.analysis_code = tk.Text(self)
+        self.analysis_code.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
     def update_for_item(self, file_name: str, pak_name: str):
         out_file = lol.get_temp_path_for("script.asm")
-        self.text_doc.delete("1.0", tk.END)
+        self.original_asm.delete("1.0", tk.END)
         script_info = lol.get_script_info(file_name, pak_name, out_file)
         print(out_file)
-        acc = 1
+
         with open(out_file, "r", encoding="utf8") as f:
-            for l in f.readlines():
-                self.text_doc.insert(f"{acc}.0", l)
+            lines = f.readlines()
+
+            acc = 1
+            for l in lines:
+                self.original_asm.insert(f"{acc}.0", f"{acc}: {l}")
                 acc += 1
+
+            analysis = analyze_script(lines, script_info)
+            if analysis:
+                acc = 1
+                for l in analysis:
+                    self.analysis_code.insert(f"{acc}.0", f"{acc}: {l}")
+                    acc += 1
 
 
 class UI:

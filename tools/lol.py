@@ -59,9 +59,7 @@ class SHPFileInfo:
 
 
 class ScriptFileInfo:
-    def __init__(self, file: str, pak: str, strings: List[str]):
-        self.file = file
-        self.pak = pak
+    def __init__(self, strings: List[str]):
         self.strings: List[str] = []
         for line in strings:
             _, val = line.split(" '")
@@ -311,7 +309,7 @@ class LOL:
         strings = self._get_script_strings(file, pak)
         if strings is None:
             return None
-        return ScriptFileInfo(file, pak, strings=strings)
+        return ScriptFileInfo(strings)
 
     def _get_script_strings(self, file: str, pak: str) -> Optional[List[str]]:
         argv = [self.tool_path, "-p", pak, "script", "strings", file]
