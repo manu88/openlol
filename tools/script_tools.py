@@ -5,7 +5,7 @@ from lol import ScriptFileInfo
 
 
 class ParamType(IntEnum):
-    VALUE = 0
+    NUMBER = 0
     STRING = 1
 
 
@@ -21,45 +21,51 @@ builtins = {
     "loadBlockProperties": BuiltinFunc([("file", ParamType.STRING)]),
     "loadLangFile": BuiltinFunc([("file", ParamType.STRING)]),
     "loadLevelShapes": BuiltinFunc([("shp", ParamType.STRING), ("datFile", ParamType.STRING)]),
+    "loadBitmap": BuiltinFunc([("file", ParamType.STRING), ("param", ParamType.NUMBER)]),
 }
 
 
 def get_push_value(line: str) -> int:
     tokens = line.split(" ")
-    assert (tokens[0] == "PUSH")
+    if tokens[0] != "PUSH":
+        print(f"expected PUSH, got {line}")
+        return 0
     value = tokens[1]
     return int(value, 16)
 
 
-def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: List[str]) -> str:
+def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: List[str]) -> Optional[str]:
     tokens = line.split(" ")
     mnemonic = tokens[0]
     params = tokens[1:]
     if mnemonic == "CALL":
         func_name = params[0]
         if func_name not in builtins:
-            return line
+            return None
         func = builtins[func_name]
         if not func.has_params():
-            return line
+            return None
         new_line = line
         for param_i, (param_name, param_type) in enumerate(func.params):
-            print(param_type)
+            new_line = new_line.rstrip() + " args: "
             value = get_push_value(lines[line_num-param_i-1])
             if param_type == ParamType.STRING:
                 val = script_info.strings[value]
-                print(val)
-                new_line = f"{new_line.rstrip()} args: {param_i}({param_name}):{val}"
-        print(f"returned line :'{new_line}'")
+                new_line += f"{param_i}({param_name}):{val}"
+            elif param_type == ParamType.NUMBER:
+                new_line += f"{param_i}({param_name}):{value}"
         return new_line
-    return line
+    return None
 
 
 def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[List[str]]:
     ret: List[str] = []
     for i, line in enumerate(lines):
         new_line = analyze_line(line, script_info, i, lines)
-        ret.append(new_line + "\n")
+        if new_line:
+            ret.append(new_line + "\n")
+        else:
+            ret.append(line)
     return ret
 
 
