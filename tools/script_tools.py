@@ -70,7 +70,70 @@ def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[Li
     return ret
 
 
+tok_op_codes = [
+    "CALL",
+    "PUSH",
+    "GOTO",
+    "PUSHARG",
+    "POPRC",
+    "STACKRWD",
+    "POPLOCVAR",
+    "PUSHRC",
+    "STACKRWD",
+    "STACKFWD",
+    "PUSHLOCVAR",
+    "PUSHVAR",
+    "POP",
+]
+
+tok_ctl_flow = [
+    "JUMP",
+    "IFNOTGO",
+    "IF",
+]
+
+tok_maths = [
+    "INF",
+    "INFEQ",
+    "OR",
+    "AND",
+    "EQUAL",
+    "SUP",
+    "ADD",
+]
+
+
 class CodeViewer(tk.Text):
+    def set_lines(self, lines: List[str]):
+        acc = 1
+        for l in lines:
+            self.insert(f"{acc}.0", f"{acc:02}: {l}")
+            acc += 1
+        self.highlight_syntax()
+
+    def _highlight(self, token: str, txt_color: str = "", back_col: str = ""):
+        idx = '1.0'
+        tag_name = token
+        while 1:
+            idx = self.search(token, idx, nocase=0,
+                              stopindex=tk.END, exact=True)
+            if not idx:
+                break
+            lastidx = '%s+%dc' % (idx, len(token))
+
+            self.tag_add(tag_name, idx, lastidx)
+            idx = lastidx
+        self.tag_config(tag_name, foreground=txt_color, background=back_col)
+
+    def highlight_syntax(self):
+        for tok in tok_op_codes:
+            self._highlight(tok + " ", "green")
+        for tok in tok_ctl_flow:
+            self._highlight(tok + " ", "lightblue")
+        for tok in tok_maths:
+            self._highlight(tok + " ", "red")
+        self._highlight("LABEL ", back_col="red")
+
     def find(self, text: str):
         self.tag_remove('found', '1.0', tk.END)
         # ser = modify.get()

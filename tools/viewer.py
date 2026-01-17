@@ -368,21 +368,13 @@ class ScriptRender(BaseRender):
         out_file = lol.get_temp_path_for("script.asm")
         self.original_asm.delete("1.0", tk.END)
         script_info = lol.get_script_info(file_name, pak_name, out_file)
-        print(out_file)
 
         with open(out_file, "r", encoding="utf8") as f:
             lines = f.readlines()
-            acc = 1
-            for l in lines:
-                self.original_asm.insert(f"{acc}.0", f"{acc}: {l}")
-                acc += 1
-
+            self.original_asm.set_lines(lines)
             analysis = analyze_script(lines, script_info)
             if analysis:
-                acc = 1
-                for l in analysis:
-                    self.analysis_code.insert(f"{acc}.0", f"{acc}: {l}")
-                    acc += 1
+                self.analysis_code.set_lines(analysis)
 
 
 class UI:
