@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 from enum import IntEnum
 import sys
 from lol import ScriptFileInfo
+import tkinter as tk
 
 
 class ParamType(IntEnum):
@@ -67,6 +68,10 @@ def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[Li
         else:
             ret.append(line)
     return ret
+
+
+class CodeViewer(tk.Text):
+    pass
 
 
 if __name__ == "__main__":

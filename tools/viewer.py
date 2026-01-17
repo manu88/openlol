@@ -8,7 +8,7 @@ from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
 from lol import lol, SHPFileInfo, WSAFileInfo
-from script_tools import analyze_script
+from script_tools import analyze_script, CodeViewer
 
 pak_files: Dict[str, str] = {}
 
@@ -342,9 +342,9 @@ class SHPRender(BaseRender):
 class ScriptRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
-        self.original_asm = tk.Text(self)
+        self.original_asm = CodeViewer(self)
         self.original_asm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.analysis_code = tk.Text(self)
+        self.analysis_code = CodeViewer(self)
         self.analysis_code.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
     def update_for_item(self, file_name: str, pak_name: str):
