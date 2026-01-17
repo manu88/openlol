@@ -342,10 +342,27 @@ class SHPRender(BaseRender):
 class ScriptRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
+        top_tool_bar = tk.Frame(self)
+        tk.Label(top_tool_bar, text='Find:').pack(side=tk.LEFT)
+        self.modify = tk.Entry(top_tool_bar)
+        self.modify.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+        buttn = tk.Button(top_tool_bar, text='Find')
+        buttn.pack(side=tk.RIGHT)
+        top_tool_bar.pack(side=tk.TOP)
+
+        buttn.config(command=self.find)
+        self.modify.bind("<Return>", self.find)
+
         self.original_asm = CodeViewer(self)
         self.original_asm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.analysis_code = CodeViewer(self)
         self.analysis_code.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+    def find(self, event=None):
+        if ser := self.modify.get():
+            self.analysis_code.find(ser)
+            self.original_asm.find(ser)
 
     def update_for_item(self, file_name: str, pak_name: str):
         out_file = lol.get_temp_path_for("script.asm")
@@ -355,7 +372,6 @@ class ScriptRender(BaseRender):
 
         with open(out_file, "r", encoding="utf8") as f:
             lines = f.readlines()
-
             acc = 1
             for l in lines:
                 self.original_asm.insert(f"{acc}.0", f"{acc}: {l}")

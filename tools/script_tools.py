@@ -71,7 +71,19 @@ def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[Li
 
 
 class CodeViewer(tk.Text):
-    pass
+    def find(self, text: str):
+        self.tag_remove('found', '1.0', tk.END)
+        # ser = modify.get()
+        idx = '1.0'
+        while 1:
+            idx = self.search(text, idx, nocase=1, stopindex=tk.END)
+            if not idx:
+                break
+            lastidx = '%s+%dc' % (idx, len(text))
+
+            self.tag_add('found', idx, lastidx)
+            idx = lastidx
+        self.tag_config('found', foreground='yellow')
 
 
 if __name__ == "__main__":
