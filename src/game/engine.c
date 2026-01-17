@@ -1,6 +1,18 @@
 #include "engine.h"
+#include "game_envir.h"
+#include <string.h>
 
-int GameEngineInit(GameEngine *engine) { return 1; }
+int GameEngineInit(GameEngine *engine) {
+  memset(engine, 0, sizeof(GameEngine));
+  GameFile f = {0};
+  assert(GameEnvironmentGetStartupFile(&f, "ITEM.INF"));
+  if (INFScriptFromBuffer(&engine->itemScript, f.buffer, f.bufferSize) == 0) {
+    printf("unable to get ITEMS.INF\n");
+    assert(0);
+  }
+
+  return 1;
+}
 
 void GameEngineRelease(GameEngine *engine) {}
 

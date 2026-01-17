@@ -134,15 +134,6 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
       assert(0);
     }
   }
-  {
-    GameFile f = {0};
-    assert(GameEnvironmentGetStartupFile(&f, "ITEM.INF"));
-    if (INFScriptFromBuffer(&gameCtx->itemScript, f.buffer, f.bufferSize) ==
-        0) {
-      printf("unable to get ITEMS.INF\n");
-      assert(0);
-    }
-  }
 
   assert(GameEnvironmentLoadPak(&gameCtx->defaultTlkFile, "00.TLK"));
   assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
@@ -353,22 +344,11 @@ int GameContextRunScript(GameContext *gameCtx, int function) {
   return 1;
 }
 
-int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
-                             uint16_t itemId, uint16_t flags, uint16_t next,
-                             uint16_t reg4) {
-  uint8_t func = 3;
-  if (itemId) {
-    func =
-        gameCtx->itemProperties[gameCtx->itemsInGame[itemId].itemPropertyIndex]
-            .scriptFun;
-  }
-  printf("func=%X\n", func);
-  if (func == 0xFF) {
-    return 0;
-  }
-
+static int runItemFunc(GameContext *gameCtx, uint8_t func, uint16_t charId,
+                       uint16_t itemId, uint16_t flags, uint16_t next,
+                       uint16_t reg4) {
   EMCState state = {0};
-  EMCStateInit(&state, &gameCtx->itemScript);
+  EMCStateInit(&state, &gameCtx->engine->itemScript);
   if (!EMCStateStart(&state, func)) {
     printf("EMCStateStart error\n");
     return 0;
@@ -384,6 +364,23 @@ int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
     EMCInterpreterRun(&gameCtx->interp, &state);
   }
   return 1;
+}
+
+int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
+                             uint16_t itemId, uint16_t flags, uint16_t next,
+                             uint16_t reg4) {
+  uint8_t func = 3;
+  if (itemId) {
+    func =
+        gameCtx->itemProperties[gameCtx->itemsInGame[itemId].itemPropertyIndex]
+            .scriptFun;
+  }
+  printf("func=%X\n", func);
+  if (func == 0xFF) {
+    return 0;
+  }
+
+  return runItemFunc(gameCtx, func, charId, itemId, flags, next, reg4);
 }
 
 void GameContextSetState(GameContext *gameCtx, GameState newState) {

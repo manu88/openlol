@@ -83,8 +83,6 @@ typedef struct _GameContext {
   uint16_t credits;
 
   INFScript script;
-  INFScript itemScript;
-
   uint16_t nextFunc;
 
   EMCInterpreter interp;

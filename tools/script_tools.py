@@ -110,6 +110,7 @@ class CodeViewer(tk.Text):
             self.insert(f"{acc}.0", f"{acc:02}: {l}")
             acc += 1
         self.highlight_syntax()
+        self.config(state=tk.DISABLED)
 
     def _highlight(self, token: str, txt_color: str = "", back_col: str = ""):
         idx = '1.0'
