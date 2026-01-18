@@ -1,17 +1,24 @@
 from typing import List, Optional, Tuple
-from enum import IntEnum
 import sys
 from lol import ScriptFileInfo
 import tkinter as tk
 
 
-class ParamType(IntEnum):
-    NUMBER = 0
-    STRING = 1
+class Param:
+    def __init__(self, name: str):
+        self.name = name
 
 
-class BuiltinFunc:
-    def __init__(self, params: List[Tuple[str, ParamType]]):
+class PStr(Param):
+    pass
+
+
+class PNum(Param):
+    pass
+
+
+class Func:
+    def __init__(self, params: List[Param]):
         self.params = params
 
     def has_params(self) -> bool:
@@ -19,10 +26,13 @@ class BuiltinFunc:
 
 
 builtins = {
-    "loadBlockProperties": BuiltinFunc([("file", ParamType.STRING)]),
-    "loadLangFile": BuiltinFunc([("file", ParamType.STRING)]),
-    "loadLevelShapes": BuiltinFunc([("shp", ParamType.STRING), ("datFile", ParamType.STRING)]),
-    "loadBitmap": BuiltinFunc([("file", ParamType.STRING), ("param", ParamType.NUMBER)]),
+    "loadBlockProperties": Func([PStr("file")]),
+    "loadLangFile": Func([PStr("file")]),
+    "loadLevelShapes": Func([PStr("shp"), PStr("datFile")]),
+    "loadBitmap": Func([PStr("file"), PNum("param")]),
+    "loadMonsterShapes": Func([PStr("file"), PNum("monsterId"), PNum("p2")]),
+    "loadTimScript": Func([PStr("scriptId"), PStr("stringId")]),
+    "initAnimStruct": Func([PStr("file"), PNum("index"), PNum("x"), PNum("y"), PNum("offscreenBuffer"), PNum("wsaFlags")]),
 }
 
 
@@ -47,14 +57,16 @@ def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: L
         if not func.has_params():
             return None
         new_line = line
-        for param_i, (param_name, param_type) in enumerate(func.params):
+        for param_i, param in enumerate(func.params):
             new_line = new_line.rstrip() + " args: "
             value = get_push_value(lines[line_num-param_i-1])
-            if param_type == ParamType.STRING:
+            if isinstance(param, PStr):
                 val = script_info.strings[value]
-                new_line += f"{param_i}({param_name}):{val}"
-            elif param_type == ParamType.NUMBER:
-                new_line += f"{param_i}({param_name}):{value}"
+                new_line += f"{param_i}({param.name}):{val}"
+            elif isinstance(param, PNum):
+                new_line += f"{param_i}({param.name}):{value}"
+            else:
+                assert (0)
         return new_line
     return None
 
@@ -92,15 +104,20 @@ tok_ctl_flow = [
     "IF",
 ]
 
-tok_maths = [
+tok_maths = {
     "INF",
     "INFEQ",
     "OR",
     "AND",
     "EQUAL",
+    "NEQUAL",
     "SUP",
     "ADD",
-]
+    "LAND",
+    "LOR",
+    "MULTIPLY",
+    "MINUS",
+}
 
 
 class CodeViewer(tk.Text):
