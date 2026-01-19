@@ -287,8 +287,8 @@ static uint16_t setGameFlag(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t testGameFlag(EMCInterpreter *interp, EMCState *state) {
-  uint16_t p = EMCStateStackVal(state, 0);
-  return interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, p);
+  uint16_t flag = EMCStateStackVal(state, 0);
+  return interp->callbacks.EMCInterpreterCallbacks_TestGameFlag(interp, flag);
 }
 
 static uint16_t getGlobalVar(EMCInterpreter *interp, EMCState *state) {
@@ -1054,7 +1054,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {drawExitButton, "drawExitButton"},
-    {loadMusicTrack, "loadSoundFile"},
+    {loadMusicTrack, "loadMusicTrack"},
     {playMusicTrack, "playMusicTrack"},
     {NULL},
     {countBlockItems, "countBlockItems"},
