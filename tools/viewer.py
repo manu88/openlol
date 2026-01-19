@@ -343,26 +343,33 @@ class ScriptRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
         top_tool_bar = tk.Frame(self)
-        tk.Label(top_tool_bar, text='Find:').pack(side=tk.LEFT)
-        self.modify = tk.Entry(top_tool_bar)
-        self.modify.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+        self.find_field = tk.Entry(top_tool_bar)
+        self.find_field.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 
-        buttn = tk.Button(top_tool_bar, text='Find')
-        buttn.pack(side=tk.RIGHT)
+        find_button = tk.Button(top_tool_bar, text='Find')
+        find_button.config(command=self.find)
+        find_button.pack(side=tk.LEFT)
+
+        self.found_lbl_var = tk.StringVar()
+        self.find_label = tk.Label(
+            top_tool_bar, textvariable=self.found_lbl_var)
+        self.find_label.pack(side=tk.RIGHT)
+
         top_tool_bar.pack(side=tk.TOP)
-
-        buttn.config(command=self.find)
-        self.modify.bind("<Return>", self.find)
+        self.find_field.bind("<Return>", self.find)
 
         self.original_asm = CodeViewer(self)
         self.original_asm.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.analysis_code = CodeViewer(self)
         self.analysis_code.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-    def find(self, event=None):
-        if ser := self.modify.get():
-            self.analysis_code.find(ser)
-            self.original_asm.find(ser)
+    def find(self, _=None):
+        if to_search := self.find_field.get():
+            count1 = self.analysis_code.find(to_search)
+            count2 = self.original_asm.find(to_search)
+            count = max(count1, count2)
+            self.found_lbl_var.set(
+                f"{count} result{"s" if count != 1 else ""}")
 
     def update_for_item(self, file_name: str, pak_name: str):
         out_file = lol.get_temp_path_for("script.asm")

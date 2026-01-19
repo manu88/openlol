@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional
 import sys
 from lol import ScriptFileInfo
 import tkinter as tk
@@ -33,6 +33,10 @@ builtins = {
     "loadMonsterShapes": Func([PStr("file"), PNum("monsterId"), PNum("p2")]),
     "loadTimScript": Func([PStr("scriptId"), PStr("stringId")]),
     "initAnimStruct": Func([PStr("file"), PNum("index"), PNum("x"), PNum("y"), PNum("offscreenBuffer"), PNum("wsaFlags")]),
+    "checkRectForMousePointer": Func([PNum("xMin"), PNum("yMin"), PNum("xMax"), PNum("yMax")]),
+    "setGameFlag": Func([PNum("flag"), PNum("val")]),
+    "testGameFlag": Func([PNum("flag")]),
+    "loadMusicTrack": Func([PNum("file")]),
 }
 
 
@@ -117,6 +121,7 @@ tok_maths = {
     "LOR",
     "MULTIPLY",
     "MINUS",
+    "LSHIFT",
 }
 
 
@@ -156,6 +161,7 @@ class CodeViewer(tk.Text):
         self.tag_remove('found', '1.0', tk.END)
         # ser = modify.get()
         idx = '1.0'
+        count = 0
         while 1:
             idx = self.search(text, idx, nocase=1, stopindex=tk.END)
             if not idx:
@@ -164,12 +170,14 @@ class CodeViewer(tk.Text):
 
             self.tag_add('found', idx, lastidx)
             idx = lastidx
+            count += 1
         self.tag_config('found', foreground='yellow')
+        return count
 
 
 if __name__ == "__main__":
-    with open(sys.argv[1], "r", encoding="utf8") as f:
-        lines = f.readlines()
+    with open(sys.argv[1], "r", encoding="utf8") as f_in:
+        lines = f_in.readlines()
         info = ScriptFileInfo([])
         info.strings = [
             'KEEP',
@@ -185,3 +193,5 @@ if __name__ == "__main__":
 
         ]
         ret = analyze_script(lines, info)
+        with open("out.asm", "w", encoding="utf8") as f_out:
+            f_out.writelines(ret)
