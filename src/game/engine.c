@@ -7,7 +7,7 @@ int GameEngineInit(GameEngine *engine) {
   GameFile f = {0};
   assert(GameEnvironmentGetStartupFile(&f, "ITEM.INF"));
   if (INFScriptFromBuffer(&engine->itemScript, f.buffer, f.bufferSize) == 0) {
-    printf("unable to get ITEMS.INF\n");
+    printf("unable to get ITEM.INF\n");
     assert(0);
   }
 

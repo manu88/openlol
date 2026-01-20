@@ -193,7 +193,6 @@ int GameContextAddItemToInventory(GameContext *ctx, uint16_t itemId) {
 static int runScript(GameContext *gameCtx, INFScript *script) {
   EMCState state = {0};
   EMCStateInit(&state, script);
-  EMCStateSetOffset(&state, 0);
   EMCStateStart(&state, 0);
   while (EMCInterpreterIsValid(&gameCtx->interp, &state)) {
     EMCInterpreterRun(&gameCtx->interp, &state);
@@ -334,7 +333,6 @@ int GameContextRunLevelInitScript(GameContext *gameCtx) {
 
 int GameContextRunScript(GameContext *gameCtx, int function) {
   EMCStateInit(&gameCtx->interpState, &gameCtx->script);
-  EMCStateSetOffset(&gameCtx->interpState, 0);
   if (function > 0) {
     if (!EMCStateStart(&gameCtx->interpState, function)) {
       printf("EMCInterpreterStart: invalid\n");

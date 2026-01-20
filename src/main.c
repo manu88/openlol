@@ -199,7 +199,7 @@ static int cmdScriptOffsets(const char *filepath) {
   for (int i = 0; i < INFScriptGetNumFunctions(&script); i++) {
     int offset = INFScriptGetFunctionOffset(&script, i);
     if (offset != -1) {
-      printf("0X%X %i %X\n", i, i, offset);
+      printf("0X%X %X\n", i, offset);
     }
   }
   if (freeBuffer) {
@@ -226,7 +226,6 @@ static int cmdScriptDisasm(const char *filepath, const char *outFile) {
   disassembler.showDisamComment = 1;
   EMCState state = {0};
   EMCStateInit(&state, &script);
-  EMCStateSetOffset(&state, 0);
 
   int n = 0;
   while (EMCInterpreterIsValid(&interp, &state)) {

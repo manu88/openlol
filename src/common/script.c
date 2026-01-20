@@ -38,9 +38,9 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
                        uint16_t opCode, uint16_t parameter,
                        uint32_t instOffset) {
   if (interp->disassembler) {
-    int offsetIndex = INFScriptIsOffset(script->dataPtr, instOffset + 1);
+    int offsetIndex = INFScriptIsOffset(script->dataPtr, instOffset);
     if (offsetIndex != -1) {
-      EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s %i",
+      EMCDisassemblerEmitLine(interp->disassembler, instOffset, "%s 0X%X",
                               MNEMONIC_LABEL_OFFSET, offsetIndex);
     }
   }
@@ -142,7 +142,6 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
         Log("SCRIPT", "POPRET");
         script->retValue = StackPop(script);
         break;
-
       case 1:
         Log("SCRIPT", "POPLOC");
         if (script->sp >= STACK_LAST_ENTRY) {
@@ -460,6 +459,11 @@ static void execOpCode(EMCInterpreter *interp, EMCState *script,
   }
 }
 
+static int setOffset(EMCState *script, uint16_t offset) {
+  script->ip = script->dataPtr->scriptData + offset;
+  return 1;
+}
+
 void EMCStateInit(EMCState *scriptState, const INFScript *script) {
   memset(scriptState, 0, sizeof(EMCState));
   scriptState->dataPtr = script;
@@ -467,12 +471,7 @@ void EMCStateInit(EMCState *scriptState, const INFScript *script) {
   scriptState->stack[STACK_LAST_ENTRY] = 0;
   scriptState->bp = STACK_SIZE + 1;
   scriptState->sp = STACK_LAST_ENTRY;
-  EMCStateSetOffset(scriptState, 0);
-}
-
-int EMCStateSetOffset(EMCState *script, uint16_t offset) {
-  script->ip = script->dataPtr->scriptData + offset;
-  return 1;
+  setOffset(scriptState, 0);
 }
 
 int EMCStateStart(EMCState *state, int function) {
@@ -495,7 +494,7 @@ int EMCStateStart(EMCState *state, int function) {
            (int)state->dataPtr->scriptDataSize / 2);
     return 0;
   }
-  return EMCStateSetOffset(state, functionOffset);
+  return setOffset(state, functionOffset);
 }
 
 int EMCInterpreterIsValid(EMCInterpreter *interp, EMCState *state) {
