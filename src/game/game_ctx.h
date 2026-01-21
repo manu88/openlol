@@ -131,7 +131,6 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum);
 void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
                                 const char *datFile);
 int GameContextLoadChars(GameContext *ctx);
-int GameContextRunLevelInitScript(GameContext *gameCtx);
 int GameContextRunScript(GameContext *gameCtx, int function);
 int GameContextRunItemScript(GameContext *gameCtx, uint16_t charId,
                              uint16_t itemId, uint16_t flags, uint16_t next,

@@ -303,9 +303,6 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     GameContextLoadTLKFile(ctx, levelNum);
   }
 
-  printf("->Run LEVEL INIT SCRIPT\n");
-  GameContextRunLevelInitScript(ctx);
-  printf("<-Done LEVEL INIT SCRIPT\n");
   return 1;
 }
 
@@ -325,10 +322,6 @@ int GameContextLoadChars(GameContext *gameCtx) {
                                   f.bufferSize);
   }
   return 1;
-}
-
-int GameContextRunLevelInitScript(GameContext *gameCtx) {
-  return GameContextRunScript(gameCtx, -1);
 }
 
 int GameContextRunScript(GameContext *gameCtx, int function) {
