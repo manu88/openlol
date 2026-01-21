@@ -43,69 +43,124 @@ builtins = {
     "setGlobalVar": Func([PNum("how"), PNum("a"), PNum("b")]),
     "testGameFlag": Func([PNum("flag")]),
     "loadMusicTrack": Func([PNum("file")]),
-    "playDialogueTalkText": Func([PStrId("stringId")])
+    "playDialogueTalkText": Func([PStrId("stringId")]),
+    "stopTimScript": Func([PNum("scriptId")]),
+    "runTimScript": Func([PNum("scriptId"), PNum("loop")]),
+    "clearDialogueField": Func([]),
 }
 
 
-def get_push_value(line: str) -> int:
-    tokens = line.split(" ")
-    if tokens[0] != "PUSH":
-        print(f"expected PUSH, got {line}")
-        return 0
-    value = tokens[1]
-    return int(value, 16)
+class Value:
+    def __init__(self, val: int, is_arg=False, is_ret_code=False, ret_func: str = ""):
+        self.val = val
+        self.is_arg = is_arg
+        self.is_ret_code = is_ret_code
+        self.ret_func = ret_func
+
+    def get(self) -> str:
+        if self.is_arg:
+            return f"arg{self.val}"
+        if self.is_ret_code:
+            return f"retCode({self.ret_func})"
+        return hex(int(self.val))
 
 
 class ScriptAnalyzer:
     def __init__(self, lines: List[str], script_info: ScriptFileInfo):
         self.lines = lines
         self.script_info = script_info
+        self.new_lines: List[str] = []
+        self.last_call_func = ""
 
-    def analyse_call(self, params: List[str], line: str,  line_num: int):
+    def get_push_value(self, line: str) -> Value:
+        tokens = line.split(" ")
+        if tokens[0] == "PUSH":
+            value = tokens[1]
+            return Value(int(value, 16))
+        if tokens[0] == "PUSHARG":
+            value = tokens[1]
+            return Value(int(value, 16), is_arg=True)
+        if tokens[0] == "PUSHRC":
+            return Value(0, is_ret_code=True, ret_func=self.last_call_func)
+        print(f"unhandled {tokens[0]}")
+        assert False
+
+    def analyse_label(self, params: List[str], line: str,  line_num: int) -> Optional[str]:
+        next_line = self.lines[line_num+1]
+        tokens = next_line.split(" ")
+        if tokens[0] != "JUMP":
+            print(f"LABEL: expected JUMP at Line {line_num}")
+        return line
+
+    def simplify_math(self, line: str, line_num: int) -> Optional[str]:
+        tokens = line.split(" ")
+        val1 = self.get_push_value(self.lines[line_num-1])
+        val2 = self.get_push_value(self.lines[line_num-2])
+        self.new_lines.pop()
+        self.new_lines.pop()
+        return f"{val1.get()} {tokens[0]} {val2.get()}"
+
+    def analyse_call(self, params: List[str], line: str,  line_num: int) -> Optional[str]:
         func_name = params[0]
+
         if func_name not in builtins:
             return None
+
         func = builtins[func_name]
         if not func.has_params():
             return None
+
+        next_line = self.lines[line_num+1]
+        if next_line.split(" ")[0] != "STACKRWD":
+            print(f"CALL: unexpected mnemonic at {line_num}")
+            assert 0
+
         new_line = line
         for param_i, param in enumerate(func.params):
             new_line = new_line.rstrip() + " args: "
-            value = get_push_value(self.lines[line_num-param_i-1])
+            value: Value = self.get_push_value(self.lines[line_num-param_i-1])
             if isinstance(param, PStr):
-                val = self.script_info.strings[value]
+                val = self.script_info.strings[int(value.get())]
                 new_line += f"{param_i}({param.name}):{val}"
             elif isinstance(param, PNum):
-                new_line += f"{param_i}({param.name}):{value}"
+                new_line += f"{param_i}({param.name}):{value.get()}"
             elif isinstance(param, PStrId):
-                new_line += f"{param_i}({param.name}):{value}"
+                new_line += f"{param_i}({param.name}):{value.get()}"
             else:
-                assert (0)
+                assert 0
+        # for param_i, param in enumerate(func.params):
+        #    self.new_lines[line_num-param_i-1] = f"{param.name} = foo\n"
+        self.last_call_func = func_name
         return new_line
 
     def analyze_line(self, line: str, line_num: int) -> Optional[str]:
         tokens = line.split(" ")
         mnemonic = tokens[0]
         params = tokens[1:]
+        if mnemonic in tok_maths:
+            return self.simplify_math(line, line_num)
         if mnemonic == "CALL":
             return self.analyse_call(params, line, line_num)
-
+        if mnemonic == "LABEL":
+            return self.analyse_label(params, line, line_num)
         return None
 
-    def run(self) -> Optional[List[str]]:
-        ret: List[str] = []
+    def run(self):
         for i, line in enumerate(self.lines):
             new_line = self.analyze_line(line,  i)
             if new_line:
-                ret.append(new_line + "\n")
+                self.new_lines.append(new_line + "\n")
             else:
-                ret.append(line)
-        return ret
+                self.new_lines.append(line)
 
 
 def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[List[str]]:
     analyzer = ScriptAnalyzer(lines, script_info)
-    return analyzer.run()
+    try:
+        analyzer.run()
+    except Exception as e:
+        print(e)
+    return analyzer.new_lines
 
 
 tok_op_codes = {
