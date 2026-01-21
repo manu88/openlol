@@ -56,11 +56,12 @@ def get_push_value(line: str) -> int:
     return int(value, 16)
 
 
-def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: List[str]) -> Optional[str]:
-    tokens = line.split(" ")
-    mnemonic = tokens[0]
-    params = tokens[1:]
-    if mnemonic == "CALL":
+class ScriptAnalyzer:
+    def __init__(self, lines: List[str], script_info: ScriptFileInfo):
+        self.lines = lines
+        self.script_info = script_info
+
+    def analyse_call(self, params: List[str], line: str,  line_num: int):
         func_name = params[0]
         if func_name not in builtins:
             return None
@@ -70,9 +71,9 @@ def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: L
         new_line = line
         for param_i, param in enumerate(func.params):
             new_line = new_line.rstrip() + " args: "
-            value = get_push_value(lines[line_num-param_i-1])
+            value = get_push_value(self.lines[line_num-param_i-1])
             if isinstance(param, PStr):
-                val = script_info.strings[value]
+                val = self.script_info.strings[value]
                 new_line += f"{param_i}({param.name}):{val}"
             elif isinstance(param, PNum):
                 new_line += f"{param_i}({param.name}):{value}"
@@ -81,18 +82,30 @@ def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: L
             else:
                 assert (0)
         return new_line
-    return None
+
+    def analyze_line(self, line: str, line_num: int) -> Optional[str]:
+        tokens = line.split(" ")
+        mnemonic = tokens[0]
+        params = tokens[1:]
+        if mnemonic == "CALL":
+            return self.analyse_call(params, line, line_num)
+
+        return None
+
+    def run(self) -> Optional[List[str]]:
+        ret: List[str] = []
+        for i, line in enumerate(self.lines):
+            new_line = self.analyze_line(line,  i)
+            if new_line:
+                ret.append(new_line + "\n")
+            else:
+                ret.append(line)
+        return ret
 
 
 def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[List[str]]:
-    ret: List[str] = []
-    for i, line in enumerate(lines):
-        new_line = analyze_line(line, script_info, i, lines)
-        if new_line:
-            ret.append(new_line + "\n")
-        else:
-            ret.append(line)
-    return ret
+    analyzer = ScriptAnalyzer(lines, script_info)
+    return analyzer.run()
 
 
 tok_op_codes = {
