@@ -169,6 +169,12 @@ void AutomapRender(GameContext *gameCtx) {
                MAP_SCREEN_NAME_X, MAP_SCREEN_NAME_Y, 320 - MAP_SCREEN_NAME_Y,
                c);
 
+  if (gameCtx->conf.debug) {
+
+    snprintf(c, 20, "0X%X 0X%X", gameCtx->currentBock, gameCtx->orientation);
+    UIRenderText(&gameCtx->display->defaultFont, gameCtx->display->pixBuf, 10,
+                 10, 320, c);
+  }
   uint16_t blX = mapGetStartPosX(gameCtx);
   uint16_t bl = (mapGetStartPosY(gameCtx) << 5) + blX;
 

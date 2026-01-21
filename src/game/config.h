@@ -8,6 +8,7 @@
 #define CONF_KEY_AUTOMAP_MOVE "moveInAutomap"
 #define CONF_KEY_NO_CLIP "noClip"
 #define CONF_KEY_AUTOMAP_SHOW_MONSTERS "monstersInAutomap"
+#define CONF_KEY_DEBUG "debug"
 
 typedef struct {
   uint8_t soundVol;
@@ -18,6 +19,7 @@ typedef struct {
   int moveInAutomap; // default 0
   int noClip;
   int showMonstersInMap;
+  int debug;
 } GameConfig;
 
 int GameConfigFromFile(GameConfig *config, const char *filepath);

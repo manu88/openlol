@@ -23,6 +23,7 @@ int GameConfigFromFile(GameConfig *config, const char *filepath) {
       ConfigHandleGetValueFloat(&h, CONF_KEY_NO_CLIP, config->noClip);
   config->showMonstersInMap = ConfigHandleGetValueFloat(
       &h, CONF_KEY_AUTOMAP_SHOW_MONSTERS, config->showMonstersInMap);
+  config->debug = ConfigHandleGetValueFloat(&h, CONF_KEY_DEBUG, config->debug);
   ConfigHandleRelease(&h);
   return 1;
 }
@@ -48,6 +49,9 @@ int GameConfigWriteFile(const GameConfig *config, const char *filepath) {
   }
   if (config->showMonstersInMap) {
     ConfigHandleSetValueInt(&h, CONF_KEY_AUTOMAP_SHOW_MONSTERS, 1);
+  }
+  if (config->debug) {
+    ConfigHandleSetValueInt(&h, CONF_KEY_DEBUG, 1);
   }
   int ret = ConfigHandleWriteFile(&h, filepath);
   ConfigHandleRelease(&h);
