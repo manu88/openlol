@@ -349,6 +349,12 @@ class ScriptRender(BaseRender):
         find_button = tk.Button(top_tool_bar, text='Find')
         find_button.config(command=self.find)
         find_button.pack(side=tk.LEFT)
+        next_button = tk.Button(top_tool_bar, text='next')
+        next_button.config(command=self.find_next)
+        next_button.pack(side=tk.LEFT)
+        self.find_text: str = ""
+        self.find_idx = 0
+        self.find_lines = []
 
         self.found_lbl_var = tk.StringVar()
         self.find_label = tk.Label(
@@ -363,13 +369,35 @@ class ScriptRender(BaseRender):
         self.analysis_code = CodeViewer(self)
         self.analysis_code.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
+    def find_next(self, _=None):
+        if len(self.find_lines) == 0:
+            return
+        self.find_idx += 1
+        if self.find_idx >= len(self.find_lines):
+            self.find_idx = 0
+        self.analysis_code.see(self.find_lines[self.find_idx])
+        self.found_lbl_var.set(
+            f"{self.find_idx} of {len(self.find_lines)} result{"s" if len(self.find_lines) != 1 else ""}")
+
     def find(self, _=None):
         if to_search := self.find_field.get():
-            count1 = self.analysis_code.find(to_search)
-            count2 = self.original_asm.find(to_search)
-            count = max(count1, count2)
+            if to_search == self.find_text:
+                self.find_next()
+                return
+            self.find_text = to_search
+            lines = self.analysis_code.find(to_search)
+            self.original_asm.find(to_search)
             self.found_lbl_var.set(
-                f"{count} result{"s" if count != 1 else ""}")
+                f"{self.find_idx} of {len(lines)} result{"s" if len(lines) != 1 else ""}")
+            self.find_idx = 0
+            self.find_lines = lines
+            if len(lines) > 0:
+                self.analysis_code.see(lines[0])
+        else:
+            self.find_text = ""
+            self.find_idx = 0
+            self.find_lines = []
+            self.found_lbl_var.set("")
 
     def update_for_item(self, file_name: str, pak_name: str):
         out_file = lol.get_temp_path_for("script.asm")

@@ -17,6 +17,11 @@ class PNum(Param):
     pass
 
 
+class PStrId(Param):
+    # PStrId is a stringId from a lang file
+    pass
+
+
 class Func:
     def __init__(self, params: List[Param]):
         self.params = params
@@ -35,8 +40,10 @@ builtins = {
     "initAnimStruct": Func([PStr("file"), PNum("index"), PNum("x"), PNum("y"), PNum("offscreenBuffer"), PNum("wsaFlags")]),
     "checkRectForMousePointer": Func([PNum("xMin"), PNum("yMin"), PNum("xMax"), PNum("yMax")]),
     "setGameFlag": Func([PNum("flag"), PNum("val")]),
+    "setGlobalVar": Func([PNum("how"), PNum("a"), PNum("b")]),
     "testGameFlag": Func([PNum("flag")]),
     "loadMusicTrack": Func([PNum("file")]),
+    "playDialogueTalkText": Func([PStrId("stringId")])
 }
 
 
@@ -69,6 +76,8 @@ def analyze_line(line: str, script_info: ScriptFileInfo, line_num: int, lines: L
                 new_line += f"{param_i}({param.name}):{val}"
             elif isinstance(param, PNum):
                 new_line += f"{param_i}({param.name}):{value}"
+            elif isinstance(param, PStrId):
+                new_line += f"{param_i}({param.name}):{value}"
             else:
                 assert (0)
         return new_line
@@ -86,13 +95,12 @@ def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[Li
     return ret
 
 
-tok_op_codes = [
+tok_op_codes = {
     "CALL",
     "PUSH",
     "GOTO",
     "PUSHARG",
     "POPRC",
-    "STACKRWD",
     "POPLOCVAR",
     "PUSHRC",
     "STACKRWD",
@@ -100,13 +108,15 @@ tok_op_codes = [
     "PUSHLOCVAR",
     "PUSHVAR",
     "POP",
-]
+    "POPPARAM",
+    "UNARY",
+}
 
-tok_ctl_flow = [
+tok_ctl_flow = {
     "JUMP",
     "IFNOTGO",
     "IF",
-]
+}
 
 tok_maths = {
     "INF",
@@ -122,6 +132,8 @@ tok_maths = {
     "MULTIPLY",
     "MINUS",
     "LSHIFT",
+    "XOR",
+    "RSHIFT",
 }
 
 
@@ -157,22 +169,21 @@ class CodeViewer(tk.Text):
             self._highlight(tok + " ", "red")
         self._highlight("LABEL ", back_col="red")
 
-    def find(self, text: str):
+    def find(self, text: str) -> List[str]:
         self.tag_remove('found', '1.0', tk.END)
         # ser = modify.get()
         idx = '1.0'
-        count = 0
+        lines = []
         while 1:
             idx = self.search(text, idx, nocase=1, stopindex=tk.END)
             if not idx:
                 break
             lastidx = '%s+%dc' % (idx, len(text))
-
             self.tag_add('found', idx, lastidx)
+            lines.append(idx)
             idx = lastidx
-            count += 1
         self.tag_config('found', foreground='yellow')
-        return count
+        return lines
 
 
 if __name__ == "__main__":
@@ -180,16 +191,41 @@ if __name__ == "__main__":
         lines = f_in.readlines()
         info = ScriptFileInfo([])
         info.strings = [
-            'KEEP',
-            'LEVEL01',
-            'KEEPDOOR.SHP',
-            'LEVEL1.CMZ',
-            'GUARD.SHP',
-            'KEEP.DAT',
-            'KEEP.SHP',
-            'ORCLDR1',
-            'SWING1',
-            'MALEOOF2',
+            'GUARD6',
+            'GUARD',
+            'GUARD1',
+            'GUARD2',
+            'CLEANGD',
+            'KING1',
+            'CONFRONT.CPS',
+            'CONFRONT',
+            'TALAMSCA.CPS',
+            'TALAMSCA',
+            'DAWN1',
+            'WILL1',
+            'SPELLBKE',
+            'SPELLBKF',
+            'SPELLBKG',
+            'NATE4',
+            'GERIM4',
+            'PAUL1',
+            'DRGERIM',
+            'GERIM.CPS',
+            'GERIM1',
+            'GERIM2',
+            'GERIM3',
+            'DRVICTOR',
+            'VICTOR.CPS',
+            'VICTOR1',
+            'VICTOR2',
+            'VICTOR3',
+            'DRNATHAN',
+            'Nathnial.CPS',
+            'NATE1',
+            'NATE2',
+            'NATE3',
+            'AUTOMAP',
+            'PORTCLLS',
 
         ]
         ret = analyze_script(lines, info)
