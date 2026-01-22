@@ -254,9 +254,27 @@ class CodeGen:
     def __init__(self, parser: Parser):
         self.parser = parser
         self.index = 0
+        self.lines: List[str] = []
+
+    def _rewrite_var_name(self, index: int, name: str):
+        line_idx = self.index-index-1
+        print(f"should rewrite var at {line_idx} to {name}")
+        old_line = self.lines[line_idx]
+        assign = old_line.split(" := ")[1]
+        self.lines[line_idx] = f"{name} := {assign}"
 
     def _gen_func_call(self, call: FuncCall) -> Optional[str]:
-        return f"{call.name}(TODO ARGS)"
+        if call.name not in builtins:
+            return f"{call.name}(TODO ARGS)"
+        func_def = builtins[call.name]
+        r = f"{call.name}("
+        for i, arg in enumerate(func_def.params):
+            if i > 0:
+                r += ", "
+            r += arg.name
+            self._rewrite_var_name(i, arg.name)
+        r += ")"
+        return r
 
     def _gen_goto(self, inst: Goto) -> Optional[str]:
         return f"Goto {hex(inst.addr)}"
@@ -302,15 +320,14 @@ class CodeGen:
         return None
 
     def process(self) -> List[str]:
-        ret = []
         for instruction in parser.instructions:
             print(instruction)
             line = self._gen_inst(instruction)
             if line:
-                ret.append(line)
+                self.lines.append(line)
             self.index += 1
 
-        return ret
+        return self.lines
 
 
 if __name__ == "__main__":

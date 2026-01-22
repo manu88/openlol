@@ -38,6 +38,7 @@ builtins = {
     "checkRectForMousePointer": Func([PNum("xMin"), PNum("yMin"), PNum("xMax"), PNum("yMax")]),
     "setGameFlag": Func([PNum("flag"), PNum("val")]),
     "setGlobalVar": Func([PNum("how"), PNum("a"), PNum("b")]),
+    "setNextFunc": Func([PNum("addr")]),
     "testGameFlag": Func([PNum("flag")]),
     "loadMusicTrack": Func([PNum("file")]),
     "playDialogueTalkText": Func([PStrId("stringId")]),
@@ -45,6 +46,7 @@ builtins = {
     "runTimScript": Func([PNum("scriptId"), PNum("loop")]),
     "clearDialogueField": Func([]),
     "playCharacterScriptChat": Func([PNum("charId"), PNum("mode"), PStr("stringId")]),
+    "rollDice": Func([PNum("times"), PNum("max")])
 }
 
 
