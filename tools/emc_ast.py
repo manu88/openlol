@@ -76,6 +76,16 @@ class ValueOp(Value):
         return f"val {self.lhs} {self.op} {self.rhs}"
 
 
+class UnaryOp(Value):
+    def __init__(self, val: Value, unary: str):
+        super().__init__()
+        self.value = val
+        self.unary = unary
+
+    def __str__(self):
+        return f"{self.unary}{self.value}"
+
+
 class Instruction:
     def __init__(self):
         self.addr = 0
@@ -125,6 +135,19 @@ class Parser:
         self.current_offset = 0
         self.goto_targets = set()
 
+    def _do_unary(self, how: int):
+        last_ass = self.instructions[-1]
+        assert isinstance(last_ass, Assignment)
+        if how == 0:
+            new_val = UnaryOp(last_ass.value, "!")
+        elif how == 1:
+            new_val = UnaryOp(last_ass.value, "-")
+        elif how == 2:
+            new_val = UnaryOp(last_ass.value, "~")
+        else:
+            assert False
+        last_ass.value = new_val
+
     def _do_math_op(self, mnemonic: str) -> Optional[Instruction]:
         assert len(self.instructions) >= 2
         ass1 = self.instructions.pop()
@@ -148,6 +171,10 @@ class Parser:
             return Assignment(ValueVAR(int(params[0], 16)))
         if mnemonic in tok_maths:
             return self._do_math_op(mnemonic)
+        if mnemonic == "UNARY":
+            how = int(params[0], 16)
+            self._do_unary(how)
+            return None
         if mnemonic == "CALL":
             return self._emit_call(params[0])
         if mnemonic == "JUMP":
@@ -311,6 +338,8 @@ class CodeGen:
             return self._gen_val(val.rhs) + op + self._gen_val(val.lhs)
         if isinstance(val, ValueARG):
             return f"ARG[{hex(val.index)}]"
+        if isinstance(val, UnaryOp):
+            return f"{val.unary}" + self._gen_val(val.value)
         print(f"CodeGen: unhandled val type {type(val)}")
         return None
 

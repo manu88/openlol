@@ -46,7 +46,9 @@ builtins = {
     "runTimScript": Func([PNum("scriptId"), PNum("loop")]),
     "clearDialogueField": Func([]),
     "playCharacterScriptChat": Func([PNum("charId"), PNum("mode"), PStr("stringId")]),
-    "rollDice": Func([PNum("times"), PNum("max")])
+    "rollDice": Func([PNum("times"), PNum("max")]),
+    "setItemProperty": Func([PNum("index"), PNum("stringId"), PNum("shpId"), PNum("type"), PNum("scriptFun"), PNum("might"), PNum("skill"), PNum("protection"), PNum("flags"), PNum("unknown")]),
+    "allocItemProperties": Func([PNum("size")]),
 }
 
 
