@@ -5,6 +5,7 @@ import tkinter as tk
 from emc_script import builtins, PStr, PNum, PStrId, tok_maths, tok_ctl_flow, tok_op_codes
 
 
+
 class Value:
     def __init__(self, val: int, is_arg=False, is_var=False, is_ret_code=False, ret_func: str = ""):
         self.val = val

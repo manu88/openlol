@@ -101,17 +101,17 @@ class Assignment(Instruction):
 
 
 class Goto(Instruction):
-    def __init__(self, addr):
+    def __init__(self, target):
         super().__init__()
-        self.addr = addr
+        self.target = target
 
     def __str__(self):
-        return f"Goto {hex(self.addr)}"
+        return f"Goto {hex(self.target)}"
 
 
 class IfNotGoto(Goto):
-    def __init__(self, addr, condition: Value):
-        super().__init__(addr=addr)
+    def __init__(self, target, condition: Value):
+        super().__init__(target=target)
         self.condition = condition
 
     def __str__(self):
@@ -123,6 +123,7 @@ class Parser:
         self.instructions: List[Instruction] = []
         self.labels: dict[int, int] = {}  # key is label number, val is addr
         self.current_offset = 0
+        self.goto_targets = set()
 
     def _do_math_op(self, mnemonic: str) -> Optional[Instruction]:
         assert len(self.instructions) >= 2
@@ -134,8 +135,6 @@ class Parser:
         return FuncCall(name=func_name)
 
     def emit_instr(self, mnemonic: str, params: List[str]) -> Optional[Instruction]:
-        if mnemonic.startswith("#"):
-            return None
         if mnemonic == "LABEL":
             num = int(params[0], 16)
             assert num not in self.labels
@@ -152,11 +151,15 @@ class Parser:
         if mnemonic == "CALL":
             return self._emit_call(params[0])
         if mnemonic == "JUMP":
-            return Goto(int(params[0], 16))
+            addr = int(params[0], 16)
+            self.goto_targets.add(addr)
+            return Goto(addr)
         if mnemonic == "IFNOTGO":
             condition = self.instructions.pop()
             assert isinstance(condition, Assignment)
-            return IfNotGoto(int(params[0], 16), condition.value)
+            addr = int(params[0], 16)
+            self.goto_targets.add(addr)
+            return IfNotGoto(addr, condition.value)
         if mnemonic == "PUSHRC":
             call_instruction = None
             for inst in reversed(self.instructions):
@@ -199,6 +202,12 @@ class Parser:
                 print(f"didn't found instruction for addr {hex(lbl_addr)}")
                 assert False
 
+        for goto_target in self.goto_targets:
+            inst = self.get_instruction_at(goto_target)
+            if not inst:
+                print(
+                    f"warning: no instruction found for jump target address {goto_target}")
+
         for inst in self.instructions:
             if issubclass(type(inst), Goto):
                 inst = self.get_instruction_at(inst.addr)
@@ -207,13 +216,14 @@ class Parser:
     def process(self, lines: list[str]):
         for i, line in enumerate(lines):
             try:
-                if len(line):
+                if len(line) and not line.startswith("#"):
                     self._process_line(line.lstrip())
             except Exception as e:
                 print(f"error at line {i}")
                 raise e
             self.current_offset += 1
-
+        for inst in self.instructions:
+            print(f"{inst.addr}: {inst}")
         self._check_addrs()
 
 
@@ -258,7 +268,6 @@ class CodeGen:
 
     def _rewrite_var_name(self, index: int, name: str):
         line_idx = self.index-index-1
-        print(f"should rewrite var at {line_idx} to {name}")
         old_line = self.lines[line_idx]
         assign = old_line.split(" := ")[1]
         self.lines[line_idx] = f"{name} := {assign}"
@@ -277,7 +286,7 @@ class CodeGen:
         return r
 
     def _gen_goto(self, inst: Goto) -> Optional[str]:
-        return f"Goto {hex(inst.addr)}"
+        return f"Goto {hex(inst.target)}"
 
     def _gen_ifnotgoto(self, inst: IfNotGoto) -> Optional[str]:
         invert_op = inst.condition.op in not_tok_maths
@@ -320,8 +329,12 @@ class CodeGen:
         return None
 
     def process(self) -> List[str]:
-        for instruction in parser.instructions:
-            print(instruction)
+        for instruction in self.parser.instructions:
+            if instruction.addr in self.parser.goto_targets:
+                print(f"add jmp target at {instruction.addr}")
+                self.lines.append(
+                    f"JUMP_TARGET_{list(self.parser.goto_targets).index(instruction.addr)}:")
+                self.index += 1
             line = self._gen_inst(instruction)
             if line:
                 self.lines.append(line)
@@ -330,14 +343,17 @@ class CodeGen:
         return self.lines
 
 
+def gen_pseudo_code(lines: List[str]) -> List[str]:
+    parser = Parser()
+    parser.process(lines)
+    gen = CodeGen(parser)
+    return gen.process()
+
+
 if __name__ == "__main__":
     with open(sys.argv[1], "r", encoding="utf8") as f_in:
         lines = f_in.readlines()
-        parser = Parser()
-        parser.process(lines)
-
-        gen = CodeGen(parser)
-        new_lines = gen.process()
+        ouput = gen_pseudo_code(lines)
         print("--------- Generated Code ---------")
-        for l in new_lines:
+        for l in ouput:
             print(l)

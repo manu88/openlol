@@ -9,6 +9,7 @@ import PIL.Image
 import PIL.ImageTk
 from lol import lol, SHPFileInfo, WSAFileInfo
 from script_tools import analyze_script, CodeViewer
+from emc_ast import gen_pseudo_code
 
 pak_files: Dict[str, str] = {}
 
@@ -407,9 +408,9 @@ class ScriptRender(BaseRender):
         with open(out_file, "r", encoding="utf8") as f:
             lines = f.readlines()
             self.original_asm.set_lines(lines)
-            analysis = analyze_script(lines, script_info)
+            analysis = gen_pseudo_code(lines)  # , script_info)
             if analysis:
-                self.analysis_code.set_lines(analysis)
+                self.analysis_code.set_lines([l + "\n" for l in analysis])
 
 
 class UI:
