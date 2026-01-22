@@ -2,67 +2,47 @@ from typing import List, Optional
 import sys
 from lol import ScriptFileInfo
 import tkinter as tk
-
-
-class Param:
-    def __init__(self, name: str):
-        self.name = name
-
-
-class PStr(Param):
-    pass
-
-
-class PNum(Param):
-    pass
-
-
-class PStrId(Param):
-    # PStrId is a stringId from a lang file
-    pass
-
-
-class Func:
-    def __init__(self, params: List[Param]):
-        self.params = params
-
-    def has_params(self) -> bool:
-        return len(self.params) > 0
-
-
-builtins = {
-    "loadBlockProperties": Func([PStr("file")]),
-    "loadLangFile": Func([PStr("file")]),
-    "loadLevelShapes": Func([PStr("shp"), PStr("datFile")]),
-    "loadBitmap": Func([PStr("file"), PNum("param")]),
-    "loadMonsterShapes": Func([PStr("file"), PNum("monsterId"), PNum("p2")]),
-    "loadTimScript": Func([PStr("scriptId"), PStr("stringId")]),
-    "initAnimStruct": Func([PStr("file"), PNum("index"), PNum("x"), PNum("y"), PNum("offscreenBuffer"), PNum("wsaFlags")]),
-    "checkRectForMousePointer": Func([PNum("xMin"), PNum("yMin"), PNum("xMax"), PNum("yMax")]),
-    "setGameFlag": Func([PNum("flag"), PNum("val")]),
-    "setGlobalVar": Func([PNum("how"), PNum("a"), PNum("b")]),
-    "testGameFlag": Func([PNum("flag")]),
-    "loadMusicTrack": Func([PNum("file")]),
-    "playDialogueTalkText": Func([PStrId("stringId")]),
-    "stopTimScript": Func([PNum("scriptId")]),
-    "runTimScript": Func([PNum("scriptId"), PNum("loop")]),
-    "clearDialogueField": Func([]),
-}
+from emc_script import builtins, PStr, PNum, PStrId, tok_maths, tok_ctl_flow, tok_op_codes
 
 
 class Value:
-    def __init__(self, val: int, is_arg=False, is_ret_code=False, ret_func: str = ""):
+    def __init__(self, val: int, is_arg=False, is_var=False, is_ret_code=False, ret_func: str = ""):
         self.val = val
         self.is_arg = is_arg
+        self.is_var = is_var
         self.is_ret_code = is_ret_code
         self.ret_func = ret_func
 
     def get(self) -> str:
         if self.is_arg:
             return f"arg{self.val}"
+        if self.is_var:
+            return f"var{self.val}"
         if self.is_ret_code:
             return f"retCode({self.ret_func})"
-        return hex(int(self.val))
+        return int(self.val)
+
+
+class FunctionCall:
+    def __init__(self, original_line_start: int, original_line_end: int, id: str):
+        self.original_line_start = original_line_start
+        self.original_line_end = original_line_end
+        self.id = id
+        self.args: List[Value] = []
+
+    def get(self) -> str:
+        r = f"{self.id}("
+        first = True
+        for arg in self.args:
+            if not first:
+                r += ", "
+            r += str(arg.get())
+            first = False
+        r += ")"
+        return r
+
+    def __repr__(self):
+        return f"{self.original_line_start}:{self.original_line_end} : {self.get()}"
 
 
 class ScriptAnalyzer:
@@ -71,6 +51,7 @@ class ScriptAnalyzer:
         self.script_info = script_info
         self.new_lines: List[str] = []
         self.last_call_func = ""
+        self.functions: List[FunctionCall] = []
 
     def get_push_value(self, line: str) -> Value:
         tokens = line.split(" ")
@@ -80,6 +61,9 @@ class ScriptAnalyzer:
         if tokens[0] == "PUSHARG":
             value = tokens[1]
             return Value(int(value, 16), is_arg=True)
+        if tokens[0] == "PUSHVAR":
+            value = tokens[1]
+            return Value(int(value, 16), is_var=True)
         if tokens[0] == "PUSHRC":
             return Value(0, is_ret_code=True, ret_func=self.last_call_func)
         print(f"unhandled {tokens[0]}")
@@ -94,6 +78,7 @@ class ScriptAnalyzer:
 
     def simplify_math(self, line: str, line_num: int) -> Optional[str]:
         tokens = line.split(" ")
+        print(f"simplify_math {line}")
         val1 = self.get_push_value(self.lines[line_num-1])
         val2 = self.get_push_value(self.lines[line_num-2])
         self.new_lines.pop()
@@ -101,35 +86,46 @@ class ScriptAnalyzer:
         return f"{val1.get()} {tokens[0]} {val2.get()}"
 
     def analyse_call(self, params: List[str], line: str,  line_num: int) -> Optional[str]:
+        line_start = line_num
         func_name = params[0]
 
         if func_name not in builtins:
             return None
 
         func = builtins[func_name]
-        if not func.has_params():
-            return None
 
-        next_line = self.lines[line_num+1]
-        if next_line.split(" ")[0] != "STACKRWD":
-            print(f"CALL: unexpected mnemonic at {line_num}")
-            assert 0
+        func_call = FunctionCall(
+            original_line_start=line_start-len(func.params),
+            original_line_end=line_num+1,
+            id=func_name,
+        )
 
         new_line = line
-        for param_i, param in enumerate(func.params):
-            new_line = new_line.rstrip() + " args: "
-            value: Value = self.get_push_value(self.lines[line_num-param_i-1])
-            if isinstance(param, PStr):
-                val = self.script_info.strings[int(value.get())]
-                new_line += f"{param_i}({param.name}):{val}"
-            elif isinstance(param, PNum):
-                new_line += f"{param_i}({param.name}):{value.get()}"
-            elif isinstance(param, PStrId):
-                new_line += f"{param_i}({param.name}):{value.get()}"
-            else:
+        if func.has_params():
+            next_line = self.lines[line_num+1]
+            if next_line.split(" ")[0] != "STACKRWD":
+                print(f"CALL: unexpected mnemonic at {line_num}")
                 assert 0
-        # for param_i, param in enumerate(func.params):
-        #    self.new_lines[line_num-param_i-1] = f"{param.name} = foo\n"
+
+            for param_i, param in enumerate(func.params):
+                new_line = new_line.rstrip() + " args: "
+                line_start = line_num-param_i-1
+                value: Value = self.get_push_value(
+                    self.lines[line_num-param_i-1])
+                func_call.args.append(value)
+                if isinstance(param, PStr):
+                    val = value.get()
+                    new_line += f"{param_i}({param.name}):{val}"
+                elif isinstance(param, PNum):
+                    new_line += f"{param_i}({param.name}):{value.get()}"
+                elif isinstance(param, PStrId):
+                    new_line += f"{param_i}({param.name}):{value.get()}"
+                else:
+                    assert 0
+            for param_i, param in enumerate(func.params):
+                self.new_lines.pop()
+
+        self.functions.append(func_call)
         self.last_call_func = func_name
         return new_line
 
@@ -160,49 +156,14 @@ def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[Li
         analyzer.run()
     except Exception as e:
         print(e)
-    return analyzer.new_lines
 
-
-tok_op_codes = {
-    "CALL",
-    "PUSH",
-    "GOTO",
-    "PUSHARG",
-    "POPRC",
-    "POPLOCVAR",
-    "PUSHRC",
-    "STACKRWD",
-    "STACKFWD",
-    "PUSHLOCVAR",
-    "PUSHVAR",
-    "POP",
-    "POPPARAM",
-    "UNARY",
-}
-
-tok_ctl_flow = {
-    "JUMP",
-    "IFNOTGO",
-    "IF",
-}
-
-tok_maths = {
-    "INF",
-    "INFEQ",
-    "OR",
-    "AND",
-    "EQUAL",
-    "NEQUAL",
-    "SUP",
-    "ADD",
-    "LAND",
-    "LOR",
-    "MULTIPLY",
-    "MINUS",
-    "LSHIFT",
-    "XOR",
-    "RSHIFT",
-}
+    ret = []
+    for f in analyzer.functions:
+        ret.append(f.get() + "\n")
+        line_count = f.original_line_end - f.original_line_start
+        for _ in range(line_count):
+            ret.append("\n")
+    return ret
 
 
 class CodeViewer(tk.Text):
