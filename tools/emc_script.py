@@ -49,6 +49,8 @@ builtins = {
     "rollDice": Func([PNum("times"), PNum("max")]),
     "setItemProperty": Func([PNum("index"), PNum("stringId"), PNum("shpId"), PNum("type"), PNum("scriptFun"), PNum("might"), PNum("skill"), PNum("protection"), PNum("flags"), PNum("unknown")]),
     "allocItemProperties": Func([PNum("size")]),
+    "getCharacterStat": Func([PNum("p1"), PNum("p2"), PNum("p3")]),
+    "makeItem": Func([PNum("p1"), PNum("p2"), PNum("p3")]),
 }
 
 

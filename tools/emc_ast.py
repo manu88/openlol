@@ -89,16 +89,25 @@ class UnaryOp(Value):
 class Instruction:
     def __init__(self):
         self.addr = 0
+        self.is_jump_dest = False
+
+
+class NOP(Instruction):
+    def __init__(self, mnemonic: str):
+        super().__init__()
+        self.mnemonic = mnemonic
+
+    def __str__(self):
+        return f"NOP {self.mnemonic}()"
 
 
 class FuncCall(Instruction):
     def __init__(self, name: str):
         super().__init__()
         self.name = name
-        self.argc = 0
 
     def __str__(self):
-        return f"func call {self.name} ({self.argc} args)"
+        return f"func call {self.name}()"
 
 
 class Assignment(Instruction):
@@ -108,6 +117,11 @@ class Assignment(Instruction):
 
     def __str__(self):
         return f"Assignment {self.value}"
+
+
+class Return(Instruction):
+    def __str__(self):
+        return "Return"
 
 
 class Goto(Instruction):
@@ -134,6 +148,12 @@ class Parser:
         self.labels: dict[int, int] = {}  # key is label number, val is addr
         self.current_offset = 0
         self.goto_targets = set()
+
+    def addr_is_label(self, addr: int) -> int:
+        for lbl_num, lbl_addr in self.labels.items():
+            if addr == lbl_addr:
+                return lbl_num
+        return -1
 
     def _do_unary(self, how: int):
         last_ass = self.instructions[-1]
@@ -187,22 +207,28 @@ class Parser:
             addr = int(params[0], 16)
             self.goto_targets.add(addr)
             return IfNotGoto(addr, condition.value)
+        if mnemonic == "POPRC":
+            arg = int(params[0], 16)
+            if arg == 1:
+                return Return()
+            return None
         if mnemonic == "PUSHRC":
-            call_instruction = None
-            for inst in reversed(self.instructions):
-                if isinstance(inst, FuncCall):
-                    call_instruction = inst
-                    break
-            assert call_instruction is not None
-            self.instructions.remove(call_instruction)
-            return Assignment(ValueRet(call_instruction))
-        if mnemonic == "STACKRWD":
-            last_instr = self.instructions[-1]
-            if isinstance(last_instr, FuncCall):
-                last_instr.argc = int(params[0], 16)
+            arg = int(params[0], 16)
+            if arg == 0:
+                call_instruction = None
+                for inst in reversed(self.instructions):
+                    if isinstance(inst, FuncCall):
+                        call_instruction = inst
+                        break
+                assert call_instruction is not None
+                self.instructions.remove(call_instruction)
+                return Assignment(ValueRet(call_instruction))
+            if arg == 1:
+                # saves the ip before JUMP to restore the context
                 return None
-            print(
-                f"warning: STACKRWD is currently expected to be after a FuncCall not {last_instr} {type(last_instr)}")
+            print(f"unexpected PUSHRC arg {params[0]}")
+            assert False
+        if mnemonic == "STACKRWD":
             return None
         print(f"unhandled {mnemonic}")
         return None
@@ -222,18 +248,33 @@ class Parser:
                 return inst
         return None
 
+    def get_closest_instruction(self, addr: int) -> Instruction:
+        for i in range(addr, len(self.instructions)):
+            inst = self.get_instruction_at(i)
+            if inst:
+                return inst
+        assert False
+        return None
+
+    def get_jump_target(self, addr: int) -> Optional[Instruction]:
+        if addr > self.instructions[-1].addr:
+            return None
+        return self.get_closest_instruction(addr)
+
     def _check_addrs(self):
         for lbl_addr in self.labels.values():
-            inst = self.get_instruction_at(lbl_addr)
+            inst = self.get_jump_target(lbl_addr)
             if inst is None:
                 print(f"didn't found instruction for addr {hex(lbl_addr)}")
                 assert False
 
         for goto_target in self.goto_targets:
-            inst = self.get_instruction_at(goto_target)
-            if not inst:
+            inst = self.get_jump_target(goto_target)
+            if inst:
+                inst.is_jump_dest = True
+            else:
                 print(
-                    f"warning: no instruction found for jump target address {goto_target}")
+                    f"warning: no instruction found for jump target address {hex(goto_target)}")
 
         for inst in self.instructions:
             if issubclass(type(inst), Goto):
@@ -250,7 +291,7 @@ class Parser:
                 raise e
             self.current_offset += 1
         for inst in self.instructions:
-            print(f"{inst.addr}: {inst}")
+            print(f"{hex(inst.addr)}: {inst}")
         self._check_addrs()
 
 
@@ -273,7 +314,6 @@ _math_op_code = {
     "RSHIFT": ">>",
 }
 
-
 not_tok_maths = {
     "INF": "SUPEQ",
     "INFEQ": "SUP",
@@ -292,12 +332,19 @@ class CodeGen:
         self.parser = parser
         self.index = 0
         self.lines: List[str] = []
+        self.indent = 0
+
+    def emit_line(self, line: str):
+        self.lines.append("".join(["\t" for _ in range(self.indent)]) + line)
+
+    def update_line(self, index: int, line: str):
+        self.lines[index] = "".join(["\t" for _ in range(self.indent)]) + line
 
     def _rewrite_var_name(self, index: int, name: str):
         line_idx = self.index-index-1
         old_line = self.lines[line_idx]
         assign = old_line.split(" := ")[1]
-        self.lines[line_idx] = f"{name} := {assign}"
+        self.update_line(line_idx, f"{name} := {assign}")
 
     def _gen_func_call(self, call: FuncCall) -> Optional[str]:
         if call.name not in builtins:
@@ -344,6 +391,8 @@ class CodeGen:
         return None
 
     def _gen_inst(self, inst: Instruction) -> Optional[str]:
+        if isinstance(inst, NOP):
+            return None
         if isinstance(inst, Assignment):
             assign = self._gen_val(inst.value)
             assert assign
@@ -354,19 +403,32 @@ class CodeGen:
             return self._gen_ifnotgoto(inst)
         if isinstance(inst, Goto):
             return self._gen_goto(inst)
+        if isinstance(inst, Return):
+            return "return"
         print(f"CodeGen: unhandled inst {inst} type{type(inst)}")
         return None
 
     def process(self) -> List[str]:
         for instruction in self.parser.instructions:
-            if instruction.addr in self.parser.goto_targets:
-                print(f"add jmp target at {instruction.addr}")
-                self.lines.append(
-                    f"JUMP_TARGET_{list(self.parser.goto_targets).index(instruction.addr)}:")
+            if instruction.is_jump_dest:
+                self.indent = 0
+                self.lines.append("")
                 self.index += 1
+                self.lines.append(
+                    f"JUMP_TARGET_{instruction.addr}:")
+                self.index += 1
+            self.indent = 2
             line = self._gen_inst(instruction)
             if line:
-                self.lines.append(line)
+                self.emit_line(line)
+            lbl_num = self.parser.addr_is_label(instruction.addr)
+            if lbl_num != -1:
+                self.lines.append("")
+                self.index += 1
+                self.indent = 0
+                self.lines.append(
+                    f"LABEL_{lbl_num}:")
+                self.index += 1
             self.index += 1
 
         return self.lines
