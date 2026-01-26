@@ -40,12 +40,14 @@ typedef struct __attribute__((__packed__)) {
   int16_t nextAnimUpdateCountdown;
 
   uint16_t items[11];
-  uint16_t skillLevels[3];    // SkillIndex 0: fighter, 1: rogue, 2: mage
-  uint16_t skillModifiers[3]; // SkillIndex 0: fighter, 1: rogue, 2: mage
-  uint16_t xpPoints[3];       // SkillIndex 0: fighter, 1: rogue, 2: mage
-  uint16_t characterUpdateEvents[5];
-  uint16_t characterUpdateDelay[5];
+  uint8_t skillLevels[3];    // SkillIndex 0: fighter, 1: rogue, 2: mage
+  uint8_t skillModifiers[3]; // SkillIndex 0: fighter, 1: rogue, 2: mage
+  uint32_t xpPoints[3];      // SkillIndex 0: fighter, 1: rogue, 2: mage
+  uint8_t characterUpdateEvents[5];
+  uint8_t characterUpdateDelay[5];
 
+  uint32_t _skip; // not an actual field, used to skip bytes when loading/saving
+                  // files
 } SAVCharacter;
 
 #define SAVCharacterSize 0X82
@@ -57,8 +59,16 @@ typedef struct __attribute__((__packed__)) {
 #define NUM_GLOBAL_SCRIPT_VARS 24
 #define NUM_GLOBAL_SCRIPT_VARS2 8
 
+#define SAV_NAME_FILE_MAX_SIZE 46
+
+#define MAX_IN_GAME_ITEMS 400
+
 typedef struct {
-  char name[46];
+  char name[SAV_NAME_FILE_MAX_SIZE];
+  uint8_t p[14];
+  char type[4];
+  uint8_t pp[3];
+  char version[8];
 } SAVHeader;
 
 #define MAX_ITEM_ID 0X89
@@ -81,6 +91,7 @@ static_assert(sizeof(GameObject) == 16, "");
 
 typedef struct {
   SAVHeader *header;
+  SAVHeader _header;
   SAVCharacter characters[NUM_CHARACTERS];
 
   uint16_t currentBlock;
@@ -124,6 +135,7 @@ typedef struct {
   uint32_t numTempDataFlags;
 
   GameObject *gameObjects;
+  GameObject gameObjs[MAX_IN_GAME_ITEMS];
 } SAVSlot;
 
 typedef struct {
@@ -134,5 +146,7 @@ typedef struct {
 } SAVHandle;
 
 int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize);
+
 void SAVHandleGetGameFlags(const SAVHandle *handle, uint8_t *gameFlags,
                            size_t numGameFlags);
+int SAVHandleSaveTo(const SAVHandle *handle, const char *filepath);
