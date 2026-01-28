@@ -59,15 +59,18 @@ typedef struct __attribute__((__packed__)) {
 #define NUM_GLOBAL_SCRIPT_VARS 24
 #define NUM_GLOBAL_SCRIPT_VARS2 8
 
+#define NUM_LEVELS 29
+#define NUM_FLYING_OBJECTS 8
+
 #define SAV_NAME_FILE_MAX_SIZE 46
 
 #define MAX_IN_GAME_ITEMS 400
+#define SAV_HEADER_SIZE 76
+#define MAX_MONSTERS 30
 
 typedef struct {
   char name[SAV_NAME_FILE_MAX_SIZE];
-  uint8_t p[14];
   char type[4];
-  uint8_t pp[3];
   char version[8];
 } SAVHeader;
 
@@ -87,11 +90,67 @@ typedef struct __attribute__((__packed__)) {
 
 static_assert(sizeof(GameObject) == 16, "");
 
+typedef struct {
+  uint8_t available; // This field is not part of the original code i.e not
+                     // serialized
+  uint16_t nextAssignedObject;
+  uint16_t nextDrawObject;
+  uint8_t flyingHeight;
+  uint16_t block;
+  uint16_t x;
+  uint16_t y;
+  int8_t shiftStep;
+  uint16_t destX;
+  uint16_t destY;
+  uint8_t destDirection;
+  uint8_t hitOffsX;
+  uint8_t hitOffsY;
+  uint8_t currentSubFrame;
+  uint8_t mode;
+  int8_t fightCurTick;
+  uint8_t id;
+  uint8_t direction;
+  uint8_t facing;
+  uint16_t flags;
+  uint16_t damageReceived;
+  int16_t hitPoints;
+  uint8_t speedTick;
+  uint8_t type;
+  uint8_t numDistAttacks;
+  uint8_t curDistWeapon;
+  int8_t distAttackTick;
+  uint16_t assignedItems;
+  uint32_t equipmentShapes;
+} Monster;
+
+typedef struct {
+  uint8_t enable;
+  uint8_t objectType;
+  uint16_t attackerId;
+  int16_t item;
+  uint16_t x;
+  uint16_t y;
+  uint8_t flyingHeight;
+  uint8_t direction;
+  uint8_t distance;
+  int8_t fieldD;
+  uint8_t c;
+  uint8_t flags;
+  uint8_t wallFlags;
+} FlyingObject;
+
+typedef struct {
+  uint16_t monsterDifficulty;
+  Monster monsters[MAX_MONSTERS];
+  FlyingObject flyingObjects[NUM_FLYING_OBJECTS];
+
+  uint16_t origCmp;
+} TempLevelData;
+
 #define NUM_CHARACTERS 3
 
 typedef struct {
-  SAVHeader *header;
-  SAVHeader _header;
+  SAVHeader header;
   SAVCharacter characters[NUM_CHARACTERS];
 
   uint16_t currentBlock;
@@ -134,8 +193,9 @@ typedef struct {
 
   uint32_t numTempDataFlags;
 
-  GameObject *gameObjects;
-  GameObject gameObjs[MAX_IN_GAME_ITEMS];
+  GameObject gameObjects[MAX_IN_GAME_ITEMS];
+
+  TempLevelData tempLevelData[NUM_LEVELS];
 } SAVSlot;
 
 typedef struct {
@@ -145,8 +205,11 @@ typedef struct {
   SAVSlot slot;
 } SAVHandle;
 
+int SAVHeaderFromBuffer(SAVHeader *header, uint8_t *buffer, size_t bufferSize);
 int SAVHandleFromBuffer(SAVHandle *handle, uint8_t *buffer, size_t bufferSize);
 
 void SAVHandleGetGameFlags(const SAVHandle *handle, uint8_t *gameFlags,
                            size_t numGameFlags);
 int SAVHandleSaveTo(const SAVHandle *handle, const char *filepath);
+
+int SAVSlotHasTempLevelData(const SAVSlot *slot, int levelId);

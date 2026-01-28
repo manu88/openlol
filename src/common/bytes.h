@@ -12,5 +12,6 @@ static inline uint32_t swap_uint32(uint32_t val) {
 }
 
 uint8_t *readBinaryFile(const char *path, size_t *fileSize, size_t *readSize);
+uint8_t *readBinaryFilePart(const char *path, size_t sizeToRead);
 
 int writeBinaryFile(const char *path, void *data, size_t dataSize);

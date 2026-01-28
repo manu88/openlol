@@ -321,7 +321,7 @@ static void renderEnemy(GameContext *gameCtx, const Monster *monster,
   SHPFrame f = {0};
 
   int16_t frameIdx =
-      monsterDirFlags[(gameCtx->orientation << 2) + monster->orientation];
+      monsterDirFlags[(gameCtx->orientation << 2) + monster->facing];
   SHPHandleGetFrame(shp, &f, frameIdx);
   SHPFrameGetImageData(&f);
   if (cell->frontDist > 1) {

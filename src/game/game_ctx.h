@@ -26,8 +26,6 @@
 
 #define DIALOG_BUFFER_SIZE (size_t)1024
 
-#define MAX_IN_GAME_ITEMS 400
-
 typedef struct {
   uint16_t stringId;
   uint16_t shapeId;

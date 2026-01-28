@@ -846,7 +846,9 @@ static int cmdSAVShow(const char *filepath) {
   SAVHandle handle = {0};
   SAVHandleFromBuffer(&handle, buffer, dataSize);
   const SAVSlot *slot = &handle.slot;
-  printf("Slot name '%s'\n", slot->header->name);
+  printf("Slot name '%s'\n", slot->header.name);
+  printf("Slot type '%s'\n", slot->header.type);
+  printf("Slot version '%s'\n", slot->header.version);
   printf("+CHARACTERS\n");
   for (int i = 0; i < NUM_CHARACTERS; i++) {
     const SAVCharacter *ch = &slot->characters[i];

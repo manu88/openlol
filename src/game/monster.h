@@ -1,4 +1,5 @@
 #pragma once
+#include "formats/format_sav.h"
 #include <stdint.h>
 
 typedef struct _GameContext GameContext;
@@ -24,35 +25,6 @@ typedef struct {
   uint8_t defenseSkillType;
   uint8_t sounds[3];
 } MonsterProperties;
-
-typedef struct {
-  uint8_t available;
-  uint8_t destDirection;
-  uint16_t block;
-  int8_t shiftStep;
-  uint16_t destX;
-  uint16_t destY;
-
-  int8_t hitOffsX;
-  int8_t hitOffsY;
-  uint8_t currentSubFrame;
-  uint8_t mode;
-  int8_t fightCurTick;
-  uint8_t id;
-  uint8_t direction;
-  uint8_t orientation;
-  uint16_t flags;
-  uint16_t damageReceived;
-  int16_t hitPoints;
-  uint8_t speedTick;
-  uint8_t type;
-
-  uint8_t numDistAttacks;
-  uint8_t curDistWeapon;
-  int8_t distAttackTick;
-  uint16_t assignedItems;
-  uint8_t equipmentShapes[4];
-} Monster;
 
 void MonsterInit(Monster *monster);
 int MonsterGetAvailableSlot(const GameContext *ctx);

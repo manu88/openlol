@@ -2,6 +2,7 @@
 #include "formats/format_cmz.h"
 #include "formats/format_dat.h"
 #include "formats/format_lang.h"
+#include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
@@ -12,7 +13,6 @@
 #include <stdint.h>
 
 #define MAX_MONSTER_PROPERTIES 5
-#define MAX_MONSTERS 30
 
 typedef struct {
   uint8_t walls[4];

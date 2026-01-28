@@ -740,7 +740,7 @@ static int initMonster(EMCInterpreter *interp, uint16_t block, uint16_t xOff,
   monster->id = index;
   printf("InitMonster: using index %i\n", index);
   monster->block = block;
-  monster->orientation = orientation;
+  monster->facing = facing;
   monster->type = monsterType;
   monster->flags = flags;
   return index;
@@ -760,7 +760,7 @@ static uint16_t getMonsterStat(EMCInterpreter *interp, uint16_t monsterId,
   case GetMonsterStatHow_Block:
     return monster->block;
   case GetMonsterStatHow_Facing:
-    return monster->orientation;
+    return monster->facing;
   case GetMonsterStatHow_Type:
     return monster->type;
   case GetMonsterStatHow_PropertyHitPoint:

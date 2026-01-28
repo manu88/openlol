@@ -2,10 +2,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+uint8_t *readBinaryFilePart(const char *path, size_t sizeToRead) {
+  FILE *inFile = fopen(path, "rb");
+  if (!inFile) {
+    return NULL;
+  }
+
+  fseek(inFile, 0, SEEK_END);
+  long fsize = ftell(inFile);
+  fseek(inFile, 0, SEEK_SET);
+  if (fsize < sizeToRead) {
+    return NULL;
+  }
+  uint8_t *buffer = malloc(fsize);
+  if (!buffer) {
+    return NULL;
+  }
+  if (fread(buffer, sizeToRead, 1, inFile) != 1) {
+    free(buffer);
+    return NULL;
+  }
+  return buffer;
+}
 uint8_t *readBinaryFile(const char *path, size_t *fileSize, size_t *readSize) {
   FILE *inFile = fopen(path, "rb");
   if (!inFile) {
-    printf("error while reading file '%s'\n", path);
     perror("readBinaryFile.open");
     if (fileSize) {
       *fileSize = 0;

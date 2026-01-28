@@ -86,17 +86,14 @@ SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles) {
       continue;
     }
     snprintf(fullPath, fullPathSize, "%s/%s", gameCtx->savDir, ep->d_name);
-    size_t fileSize;
-    size_t bufferSize;
-    uint8_t *buffer = readBinaryFile(fullPath, &fileSize, &bufferSize);
-    SAVHandle sav = {0};
-    SAVHandleFromBuffer(&sav, buffer, bufferSize);
-
+    uint8_t *buffer = readBinaryFilePart(fullPath, SAV_HEADER_SIZE);
+    SAVHeader header = {0};
+    SAVHeaderFromBuffer(&header, buffer, SAV_HEADER_SIZE);
     num++;
     files = realloc(files, num * sizeof(SAVFile));
     assert(files);
     files[num - 1].fullpath = strdup(fullPath);
-    files[num - 1].savName = strdup(sav.slot.header->name);
+    files[num - 1].savName = strdup(header.name);
 
     free(buffer);
   }
