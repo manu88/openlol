@@ -513,6 +513,7 @@ void GameContextUpdateCursor(GameContext *gameCtx) {
 void GameContextExitGame(GameContext *gameCtx) { gameCtx->_shouldRun = 0; }
 
 int GameContextLoadSaveFile(GameContext *gameCtx, const char *filepath) {
+  printf("Loading SAV file '%s'\n", filepath);
   SAVHandle savHandle = {0};
   size_t fileSize = 0;
   size_t readSize = 0;
