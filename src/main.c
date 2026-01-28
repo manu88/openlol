@@ -832,7 +832,9 @@ static int cmdPak(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageSAV(void) { printf("sav subcommands: show file\n"); }
+static void usageSAV(void) {
+  printf("sav subcommands: show|set file [set-cmd] [outfile]\n");
+}
 
 static int cmdSAVShow(const char *filepath) {
   size_t dataSize = 0;
@@ -844,7 +846,13 @@ static int cmdSAVShow(const char *filepath) {
   }
 
   SAVHandle handle = {0};
-  SAVHandleFromBuffer(&handle, buffer, dataSize);
+  if (!SAVHandleFromBuffer(&handle, buffer, dataSize)) {
+    if (freeBuffer) {
+      free(buffer);
+    }
+    return 1;
+  }
+
   const SAVSlot *slot = &handle.slot;
   printf("Slot name '%s'\n", slot->header.name);
   printf("Slot type '%s'\n", slot->header.type);
@@ -867,6 +875,7 @@ static int cmdSAVShow(const char *filepath) {
     }
     printf("\n");
   }
+
   printf("+GENERAL\n");
   uint16_t x = 0;
   uint16_t y = 0;
@@ -885,6 +894,7 @@ static int cmdSAVShow(const char *filepath) {
   }
   printf("selected char %i\n", slot->selectedChar);
   printf("+INVENTORY\n");
+
   for (int i = 0; i < INVENTORY_SIZE; i++) {
     uint16_t gameObjIndex = slot->inventory[i];
     if (gameObjIndex == 0) {
@@ -938,6 +948,38 @@ static int cmdSAVShow(const char *filepath) {
   }
   return 0;
 }
+
+static int cmdSAVSet(const char *filepath, const char *cmd, const char *value,
+                     const char *outfilepath) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+
+  SAVHandle handle = {0};
+  SAVHandleFromBuffer(&handle, buffer, dataSize);
+  int ret = 1;
+  if (strcmp(cmd, "block") == 0) {
+    int blockId = strtol(value, NULL, 16);
+    printf("setting block to 0X%X\n", blockId);
+    handle.slot.currentBlock = blockId;
+    ret = 0;
+  }
+  if (ret == 0) {
+    ret = 1;
+    if (SAVHandleSaveTo(&handle, outfilepath)) {
+      ret = 0;
+    }
+  }
+  if (freeBuffer) {
+    free(buffer);
+  }
+  return ret;
+}
+
 static int cmdSAV(int argc, char *argv[]) {
   if (argc < 2) {
     usageSAV();
@@ -945,6 +987,13 @@ static int cmdSAV(int argc, char *argv[]) {
   }
   if (strcmp(argv[0], "show") == 0) {
     return cmdSAVShow(argv[1]);
+  } else if (strcmp(argv[0], "set") == 0) {
+    if (argc < 5) {
+      printf("missing arguments\n");
+      usageSAV();
+      return 1;
+    }
+    return cmdSAVSet(argv[1], argv[2], argv[3], argv[4]);
   }
   return 1;
 }
