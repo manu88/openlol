@@ -2,7 +2,6 @@
 #include "SDL_keycode.h"
 #include "audio.h"
 #include "config.h"
-#include "formats/format_config.h"
 #include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
@@ -45,7 +44,6 @@ void MainMenuSetState(Menu *menu, MenuState state) {
 }
 
 static void saveConfig(GameContext *context) {
-  printf("Save config\n");
   context->conf.soundVol = AudioSystemGetSoundVolume(&context->audio);
   context->conf.musicVol = AudioSystemGetMusicVolume(&context->audio);
   context->conf.voiceVol = AudioSystemGetVoiceVolume(&context->audio);
@@ -146,7 +144,6 @@ static int MenuMouse_LoadMenu(Menu *menu, GameContext *context,
   int maxButtons = menu->numSavFiles < 4 ? menu->numSavFiles : 4;
   for (int i = 0; i < maxButtons; i++) {
     if (zoneClicked(pt, winX + 8, winY + 39 + (i * 17), 256, 15)) {
-      printf("Clicked slot %i -> %i\n", i, i + menu->selectedIndex);
       if (GameContextLoadSaveFile(
               context, menu->files[i + menu->selectedIndex].fullpath)) {
         GameContextLoadChars(context);
@@ -716,7 +713,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   int buttonY = GAME_MENU_BUTTONS_START_Y;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    printf("Load game\n");
     menu->state = MenuState_LoadGame;
     return 1;
   }
@@ -724,7 +720,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    printf("Save this game\n");
     menu->state = MenuState_SaveGame;
     return 1;
   }
@@ -732,7 +727,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    printf("Delete a game\n");
     menu->state = MenuState_DeleteGame;
     return 1;
   }
@@ -740,7 +734,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    printf("Game controls\n");
     menu->state = MenuState_GameControls;
     return 1;
   }
@@ -748,7 +741,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    printf("Audio controls\n");
     menu->state = MenuState_AudioControls;
     return 1;
   }
@@ -756,7 +748,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   buttonY += GAME_MENU_BUTTONS_Y_OFFSET;
   if (zoneClicked(pt, GAME_MENU_BUTTONS_START_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_BUTTON_W, GAME_MENU_BUTTON_H)) {
-    printf("Exit Game\n");
     menu->state = MenuState_ExitGame;
     return 1;
   }
@@ -765,7 +756,6 @@ static int GameMenuMouse_MainMenu(Menu *menu, GameContext *context,
   if (zoneClicked(pt, GAME_MENU_RESUME_BUTTON_X, GAME_MENU_Y + buttonY,
                   GAME_MENU_RESUME_BUTTON_W, GAME_MENU_BUTTON_H)) {
     menu->returnToGame = 1;
-    printf("resume\n");
     return 1;
   }
 
