@@ -905,12 +905,37 @@ static int cmdSAVShow(const char *filepath) {
     if (obj->itemPropertyIndex == 0) {
       continue;
     }
-    printf("gameObjIndex=%03i itemPropertyIndex=%04X x=%i y=%i block=%X", i,
-           obj->itemPropertyIndex, obj->x, obj->y, obj->block);
+    printf(
+        "gameObjIndex=%03i itemPropertyIndex=%04X x=%i y=%i block=%X level=%i",
+        i, obj->itemPropertyIndex, obj->x, obj->y, obj->block, obj->level);
     printf("\n");
   }
 
-  free(buffer);
+  for (int levelId = 0; levelId < NUM_LEVELS; levelId++) {
+    const TempLevelData *tempData = slot->tempLevelData + levelId;
+    if (!SAVSlotHasTempLevelData(slot, levelId)) {
+      continue;
+    }
+    printf("Level %i\n", levelId);
+    for (int monsterId = 0; monsterId < MAX_MONSTERS; monsterId++) {
+      const Monster *monster = tempData->monsters + monsterId;
+      if (!monster->type) {
+        continue;
+      }
+      printf("\tMonster %i type=%X\n", monsterId, monster->type);
+    }
+    for (int objId = 0; objId < NUM_FLYING_OBJECTS; objId++) {
+      const FlyingObject *obj = tempData->flyingObjects + objId;
+      if (!obj->enable) {
+        continue;
+      }
+      printf("\t Flying Object %i type=%x\n", objId, obj->objectType);
+    }
+  }
+
+  if (freeBuffer) {
+    free(buffer);
+  }
   return 0;
 }
 static int cmdSAV(int argc, char *argv[]) {
