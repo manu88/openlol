@@ -582,7 +582,7 @@ static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
   uint16_t block = EMCStateStackVal(state, 0);
   uint16_t xOff = EMCStateStackVal(state, 1);
   uint16_t yOff = EMCStateStackVal(state, 2);
-  uint16_t orientation = EMCStateStackVal(state, 3);
+  uint16_t facing = EMCStateStackVal(state, 3);
   uint16_t monsterType = EMCStateStackVal(state, 4);
   uint16_t flags = EMCStateStackVal(state, 5);
   uint16_t monsterMode = EMCStateStackVal(state, 6);
@@ -594,7 +594,7 @@ static uint16_t initMonster(EMCInterpreter *interp, EMCState *state) {
   uint16_t p10 = EMCStateStackVal(state, 10);
 #endif
   return interp->callbacks.EMCInterpreterCallbacks_InitMonster(
-      interp, block, xOff, yOff, orientation, monsterType, flags, monsterMode);
+      interp, block, xOff, yOff, facing, monsterType, flags, monsterMode);
 }
 
 static uint16_t moveMonster(EMCInterpreter *interp, EMCState *state) {

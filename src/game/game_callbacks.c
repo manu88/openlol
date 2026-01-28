@@ -722,13 +722,12 @@ static void printWindowText(EMCInterpreter *interp, uint16_t dim,
 }
 
 static int initMonster(EMCInterpreter *interp, uint16_t block, uint16_t xOff,
-                       uint16_t yOff, uint16_t orientation,
-                       uint16_t monsterType, uint16_t flags,
-                       uint16_t monsterMode) {
+                       uint16_t yOff, uint16_t facing, uint16_t monsterType,
+                       uint16_t flags, uint16_t monsterMode) {
   Log(LOG_PREFIX,
       "callbackInitMonster block=0X%X xOff=0X%X yOff=0X%X orientation=0X%X "
       "monsterType=0X%X flags=0X%X monsterMode=0X%X \n",
-      block, xOff, yOff, orientation, monsterType, flags, monsterMode);
+      block, xOff, yOff, facing, monsterType, flags, monsterMode);
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   int index = MonsterGetAvailableSlot(gameCtx);
   if (index == -1) {

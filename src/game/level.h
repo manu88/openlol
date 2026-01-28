@@ -42,4 +42,4 @@ typedef struct _LevelContext {
 
 } LevelContext;
 
-void LevelInit(LevelContext* level);
+void LevelInit(LevelContext *level);

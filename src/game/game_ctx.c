@@ -16,7 +16,6 @@
 #include "game_tim_animator.h"
 #include "menu.h"
 #include "pak_file.h"
-#include "render.h"
 #include "script.h"
 #include "spells.h"
 #include <assert.h>

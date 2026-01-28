@@ -30,4 +30,4 @@ void MonsterInit(Monster *monster);
 int MonsterGetAvailableSlot(const GameContext *ctx);
 
 // returns -1 if none
-int MonsterGetNearest(const GameContext* ctx, int charBlock);
+int MonsterGetNearest(const GameContext *ctx, int charBlock);

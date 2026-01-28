@@ -344,7 +344,7 @@ typedef struct _EMCInterpreterCallbacks {
   // returns the slot in which is allocated the monster. -1 otherwise
   int (*EMCInterpreterCallbacks_InitMonster)(
       EMCInterpreter *interp, uint16_t block, uint16_t xOff, uint16_t yOff,
-      uint16_t orientation, uint16_t monsterType, uint16_t flags,
+      uint16_t facing, uint16_t monsterType, uint16_t flags,
       uint16_t monsterMode);
 
   uint16_t (*EMCInterpreterCallbacks_GetMonsterStat)(EMCInterpreter *interp,
