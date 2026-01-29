@@ -372,7 +372,10 @@ static void renderDoor(GameContext *gameCtx, int cellId) {
     break;
   }
   SHPFrame frame = {0};
-  SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0);
+  if (SHPHandleGetFrame(&gameCtx->level->doors, &frame, 0) == 0) {
+    printf("renderDoor: unable to get frame 0\n");
+    return;
+  }
   SHPFrameGetImageData(&frame);
   if (cell->frontDist > 1) {
     SHPFrameScale(&frame, frame.header.width / ratioX,
