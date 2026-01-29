@@ -65,6 +65,15 @@ class ValueVAR(Value):
         return f"val var{self.index}"
 
 
+class ValueLocalVAR(Value):
+    def __init__(self, index: int):
+        super().__init__()
+        self.index = index
+
+    def __str__(self):
+        return f"val localVar{self.index}"
+
+
 class ValueOp(Value):
     def __init__(self, op: str, lhs: Value, rhs: Value, ):
         super().__init__()
@@ -122,6 +131,20 @@ class Assignment(Instruction):
 class Return(Instruction):
     def __str__(self):
         return "Return"
+
+
+class PopLocalVariable(Instruction):
+    def __init__(self, var_idx):
+        super().__init__()
+        self.var_idx = var_idx
+
+    def __str__(self):
+        return f"PopLocalVariable({self.var_idx})"
+
+
+class StackFWD(Instruction):
+    def __str__(self):
+        return "StackFWD"
 
 
 class Goto(Instruction):
@@ -183,6 +206,8 @@ class Parser:
             assert num not in self.labels
             self.labels[num] = self.current_offset+1
             return None
+        if mnemonic == "STACKFWD":
+            return StackFWD()
         if mnemonic == "PUSH":
             return Assignment(ValueLit(int(params[0], 16)))
         if mnemonic == "PUSHARG":
@@ -212,6 +237,9 @@ class Parser:
             if arg == 1:
                 return Return()
             return None
+        if mnemonic == "PUSHLOCVAR":
+            arg = int(params[0], 16)
+            return Assignment(ValueLocalVAR(arg))
         if mnemonic == "PUSHRC":
             arg = int(params[0], 16)
             if arg == 0:
@@ -230,7 +258,10 @@ class Parser:
             assert False
         if mnemonic == "STACKRWD":
             return None
+        if mnemonic == "POPLOCVAR":
+            return PopLocalVariable(params[0])
         print(f"unhandled {mnemonic}")
+        assert (False)
         return None
 
     def _process_line(self, line: str):
@@ -250,10 +281,10 @@ class Parser:
 
     def get_closest_instruction(self, addr: int) -> Instruction:
         for i in range(addr, len(self.instructions)):
+            print(f"get_closest_instruction {i}/{len(self.instructions)}")
             inst = self.get_instruction_at(i)
             if inst:
                 return inst
-        assert False
         return None
 
     def get_jump_target(self, addr: int) -> Optional[Instruction]:
@@ -360,6 +391,9 @@ class CodeGen:
         return r
 
     def _gen_goto(self, inst: Goto) -> Optional[str]:
+        target_inst = self.parser.get_closest_instruction(inst.target)
+        if target_inst:
+            return f"Goto {target_inst.addr}"
         return f"Goto {hex(inst.target)}"
 
     def _gen_ifnotgoto(self, inst: IfNotGoto) -> Optional[str]:
@@ -387,6 +421,8 @@ class CodeGen:
             return f"ARG[{hex(val.index)}]"
         if isinstance(val, UnaryOp):
             return f"{val.unary}" + self._gen_val(val.value)
+        if isinstance(val, ValueLocalVAR):
+            return f"LocalVar{hex(val.index)}"
         print(f"CodeGen: unhandled val type {type(val)}")
         return None
 
@@ -405,6 +441,10 @@ class CodeGen:
             return self._gen_goto(inst)
         if isinstance(inst, Return):
             return "return"
+        if isinstance(inst, StackFWD):
+            return "stackFwd"
+        if isinstance(inst, PopLocalVariable):
+            return str(inst)
         print(f"CodeGen: unhandled inst {inst} type{type(inst)}")
         return None
 
