@@ -1,7 +1,7 @@
 # Lol SAV format
 
 ## Layout
-Here's the rough SAV layout, see the [source code](src/common/formats/format_sav.c) for more details.
+Here's the rough SAV layout, see the [source code](../src/common/formats/format_sav.c) for more details.
 ```
 0X000 Header:
     sav name
