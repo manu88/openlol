@@ -23,7 +23,7 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - '.FNT' : font files, using Westwood Font Format v3 see https://moddingwiki.shikadi.net/wiki/Westwood_Font_Format_v3 and https://web.archive.org/web/20180313235144/http://eob.wikispaces.com/eob.fnt
 - '.TLK' : PAK file in disguise. Contains in game voices in the VOC format
 - '.VOC' : audio files
-
+- '.TLC' : some kind of transparency table ? see [here](https://github.com/scummvm/scummvm/blob/master/engines/kyra/engine/scene_lol.cpp#L460)
 
 ## format 80
 Looks like this 'format 80' refers to 2 different compression format:
