@@ -4,6 +4,7 @@
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
+#include "formats/format_tlc.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
 #include "formats/format_wll.h"
@@ -23,6 +24,7 @@ typedef struct {
 typedef struct _LevelContext {
   VCNHandle vcnHandle;
   VMPHandle vmpHandle;
+  TLCHandle tlcHandle;
   WllHandle wllHandle;
   DatHandle datHandle;
   SHPHandle shpHandle;

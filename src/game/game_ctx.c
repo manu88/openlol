@@ -9,6 +9,7 @@
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
+#include "formats/format_tlc.h"
 #include "game.h"
 #include "game_envir.h"
 #include "game_render.h"
@@ -266,7 +267,14 @@ int GameContextLoadLevel(GameContext *ctx, int levelNum) {
     assert(GameEnvironmentGetFile(&f, wllFile));
     assert(WllHandleFromBuffer(&ctx->level->wllHandle, f.buffer, f.bufferSize));
   }
-
+  {
+    GameFile f = {0};
+    char tlcFile[12];
+    snprintf(tlcFile, 12, "LEVEL%02i.TLC", levelNum);
+    printf("load TLC file '%s'\n", tlcFile);
+    assert(GameEnvironmentGetFile(&f, tlcFile));
+    assert(TLCHandleFromBuffer(&ctx->level->tlcHandle, f.buffer, f.bufferSize));
+  }
   {
     GameFile f = {0};
     char infFile[12];
