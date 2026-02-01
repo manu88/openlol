@@ -19,6 +19,7 @@
 #include "logger.h"
 #include "menu.h"
 #include "monster.h"
+#include "prologue.h"
 #include "script.h"
 #include "script_builtins.h"
 #include <SDL2/SDL.h>
@@ -594,6 +595,8 @@ static int processMouse(GameContext *gameCtx) {
     }
     return ret;
   }
+  case GameState_Prologue:
+    printf("Ignoring mouse for now\n");
   case GameState_Invalid:
     assert(0);
     break;
@@ -760,6 +763,9 @@ static void getInputs(GameContext *gameCtx) {
       gameCtx->display->mouseEv.isRightClick = e.button.button == 3;
     }
     break;
+  case GameState_Prologue:
+    printf("Ignoring game inputs for now\n");
+    break;
   case GameState_Invalid:
     assert(0);
     break;
@@ -778,7 +784,9 @@ static void GameRunOnce(GameContext *gameCtx) {
     gameCtx->display->shouldUpdate = 1;
   }
 
-  GamePreUpdate(gameCtx);
+  if (gameCtx->state == GameState_Prologue) {
+    PrologueShow(gameCtx);
+  }
 
   getInputs(gameCtx);
 

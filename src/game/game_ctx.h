@@ -40,6 +40,7 @@ typedef struct {
 typedef enum {
   GameState_Invalid,
   GameState_MainMenu,
+  GameState_Prologue,
   GameState_PlayGame,
   GameState_GameMenu,
   GameState_TimAnimation,

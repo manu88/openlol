@@ -33,6 +33,7 @@ static void MainMenuRender(Menu *menu, GameContext *context,
 static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt);
 static int MainMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e);
+
 void MainMenuSetState(Menu *menu, MenuState state) {
   menu->state = state;
   menu->selectedIndex = 0;
@@ -401,7 +402,7 @@ static void MainMenuRender(Menu *menu, GameContext *context,
     MainMenuRender_MainMenu(menu, context, font, pixBuf);
     break;
   case MenuState_StartNew:
-    GameContextNewGame(context);
+    GameContextSetState(context, GameState_Prologue);
     menu->returnToGame = 1;
     break;
   case MenuState_LoadGame:
