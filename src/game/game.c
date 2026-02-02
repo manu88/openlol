@@ -584,8 +584,8 @@ static int processMouse(GameContext *gameCtx) {
     return processMapViewMouse(gameCtx);
   case GameState_ShowInventory:
     return processCharInventoryMouse(gameCtx);
-  case GameState_TimAnimation:
-    return processAnimationMouse(gameCtx);
+    //  case GameState_TimAnimation:
+    //    return processAnimationMouse(gameCtx);
   case GameState_MainMenu:
   case GameState_GameMenu: {
     int ret = MenuMouse(gameCtx->display->currentMenu, gameCtx,
@@ -720,19 +720,23 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   }
 }
 
-static void GamePreUpdate(GameContext *gameCtx) {
+void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
          EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
     EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
     gameCtx->display->shouldUpdate = 1;
+#if 0
     if (gameCtx->dialogState == DialogState_InProgress) {
+      printf("GamePreUpdate: DialogState_InProgress return\n");
       return;
     }
+#endif
   }
   if (gameCtx->nextFunc) {
-    printf("Exec next func %X\n", gameCtx->nextFunc);
-    GameContextRunScript(gameCtx, gameCtx->nextFunc);
+    uint16_t next = gameCtx->nextFunc;
     gameCtx->nextFunc = 0;
+    printf("Exec next func %X\n", next);
+    GameContextRunScript(gameCtx, next);
   }
 }
 
@@ -751,6 +755,7 @@ static void getInputs(GameContext *gameCtx) {
   case GameState_GameMenu:
     processGameInputs(gameCtx, &e);
     break;
+#if 0    
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
       gameCtx->display->shouldUpdate = 1;
@@ -766,6 +771,7 @@ static void getInputs(GameContext *gameCtx) {
   case GameState_Prologue:
     printf("Ignoring game inputs for now\n");
     break;
+#endif
   case GameState_Invalid:
     assert(0);
     break;
@@ -808,4 +814,17 @@ static int GameRun(GameContext *gameCtx) {
   }
   SDL_Quit();
   return 0;
+}
+
+void GameRunTimAnimation(GameContext *gameCtx, uint16_t scriptId) {
+  GameTimInterpreterRunTim(&gameCtx->timInterpreter, scriptId);
+
+  while (gameCtx->_shouldRun &&
+         GameTimInterpreterRender(&gameCtx->timInterpreter) != 0) {
+    DisplayRender(gameCtx->display);
+    if (DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength) == 0) {
+      gameCtx->_shouldRun = 0;
+      break;
+    }
+  }
 }

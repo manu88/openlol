@@ -417,8 +417,7 @@ static void runTimScript(EMCInterpreter *interp, uint16_t scriptId,
     printf("NO TIM loaded\n");
     return;
   }
-  GameContextSetState(gameCtx, GameState_TimAnimation);
-  GameTimInterpreterRunTim(&gameCtx->timInterpreter, scriptId);
+  GameRunTimAnimation(gameCtx, scriptId);
 }
 
 static void releaseTimScript(EMCInterpreter *interp, uint16_t scriptId) {
@@ -823,7 +822,7 @@ static void playAnimationPart(EMCInterpreter *interp, uint16_t animIndex,
       "callbackPlayAnimationPart animIndex=%x firstFrame=%x lastFrame=%x "
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
-  GameContextSetState(gameCtx, GameState_TimAnimation);
+
   AnimatorPlayPart(gameCtx->timInterpreter.animator, animIndex, firstFrame,
                    lastFrame, delay);
 }

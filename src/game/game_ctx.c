@@ -341,6 +341,7 @@ int GameContextRunScript(GameContext *gameCtx, int function) {
       return 0;
     }
   }
+  GamePreUpdate(gameCtx);
   return 1;
 }
 

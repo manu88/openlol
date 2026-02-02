@@ -41,7 +41,7 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
   }
   WSAHandleGetFrame(&timInterp->animator->wsa, frame,
                     timInterp->animator->wsaFrameBuffer,
-                    timInterp->animator->wsaFlags & WSA_XOR);
+                    1); // timInterp->animator->wsaFlags & WSA_XOR);
   assert(timInterp->animator->wsaFrameBuffer);
   AnimatorRenderWSAFrame(timInterp->animator);
 }

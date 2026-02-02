@@ -183,8 +183,6 @@ static void renderCharFaces(GameContext *gameCtx) {
   }
 }
 
-
-
 static void renderExitButton(GameContext *gameCtx) {
   UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
                    UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
@@ -220,11 +218,6 @@ void GameRender(GameContext *gameCtx) {
                   gameCtx->display->loadedbitMap.imageSize,
                   gameCtx->display->loadedbitMap.palette, 112, 0, 176, 120, 320,
                   200);
-    }
-    if (gameCtx->state == GameState_TimAnimation) {
-      if (GameTimInterpreterRender(&gameCtx->timInterpreter) == 0) {
-        GameContextSetState(gameCtx, GameState_PlayGame);
-      }
     }
   }
   renderInventoryStrip(gameCtx);

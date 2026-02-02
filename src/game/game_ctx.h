@@ -43,7 +43,6 @@ typedef enum {
   GameState_Prologue,
   GameState_PlayGame,
   GameState_GameMenu,
-  GameState_TimAnimation,
   GameState_ShowInventory,
   GameState_ShowMap,
 } GameState;
