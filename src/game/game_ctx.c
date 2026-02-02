@@ -17,6 +17,7 @@
 #include "game_tim_animator.h"
 #include "menu.h"
 #include "pak_file.h"
+#include "prologue.h"
 #include "script.h"
 #include "spells.h"
 #include <assert.h>
@@ -148,15 +149,19 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   return 1;
 }
 
-int GameContextNewGame(GameContext *gameCtx) {
+static int charIds[] = {-9, -1, -8, -5};
+
+int GameContextNewGame(GameContext *gameCtx, int selectedChar) {
+  assert(selectedChar >= 0 && selectedChar < 4);
   gameCtx->levelId = 1;
   gameCtx->credits = 41;
-  gameCtx->chars[0].id = -9; // Ak'shel for the win
+  gameCtx->chars[0].id = charIds[selectedChar];
   gameCtx->chars[0].flags = 1;
-  snprintf(gameCtx->chars[0].name, 11, "Ak'shel");
+  snprintf(gameCtx->chars[0].name, 11, "%s", charNames[selectedChar]);
   gameCtx->inventory[0] = GameContextCreateItem(gameCtx, 216); // salve
   gameCtx->inventory[1] = GameContextCreateItem(gameCtx, 217); // aloe
   gameCtx->inventory[2] = GameContextCreateItem(gameCtx, 218); // Ginseng
+  printf("WARNING: TODO: set char attr on new game\n");
   GameContextLoadChars(gameCtx);
   if (GameContextLoadLevel(gameCtx, gameCtx->levelId)) {
     GameContextSetState(gameCtx, GameState_PlayGame);

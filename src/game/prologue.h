@@ -2,5 +2,5 @@
 
 typedef struct _GameContext GameContext;
 
-
-void PrologueShow(GameContext *gameCtx);
+extern const char *charNames[4];
+int PrologueShow(GameContext *gameCtx);

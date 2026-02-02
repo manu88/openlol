@@ -124,7 +124,7 @@ void SAVFilesRelease(SAVFile *files, size_t numFiles);
 
 SAVFile *GameContextListSavFiles(GameContext *gameCtx, size_t *numSavFiles);
 
-int GameContextNewGame(GameContext *gameCtx);
+int GameContextNewGame(GameContext *gameCtx, int selectedChar);
 
 int GameContextLoadLevel(GameContext *ctx, int levelNum);
 void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,

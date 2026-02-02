@@ -785,7 +785,10 @@ static void GameRunOnce(GameContext *gameCtx) {
   }
 
   if (gameCtx->state == GameState_Prologue) {
-    PrologueShow(gameCtx);
+    int selectedChar = PrologueShow(gameCtx);
+    printf("Selected char=%i\n", selectedChar);
+    GameContextNewGame(gameCtx, selectedChar);
+    gameCtx->display->shouldUpdate = 1;
   }
 
   getInputs(gameCtx);

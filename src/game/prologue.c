@@ -17,7 +17,8 @@
 #define TEXT_BUFFER_SIZE 128
 static char textBuffer[TEXT_BUFFER_SIZE];
 
-static const char *names[4] = {"Ak\'shel", "Michael", "Kieran", "Conrad"};
+const char *charNames[4] = {"Ak\'shel", "Michael", "Kieran", "Conrad"};
+
 static const int attribs[4][3] = {
     {15, 8, 5},
     {6, 10, 15},
@@ -33,6 +34,7 @@ INTRO9.PAK/CHARGEN.WSA : Richard talking
 typedef enum {
   PrologueState_CharSelection = 0,
   PrologueState_CharTextBox,
+  PrologueState_Done,
 } PrologueState;
 
 typedef struct {
@@ -93,11 +95,13 @@ static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
 
 static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue);
 
-void PrologueShow(GameContext *gameCtx) {
+int PrologueShow(GameContext *gameCtx) {
   Prologue prologue = {0};
   PrologueInit(gameCtx, &prologue);
   PrologueMainLoop(gameCtx, &prologue);
+  int selected = prologue.selectedChar;
   PrologueRelease(gameCtx, &prologue);
+  return selected;
 }
 
 static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue) {
@@ -132,15 +136,15 @@ static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue) {
 
   // Names
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf, 112, 162,
-                       names[0]);
+                       charNames[0]);
 
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf, 170, 162,
-                       names[1]);
+                       charNames[1]);
 
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf, 229, 162,
-                       names[2]);
+                       charNames[2]);
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf, 287, 162,
-                       names[3]);
+                       charNames[3]);
 
   int yOff = 172;
   // magic
@@ -213,9 +217,7 @@ static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue);
 static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue);
 
 static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue) {
-
   while (gameCtx->_shouldRun) {
-
     switch (prologue->state) {
     case PrologueState_CharSelection:
       CharSelectionLoop(gameCtx, prologue);
@@ -223,6 +225,9 @@ static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue) {
     case PrologueState_CharTextBox:
       CharTextBoxLoop(gameCtx, prologue);
       break;
+    case PrologueState_Done:
+      printf("DONE \n");
+      return;
     default:
       assert(0);
     }
@@ -265,6 +270,8 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
 
       if (zoneClicked(&pt, 87, 180, 40, 15)) {
         printf("Yes\n");
+        prologue->state = PrologueState_Done;
+        return;
       } else if (zoneClicked(&pt, 196, 180, 40, 15)) {
         printf("No\n");
         prologue->selectedChar = -1;
