@@ -69,6 +69,7 @@ typedef struct {
   FNTHandle font9p;
 
   int isFirst;
+  uint8_t *frameData;
 } Prologue;
 
 static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
@@ -105,6 +106,10 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
   data = PakFileGetEntryData(&prologue->intro09Pak, index);
   dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
   assert(WSAHandleFromBuffer(&prologue->chargen, data, dataSize));
+
+  size_t frameDataSize =
+      prologue->chargen.header.width * prologue->chargen.header.height;
+  prologue->frameData = malloc(frameDataSize);
 
   index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE09.SHP");
   data = PakFileGetEntryData(&prologue->intro09Pak, index);
@@ -145,6 +150,7 @@ static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
   PAKFileRelease(&prologue->intro09Pak);
   PAKFileRelease(&prologue->startupPak);
   PAKFileRelease(&prologue->voicePak);
+  free(prologue->frameData);
 }
 
 static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue);
@@ -363,8 +369,6 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
   }
 }
 
-static uint8_t *frameData = NULL;
-
 static void updateCharacterBlinks(GameContext *gameCtx, Prologue *prologue) {
   uint32_t time = SDL_GetTicks();
   for (int i = 0; i < 4; i++) {
@@ -410,12 +414,6 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
 
   RenderCharSelection(gameCtx, prologue, 1);
 
-  size_t frameDataSize =
-      prologue->chargen.header.width * prologue->chargen.header.height;
-  if (frameData == NULL) {
-    frameData = malloc(frameDataSize);
-  }
-
   int animIndex = 0;
 
   while (gameCtx->_shouldRun && AudioSystemGetCurrentVoiceIndex(
@@ -449,11 +447,13 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
       }
     }
 
+    size_t frameDataSize =
+        prologue->chargen.header.width * prologue->chargen.header.height;
     if (animIndex == 0) {
-      memset(frameData, 0, frameDataSize);
+      memset(prologue->frameData, 0, frameDataSize);
     }
-    WSAHandleGetFrame(&prologue->chargen, animIndex, frameData, 1);
-    renderCPSAt(gameCtx->display->pixBuf, frameData, frameDataSize,
+    WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
+    renderCPSAt(gameCtx->display->pixBuf, prologue->frameData, frameDataSize,
                 prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
                 prologue->chargen.header.width, prologue->chargen.header.height,
                 prologue->chargen.header.width,
