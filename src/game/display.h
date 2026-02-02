@@ -66,6 +66,7 @@ void DisplayRender(Display *display);
 
 void DisplayResetDialog(Display *display);
 int DisplayActiveDelay(Display *display, int tickLength);
+int DisplayWaitMouseEvent(Display *display,SDL_Event *event, int tickLength);
 void showBigDialogZone(Display *display);
 
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);

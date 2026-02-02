@@ -198,6 +198,23 @@ void DisplayRender(Display *display) {
   SDL_RenderPresent(display->renderer);
 }
 
+int DisplayWaitMouseEvent(Display *display, SDL_Event *event, int tickLength) {
+  uint64_t time = SDL_GetTicks64();
+  while (1) {
+    SDL_WaitEventTimeout(event, tickLength);
+    if (event->type == SDL_QUIT) {
+      return 0;
+    } else if (event->type == SDL_MOUSEBUTTONDOWN) {
+      return 1;
+    }
+    uint64_t elapsed = SDL_GetTicks64() - time;
+    if (elapsed >= tickLength) {
+      break;
+    }
+  }
+  return -1;
+}
+
 int DisplayActiveDelay(Display *display, int tickLength) {
   uint64_t time = SDL_GetTicks64();
   while (1) {
