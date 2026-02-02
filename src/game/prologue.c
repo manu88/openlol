@@ -44,10 +44,13 @@ typedef struct {
   PAKFile intro09Pak;
   PAKFile startupPak;
   FNTHandle font9p;
+
+  int isFirst;
 } Prologue;
 
 static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
   memset(prologue, 0, sizeof(Prologue));
+  prologue->isFirst = 1;
   prologue->selectedChar = -1;
   {
     GameFile f = {0};
@@ -105,24 +108,27 @@ static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue) {
 
   UISetStyle(UIStyle_Inventory);
 
-  // left text
-  LangHandleGetString(&prologue->lang, 57, textBuffer, TEXT_BUFFER_SIZE);
-  UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 38, 100,
-               textBuffer);
+  if (prologue->isFirst) {
+    // left text
+    LangHandleGetString(&prologue->lang, 57, textBuffer, TEXT_BUFFER_SIZE);
+    UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 38, 100,
+                 textBuffer);
 
-  LangHandleGetString(&prologue->lang, 58, textBuffer, TEXT_BUFFER_SIZE);
-  UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 48, 100,
-               textBuffer);
-  LangHandleGetString(&prologue->lang, 59, textBuffer, TEXT_BUFFER_SIZE);
-  UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 58, 100,
-               textBuffer);
-  LangHandleGetString(&prologue->lang, 60, textBuffer, TEXT_BUFFER_SIZE);
-  UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 68, 100,
-               textBuffer);
+    LangHandleGetString(&prologue->lang, 58, textBuffer, TEXT_BUFFER_SIZE);
+    UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 48, 100,
+                 textBuffer);
+    LangHandleGetString(&prologue->lang, 59, textBuffer, TEXT_BUFFER_SIZE);
+    UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 58, 100,
+                 textBuffer);
+    LangHandleGetString(&prologue->lang, 60, textBuffer, TEXT_BUFFER_SIZE);
+    UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 68, 100,
+                 textBuffer);
 
-  LangHandleGetString(&prologue->lang, 61, textBuffer, TEXT_BUFFER_SIZE);
-  UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 78, 100,
-               textBuffer);
+    LangHandleGetString(&prologue->lang, 61, textBuffer, TEXT_BUFFER_SIZE);
+    UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 78, 100,
+                 textBuffer);
+    prologue->isFirst = 0;
+  }
 
   // Names
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf, 112, 162,
@@ -231,6 +237,21 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
   renderCPSPart(gameCtx->display->pixBuf, prologue->details.data,
                 prologue->details.imageSize, prologue->details.palette, 0, 123,
                 0, 123, PIX_BUF_WIDTH, 77, PIX_BUF_WIDTH);
+
+  assert(prologue->selectedChar >= 0 && prologue->selectedChar < 4);
+  int strIndex = 29 + (prologue->selectedChar * 5);
+
+  for (int i = 0; i < 4; i++) {
+    LangHandleGetString(&prologue->lang, strIndex + i, textBuffer,
+                        TEXT_BUFFER_SIZE);
+    UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 50, 127 + (9 * i),
+                 PIX_BUF_WIDTH - 50, textBuffer);
+  }
+
+  // shall I serve you?
+  LangHandleGetString(&prologue->lang, 69, textBuffer, TEXT_BUFFER_SIZE);
+  UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf,
+                       PIX_BUF_WIDTH / 2, 168, textBuffer);
   DisplayRender(gameCtx->display);
   while (gameCtx->_shouldRun) {
     SDL_Event e = {0};
