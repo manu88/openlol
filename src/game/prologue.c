@@ -322,6 +322,11 @@ static void selectedCharSpeech(GameContext *gameCtx, Prologue *prologue) {
                                numFiles);
 }
 
+static const uint8_t charInfoFrameTable[] = {
+    0x0, 0x7, 0x8, 0x9, 0xA, 0xB, 0xA, 0x9, 0x8, 0x7, 0x0,
+    0x0, 0x7, 0x8, 0x9, 0xA, 0xB, 0xA, 0x9, 0x8, 0x7, 0x0,
+    0x0, 0x7, 0x8, 0x9, 0xA, 0xB, 0xA, 0x9, 0x8, 0x7};
+
 static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
 
   selectedCharSpeech(gameCtx, prologue);
@@ -346,7 +351,14 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
   LangHandleGetString(&prologue->lang, 69, textBuffer, TEXT_BUFFER_SIZE);
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf,
                        PIX_BUF_WIDTH / 2, 168, textBuffer);
-  DisplayRender(gameCtx->display);
+  // copy the frame around face from background
+  renderCPSPart(gameCtx->display->pixBuf, prologue->charBackground.data,
+                prologue->charBackground.imageSize,
+                prologue->charBackground.palette, 8, 127, 151, 124, 38, 38,
+                320);
+
+  int frameIndex = 0;
+  int count = 0;
   while (gameCtx->_shouldRun) {
     SDL_Event e = {0};
     int r =
@@ -366,6 +378,33 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
         break;
       }
     }
+
+    if (AudioSystemGetCurrentVoiceIndex(&gameCtx->audio) != -1) {
+      SHPFrame charFrame = {0};
+      int index = charInfoFrameTable[frameIndex];
+      SHPHandleGetFrame(&prologue->faces[prologue->selectedChar], &charFrame,
+                        index);
+      assert(SHPFrameGetImageData(&charFrame));
+
+      drawSHPFrame(gameCtx->display->pixBuf, &charFrame, 11, 130,
+                   prologue->charBackground.palette);
+      SHPFrameRelease(&charFrame);
+
+      frameIndex++;
+      if (frameIndex >= 32) {
+        frameIndex = 0;
+      }
+    } else {
+      SHPFrame charFrame = {0};
+      SHPHandleGetFrame(&prologue->faces[prologue->selectedChar], &charFrame,
+                        0);
+      assert(SHPFrameGetImageData(&charFrame));
+
+      drawSHPFrame(gameCtx->display->pixBuf, &charFrame, 11, 130,
+                   prologue->charBackground.palette);
+      SHPFrameRelease(&charFrame);
+    }
+    DisplayRender(gameCtx->display);
   }
 }
 
@@ -373,10 +412,10 @@ static void updateCharacterBlinks(GameContext *gameCtx, Prologue *prologue) {
   uint32_t time = SDL_GetTicks();
   for (int i = 0; i < 4; i++) {
     if (time >= prologue->nextFaceFrameTime[i]) {
-      SHPFrame akshelFrame = {0};
-      SHPHandleGetFrame(&prologue->faces[i], &akshelFrame,
+      SHPFrame charFrame = {0};
+      SHPHandleGetFrame(&prologue->faces[i], &charFrame,
                         prologue->faceFrame[i]);
-      assert(SHPFrameGetImageData(&akshelFrame));
+      assert(SHPFrameGetImageData(&charFrame));
       int x = 93;
       int y = 123;
       if (i == 1) {
@@ -391,9 +430,9 @@ static void updateCharacterBlinks(GameContext *gameCtx, Prologue *prologue) {
       }
       x += 3;
       y += 4;
-      drawSHPFrame(gameCtx->display->pixBuf, &akshelFrame, x, y,
+      drawSHPFrame(gameCtx->display->pixBuf, &charFrame, x, y,
                    prologue->charBackground.palette);
-      SHPFrameRelease(&akshelFrame);
+      SHPFrameRelease(&charFrame);
 
       prologue->faceFrame[i] = !prologue->faceFrame[i];
       if (prologue->faceFrame[i] == 0) {
