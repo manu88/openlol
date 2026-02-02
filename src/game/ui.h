@@ -29,8 +29,8 @@ void UIRenderText(const FNTHandle *font, SDL_Texture *texture, int xOff,
                   int yOff, int width, const char *text);
 void UIRenderTextCentered(const FNTHandle *font, SDL_Texture *texture,
                           int xCenter, int yCenter, const char *text);
-void UIRenderTextLeft(const FNTHandle *font, SDL_Texture *texture,
-                          int xTopLeft, int yTopLeft, const char *text);
+void UIRenderTextLeft(const FNTHandle *font, SDL_Texture *texture, int xTopLeft,
+                      int yTopLeft, const char *text);
 void UIDrawTextButton(const FNTHandle *font, SDL_Texture *texture, int x, int y,
                       int w, int h, const char *text);
 void UIDrawButton(SDL_Texture *texture, int x, int y, int w, int h);
