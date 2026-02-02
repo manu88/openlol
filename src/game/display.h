@@ -65,7 +65,7 @@ void DisplayRelease(Display *display);
 void DisplayRender(Display *display);
 
 void DisplayResetDialog(Display *display);
-
+int DisplayActiveDelay(Display *display, int tickLength);
 void showBigDialogZone(Display *display);
 
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);

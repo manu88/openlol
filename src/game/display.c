@@ -198,7 +198,7 @@ void DisplayRender(Display *display) {
   SDL_RenderPresent(display->renderer);
 }
 
-static int activeDelay(Display *display, int tickLength) {
+int DisplayActiveDelay(Display *display, int tickLength) {
   uint64_t time = SDL_GetTicks64();
   while (1) {
     SDL_Event event = {0};
@@ -216,7 +216,7 @@ static int activeDelay(Display *display, int tickLength) {
 
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
   while (numFrames--) {
-    if (activeDelay(display, tickLength) == 0) {
+    if (DisplayActiveDelay(display, tickLength) == 0) {
       return;
     }
     dimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
@@ -290,7 +290,7 @@ void DisplayExpandDialogBox(Display *display, int tickLength) {
   int ret = 0;
   do {
     ret = renderExpandDialogBox(display);
-    if (activeDelay(display, tickLength) == 0) {
+    if (DisplayActiveDelay(display, tickLength) == 0) {
       return;
     }
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
@@ -335,7 +335,7 @@ void DisplayShrinkDialogBox(Display *display, int tickLength) {
   int ret = 0;
   do {
     ret = renderShrinkDialogBox(display);
-    if (activeDelay(display, tickLength) == 0) {
+    if (DisplayActiveDelay(display, tickLength) == 0) {
       return;
     }
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
