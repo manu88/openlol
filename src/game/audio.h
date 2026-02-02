@@ -13,9 +13,11 @@ typedef struct {
   const VOCBlock *currentBlock;
   size_t currentSample;
 
-  VOCHandle sequence[MAX_VOC_SEQ_ENTRIES];
+  int sequence[MAX_VOC_SEQ_ENTRIES]; // this one is not touched by the audio
+                                     // thread!
+  VOCHandle vocHandles[MAX_VOC_SEQ_ENTRIES];
   size_t sequenceSize;
-  int currentSequence;
+  int currentSequenceIndex;
 } AudioQueue;
 
 void AudioQueueInit(AudioQueue *queue);
@@ -52,6 +54,6 @@ void AudioSystemStopSpeech(AudioSystem *audioSystem);
 
 void AudioSystemPlayVoiceSequence(AudioSystem *audioSystem, const PAKFile *pak,
                                   int *sequence, size_t sequenceSize);
-
+int AudioSystemGetCurrentVoiceIndex(const AudioSystem *audioSystem);
 void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
                             const char *filename);

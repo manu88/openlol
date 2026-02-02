@@ -27,7 +27,7 @@ void AudioQueueInit(AudioQueue *queue) {
 void AudioQueueReset(AudioQueue *queue, size_t sequenceSize) {
   queue->currentBlock = NULL;
   queue->currentSample = 0;
-  queue->currentSequence = 0;
+  queue->currentSequenceIndex = 0;
   queue->sequenceSize = sequenceSize;
 }
 
@@ -44,18 +44,18 @@ static size_t doCopyBlock(AudioQueue *queue, int16_t *samples,
 
   if (remainingBlockSamples == 0) {
     if (VOCBlockIsLast(queue->currentBlock)) {
-      if (queue->currentSequence == queue->sequenceSize - 1) {
+      if (queue->currentSequenceIndex == queue->sequenceSize - 1) {
         queue->sequenceSize = 0;
         return 0;
       } else {
-        queue->currentSequence++;
+        queue->currentSequenceIndex++;
         queue->currentSample = 0;
         queue->currentBlock = NULL;
         return 0;
       }
     } else { // not last block
       queue->currentBlock = VOCHandleGetNextBlock(
-          &queue->sequence[queue->currentSequence], queue->currentBlock);
+          &queue->vocHandles[queue->currentSequenceIndex], queue->currentBlock);
       queue->currentSample = 0;
     }
   }
@@ -78,7 +78,8 @@ static void _audioCallbackQueue(AudioQueue *queue, int16_t *samples,
     return;
   }
   if (queue->currentBlock == NULL) {
-    queue->currentBlock = queue->sequence[queue->currentSequence].firstBlock;
+    queue->currentBlock =
+        queue->vocHandles[queue->currentSequenceIndex].firstBlock;
   }
   assert(queue->currentBlock);
   size_t ret = 0;
@@ -191,6 +192,17 @@ void AudioSystemStopSpeech(AudioSystem *audioSystem) {
   AudioSystemClearVoiceQueue(audioSystem);
 }
 
+int AudioSystemGetCurrentVoiceIndex(const AudioSystem *audioSystem) {
+  SDL_LockAudioDevice(audioSystem->deviceID);
+  int idx = audioSystem->voiceQueue.currentSequenceIndex;
+  int size = audioSystem->voiceQueue.sequenceSize;
+  SDL_UnlockAudioDevice(audioSystem->deviceID);
+  if (size == 0) {
+    return -1;
+  }
+  return audioSystem->voiceQueue.sequence[idx];
+}
+
 void AudioSystemPlayVoiceSequence(AudioSystem *audioSystem, const PAKFile *pak,
                                   int *sequence, size_t sequenceSize) {
   SDL_LockAudioDevice(audioSystem->deviceID);
@@ -199,11 +211,12 @@ void AudioSystemPlayVoiceSequence(AudioSystem *audioSystem, const PAKFile *pak,
     const uint8_t *buffer = PakFileGetEntryData(pak, entryIndex);
     size_t bufferSize = PakFileGetEntrySize(pak, entryIndex);
 
-    if (!VOCHandleFromBuffer(&audioSystem->voiceQueue.sequence[i], buffer,
+    if (!VOCHandleFromBuffer(&audioSystem->voiceQueue.vocHandles[i], buffer,
                              bufferSize)) {
       printf("Unable to read voc file index %i\n", entryIndex);
       continue;
     }
+    audioSystem->voiceQueue.sequence[i] = entryIndex;
   }
 
   AudioQueueReset(&audioSystem->voiceQueue, sequenceSize);
@@ -223,7 +236,7 @@ void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
   const uint8_t *buffer = PakFileGetEntryData(pak, entryIndex);
   size_t bufferSize = PakFileGetEntrySize(pak, entryIndex);
 
-  if (VOCHandleFromBuffer(&audioSystem->soundQueue.sequence[0], buffer,
+  if (VOCHandleFromBuffer(&audioSystem->soundQueue.vocHandles[0], buffer,
                           bufferSize)) {
 
     AudioQueueReset(&audioSystem->soundQueue, 1);
