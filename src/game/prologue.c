@@ -3,6 +3,7 @@
 #include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_lang.h"
+#include "formats/format_wsa.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "geometry.h"
@@ -29,6 +30,11 @@ static const int attribs[4][3] = {
 /*
 Files:
 INTRO9.PAK/CHARGEN.WSA : Richard talking
+
+INTROVOC.PAK: voice files
+INTROVOC.PAK/KING01.VOC : I have need of a champion...
+INTROVOC.PAK/KING02.VOC : Well, have you decided
+INTROVOC.PAK/KING03.VOC : Excellent, settle ...
 */
 
 typedef enum {
@@ -43,8 +49,12 @@ typedef struct {
   CPSImage charBackground; // INTRO9.PAK/CHAR.CPS
   CPSImage details;        // INTRO9.PAK/BACKGRND.CPS
   LangHandle lang;
+
+  WSAHandle chargen;
+
   PAKFile intro09Pak;
   PAKFile startupPak;
+  PAKFile voicePak;
   FNTHandle font9p;
 
   int isFirst;
@@ -63,18 +73,27 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
     }
   }
 
+  PAKFileInit(&prologue->voicePak);
+  assert(GameEnvironmentLoadLocalizedPak(&prologue->voicePak, "INTROVOC.PAK"));
+
   PAKFileInit(&prologue->intro09Pak);
   assert(GameEnvironmentLoadLocalizedPak(&prologue->intro09Pak, "INTRO9.PAK"));
 
   int index = PakFileGetEntryIndex(&prologue->intro09Pak, "CHAR.CPS");
-  uint8_t *cpsData = PakFileGetEntryData(&prologue->intro09Pak, index);
-  size_t cpsSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  CPSImageFromBuffer(&prologue->charBackground, cpsData, cpsSize);
+  uint8_t *data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  size_t dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  CPSImageFromBuffer(&prologue->charBackground, data, dataSize);
 
   index = PakFileGetEntryIndex(&prologue->intro09Pak, "BACKGRND.CPS");
-  cpsData = PakFileGetEntryData(&prologue->intro09Pak, index);
-  cpsSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  assert(CPSImageFromBuffer(&prologue->details, cpsData, cpsSize));
+  data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  assert(CPSImageFromBuffer(&prologue->details, data, dataSize));
+
+  WSAHandleInit(&prologue->chargen);
+  index = PakFileGetEntryIndex(&prologue->intro09Pak, "CHARGEN.WSA");
+  data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  assert(WSAHandleFromBuffer(&prologue->chargen, data, dataSize));
 
   PAKFileInit(&prologue->startupPak);
   assert(GameEnvironmentLoadLocalizedPak(&prologue->startupPak, "STARTUP.PAK"));
@@ -88,9 +107,9 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
 static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
   CPSImageRelease(&prologue->charBackground);
   CPSImageRelease(&prologue->details);
-
   PAKFileRelease(&prologue->intro09Pak);
   PAKFileRelease(&prologue->startupPak);
+  PAKFileRelease(&prologue->voicePak);
 }
 
 static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue);
@@ -281,10 +300,30 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
     }
   }
 }
+
+static uint8_t *frameData = NULL;
+
 static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
+  int kingAudioSequenceId = 0;
+  if (prologue->isFirst) {
+    kingAudioSequenceId =
+        PakFileGetEntryIndex(&prologue->voicePak, "KING01.VOC");
+    assert(kingAudioSequenceId != -1);
+    AudioSystemPlayVoiceSequence(&gameCtx->audio, &prologue->voicePak,
+                                 &kingAudioSequenceId, 1);
+  }
   RenderCharSelection(gameCtx, prologue);
-  DisplayRender(gameCtx->display);
+
+  size_t frameDataSize =
+      prologue->chargen.header.width * prologue->chargen.header.height;
+  if (frameData == NULL) {
+    frameData = malloc(frameDataSize);
+  }
+
+  int animIndex = 0;
+
   while (gameCtx->_shouldRun) {
+
     SDL_Event e = {0};
     int r =
         DisplayWaitMouseEvent(gameCtx->display, &e, gameCtx->conf.tickLength);
@@ -312,5 +351,24 @@ static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
         return;
       }
     }
+    if (AudioSystemGetCurrentVoiceIndex(&gameCtx->audio) ==
+        kingAudioSequenceId) {
+
+      if (animIndex == 0) {
+        memset(frameData, 0, frameDataSize);
+      }
+      WSAHandleGetFrame(&prologue->chargen, animIndex, frameData, 1);
+      renderCPSAt(
+          gameCtx->display->pixBuf, frameData, frameDataSize,
+          prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
+          prologue->chargen.header.width, prologue->chargen.header.height,
+          prologue->chargen.header.width, prologue->chargen.header.height);
+
+      animIndex += 1;
+      if (animIndex > 10) {
+        animIndex = 0;
+      }
+    }
+    DisplayRender(gameCtx->display);
   }
 }
