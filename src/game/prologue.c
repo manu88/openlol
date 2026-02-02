@@ -1,5 +1,6 @@
 #include "prologue.h"
 #include "SDL_events.h"
+#include "audio.h"
 #include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_lang.h"
@@ -30,6 +31,10 @@ static const int attribs[4][3] = {
 /*
 Files:
 INTRO9.PAK/CHARGEN.WSA : Richard talking
+INTRO9.PAK/FACE09.SHP ak'shel
+INTRO9.PAK/FACE01.SHP mich'mich'
+INTRO9.PAK/FACE08.SHP Miaou
+INTRO9.PAK/FACE05.SHP Conrad
 
 INTROVOC.PAK: voice files
 INTROVOC.PAK/KING01.VOC : I have need of a champion...
@@ -38,7 +43,8 @@ INTROVOC.PAK/KING03.VOC : Excellent, settle ...
 */
 
 typedef enum {
-  PrologueState_CharSelection = 0,
+  PrologueState_KingIntro = 0,
+  PrologueState_CharSelection,
   PrologueState_CharTextBox,
   PrologueState_Done,
 } PrologueState;
@@ -123,15 +129,15 @@ int PrologueShow(GameContext *gameCtx) {
   return selected;
 }
 
-static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue) {
-  printf("RenderCharSelection\n");
+static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue,
+                                int showKingText) {
   renderCPS(gameCtx->display->pixBuf, prologue->charBackground.data,
             prologue->charBackground.imageSize,
             prologue->charBackground.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
   UISetStyle(UIStyle_Inventory);
+  if (showKingText) {
 
-  if (prologue->isFirst) {
     // left text
     LangHandleGetString(&prologue->lang, 57, textBuffer, TEXT_BUFFER_SIZE);
     UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 38, 100,
@@ -150,7 +156,6 @@ static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue) {
     LangHandleGetString(&prologue->lang, 61, textBuffer, TEXT_BUFFER_SIZE);
     UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 78, 100,
                  textBuffer);
-    prologue->isFirst = 0;
   }
 
   // Names
@@ -234,10 +239,14 @@ static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue) {
 
 static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue);
 static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue);
+static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue);
 
 static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue) {
   while (gameCtx->_shouldRun) {
     switch (prologue->state) {
+    case PrologueState_KingIntro:
+      KingIntroLoop(gameCtx, prologue);
+      break;
     case PrologueState_CharSelection:
       CharSelectionLoop(gameCtx, prologue);
       break;
@@ -303,16 +312,14 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
 
 static uint8_t *frameData = NULL;
 
-static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
-  int kingAudioSequenceId = 0;
-  if (prologue->isFirst) {
-    kingAudioSequenceId =
-        PakFileGetEntryIndex(&prologue->voicePak, "KING01.VOC");
-    assert(kingAudioSequenceId != -1);
-    AudioSystemPlayVoiceSequence(&gameCtx->audio, &prologue->voicePak,
-                                 &kingAudioSequenceId, 1);
-  }
-  RenderCharSelection(gameCtx, prologue);
+static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
+  int kingAudioSequenceId =
+      PakFileGetEntryIndex(&prologue->voicePak, "KING01.VOC");
+  assert(kingAudioSequenceId != -1);
+  AudioSystemPlayVoiceSequence(&gameCtx->audio, &prologue->voicePak,
+                               &kingAudioSequenceId, 1);
+
+  RenderCharSelection(gameCtx, prologue, 1);
 
   size_t frameDataSize =
       prologue->chargen.header.width * prologue->chargen.header.height;
@@ -322,8 +329,66 @@ static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
 
   int animIndex = 0;
 
-  while (gameCtx->_shouldRun) {
+  while (gameCtx->_shouldRun && AudioSystemGetCurrentVoiceIndex(
+                                    &gameCtx->audio) == kingAudioSequenceId) {
 
+    SDL_Event e = {0};
+    int r =
+        DisplayWaitMouseEvent(gameCtx->display, &e, gameCtx->conf.tickLength);
+    if (r == 0) {
+      gameCtx->_shouldRun = 0;
+      return;
+    } else if (r == 1) {
+      Point pt = {e.button.x / SCREEN_FACTOR, e.button.y / SCREEN_FACTOR};
+
+      if (zoneClicked(&pt, 93, 123, 37, 38)) {
+        prologue->selectedChar = 0;
+        prologue->state = PrologueState_CharTextBox;
+        AudioSystemClearVoiceQueue(&gameCtx->audio);
+        return;
+      } else if (zoneClicked(&pt, 151, 123, 37, 38)) {
+        prologue->selectedChar = 1;
+        prologue->state = PrologueState_CharTextBox;
+        AudioSystemClearVoiceQueue(&gameCtx->audio);
+        return;
+      } else if (zoneClicked(&pt, 210, 123, 37, 38)) {
+        prologue->selectedChar = 2;
+        prologue->state = PrologueState_CharTextBox;
+        AudioSystemClearVoiceQueue(&gameCtx->audio);
+        return;
+      } else if (zoneClicked(&pt, 268, 123, 37, 38)) {
+        prologue->selectedChar = 3;
+        prologue->state = PrologueState_CharTextBox;
+        AudioSystemClearVoiceQueue(&gameCtx->audio);
+        return;
+      }
+    }
+
+    if (animIndex == 0) {
+      memset(frameData, 0, frameDataSize);
+    }
+    WSAHandleGetFrame(&prologue->chargen, animIndex, frameData, 1);
+    renderCPSAt(gameCtx->display->pixBuf, frameData, frameDataSize,
+                prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
+                prologue->chargen.header.width, prologue->chargen.header.height,
+                prologue->chargen.header.width,
+                prologue->chargen.header.height);
+
+    animIndex += 1;
+    if (animIndex > 4) {
+      animIndex = 0;
+    }
+
+    DisplayRender(gameCtx->display);
+  }
+  prologue->state = PrologueState_CharSelection;
+}
+
+static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
+  RenderCharSelection(gameCtx, prologue, prologue->isFirst);
+  prologue->isFirst = 0;
+
+  while (gameCtx->_shouldRun) {
     SDL_Event e = {0};
     int r =
         DisplayWaitMouseEvent(gameCtx->display, &e, gameCtx->conf.tickLength);
@@ -351,24 +416,7 @@ static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
         return;
       }
     }
-    if (AudioSystemGetCurrentVoiceIndex(&gameCtx->audio) ==
-        kingAudioSequenceId) {
 
-      if (animIndex == 0) {
-        memset(frameData, 0, frameDataSize);
-      }
-      WSAHandleGetFrame(&prologue->chargen, animIndex, frameData, 1);
-      renderCPSAt(
-          gameCtx->display->pixBuf, frameData, frameDataSize,
-          prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-          prologue->chargen.header.width, prologue->chargen.header.height,
-          prologue->chargen.header.width, prologue->chargen.header.height);
-
-      animIndex += 1;
-      if (animIndex > 10) {
-        animIndex = 0;
-      }
-    }
     DisplayRender(gameCtx->display);
   }
 }
