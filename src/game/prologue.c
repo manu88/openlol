@@ -4,12 +4,14 @@
 #include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_lang.h"
+#include "formats/format_shp.h"
 #include "formats/format_wsa.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "geometry.h"
 #include "pak_file.h"
 #include "render.h"
+#include "renderer.h"
 #include "ui.h"
 #include <assert.h>
 #include <stddef.h>
@@ -57,6 +59,9 @@ typedef struct {
   LangHandle lang;
 
   WSAHandle chargen;
+  SHPHandle faces[4];
+  int faceFrame[4];
+  uint32_t nextFaceFrameTime[4];
 
   PAKFile intro09Pak;
   PAKFile startupPak;
@@ -101,6 +106,26 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
   dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
   assert(WSAHandleFromBuffer(&prologue->chargen, data, dataSize));
 
+  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE09.SHP");
+  data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  SHPHandleFromCompressedBuffer(&prologue->faces[0], data, dataSize);
+
+  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE01.SHP");
+  data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  SHPHandleFromCompressedBuffer(&prologue->faces[1], data, dataSize);
+
+  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE08.SHP");
+  data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  SHPHandleFromCompressedBuffer(&prologue->faces[2], data, dataSize);
+
+  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE05.SHP");
+  data = PakFileGetEntryData(&prologue->intro09Pak, index);
+  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
+  SHPHandleFromCompressedBuffer(&prologue->faces[3], data, dataSize);
+
   PAKFileInit(&prologue->startupPak);
   assert(GameEnvironmentLoadLocalizedPak(&prologue->startupPak, "STARTUP.PAK"));
 
@@ -111,6 +136,10 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
 }
 
 static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
+  for (int i = 0; i < 4; i++) {
+    SHPHandleRelease(&prologue->faces[i]);
+  }
+
   CPSImageRelease(&prologue->charBackground);
   CPSImageRelease(&prologue->details);
   PAKFileRelease(&prologue->intro09Pak);
@@ -246,12 +275,14 @@ static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue) {
     switch (prologue->state) {
     case PrologueState_KingIntro:
       KingIntroLoop(gameCtx, prologue);
+      AudioSystemClearVoiceQueue(&gameCtx->audio);
       break;
     case PrologueState_CharSelection:
       CharSelectionLoop(gameCtx, prologue);
       break;
     case PrologueState_CharTextBox:
       CharTextBoxLoop(gameCtx, prologue);
+      AudioSystemClearVoiceQueue(&gameCtx->audio);
       break;
     case PrologueState_Done:
       return;
@@ -330,10 +361,45 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
       }
     }
   }
-  AudioSystemClearVoiceQueue(&gameCtx->audio);
 }
 
 static uint8_t *frameData = NULL;
+
+static void updateCharacterBlinks(GameContext *gameCtx, Prologue *prologue) {
+  uint32_t time = SDL_GetTicks();
+  for (int i = 0; i < 4; i++) {
+    if (time >= prologue->nextFaceFrameTime[i]) {
+      SHPFrame akshelFrame = {0};
+      SHPHandleGetFrame(&prologue->faces[i], &akshelFrame,
+                        prologue->faceFrame[i]);
+      assert(SHPFrameGetImageData(&akshelFrame));
+      int x = 93;
+      int y = 123;
+      if (i == 1) {
+        x = 151;
+        y = 123;
+      } else if (i == 2) {
+        x = 209;
+        y = 123;
+      } else if (i == 3) {
+        x = 268;
+        y = 123;
+      }
+      x += 3;
+      y += 4;
+      drawSHPFrame(gameCtx->display->pixBuf, &akshelFrame, x, y,
+                   prologue->charBackground.palette);
+      SHPFrameRelease(&akshelFrame);
+
+      prologue->faceFrame[i] = !prologue->faceFrame[i];
+      if (prologue->faceFrame[i] == 0) {
+        prologue->nextFaceFrameTime[i] = time + GetRandom(200, 300);
+      } else {
+        prologue->nextFaceFrameTime[i] = time + GetRandom(1000, 4000);
+      }
+    }
+  }
+}
 
 static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
   int kingAudioSequenceId =
@@ -367,22 +433,18 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
       if (zoneClicked(&pt, 93, 123, 37, 38)) {
         prologue->selectedChar = 0;
         prologue->state = PrologueState_CharTextBox;
-        AudioSystemClearVoiceQueue(&gameCtx->audio);
         return;
       } else if (zoneClicked(&pt, 151, 123, 37, 38)) {
         prologue->selectedChar = 1;
         prologue->state = PrologueState_CharTextBox;
-        AudioSystemClearVoiceQueue(&gameCtx->audio);
         return;
       } else if (zoneClicked(&pt, 210, 123, 37, 38)) {
         prologue->selectedChar = 2;
         prologue->state = PrologueState_CharTextBox;
-        AudioSystemClearVoiceQueue(&gameCtx->audio);
         return;
       } else if (zoneClicked(&pt, 268, 123, 37, 38)) {
         prologue->selectedChar = 3;
         prologue->state = PrologueState_CharTextBox;
-        AudioSystemClearVoiceQueue(&gameCtx->audio);
         return;
       }
     }
@@ -401,6 +463,8 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
     if (animIndex > 4) {
       animIndex = 0;
     }
+
+    updateCharacterBlinks(gameCtx, prologue);
 
     DisplayRender(gameCtx->display);
   }
@@ -439,7 +503,7 @@ static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
         return;
       }
     }
-
+    updateCharacterBlinks(gameCtx, prologue);
     DisplayRender(gameCtx->display);
   }
 }
