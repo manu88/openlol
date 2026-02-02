@@ -3,7 +3,6 @@
 #include "SDL_timer.h"
 #include "game_ctx.h"
 #include "game_envir.h"
-#include "render.h"
 #include "renderer.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -230,6 +229,48 @@ int DisplayActiveDelay(Display *display, int tickLength) {
     }
   }
   return 1;
+}
+
+void DisplayRenderBitmap(Display *display, const uint8_t *imgData,
+                         size_t dataSize, const uint8_t *paletteBuffer,
+                         int destX, int destY, int sourceW, int sourceH,
+                         int imageW, int imageH) {
+  void *data;
+  int pitch;
+  SDL_Rect rect = {.x = destX, .y = destY, .w = imageW, .h = imageH};
+  SDL_LockTexture(display->pixBuf, &rect, &data, &pitch);
+  for (int x = 0; x < sourceW; x++) {
+    for (int y = 0; y < sourceH; y++) {
+      int offset = ((imageW)*y) + x;
+      if (offset >= dataSize) {
+        // printf("Offset %i >= %zu\n", offset, dataSize);
+        continue;
+      }
+      uint8_t paletteIdx = *(imgData + offset);
+      uint8_t r;
+      uint8_t g;
+      uint8_t b;
+      if (paletteBuffer) {
+        r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
+        g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
+        b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
+      } else {
+        r = paletteIdx;
+        g = paletteIdx;
+        b = paletteIdx;
+      }
+
+      drawPix(data, pitch, r, g, b, x, y);
+    }
+  }
+  SDL_UnlockTexture(display->pixBuf);
+}
+
+void DisplayRenderCPSAt(Display *display, const CPSImage *image, int destX,
+                        int destY, int sourceW, int sourceH, int imageW,
+                        int imageH) {
+  DisplayRenderBitmap(display, image->data, image->imageSize, image->palette,
+                      destX, destY, sourceW, sourceH, imageW, imageH);
 }
 
 void DisplayRenderCPSPart(Display *display, const CPSImage *image, int destX,

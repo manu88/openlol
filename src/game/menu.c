@@ -7,7 +7,6 @@
 #include "formats/format_shp.h"
 #include "game_ctx.h"
 #include "geometry.h"
-#include "render.h"
 #include "renderer.h"
 #include "ui.h"
 #include <assert.h>

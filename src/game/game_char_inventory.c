@@ -4,7 +4,6 @@
 #include "game_rules.h"
 #include "game_strings.h"
 #include "geometry.h"
-#include "render.h"
 #include "renderer.h"
 #include "ui.h"
 #include <stdint.h>
@@ -156,9 +155,9 @@ void renderCharInventory(GameContext *gameCtx) {
 
   const CPSImage *background =
       &gameCtx->display->inventoryBackgrounds[inventoryTypeForId[id]];
-  renderCPSAt(gameCtx->display->pixBuf, background->data, background->imageSize,
-              background->palette, INVENTORY_SCREEN_X, INVENTORY_SCREEN_Y,
-              INVENTORY_SCREEN_W, INVENTORY_SCREEN_H, 320, 200);
+  DisplayRenderCPSAt(gameCtx->display, background, INVENTORY_SCREEN_X,
+                     INVENTORY_SCREEN_Y, INVENTORY_SCREEN_W, INVENTORY_SCREEN_H,
+                     320, 200);
 
   for (int i = 0; i < 11; i++) {
     if (character->items[i] == 0) {

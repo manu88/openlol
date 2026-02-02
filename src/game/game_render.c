@@ -31,10 +31,8 @@ void GameCopyPage(GameContext *gameCtx, uint16_t srcX, uint16_t srcY,
     printf("[UNIMPLEMENTED] GameCopyPage: no loaded bitmap\n");
     return;
   }
-  renderCPSAt(gameCtx->display->pixBuf, gameCtx->display->loadedbitMap.data,
-              gameCtx->display->loadedbitMap.imageSize,
-              gameCtx->display->loadedbitMap.palette, destX, destY, w, h, 320,
-              200);
+  DisplayRenderCPSAt(gameCtx->display, &gameCtx->display->loadedbitMap, destX,
+                     destY, w, h, 320, 200);
   printf("render bitmap srcX=%i srcY=%i dstX=%i dstY=%i w=%i h=%i\n", srcX,
          srcY, destX, destY, w, h);
   gameCtx->display->showBitmap = 1;
@@ -213,10 +211,8 @@ void GameRender(GameContext *gameCtx) {
 
     if (gameCtx->display->showBitmap) {
       printf("show bitmap\n");
-      renderCPSAt(gameCtx->display->pixBuf, gameCtx->display->loadedbitMap.data,
-                  gameCtx->display->loadedbitMap.imageSize,
-                  gameCtx->display->loadedbitMap.palette, 112, 0, 176, 120, 320,
-                  200);
+      DisplayRenderCPSAt(gameCtx->display, &gameCtx->display->loadedbitMap, 112,
+                         0, 176, 120, 320, 200);
     }
     if (gameCtx->state == GameState_TimAnimation) {
       if (GameTimInterpreterRender(&gameCtx->timInterpreter) == 0) {

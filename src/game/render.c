@@ -1,6 +1,4 @@
 #include "render.h"
-#include "SDL_mouse.h"
-#include "SDL_rect.h"
 #include "SDL_render.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
@@ -10,40 +8,6 @@
 #include <assert.h>
 #include <stdint.h>
 #include <string.h>
-
-void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
-                 const uint8_t *paletteBuffer, int destX, int destY,
-                 int sourceW, int sourceH, int imageW, int imageH) {
-  void *data;
-  int pitch;
-  SDL_Rect rect = {.x = destX, .y = destY, .w = imageW, .h = imageH};
-  SDL_LockTexture(pixBuf, &rect, &data, &pitch);
-  for (int x = 0; x < sourceW; x++) {
-    for (int y = 0; y < sourceH; y++) {
-      int offset = ((imageW)*y) + x;
-      if (offset >= dataSize) {
-        // printf("Offset %i >= %zu\n", offset, dataSize);
-        continue;
-      }
-      uint8_t paletteIdx = *(imgData + offset);
-      uint8_t r;
-      uint8_t g;
-      uint8_t b;
-      if (paletteBuffer) {
-        r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
-        g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
-        b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
-      } else {
-        r = paletteIdx;
-        g = paletteIdx;
-        b = paletteIdx;
-      }
-
-      drawPix(data, pitch, r, g, b, x, y);
-    }
-  }
-  SDL_UnlockTexture(pixBuf);
-}
 
 static void clearMazeZone(GameContext *gameCtx) {
   void *data;

@@ -11,7 +11,6 @@
 #include "game_envir.h"
 #include "geometry.h"
 #include "pak_file.h"
-#include "render.h"
 #include "renderer.h"
 #include "ui.h"
 #include <assert.h>
@@ -489,11 +488,11 @@ static void KingOutroLoop(GameContext *gameCtx, Prologue *prologue) {
       memset(prologue->frameData, 0, frameDataSize);
     }
     WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
-    renderCPSAt(gameCtx->display->pixBuf, prologue->frameData, frameDataSize,
-                prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-                prologue->chargen.header.width, prologue->chargen.header.height,
-                prologue->chargen.header.width,
-                prologue->chargen.header.height);
+    DisplayRenderBitmap(
+        gameCtx->display, prologue->frameData, frameDataSize,
+        prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
+        prologue->chargen.header.width, prologue->chargen.header.height,
+        prologue->chargen.header.width, prologue->chargen.header.height);
 
     animIndex += 1;
     if (animIndex > 4) {
@@ -554,11 +553,11 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
       memset(prologue->frameData, 0, frameDataSize);
     }
     WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
-    renderCPSAt(gameCtx->display->pixBuf, prologue->frameData, frameDataSize,
-                prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-                prologue->chargen.header.width, prologue->chargen.header.height,
-                prologue->chargen.header.width,
-                prologue->chargen.header.height);
+    DisplayRenderBitmap(
+        gameCtx->display, prologue->frameData, frameDataSize,
+        prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
+        prologue->chargen.header.width, prologue->chargen.header.height,
+        prologue->chargen.header.width, prologue->chargen.header.height);
 
     animIndex += 1;
     if (animIndex > 4) {
@@ -599,11 +598,11 @@ static void kingIsImpatient(GameContext *gameCtx, Prologue *prologue) {
       memset(prologue->frameData, 0, frameDataSize);
     }
     WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
-    renderCPSAt(gameCtx->display->pixBuf, prologue->frameData, frameDataSize,
-                prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-                prologue->chargen.header.width, prologue->chargen.header.height,
-                prologue->chargen.header.width,
-                prologue->chargen.header.height);
+    DisplayRenderBitmap(
+        gameCtx->display, prologue->frameData, frameDataSize,
+        prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
+        prologue->chargen.header.width, prologue->chargen.header.height,
+        prologue->chargen.header.width, prologue->chargen.header.height);
 
     animIndex += 1;
     if (animIndex > 4) {
