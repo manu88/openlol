@@ -62,8 +62,6 @@ static uint16_t callbackTIM_GiveItem(TIMInterpreter *interp, uint16_t p0,
 
 static void callbackTIM_WSARelease(TIMInterpreter *interp, int index) {
   printf("GameTimAnimator: callbackWSARelease index=%i\n", index);
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  WSAHandleRelease(&gameCtx->animator.wsa);
 }
 
 static void callbackTIM_CharChat(TIMInterpreter *interp, uint16_t charId,

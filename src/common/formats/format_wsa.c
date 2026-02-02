@@ -7,7 +7,7 @@
 #include <string.h>
 
 void WSAHandleInit(WSAHandle *handle) { memset(handle, 0, sizeof(WSAHandle)); }
-void WSAHandleRelease(WSAHandle *handle) {}
+
 
 int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize) {

@@ -1106,7 +1106,6 @@ static int cmdWSAExtract(const char *filepath, int frameNum,
   WSAHandleFromBuffer(&handle, wsaBuffer, wsaDataSize);
   if (frameNum < 0 || frameNum >= handle.header.numFrames) {
     printf("invalid frameNum\n");
-    WSAHandleRelease(&handle);
     if (freeWsaBuffer) {
       free(wsaBuffer);
     }
@@ -1125,7 +1124,6 @@ static int cmdWSAExtract(const char *filepath, int frameNum,
 
   doRenderWSAFrame(&handle, frameNum, palette, outFilePath);
 
-  WSAHandleRelease(&handle);
   if (freeWsaBuffer) {
     free(wsaBuffer);
   }
@@ -1162,7 +1160,6 @@ static int cmdWSAInfo(const char *filepath) {
     }
   }
 
-  WSAHandleRelease(&handle);
   if (freeBuffer) {
     free(buffer);
   }

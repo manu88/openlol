@@ -34,7 +34,7 @@ typedef struct {
 } WSAHandle;
 
 void WSAHandleInit(WSAHandle *handle);
-void WSAHandleRelease(WSAHandle *handle);
+
 int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
 uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index);
