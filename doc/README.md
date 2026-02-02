@@ -5,7 +5,7 @@
 # Extensions
 https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files for more details
 
-- ‘.DIP‘ : Translations, localized strings?
+- ‘.DIP‘ : Strings, same format as .ENG/.FRE/etc.
 - ‘.SHP‘ : Sprites sheet, see https://moddingwiki.shikadi.net/wiki/Westwood_SHP_Format_(Dune_II). **Watch out!** Some SHP files are LCW encoded!
 - ‘.CPS‘ : images https://moddingwiki.shikadi.net/wiki/Westwood_CPS_Format
 - ‘.WSA‘ : animations. see https://web.archive.org/web/20070119221145/http://eob.wikispaces.com/lol.wsa?token=d90db02368ef4405b16fea9347e22287 and https://moddingwiki.shikadi.net/wiki/Westwood_WSA_Format
