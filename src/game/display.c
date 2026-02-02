@@ -231,6 +231,15 @@ int DisplayActiveDelay(Display *display, int tickLength) {
   return 1;
 }
 
+void DisplayDoScreenFade(Display *display, int numFrames, int tickLength) {
+  while (numFrames--) {
+    if (DisplayActiveDelay(display, tickLength) == 0) {
+      return;
+    }
+    dimRect(display->pixBuf, 0, 0, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+    DisplayRender(display);
+  }
+}
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
   while (numFrames--) {
     if (DisplayActiveDelay(display, tickLength) == 0) {

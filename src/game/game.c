@@ -767,6 +767,7 @@ static void getInputs(GameContext *gameCtx) {
     printf("Ignoring game inputs for now\n");
     break;
   case GameState_Invalid:
+  case GameState_Prologue:
     assert(0);
     break;
   }
@@ -790,6 +791,7 @@ static void GameRunOnce(GameContext *gameCtx) {
       return;
     }
     printf("Selected char=%i\n", selectedChar);
+    DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
     GameContextNewGame(gameCtx, selectedChar);
     gameCtx->display->shouldUpdate = 1;
   }

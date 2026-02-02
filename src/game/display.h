@@ -72,6 +72,7 @@ void showBigDialogZone(Display *display);
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);
 
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength);
+void DisplayDoScreenFade(Display *display, int numFrames, int tickLength);
 void DisplayDrawDisabledOverlay(Display *display, int x, int y, int w, int h);
 
 void DisplayExpandDialogBox(Display *display, int tickLength);
