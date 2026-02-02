@@ -254,7 +254,6 @@ static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue) {
       CharTextBoxLoop(gameCtx, prologue);
       break;
     case PrologueState_Done:
-      printf("DONE \n");
       return;
     default:
       assert(0);
@@ -262,8 +261,33 @@ static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue) {
   }
 }
 
+static void selectedCharSpeech(GameContext *gameCtx, Prologue *prologue) {
+  char file[10] = "";
+  char c = 'A';
+  int numFiles = 4;
+  if (prologue->selectedChar == 1) {
+    c = 'M';
+    numFiles = 3;
+  } else if (prologue->selectedChar == 2) {
+    c = 'K';
+    numFiles = 3;
+  } else if (prologue->selectedChar == 3) {
+    c = 'C';
+    numFiles = 3;
+  }
+  int sequence[4] = {0};
+  for (int i = 0; i < numFiles; i++) {
+    snprintf(file, 10, "000%c%i.VOC", c, i);
+    int fileIndex = PakFileGetEntryIndex(&prologue->voicePak, file);
+    sequence[i] = fileIndex;
+  }
+  AudioSystemPlayVoiceSequence(&gameCtx->audio, &prologue->voicePak, sequence,
+                               numFiles);
+}
+
 static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
 
+  selectedCharSpeech(gameCtx, prologue);
   renderCPS(gameCtx->display->pixBuf, prologue->charBackground.data,
             prologue->charBackground.imageSize,
             prologue->charBackground.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
@@ -292,22 +316,21 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
         DisplayWaitMouseEvent(gameCtx->display, &e, gameCtx->conf.tickLength);
     if (r == 0) {
       gameCtx->_shouldRun = 0;
-      return;
+      break;
     } else if (r == 1) {
       Point pt = {e.button.x / SCREEN_FACTOR, e.button.y / SCREEN_FACTOR};
 
       if (zoneClicked(&pt, 87, 180, 40, 15)) {
-        printf("Yes\n");
         prologue->state = PrologueState_Done;
-        return;
+        break;
       } else if (zoneClicked(&pt, 196, 180, 40, 15)) {
-        printf("No\n");
         prologue->selectedChar = -1;
         prologue->state = PrologueState_CharSelection;
-        return;
+        break;
       }
     }
   }
+  AudioSystemClearVoiceQueue(&gameCtx->audio);
 }
 
 static uint8_t *frameData = NULL;
