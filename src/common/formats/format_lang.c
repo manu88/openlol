@@ -82,8 +82,6 @@ void LangHandleShow(LangHandle *handle) {
   }
 }
 
-void LangHandleRelease(LangHandle *handle) {}
-
 int LangHandleFromBuffer(LangHandle *handle, uint8_t *buffer,
                          size_t bufferSize) {
   // if the last char is 0x1A then the .eng file is a plain, normal .txt file.
