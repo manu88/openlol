@@ -62,11 +62,9 @@ static void renderMainMenu(GameContext *gameCtx) {
 static void renderPlayField(GameContext *gameCtx) {
   DisplayRenderCPS(gameCtx->display, &gameCtx->display->playField,
                    PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-  renderCPSPart(gameCtx->display->pixBuf, gameCtx->display->playField.data,
-                gameCtx->display->playField.imageSize,
-                gameCtx->display->playField.palette, UI_MAP_BUTTON_X,
-                UI_MAP_BUTTON_Y, 114, 65, UI_MAP_BUTTON_W, UI_MAP_BUTTON_H,
-                320);
+  DisplayRenderCPSPart(gameCtx->display, &gameCtx->display->playField,
+                       UI_MAP_BUTTON_X, UI_MAP_BUTTON_Y, 114, 65,
+                       UI_MAP_BUTTON_W, UI_MAP_BUTTON_H, 320);
   if (gameCtx->display->controlDisabled) {
     DisplayDrawDisabledOverlay(gameCtx->display, UI_TURN_LEFT_BUTTON_X,
                                UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,

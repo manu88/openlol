@@ -65,6 +65,10 @@ void DisplayRelease(Display *display);
 void DisplayRender(Display *display);
 
 void DisplayRenderCPS(Display *display,const CPSImage*image, int w, int h);
+void DisplayRenderCPSPart(Display *display,const CPSImage*image, int destX, int destY,
+                   int sourceX, int sourceY, int imageW, int imageH,
+                   int sourceImageWidth);
+
 
 void DisplayResetDialog(Display *display);
 int DisplayActiveDelay(Display *display, int tickLength);

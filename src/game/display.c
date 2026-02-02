@@ -232,6 +232,38 @@ int DisplayActiveDelay(Display *display, int tickLength) {
   return 1;
 }
 
+void DisplayRenderCPSPart(Display *display, const CPSImage *image, int destX,
+                          int destY, int sourceX, int sourceY, int imageW,
+                          int imageH, int sourceImageWidth) {
+  void *data;
+  int pitch;
+  SDL_LockTexture(display->pixBuf, NULL, &data, &pitch);
+  for (int x = 0; x < imageW; x++) {
+    for (int y = 0; y < imageH; y++) {
+      int offset = (sourceImageWidth * (y + sourceY)) + x + sourceX;
+      if (offset >= image->imageSize) {
+        // printf("Offset %i >= %zu\n", offset, dataSize);
+        continue;
+      }
+      uint8_t paletteIdx = *(image->data + offset);
+      uint8_t r;
+      uint8_t g;
+      uint8_t b;
+      if (image->palette) {
+        r = VGA6To8(image->palette[(paletteIdx * 3) + 0]);
+        g = VGA6To8(image->palette[(paletteIdx * 3) + 1]);
+        b = VGA6To8(image->palette[(paletteIdx * 3) + 2]);
+      } else {
+        r = paletteIdx;
+        g = paletteIdx;
+        b = paletteIdx;
+      }
+
+      drawPix(data, pitch, r, g, b, destX + x, destY + y);
+    }
+  }
+  SDL_UnlockTexture(display->pixBuf);
+}
 void DisplayRenderCPS(Display *display, const CPSImage *image, int w, int h) {
   void *data;
   int pitch;

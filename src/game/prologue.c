@@ -346,9 +346,9 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
 
   DisplayRenderCPS(gameCtx->display, &prologue->charBackground, PIX_BUF_WIDTH,
                    PIX_BUF_HEIGHT);
-  renderCPSPart(gameCtx->display->pixBuf, prologue->details.data,
-                prologue->details.imageSize, prologue->details.palette, 0, 123,
-                0, 123, PIX_BUF_WIDTH, 77, PIX_BUF_WIDTH);
+
+  DisplayRenderCPSPart(gameCtx->display, &prologue->details, 0, 123, 0, 123,
+                       PIX_BUF_WIDTH, 77, PIX_BUF_WIDTH);
 
   assert(prologue->selectedChar >= 0 && prologue->selectedChar < 4);
   int strIndex = 29 + (prologue->selectedChar * 5);
@@ -365,10 +365,8 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
   UIRenderTextCentered(&prologue->font9p, gameCtx->display->pixBuf,
                        PIX_BUF_WIDTH / 2, 168, textBuffer);
   // copy the frame around face from background
-  renderCPSPart(gameCtx->display->pixBuf, prologue->charBackground.data,
-                prologue->charBackground.imageSize,
-                prologue->charBackground.palette, 8, 127, 151, 124, 38, 38,
-                320);
+  DisplayRenderCPSPart(gameCtx->display, &prologue->charBackground, 8, 127, 151,
+                       124, 38, 38, 320);
 
   int frameIndex = 0;
   while (gameCtx->_shouldRun) {
@@ -581,9 +579,8 @@ static void kingIsImpatient(GameContext *gameCtx, Prologue *prologue) {
   AudioSystemPlayVoiceSequence(&gameCtx->audio, &prologue->voicePak,
                                &kingAudioSequenceId, 1);
 
-  renderCPSPart(gameCtx->display->pixBuf, prologue->charBackground.data,
-                prologue->charBackground.imageSize,
-                prologue->charBackground.palette, 0, 0, 0, 0, 110, 110, 320);
+  DisplayRenderCPSPart(gameCtx->display, &prologue->charBackground, 0, 0, 0, 0,
+                       110, 110, 320);
   LangHandleGetString(&prologue->lang, 62, textBuffer, TEXT_BUFFER_SIZE);
   UIRenderText(&prologue->font9p, gameCtx->display->pixBuf, 8, 38, 100,
                textBuffer);
