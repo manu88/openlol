@@ -84,6 +84,14 @@ static char *resolvePakName(const char *name) {
   return path;
 }
 
+static char *resolveLocalizedPakName(const char *name, const char *ext) {
+  size_t s = strlen(_envir.dataDir) + strlen(ext) + 1 + 2 + strlen(name);
+  char *path = malloc(s);
+  assert(path);
+  snprintf(path, s, "%s/%s/%s", _envir.dataDir, ext, name);
+  return path;
+}
+
 int GameEnvironmentLoadPak(PAKFile *f, const char *pakfile) {
   char *path = resolvePakName(pakfile);
   assert(PAKFileRead(f, path));
@@ -197,6 +205,20 @@ int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,
 
 int GameEnvironmentGetStartupFile(GameFile *file, const char *name) {
   return getFile(&_envir.pakStartup, file, name);
+}
+
+int GameEnvironmentLoadLocalizedPak(PAKFile *file, const char *name) {
+  const char *ext = LanguageGetExtension(_envir.lang);
+  assert(ext);
+
+  char *pakPath = resolveLocalizedPakName(name, ext);
+  if (!pakPath) {
+    return 0;
+  }
+
+  int ret = PAKFileRead(file, pakPath);
+  free(pakPath);
+  return ret;
 }
 
 int GameEnvironmentGetGeneralFile(GameFile *file, const char *name) {

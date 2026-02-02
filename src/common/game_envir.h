@@ -39,6 +39,7 @@ int GameEnvironmentLoadPak(PAKFile *f, const char *pakfile);
 int GameEnvironmentGetFile(GameFile *file, const char *name);
 int GameEnvironmentFindPak(const char *filename);
 
+int GameEnvironmentLoadLocalizedPak(PAKFile*file, const char *name);
 int GameEnvironmentGetGeneralFile(GameFile *file, const char *name);
 int GameEnvironmentGetStartupFile(GameFile *file, const char *name);
 int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,
