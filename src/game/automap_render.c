@@ -154,10 +154,8 @@ void colorBlock(SDL_Texture *texture, int startX, int startY, int w, int h,
 void AutomapRender(GameContext *gameCtx) {
   memset(legendTypes, 0, NUM_LEGENDS * sizeof(uint16_t));
   UISetDefaultStyle();
-  renderCPS(gameCtx->display->pixBuf, gameCtx->display->mapBackground.data,
-            gameCtx->display->mapBackground.imageSize,
-            gameCtx->display->mapBackground.palette, PIX_BUF_WIDTH,
-            PIX_BUF_HEIGHT);
+  DisplayRenderCPS(gameCtx->display, &gameCtx->display->mapBackground,
+                   PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
 
   char c[20] = "";
   GameContextGetString(gameCtx, STR_EXIT_INDEX, c, sizeof(c));

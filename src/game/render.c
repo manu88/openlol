@@ -80,38 +80,6 @@ void renderCPSAt(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
   SDL_UnlockTexture(pixBuf);
 }
 
-void renderCPS(SDL_Texture *pixBuf, const uint8_t *imgData, size_t dataSize,
-               const uint8_t *paletteBuffer, int w, int h) {
-  void *data;
-  int pitch;
-  SDL_LockTexture(pixBuf, NULL, &data, &pitch);
-  for (int x = 0; x < w; x++) {
-    for (int y = 0; y < h; y++) {
-      int offset = (w * y) + x;
-      if (offset >= dataSize) {
-        printf("Offset %i >= %zu\n", offset, dataSize);
-      }
-      assert(offset < dataSize);
-      uint8_t paletteIdx = *(imgData + offset);
-      uint8_t r;
-      uint8_t g;
-      uint8_t b;
-      if (paletteBuffer) {
-        r = VGA6To8(paletteBuffer[(paletteIdx * 3) + 0]);
-        g = VGA6To8(paletteBuffer[(paletteIdx * 3) + 1]);
-        b = VGA6To8(paletteBuffer[(paletteIdx * 3) + 2]);
-      } else {
-        r = paletteIdx;
-        g = paletteIdx;
-        b = paletteIdx;
-      }
-
-      drawPix(data, pitch, r, g, b, x, y);
-    }
-  }
-  SDL_UnlockTexture(pixBuf);
-}
-
 static void clearMazeZone(GameContext *gameCtx) {
   void *data;
   int pitch;

@@ -169,9 +169,9 @@ int PrologueShow(GameContext *gameCtx) {
 
 static void RenderCharSelection(GameContext *gameCtx, Prologue *prologue,
                                 int showKingText) {
-  renderCPS(gameCtx->display->pixBuf, prologue->charBackground.data,
-            prologue->charBackground.imageSize,
-            prologue->charBackground.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  DisplayRenderCPS(gameCtx->display, &prologue->charBackground, PIX_BUF_WIDTH,
+                   PIX_BUF_HEIGHT);
 
   UISetStyle(UIStyle_Inventory);
   if (showKingText) {
@@ -343,9 +343,9 @@ static const uint8_t charInfoFrameTable[] = {
 static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
 
   selectedCharSpeech(gameCtx, prologue);
-  renderCPS(gameCtx->display->pixBuf, prologue->charBackground.data,
-            prologue->charBackground.imageSize,
-            prologue->charBackground.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+
+  DisplayRenderCPS(gameCtx->display, &prologue->charBackground, PIX_BUF_WIDTH,
+                   PIX_BUF_HEIGHT);
   renderCPSPart(gameCtx->display->pixBuf, prologue->details.data,
                 prologue->details.imageSize, prologue->details.palette, 0, 123,
                 0, 123, PIX_BUF_WIDTH, 77, PIX_BUF_WIDTH);

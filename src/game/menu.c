@@ -2,6 +2,7 @@
 #include "SDL_keycode.h"
 #include "audio.h"
 #include "config.h"
+#include "display.h"
 #include "formats/format_lang.h"
 #include "formats/format_shp.h"
 #include "game_ctx.h"
@@ -394,9 +395,8 @@ static void MainMenuRender_MainMenu(Menu *menu, GameContext *context,
 
 static void MainMenuRender(Menu *menu, GameContext *context,
                            const FNTHandle *font, SDL_Texture *pixBuf) {
-  renderCPS(context->display->pixBuf, context->display->gameTitle.data,
-            context->display->gameTitle.imageSize,
-            context->display->gameTitle.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+  DisplayRenderCPS(context->display, &context->display->gameTitle,
+                   PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
   switch (menu->state) {
   case MenuState_GameMenu:
     MainMenuRender_MainMenu(menu, context, font, pixBuf);

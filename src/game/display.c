@@ -3,6 +3,7 @@
 #include "SDL_timer.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "render.h"
 #include "renderer.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -229,6 +230,37 @@ int DisplayActiveDelay(Display *display, int tickLength) {
     }
   }
   return 1;
+}
+
+void DisplayRenderCPS(Display *display, const CPSImage *image, int w, int h) {
+  void *data;
+  int pitch;
+  SDL_LockTexture(display->pixBuf, NULL, &data, &pitch);
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
+      int offset = (w * y) + x;
+      if (offset >= image->imageSize) {
+        printf("Offset %i >= %zu\n", offset, image->imageSize);
+      }
+      assert(offset < image->imageSize);
+      uint8_t paletteIdx = *(image->data + offset);
+      uint8_t r;
+      uint8_t g;
+      uint8_t b;
+      if (image->palette) {
+        r = VGA6To8(image->palette[(paletteIdx * 3) + 0]);
+        g = VGA6To8(image->palette[(paletteIdx * 3) + 1]);
+        b = VGA6To8(image->palette[(paletteIdx * 3) + 2]);
+      } else {
+        r = paletteIdx;
+        g = paletteIdx;
+        b = paletteIdx;
+      }
+
+      drawPix(data, pitch, r, g, b, x, y);
+    }
+  }
+  SDL_UnlockTexture(display->pixBuf);
 }
 
 void DisplayDoScreenFade(Display *display, int numFrames, int tickLength) {

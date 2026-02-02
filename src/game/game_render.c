@@ -60,9 +60,8 @@ static void renderMainMenu(GameContext *gameCtx) {
 }
 
 static void renderPlayField(GameContext *gameCtx) {
-  renderCPS(gameCtx->display->pixBuf, gameCtx->display->playField.data,
-            gameCtx->display->playField.imageSize,
-            gameCtx->display->playField.palette, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
+  DisplayRenderCPS(gameCtx->display, &gameCtx->display->playField,
+                   PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
   renderCPSPart(gameCtx->display->pixBuf, gameCtx->display->playField.data,
                 gameCtx->display->playField.imageSize,
                 gameCtx->display->playField.palette, UI_MAP_BUTTON_X,

@@ -64,6 +64,8 @@ void DisplayRelease(Display *display);
 
 void DisplayRender(Display *display);
 
+void DisplayRenderCPS(Display *display,const CPSImage*image, int w, int h);
+
 void DisplayResetDialog(Display *display);
 int DisplayActiveDelay(Display *display, int tickLength);
 int DisplayWaitMouseEvent(Display *display,SDL_Event *event, int tickLength);
