@@ -49,12 +49,12 @@ static void renderDialog(GameContext *gameCtx) {
 
 static void renderGameMenu(GameContext *gameCtx) {
   MenuRender(gameCtx->display->currentMenu, gameCtx,
-             &gameCtx->display->defaultFont, gameCtx->display->pixBuf);
+             &gameCtx->display->defaultFont);
 }
 
 static void renderMainMenu(GameContext *gameCtx) {
   MenuRender(gameCtx->display->currentMenu, gameCtx,
-             &gameCtx->display->defaultFont, gameCtx->display->pixBuf);
+             &gameCtx->display->defaultFont);
 }
 
 static void renderPlayField(GameContext *gameCtx) {

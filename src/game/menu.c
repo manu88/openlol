@@ -21,7 +21,7 @@ static Menu _mainMenu = {0};
 Menu *gameMenu = &_gameMenu;
 static void GameMenuReset(Menu *menu);
 static void GameMenuRender(Menu *menu, GameContext *context,
-                           const FNTHandle *font, SDL_Texture *pixBuf);
+                           const FNTHandle *font);
 static int GameMenuMouse(Menu *menu, GameContext *context, const Point *pt);
 static int GameMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e);
@@ -29,7 +29,7 @@ static int GameMenuKeyDown(Menu *menu, GameContext *context,
 Menu *mainMenu = &_mainMenu;
 static void MainMenuReset(Menu *menu);
 static void MainMenuRender(Menu *menu, GameContext *context,
-                           const FNTHandle *font, SDL_Texture *pixBuf);
+                           const FNTHandle *font);
 static int MainMenuMouse(Menu *menu, GameContext *context, const Point *pt);
 static int MainMenuKeyDown(Menu *menu, GameContext *context,
                            const SDL_Event *e);
@@ -64,13 +64,12 @@ void MenuReset(Menu *menu) {
   }
 }
 
-void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font,
-                SDL_Texture *pixBuf) {
+void MenuRender(Menu *menu, GameContext *context, const FNTHandle *font) {
   assert(menu);
   if (menu == gameMenu) {
-    GameMenuRender(menu, context, font, pixBuf);
+    GameMenuRender(menu, context, font);
   } else if (menu == mainMenu) {
-    MainMenuRender(menu, context, font, pixBuf);
+    MainMenuRender(menu, context, font);
   } else {
     assert(0);
   }
@@ -271,7 +270,8 @@ static int MainMenuKeyDown(Menu *menu, GameContext *context,
 }
 
 static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
-                                const FNTHandle *font, SDL_Texture *pixBuf) {
+                                const FNTHandle *font) {
+  SDL_Texture *pixBuf = context->display->pixBuf;
   UIStyle current = UIGetCurrentStyle();
   UISetStyle(UIStyle_GameMenu);
   const int winX = 23;
@@ -327,8 +327,8 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
 }
 
 static void MainMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
-                                             const FNTHandle *font,
-                                             SDL_Texture *pixBuf) {
+                                             const FNTHandle *font) {
+  SDL_Texture *pixBuf = context->display->pixBuf;
   int startX = 16;
   int startY = 140;
   int width = 288;
@@ -346,8 +346,7 @@ static void MainMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
 }
 
 static void MainMenuRender_MainMenu(Menu *menu, GameContext *context,
-                                    const FNTHandle *font,
-                                    SDL_Texture *pixBuf) {
+                                    const FNTHandle *font) {
   UISetStyle(UIStyle_MainMenu);
   UIDrawMenuWindow(context->display->pixBuf, 86, 140, 128, 51);
 
@@ -395,24 +394,24 @@ static void MainMenuRender_MainMenu(Menu *menu, GameContext *context,
 }
 
 static void MainMenuRender(Menu *menu, GameContext *context,
-                           const FNTHandle *font, SDL_Texture *pixBuf) {
+                           const FNTHandle *font) {
   DisplayRenderCPS(context->display, &context->display->gameTitle,
                    PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
   switch (menu->state) {
   case MenuState_GameMenu:
-    MainMenuRender_MainMenu(menu, context, font, pixBuf);
+    MainMenuRender_MainMenu(menu, context, font);
     break;
   case MenuState_StartNew:
     GameContextSetState(context, GameState_Prologue);
     menu->returnToGame = 1;
     break;
   case MenuState_LoadGame:
-    MenuRender_LoadMenu(menu, context, font, pixBuf);
+    MenuRender_LoadMenu(menu, context, font);
     break;
   case MenuState_Introduction:
   case MenuState_LoreOfTheLands:
 
-    MainMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
+    MainMenuRender_UnimplementedMenu(menu, context, font);
     break;
   case MenuState_ExitGame:
     GameContextExitGame(context);
@@ -430,8 +429,8 @@ static void MainMenuRender(Menu *menu, GameContext *context,
 static void GameMenuReset(Menu *menu) { menu->state = MenuState_GameMenu; }
 
 static void GameMenuRender_ExitGame(Menu *menu, GameContext *context,
-                                    const FNTHandle *font,
-                                    SDL_Texture *pixBuf) {
+                                    const FNTHandle *font) {
+  SDL_Texture *pixBuf = context->display->pixBuf;
   int startX = 16;
   int startY = 72;
   int width = 288;
@@ -449,8 +448,8 @@ static void GameMenuRender_ExitGame(Menu *menu, GameContext *context,
 }
 
 static void GameMenuRender_MainMenu(Menu *menu, GameContext *context,
-                                    const FNTHandle *font,
-                                    SDL_Texture *pixBuf) {
+                                    const FNTHandle *font) {
+  SDL_Texture *pixBuf = context->display->pixBuf;
   UIDrawMenuWindow(pixBuf, GAME_MENU_X, GAME_MENU_Y, GAME_MENU_W, GAME_MENU_H);
 
   GameContextGetString(context, 0X4000, textBuf, 128);
@@ -502,8 +501,8 @@ static void GameMenuRender_MainMenu(Menu *menu, GameContext *context,
 }
 
 static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
-                                         const FNTHandle *font,
-                                         SDL_Texture *pixBuf) {
+                                         const FNTHandle *font) {
+  SDL_Texture *pixBuf = context->display->pixBuf;
   UIDrawMenuWindow(pixBuf, GAME_MENU_AUDIO_CONTROLS_X,
                    GAME_MENU_AUDIO_CONTROLS_Y, GAME_MENU_AUDIO_CONTROLS_W,
                    GAME_MENU_AUDIO_CONTROLS_H);
@@ -578,8 +577,8 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
 }
 
 static void GameMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
-                                             const FNTHandle *font,
-                                             SDL_Texture *pixBuf) {
+                                             const FNTHandle *font) {
+  SDL_Texture *pixBuf = context->display->pixBuf;
   int startX = 16;
   int startY = 30;
   int width = 288;
@@ -597,26 +596,26 @@ static void GameMenuRender_UnimplementedMenu(Menu *menu, GameContext *context,
 }
 
 static void GameMenuRender(Menu *menu, GameContext *context,
-                           const FNTHandle *font, SDL_Texture *pixBuf) {
+                           const FNTHandle *font) {
   UISetStyle(UIStyle_GameMenu);
   switch (menu->state) {
   case MenuState_GameMenu:
-    GameMenuRender_MainMenu(menu, context, font, pixBuf);
+    GameMenuRender_MainMenu(menu, context, font);
     break;
   case MenuState_ExitGame:
-    GameMenuRender_ExitGame(menu, context, font, pixBuf);
+    GameMenuRender_ExitGame(menu, context, font);
     break;
   case MenuState_LoadGame:
-    MenuRender_LoadMenu(menu, context, font, pixBuf);
+    MenuRender_LoadMenu(menu, context, font);
     break;
   case MenuState_AudioControls:
-    gameMenuRender_AudioControls(menu, context, font, pixBuf);
+    gameMenuRender_AudioControls(menu, context, font);
     break;
   case MenuState_SaveGame:
   case MenuState_DeleteGame:
   case MenuState_GameControls:
 
-    GameMenuRender_UnimplementedMenu(menu, context, font, pixBuf);
+    GameMenuRender_UnimplementedMenu(menu, context, font);
     break;
   case MenuState_StartNew:
   case MenuState_Introduction:
@@ -694,7 +693,6 @@ static int GameMenuMouse_AudioControls(Menu *menu, GameContext *context,
     handleSlider(context, 2, pt->x);
     return 1;
   }
-
   return 0;
 }
 
