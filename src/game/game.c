@@ -763,9 +763,6 @@ static void getInputs(GameContext *gameCtx) {
       gameCtx->display->mouseEv.isRightClick = e.button.button == 3;
     }
     break;
-  case GameState_Prologue:
-    printf("Ignoring game inputs for now\n");
-    break;
   case GameState_Invalid:
   case GameState_Prologue:
     assert(0);
