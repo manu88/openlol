@@ -395,8 +395,8 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
                         index);
       assert(SHPFrameGetImageData(&charFrame));
 
-      drawSHPFrame(gameCtx->display->pixBuf, &charFrame, 11, 130,
-                   prologue->charBackground.palette);
+      DisplayRenderSHP(gameCtx->display, &charFrame, 11, 130,
+                       prologue->charBackground.palette);
       SHPFrameRelease(&charFrame);
 
       frameIndex++;
@@ -409,8 +409,8 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
                         0);
       assert(SHPFrameGetImageData(&charFrame));
 
-      drawSHPFrame(gameCtx->display->pixBuf, &charFrame, 11, 130,
-                   prologue->charBackground.palette);
+      DisplayRenderSHP(gameCtx->display, &charFrame, 11, 130,
+                       prologue->charBackground.palette);
       SHPFrameRelease(&charFrame);
     }
     DisplayRender(gameCtx->display);
@@ -439,8 +439,8 @@ static void updateCharacterBlinks(GameContext *gameCtx, Prologue *prologue) {
       }
       x += 3;
       y += 4;
-      drawSHPFrame(gameCtx->display->pixBuf, &charFrame, x, y,
-                   prologue->charBackground.palette);
+      DisplayRenderSHP(gameCtx->display, &charFrame, x, y,
+                       prologue->charBackground.palette);
       SHPFrameRelease(&charFrame);
 
       prologue->faceFrame[i] = !prologue->faceFrame[i];

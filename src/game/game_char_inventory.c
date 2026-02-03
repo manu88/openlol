@@ -111,12 +111,12 @@ static void renderCharItem(GameContext *gameCtx, const SAVCharacter *character,
   SHPFrame bFrame = {0};
   SHPHandleGetFrame(&gameCtx->display->gameShapes, &bFrame, bIndex);
   assert(SHPFrameGetImageData(&bFrame));
-  drawSHPFrame(gameCtx->display->pixBuf, &bFrame, backgroundPt.x,
-               backgroundPt.y, gameCtx->display->defaultPalette);
+  DisplayRenderSHP(gameCtx->display, &bFrame, backgroundPt.x, backgroundPt.y,
+                   gameCtx->display->defaultPalette);
   SHPFrameRelease(&bFrame);
 
-  drawSHPFrame(gameCtx->display->pixBuf, &itemFrame, itemPt.x, itemPt.y,
-               gameCtx->display->defaultPalette);
+  DisplayRenderSHP(gameCtx->display, &itemFrame, itemPt.x, itemPt.y,
+                   gameCtx->display->defaultPalette);
   SHPFrameRelease(&itemFrame);
 }
 
@@ -239,9 +239,10 @@ static void renderInventorySlot(GameContext *gameCtx, uint8_t slot,
   SHPFrame frame = {0};
   SHPHandleGetFrame(&gameCtx->display->itemShapes, &frame, frameId);
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->display->pixBuf, &frame,
-               UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) + 2,
-               UI_INVENTORY_BUTTON_Y, gameCtx->display->defaultPalette);
+  DisplayRenderSHP(gameCtx->display, &frame,
+                   UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * (1 + slot)) +
+                       2,
+                   UI_INVENTORY_BUTTON_Y, gameCtx->display->defaultPalette);
   SHPFrameRelease(&frame);
 }
 

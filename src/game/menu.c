@@ -285,7 +285,8 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
     SHPFrame frame = {0};
     assert(SHPHandleGetFrame(&context->display->gameShapes, &frame, 17));
     SHPFrameGetImageData(&frame);
-    drawSHPFrame(pixBuf, &frame, 150, 50, context->display->defaultPalette);
+    DisplayRenderSHP(context->display, &frame, 150, 50,
+                     context->display->defaultPalette);
     SHPFrameRelease(&frame);
   }
 
@@ -313,7 +314,8 @@ static void MenuRender_LoadMenu(Menu *menu, GameContext *context,
     SHPFrame frame = {0};
     assert(SHPHandleGetFrame(&context->display->gameShapes, &frame, 18));
     SHPFrameGetImageData(&frame);
-    drawSHPFrame(pixBuf, &frame, 150, 148, context->display->defaultPalette);
+    DisplayRenderSHP(context->display, &frame, 150, 148,
+                     context->display->defaultPalette);
     SHPFrameRelease(&frame);
   }
 
@@ -518,22 +520,25 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
 
   int sliderX = GAME_MENU_AUDIO_CONTROLS_X + 127;
   // music volume
-  drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 25,
-               context->display->defaultPalette);
+  DisplayRenderSHP(context->display, &sliderFrame, sliderX,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 25,
+                   context->display->defaultPalette);
   GameContextGetString(context, 0X42DB, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 27, textBuf);
 
   // sound volume
-  drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 41,
-               context->display->defaultPalette);
+  DisplayRenderSHP(context->display, &sliderFrame, sliderX,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 41,
+                   context->display->defaultPalette);
   GameContextGetString(context, 0X42DA, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 43, textBuf);
 
   // talking volume
-  drawSHPFrame(pixBuf, &sliderFrame, sliderX, GAME_MENU_AUDIO_CONTROLS_Y + 58,
-               context->display->defaultPalette);
+  DisplayRenderSHP(context->display, &sliderFrame, sliderX,
+                   GAME_MENU_AUDIO_CONTROLS_Y + 58,
+                   context->display->defaultPalette);
   GameContextGetString(context, 0X42DC, textBuf, 128);
   UIRenderTextLeft(font, pixBuf, GAME_MENU_AUDIO_CONTROLS_X + 120,
                    GAME_MENU_AUDIO_CONTROLS_Y + 61, textBuf);
@@ -547,21 +552,21 @@ static void gameMenuRender_AudioControls(Menu *menu, GameContext *context,
   int xOffset = 12;
   // music button
   int musicVolVal = AudioSystemGetMusicVolume(&context->audio) * 10;
-  drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + musicVolVal,
-               GAME_MENU_AUDIO_CONTROLS_Y + 25,
-               context->display->defaultPalette);
+  DisplayRenderSHP(
+      context->display, &buttonFrame, sliderX + xOffset + musicVolVal,
+      GAME_MENU_AUDIO_CONTROLS_Y + 25, context->display->defaultPalette);
 
   // sound button
   int soundVolVal = AudioSystemGetSoundVolume(&context->audio) * 10;
-  drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + soundVolVal,
-               GAME_MENU_AUDIO_CONTROLS_Y + 41,
-               context->display->defaultPalette);
+  DisplayRenderSHP(
+      context->display, &buttonFrame, sliderX + xOffset + soundVolVal,
+      GAME_MENU_AUDIO_CONTROLS_Y + 41, context->display->defaultPalette);
 
   // talking button
   int talkVolVal = AudioSystemGetVoiceVolume(&context->audio) * 10;
-  drawSHPFrame(pixBuf, &buttonFrame, sliderX + xOffset + talkVolVal,
-               GAME_MENU_AUDIO_CONTROLS_Y + 58,
-               context->display->defaultPalette);
+  DisplayRenderSHP(
+      context->display, &buttonFrame, sliderX + xOffset + talkVolVal,
+      GAME_MENU_AUDIO_CONTROLS_Y + 58, context->display->defaultPalette);
 
   SHPFrameRelease(&buttonFrame);
 

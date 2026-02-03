@@ -74,7 +74,5 @@ void drawWall(SDL_Texture *pixBuf, const VCNHandle *vcn, const VMPHandle *vmp,
 
 void drawSHPMazeFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int x, int y,
                       const uint8_t *palette, uint8_t xFlip, float att);
-void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
-                  int yPos, const uint8_t *palette);
 void drawSHPFrameCursor(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
                         int yPos, const uint8_t *palette);

@@ -70,7 +70,9 @@ void DisplayRenderCPSPart(Display *display,const CPSImage*image, int destX, int 
                    int sourceImageWidth);
 void DisplayRenderCPSAt(Display *display,const CPSImage*image, int destX, int destY,
                  int sourceW, int sourceH, int imageW, int imageH);
-                 
+void DisplayRenderSHP(Display* display, const SHPFrame* frame,int xPos,
+                  int yPos, const uint8_t *palette);
+
 void DisplayRenderBitmap(Display *display, const uint8_t *imgData, size_t dataSize,
                  const uint8_t *paletteBuffer, int destX, int destY,
                  int sourceW, int sourceH, int imageW, int imageH);

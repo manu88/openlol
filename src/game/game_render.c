@@ -82,8 +82,8 @@ static void renderCharFace(GameContext *gameCtx, uint8_t charId, int x) {
   SHPFrame frame = {0};
   assert(SHPHandleGetFrame(&gameCtx->display->charFaces[charId], &frame, 0));
   SHPFrameGetImageData(&frame);
-  drawSHPFrame(gameCtx->display->pixBuf, &frame, x, CHAR_ZONE_Y + 1,
-               gameCtx->display->defaultPalette);
+  DisplayRenderSHP(gameCtx->display, &frame, x, CHAR_ZONE_Y + 1,
+                   gameCtx->display->defaultPalette);
   SHPFrameRelease(&frame);
 }
 
@@ -112,8 +112,8 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
     SHPFrame frame = {0};
     assert(SHPHandleGetFrame(&gameCtx->display->gameShapes, &frame, 73));
     SHPFrameGetImageData(&frame);
-    drawSHPFrame(gameCtx->display->pixBuf, &frame, x + 44, CHAR_ZONE_Y,
-                 gameCtx->display->defaultPalette);
+    DisplayRenderSHP(gameCtx->display, &frame, x + 44, CHAR_ZONE_Y,
+                     gameCtx->display->defaultPalette);
     SHPFrameRelease(&frame);
   } else {
 
@@ -121,8 +121,8 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
       SHPFrame frame = {0};
       assert(SHPHandleGetFrame(&gameCtx->display->gameShapes, &frame, 54));
       SHPFrameGetImageData(&frame);
-      drawSHPFrame(gameCtx->display->pixBuf, &frame, x + 44, CHAR_ZONE_Y,
-                   gameCtx->display->defaultPalette);
+      DisplayRenderSHP(gameCtx->display, &frame, x + 44, CHAR_ZONE_Y,
+                       gameCtx->display->defaultPalette);
       SHPFrameRelease(&frame);
 
       if (gameCtx->display->controlDisabled) {
@@ -134,8 +134,8 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
       SHPFrame frame = {0};
       assert(SHPHandleGetFrame(&gameCtx->display->gameShapes, &frame, 72));
       SHPFrameGetImageData(&frame);
-      drawSHPFrame(gameCtx->display->pixBuf, &frame, x + 44, CHAR_ZONE_Y + 16,
-                   gameCtx->display->defaultPalette);
+      DisplayRenderSHP(gameCtx->display, &frame, x + 44, CHAR_ZONE_Y + 16,
+                       gameCtx->display->defaultPalette);
       SHPFrameRelease(&frame);
       if (gameCtx->display->controlDisabled) {
         DisplayDrawDisabledOverlay(gameCtx->display, x + 44, CHAR_ZONE_Y + 16,

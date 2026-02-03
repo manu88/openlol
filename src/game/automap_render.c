@@ -105,7 +105,7 @@ static int automapToIndex(uint16_t automapData) {
                           // orientations (N/S/E/W) per automap data.
 }
 
-static void drawMapShape(const Display *ctx, int index, int x, int y,
+static void drawMapShape(Display *display, int index, int x, int y,
                          int direction) {
   if (index < 0) {
     return;
@@ -113,9 +113,9 @@ static void drawMapShape(const Display *ctx, int index, int x, int y,
   SHPFrame f = {0};
   x = x + mapCoords[10][direction] - 2;
   y = y + mapCoords[11][direction] - 2;
-  SHPHandleGetFrame(&ctx->automapShapes, &f, index + 11 + direction);
+  SHPHandleGetFrame(&display->automapShapes, &f, index + 11 + direction);
   SHPFrameGetImageData(&f);
-  drawSHPFrame(ctx->pixBuf, &f, x, y, ctx->defaultPalette);
+  DisplayRenderSHP(display, &f, x, y, display->defaultPalette);
   SHPFrameRelease(&f);
 }
 

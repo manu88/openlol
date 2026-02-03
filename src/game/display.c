@@ -266,6 +266,36 @@ void DisplayRenderBitmap(Display *display, const uint8_t *imgData,
   SDL_UnlockTexture(display->pixBuf);
 }
 
+void DisplayRenderSHP(Display *display, const SHPFrame *frame, int xPos,
+                      int yPos, const uint8_t *palette) {
+  void *data;
+  int pitch;
+  SDL_LockTexture(display->pixBuf, NULL, &data, &pitch);
+  for (int y = 0; y < frame->header.height; y++) {
+    for (int x = 0; x < frame->header.width; x++) {
+      int p = x + (y * frame->header.width);
+      uint8_t v = frame->imageBuffer[p];
+      if (v == 0) {
+        continue;
+      }
+      uint8_t r = v;
+      uint8_t g = v;
+      uint8_t b = v;
+      if (palette) {
+        r = VGA6To8(palette[(v * 3) + 0]);
+        g = VGA6To8(palette[(v * 3) + 1]);
+        b = VGA6To8(palette[(v * 3) + 2]);
+      }
+
+      int xx = x + xPos;
+      int yy = y + yPos;
+      assert(xx >= 0 && xx < 320 && yy >= 0 && yy < 200);
+      drawPix(data, pitch, r, g, b, xx, yy);
+    }
+  }
+  SDL_UnlockTexture(display->pixBuf);
+}
+
 void DisplayRenderCPSAt(Display *display, const CPSImage *image, int destX,
                         int destY, int sourceW, int sourceH, int imageW,
                         int imageH) {

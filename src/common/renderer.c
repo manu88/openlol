@@ -373,8 +373,8 @@ void drawSHPFrameCursor(SDL_Renderer *renderer, const SHPFrame *frame, int xPos,
   }
 }
 
-void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
-                  int yPos, const uint8_t *palette) {
+static void drawSHPFrame(SDL_Texture *pixBuf, const SHPFrame *frame, int xPos,
+                         int yPos, const uint8_t *palette) {
   void *data;
   int pitch;
   SDL_LockTexture(pixBuf, NULL, &data, &pitch);
