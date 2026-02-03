@@ -454,6 +454,23 @@ static void updateCharacterBlinks(GameContext *gameCtx, Prologue *prologue) {
 }
 
 static void KingOutroLoop(GameContext *gameCtx, Prologue *prologue) {
+  // clear hero text and buttons, just keep the frame 0 face
+  DisplayRenderCPSPart(gameCtx->display, &prologue->details, 0, 123, 0, 123,
+                       PIX_BUF_WIDTH, 77, PIX_BUF_WIDTH);
+  // hide buttons
+  DisplayRenderCPSPart(gameCtx->display, &prologue->details, 87, 180, 87, 140,
+                       150, 15, PIX_BUF_WIDTH);
+
+  DisplayRenderCPSPart(gameCtx->display, &prologue->charBackground, 8, 127, 151,
+                       124, 38, 38, 320);
+
+  SHPFrame f = {0};
+  SHPHandleGetFrame(&prologue->faces[prologue->selectedChar], &f, 0);
+  assert(SHPFrameGetImageData(&f));
+
+  DisplayRenderSHP(gameCtx->display, &f, 11, 130,
+                   prologue->charBackground.palette);
+  SHPFrameRelease(&f);
   int kingAudioSequenceId =
       PakFileGetEntryIndex(&prologue->voicePak, "KING03.VOC");
   assert(kingAudioSequenceId != -1);
