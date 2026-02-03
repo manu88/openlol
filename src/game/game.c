@@ -588,9 +588,9 @@ static int processMouse(GameContext *gameCtx) {
     return processAnimationMouse(gameCtx);
   case GameState_MainMenu:
   case GameState_GameMenu: {
-    int ret = MenuMouse(gameCtx->display->currentMenu, gameCtx,
+    int ret = MenuMouse(gameCtx->currentMenu, gameCtx,
                         &gameCtx->display->mouseEv.pos);
-    if (gameCtx->display->currentMenu->returnToGame) {
+    if (gameCtx->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
     return ret;
@@ -618,8 +618,8 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
 
   if (gameCtx->state == GameState_GameMenu ||
       gameCtx->state == GameState_MainMenu) {
-    int ret = MenuKeyDown(gameCtx->display->currentMenu, gameCtx, e);
-    if (gameCtx->display->currentMenu->returnToGame) {
+    int ret = MenuKeyDown(gameCtx->currentMenu, gameCtx, e);
+    if (gameCtx->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
     gameCtx->display->shouldUpdate = ret;

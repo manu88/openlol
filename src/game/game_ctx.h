@@ -63,6 +63,8 @@ typedef struct _GameContext {
   GameState state;
   GameState prevState;
 
+  Menu *currentMenu;
+
   uint16_t currentBock;
   Orientation orientation;
 

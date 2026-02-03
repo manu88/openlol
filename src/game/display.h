@@ -48,8 +48,6 @@ typedef struct {
 
   uint8_t *defaultPalette;
 
-  Menu *currentMenu;
-
   int shouldUpdate;
   int showBitmap;
   int dialogBoxFrames;
@@ -64,22 +62,24 @@ void DisplayRelease(Display *display);
 
 void DisplayRender(Display *display);
 
-void DisplayRenderCPS(Display *display,const CPSImage*image, int w, int h);
-void DisplayRenderCPSPart(Display *display,const CPSImage*image, int destX, int destY,
-                   int sourceX, int sourceY, int imageW, int imageH,
-                   int sourceImageWidth);
-void DisplayRenderCPSAt(Display *display,const CPSImage*image, int destX, int destY,
-                 int sourceW, int sourceH, int imageW, int imageH);
-void DisplayRenderSHP(Display* display, const SHPFrame* frame,int xPos,
-                  int yPos, const uint8_t *palette);
+void DisplayRenderCPS(Display *display, const CPSImage *image, int w, int h);
+void DisplayRenderCPSPart(Display *display, const CPSImage *image, int destX,
+                          int destY, int sourceX, int sourceY, int imageW,
+                          int imageH, int sourceImageWidth);
+void DisplayRenderCPSAt(Display *display, const CPSImage *image, int destX,
+                        int destY, int sourceW, int sourceH, int imageW,
+                        int imageH);
+void DisplayRenderSHP(Display *display, const SHPFrame *frame, int xPos,
+                      int yPos, const uint8_t *palette);
 
-void DisplayRenderBitmap(Display *display, const uint8_t *imgData, size_t dataSize,
-                 const uint8_t *paletteBuffer, int destX, int destY,
-                 int sourceW, int sourceH, int imageW, int imageH);
+void DisplayRenderBitmap(Display *display, const uint8_t *imgData,
+                         size_t dataSize, const uint8_t *paletteBuffer,
+                         int destX, int destY, int sourceW, int sourceH,
+                         int imageW, int imageH);
 
 void DisplayResetDialog(Display *display);
 int DisplayActiveDelay(Display *display, int tickLength);
-int DisplayWaitMouseEvent(Display *display,SDL_Event *event, int tickLength);
+int DisplayWaitMouseEvent(Display *display, SDL_Event *event, int tickLength);
 void showBigDialogZone(Display *display);
 
 void DisplayLoadBackgroundInventoryIfNeeded(Display *display, int charId);

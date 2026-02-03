@@ -387,12 +387,12 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
   gameCtx->state = newState;
   if (gameCtx->state == GameState_GameMenu) {
     DisplayCreateCursorForItem(gameCtx->display, 0);
-    gameCtx->display->currentMenu = gameMenu;
+    gameCtx->currentMenu = gameMenu;
   } else if (gameCtx->state == GameState_MainMenu) {
-    gameCtx->display->currentMenu = mainMenu;
-  } else if (gameCtx->display->currentMenu) {
-    MenuReset(gameCtx->display->currentMenu);
-    gameCtx->display->currentMenu = NULL;
+    gameCtx->currentMenu = mainMenu;
+  } else if (gameCtx->currentMenu) {
+    MenuReset(gameCtx->currentMenu);
+    gameCtx->currentMenu = NULL;
   }
   if (gameCtx->state == GameState_ShowInventory ||
       gameCtx->state == GameState_ShowMap ||
