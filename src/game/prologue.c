@@ -326,7 +326,7 @@ static void selectedCharSpeech(GameContext *gameCtx, Prologue *prologue) {
   }
   int sequence[4] = {0};
   for (int i = 0; i < numFiles; i++) {
-    snprintf(file, 10, "000%c%i.VOC", c, i);
+    snprintf(file, 10, "000%c%1i.VOC", c, i);
     int fileIndex = PakFileGetEntryIndex(&prologue->voicePak, file);
     sequence[i] = fileIndex;
   }
@@ -500,7 +500,10 @@ static void KingOutroLoop(GameContext *gameCtx, Prologue *prologue) {
     }
 
     DisplayRender(gameCtx->display);
-    DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength);
+    if (DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength) == 0) {
+      gameCtx->_shouldRun = 0;
+      return;
+    }
   }
   prologue->state = PrologueState_Done;
 }
@@ -610,7 +613,10 @@ static void kingIsImpatient(GameContext *gameCtx, Prologue *prologue) {
     }
 
     DisplayRender(gameCtx->display);
-    DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength);
+    if (DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength) == 0) {
+      gameCtx->_shouldRun = 0;
+      return;
+    }
   }
   prologue->state = PrologueState_CharSelection;
 }
