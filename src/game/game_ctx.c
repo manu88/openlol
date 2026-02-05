@@ -812,3 +812,7 @@ int GameContextCheckMagic(GameContext *gameCtx, uint16_t charId,
   }
   return 0;
 }
+
+uint8_t *GameContextGetDefaultPalette(const GameContext *gameCtx) {
+  return gameCtx->level->vcnHandle.palette;
+}

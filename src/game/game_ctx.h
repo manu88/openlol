@@ -187,3 +187,5 @@ uint16_t GetRandom(uint16_t min, uint16_t max);
 
 int GameContextCheckMagic(GameContext *gameCtx, uint16_t charId,
                           uint16_t spellNum, uint16_t spellLevel);
+
+uint8_t *GameContextGetDefaultPalette(const GameContext *gameCtx);
