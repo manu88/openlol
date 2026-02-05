@@ -11,7 +11,6 @@
 #include "game_envir.h"
 #include "geometry.h"
 #include "pak_file.h"
-#include "renderer.h"
 #include "ui.h"
 #include <assert.h>
 #include <stddef.h>
@@ -505,11 +504,8 @@ static void KingOutroLoop(GameContext *gameCtx, Prologue *prologue) {
       memset(prologue->frameData, 0, frameDataSize);
     }
     WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
-    DisplayRenderBitmap(
-        gameCtx->display, prologue->frameData, frameDataSize,
-        prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-        prologue->chargen.header.width, prologue->chargen.header.height,
-        prologue->chargen.header.width, prologue->chargen.header.height);
+    DisplayRenderWSA(gameCtx->display, prologue->frameData, &prologue->chargen,
+                     MAZE_COORDS_X, MAZE_COORDS_Y);
 
     animIndex += 1;
     if (animIndex > 4) {
@@ -573,11 +569,8 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
       memset(prologue->frameData, 0, frameDataSize);
     }
     WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
-    DisplayRenderBitmap(
-        gameCtx->display, prologue->frameData, frameDataSize,
-        prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-        prologue->chargen.header.width, prologue->chargen.header.height,
-        prologue->chargen.header.width, prologue->chargen.header.height);
+    DisplayRenderWSA(gameCtx->display, prologue->frameData, &prologue->chargen,
+                     MAZE_COORDS_X, MAZE_COORDS_Y);
 
     animIndex += 1;
     if (animIndex > 4) {
@@ -618,11 +611,8 @@ static void kingIsImpatient(GameContext *gameCtx, Prologue *prologue) {
       memset(prologue->frameData, 0, frameDataSize);
     }
     WSAHandleGetFrame(&prologue->chargen, animIndex, prologue->frameData, 1);
-    DisplayRenderBitmap(
-        gameCtx->display, prologue->frameData, frameDataSize,
-        prologue->chargen.header.palette, MAZE_COORDS_X, MAZE_COORDS_Y,
-        prologue->chargen.header.width, prologue->chargen.header.height,
-        prologue->chargen.header.width, prologue->chargen.header.height);
+    DisplayRenderWSA(gameCtx->display, prologue->frameData, &prologue->chargen,
+                     MAZE_COORDS_X, MAZE_COORDS_Y);
 
     animIndex += 1;
     if (animIndex > 4) {

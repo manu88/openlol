@@ -230,6 +230,14 @@ int DisplayActiveDelay(Display *display, int tickLength) {
   return 1;
 }
 
+void DisplayRenderWSA(Display *display, const uint8_t *imgData,
+                      const WSAHandle *wsa, int destX, int destY) {
+  DisplayRenderBitmap(display, imgData, wsa->header.width * wsa->header.height,
+                      wsa->header.palette, destX, destY, wsa->header.width,
+                      wsa->header.height, wsa->header.width,
+                      wsa->header.height);
+}
+
 void DisplayRenderBitmap(Display *display, const uint8_t *imgData,
                          size_t dataSize, const uint8_t *paletteBuffer,
                          int destX, int destY, int sourceW, int sourceH,

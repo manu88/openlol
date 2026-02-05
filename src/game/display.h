@@ -3,7 +3,7 @@
 #include "formats/format_fnt.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
-#include "geometry.h"
+#include "formats/format_wsa.h"
 #include "menu.h"
 #include <SDL2/SDL.h>
 #include <stdint.h>
@@ -75,6 +75,8 @@ void DisplayRenderBitmap(Display *display, const uint8_t *imgData,
                          size_t dataSize, const uint8_t *paletteBuffer,
                          int destX, int destY, int sourceW, int sourceH,
                          int imageW, int imageH);
+void DisplayRenderWSA(Display *display, const uint8_t *imgData,
+                      const WSAHandle *wsa, int destX, int destY);
 
 void DisplayResetDialog(Display *display);
 int DisplayActiveDelay(Display *display, int tickLength);
