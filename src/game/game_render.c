@@ -194,6 +194,9 @@ void GameRender(GameContext *gameCtx) {
   if (gameCtx->state == GameState_MainMenu) {
     renderMainMenu(gameCtx);
     return;
+  } else if (gameCtx->state == GameState_GameMenu) {
+    renderGameMenu(gameCtx);
+    return;
   }
   if (gameCtx->state == GameState_ShowMap) {
     AutomapRender(gameCtx);
@@ -220,11 +223,6 @@ void GameRender(GameContext *gameCtx) {
   }
   renderInventoryStrip(gameCtx);
   renderCharFaces(gameCtx);
-
-  if (gameCtx->state == GameState_GameMenu) {
-    renderGameMenu(gameCtx);
-    return;
-  }
 
   if (gameCtx->display->showBigDialog) {
     showBigDialogZone(gameCtx->display);
