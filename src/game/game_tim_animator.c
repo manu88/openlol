@@ -172,7 +172,6 @@ void GameTimInterpreterInit(GameTimInterpreter *timInterpreter,
 }
 
 void GameTimInterpreterRelease(GameTimInterpreter *animator) {
-  TIMInterpreterRelease(&animator->timInterpreter);
   AnimatorRelease(animator->animator);
 }
 

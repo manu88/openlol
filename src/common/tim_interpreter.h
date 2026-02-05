@@ -62,7 +62,6 @@ typedef struct _TIMInterpreter {
 } TIMInterpreter;
 
 void TIMInterpreterInit(TIMInterpreter *interp);
-void TIMInterpreterRelease(TIMInterpreter *interp);
 
 void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim);
 int TIMInterpreterIsRunning(const TIMInterpreter *interp);

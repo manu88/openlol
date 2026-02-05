@@ -76,7 +76,6 @@ void TIMInterpreterInit(TIMInterpreter *interp) {
   memset(interp, 0, sizeof(TIMInterpreter));
   interp->loopStartPos = -1;
 }
-void TIMInterpreterRelease(TIMInterpreter *interp) {}
 
 void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim) {
   interp->_tim = tim;
