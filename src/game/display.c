@@ -51,7 +51,6 @@ int DisplayInit(Display *display) {
   if (!initSDL(display)) {
     return 0;
   }
-  display->shouldUpdate = 1;
 
   display->dialogTextBuffer = malloc(DIALOG_BUFFER_SIZE);
   assert(display->dialogTextBuffer);

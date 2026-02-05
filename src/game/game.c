@@ -618,18 +618,16 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
 
   if (gameCtx->state == GameState_GameMenu ||
       gameCtx->state == GameState_MainMenu) {
-    int ret = MenuKeyDown(gameCtx->currentMenu, gameCtx, e);
+    MenuKeyDown(gameCtx->currentMenu, gameCtx, e);
     if (gameCtx->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
-    gameCtx->display->shouldUpdate = ret;
   } else if (gameCtx->state == GameState_ShowInventory ||
              gameCtx->state == GameState_ShowMap) {
     switch (e->key.keysym.sym) {
     case SDLK_ESCAPE:
     case SDLK_TAB:
       GameContextSetState(gameCtx, GameState_PlayGame);
-      gameCtx->display->shouldUpdate = 1;
       return;
     }
     if (!gameCtx->conf.moveInAutomap) {
@@ -638,32 +636,26 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Up);
       break;
     case SDLK_s:
       // go back
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Down);
       break;
     case SDLK_q:
       // go left
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Left);
       break;
     case SDLK_d:
       // go right
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Right);
       break;
     case SDLK_a:
       // turn anti-clockwise
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
       break;
     case SDLK_e:
       // turn clockwise
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     }
@@ -671,48 +663,39 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Up);
       break;
     case SDLK_s:
       // go back
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Down);
       break;
     case SDLK_q:
       // go left
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Left);
       break;
     case SDLK_d:
       // go right
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Right);
       break;
     case SDLK_a:
       // turn anti-clockwise
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnLeft);
       break;
     case SDLK_e:
       // turn clockwise
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     case SDLK_p:
       inspectFrontWall(gameCtx);
       break;
     case SDLK_SPACE:
-      gameCtx->display->shouldUpdate = 1;
       runBlockScript(gameCtx);
       break;
     case SDLK_TAB:
-      gameCtx->display->shouldUpdate = 1;
       GameContextButtonClicked(gameCtx, ButtonType_Automap);
       break;
     case SDLK_ESCAPE:
       GameContextSetState(gameCtx, GameState_GameMenu);
-      gameCtx->display->shouldUpdate = 1;
       return;
     default:
       break;
@@ -724,7 +707,6 @@ static void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
          EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
     EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
-    gameCtx->display->shouldUpdate = 1;
     if (gameCtx->dialogState == DialogState_InProgress) {
       return;
     }
@@ -753,7 +735,6 @@ static void getInputs(GameContext *gameCtx) {
     break;
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
-      gameCtx->display->shouldUpdate = 1;
     } else if (e.type == SDL_MOUSEBUTTONDOWN) {
       assert(gameCtx->display->mouseEv.pending ==
              0); // prev one needs to be handled
@@ -770,17 +751,13 @@ static void getInputs(GameContext *gameCtx) {
   }
 
   if (gameCtx->display->mouseEv.pending) {
-    if (processMouse(gameCtx)) {
-      gameCtx->display->shouldUpdate = 1;
-    }
+    processMouse(gameCtx);
     gameCtx->display->mouseEv.pending = 0;
   }
 }
 
 static void GameRunOnce(GameContext *gameCtx) {
-  if (DBGServerUpdate(gameCtx)) {
-    gameCtx->display->shouldUpdate = 1;
-  }
+  DBGServerUpdate(gameCtx);
 
   if (gameCtx->state == GameState_Prologue) {
     int selectedChar = PrologueShow(gameCtx);
@@ -790,15 +767,11 @@ static void GameRunOnce(GameContext *gameCtx) {
     printf("Selected char=%i\n", selectedChar);
     DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
     GameContextNewGame(gameCtx, selectedChar);
-    gameCtx->display->shouldUpdate = 1;
   }
 
   getInputs(gameCtx);
 
-  if (gameCtx->display->shouldUpdate) {
-    GameRender(gameCtx);
-    gameCtx->display->shouldUpdate = 0;
-  }
+  GameRender(gameCtx);
 
   DisplayRender(gameCtx->display);
 }

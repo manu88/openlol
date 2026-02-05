@@ -48,7 +48,6 @@ typedef struct {
 
   uint8_t *defaultPalette;
 
-  int shouldUpdate;
   int showBitmap;
   int dialogBoxFrames;
   int showBigDialog;
