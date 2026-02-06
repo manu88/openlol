@@ -46,7 +46,7 @@ typedef struct _TIMInterpreter {
   TIMInterpreterCallbacks callbacks;
   void *callbackCtx;
 
-  TIMHandle *_tim;
+  const TIMHandle *_tim;
   size_t pos;
 
   uint8_t dontLoop; // just list instructions
@@ -63,7 +63,7 @@ typedef struct _TIMInterpreter {
 
 void TIMInterpreterInit(TIMInterpreter *interp);
 
-void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim);
+void TIMInterpreterStart(TIMInterpreter *interp, const TIMHandle *tim);
 int TIMInterpreterIsRunning(const TIMInterpreter *interp);
 int TIMInterpreterUpdate(TIMInterpreter *interp);
 void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex);

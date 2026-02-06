@@ -77,7 +77,8 @@ void TIMInterpreterInit(TIMInterpreter *interp) {
   interp->loopStartPos = -1;
 }
 
-void TIMInterpreterStart(TIMInterpreter *interp, TIMHandle *tim) {
+void TIMInterpreterStart(TIMInterpreter *interp, const TIMHandle *tim) {
+  interp->loopStartPos = -1;
   interp->_tim = tim;
   interp->pos = TIM_START_OFFSET;
 }
