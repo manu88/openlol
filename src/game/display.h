@@ -4,7 +4,7 @@
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
 #include "formats/format_wsa.h"
-#include "menu.h"
+#include "geometry.h"
 #include <SDL2/SDL.h>
 #include <stdint.h>
 

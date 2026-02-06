@@ -55,19 +55,22 @@ static void ShowDialogButtons(TIMInterpreter *interp, uint16_t functionId,
 static void PlaySoundFX(TIMInterpreter *interp, uint16_t soundId);
 static void PlayDialogue(TIMInterpreter *interp, uint16_t strId, int argc,
                          const uint16_t *argv);
+static void InitSceneDialog(TIMInterpreter *interp, int controlMode);
+static void FadeClearWindow(TIMInterpreter *interp, uint16_t param);
 
 void TIMInit(void) {
-  printf("INIT TIM\n");
   memset(&timCtx, 0, sizeof(TIMContext));
   TIMInterpreterInit(&timCtx.interp);
   timCtx.interp.callbackCtx = &timCtx;
   timCtx.interp.callbacks = (TIMInterpreterCallbacks){
       .TIMInterpreterCallbacks_WSAInit = WSAInit,
       .TIMInterpreterCallbacks_WSADisplayFrame = WSADisplayFrame,
+      .TIMInterpreterCallbacks_FadeClearWindow = FadeClearWindow,
       .TIMInterpreterCallbacks_ShowDialogButtons = ShowDialogButtons,
       .TIMInterpreterCallbacks_WSARelease = WSARelease,
       .TIMInterpreterCallbacks_PlaySoundFX = PlaySoundFX,
       .TIMInterpreterCallbacks_PlayDialogue = PlayDialogue,
+      .TIMInterpreterCallbacks_InitSceneDialog = InitSceneDialog,
   };
 }
 
@@ -143,17 +146,17 @@ void TIMRun(GameContext *gameCtx, uint16_t scriptId, uint16_t loop) {
       printf("TIM isRunning = 0\n");
       break;
     }
-    printf("TIMInterpreterUpdate\n");
     TIMInterpreterUpdate(&timCtx.interp);
     SDL_Event e = {0};
-    int mouse =
-        DisplayWaitMouseEvent(gameCtx->display, &e, gameCtx->conf.tickLength);
+    int mouse = DisplayWaitMouseEvent(gameCtx->display, &e,
+                                      gameCtx->conf.tickLength * 100);
     if (mouse == 0) {
       gameCtx->_shouldRun = 0;
       break;
     } else if (mouse == 1) {
-      break;
+      // break;
     }
+    DisplayRender(gameCtx->display);
   }
 }
 
@@ -177,7 +180,7 @@ static void WSADisplayFrame(TIMInterpreter *interp, int wsaIndex, int frame) {
   assert(timCtx.frameBuffer);
   Animation *anim = &timCtx.anims[wsaIndex];
   doRenderWSAFrame(gameCtx, anim, frame);
-  DisplayRender(gameCtx->display);
+  // DisplayRender(gameCtx->display);
 }
 
 static void ShowDialogButtons(TIMInterpreter *interp, uint16_t functionId,
@@ -214,4 +217,14 @@ static void PlayDialogue(TIMInterpreter *interp, uint16_t stringId, int argc,
                        DIALOG_BUFFER_SIZE);
   GameContextSetDialogF(gameCtx, stringId);
   GameContextPlayDialogSpeech(gameCtx, 0, stringId);
+}
+
+static void InitSceneDialog(TIMInterpreter *interp, int controlMode) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextInitSceneDialog(gameCtx);
+}
+
+static void FadeClearWindow(TIMInterpreter *interp, uint16_t param) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
 }

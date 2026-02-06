@@ -41,7 +41,7 @@ static void callbackTIM_WSADisplayFrame(TIMInterpreter *interp, int animIndex,
   }
   WSAHandleGetFrame(&timInterp->animator->wsa, frame,
                     timInterp->animator->wsaFrameBuffer,
-                    timInterp->animator->wsaFlags & WSA_XOR);
+                    1); // timInterp->animator->wsaFlags & WSA_XOR);
   assert(timInterp->animator->wsaFrameBuffer);
   AnimatorRenderWSAFrame(timInterp->animator);
 }
@@ -82,7 +82,6 @@ static void callbackTIM_CharChat(TIMInterpreter *interp, uint16_t charId,
 static void callbackTIM_PlayDialogue(TIMInterpreter *interp, uint16_t stringId,
                                      int argc, const uint16_t *argv) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-
   GameContextGetString(gameCtx, stringId, gameCtx->display->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
   GameContextSetDialogF(gameCtx, stringId);

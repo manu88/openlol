@@ -10,3 +10,6 @@
 void LevelContextRelease(LevelContext *levelCtx);
 int cmdGame(int argc, char *argv[]);
 int tryMove(GameContext *gameCtx, Direction dir);
+void GamePreUpdate(GameContext *gameCtx);
+
+void GameRunTimAnimation(GameContext *gameCtx, uint16_t scriptId);

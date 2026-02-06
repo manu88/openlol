@@ -10,7 +10,6 @@
 #include "geometry.h"
 #include "menu.h"
 #include "render.h"
-#include "renderer.h"
 #include "ui.h"
 #include <assert.h>
 #include <ctype.h>
@@ -176,8 +175,6 @@ static void renderCharFaces(GameContext *gameCtx) {
   }
 }
 
-
-
 static void renderExitButton(GameContext *gameCtx) {
   UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
                    UI_SCENE_EXIT_BUTTON_X, UI_SCENE_EXIT_BUTTON_Y,
@@ -215,11 +212,6 @@ void GameRender(GameContext *gameCtx) {
       DisplayRenderCPSAt(gameCtx->display, &gameCtx->display->loadedbitMap, 112,
                          0, 176, 120, 320, 200);
     }
-    if (gameCtx->state == GameState_TimAnimation) {
-      if (GameTimInterpreterRender(&gameCtx->timInterpreter) == 0) {
-        GameContextSetState(gameCtx, GameState_PlayGame);
-      }
-    }
   }
   renderInventoryStrip(gameCtx);
   renderCharFaces(gameCtx);
@@ -233,18 +225,18 @@ void GameRender(GameContext *gameCtx) {
 
   if (gameCtx->display->buttonText[0]) {
     UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
-                     DIALOG_BUTTON1_X, DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W,
+                     DIALOG_BUTTON1_X, DIALOG_BUTTON_Y, DIALOG_BUTTON_W,
                      DIALOG_BUTTON_H, gameCtx->display->buttonText[0]);
   }
 
   if (gameCtx->display->buttonText[1]) {
     UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
-                     DIALOG_BUTTON2_X, DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W,
+                     DIALOG_BUTTON2_X, DIALOG_BUTTON_Y, DIALOG_BUTTON_W,
                      DIALOG_BUTTON_H, gameCtx->display->buttonText[1]);
   }
   if (gameCtx->display->buttonText[2]) {
     UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
-                     DIALOG_BUTTON3_X, DIALOG_BUTTON_Y_2, DIALOG_BUTTON_W,
+                     DIALOG_BUTTON3_X, DIALOG_BUTTON_Y, DIALOG_BUTTON_W,
                      DIALOG_BUTTON_H, gameCtx->display->buttonText[2]);
   }
   renderDialog(gameCtx);

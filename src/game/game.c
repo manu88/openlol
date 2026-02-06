@@ -293,8 +293,8 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
 }
 
 static int processAnimationMouse(GameContext *gameCtx) {
-  if (gameCtx->display->mouseEv.pos.y >= DIALOG_BUTTON_Y_2 &&
-      gameCtx->display->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
+  if (gameCtx->display->mouseEv.pos.y >= DIALOG_BUTTON_Y &&
+      gameCtx->display->mouseEv.pos.y < DIALOG_BUTTON_Y + DIALOG_BUTTON_H) {
     if (gameCtx->display->mouseEv.pos.x >= DIALOG_BUTTON1_X &&
         gameCtx->display->mouseEv.pos.x < DIALOG_BUTTON1_X + DIALOG_BUTTON_W) {
       printf("button 0\n");
@@ -584,8 +584,8 @@ static int processMouse(GameContext *gameCtx) {
     return processMapViewMouse(gameCtx);
   case GameState_ShowInventory:
     return processCharInventoryMouse(gameCtx);
-  case GameState_TimAnimation:
-    return processAnimationMouse(gameCtx);
+    //  case GameState_TimAnimation:
+    //    return processAnimationMouse(gameCtx);
   case GameState_MainMenu:
   case GameState_GameMenu: {
     int ret = MenuMouse(gameCtx->currentMenu, gameCtx,
@@ -703,18 +703,22 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   }
 }
 
-static void GamePreUpdate(GameContext *gameCtx) {
+void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
          EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
     EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
+#if 0
     if (gameCtx->dialogState == DialogState_InProgress) {
+      printf("GamePreUpdate: DialogState_InProgress return\n");
       return;
     }
+#endif
   }
   if (gameCtx->nextFunc) {
-    printf("Exec next func %X\n", gameCtx->nextFunc);
-    GameContextRunScript(gameCtx, gameCtx->nextFunc);
+    uint16_t next = gameCtx->nextFunc;
     gameCtx->nextFunc = 0;
+    printf("Exec next func %X\n", next);
+    GameContextRunScript(gameCtx, next);
   }
 }
 
@@ -733,6 +737,7 @@ static void getInputs(GameContext *gameCtx) {
   case GameState_GameMenu:
     processGameInputs(gameCtx, &e);
     break;
+#if 0    
   case GameState_TimAnimation:
     if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
     } else if (e.type == SDL_MOUSEBUTTONDOWN) {
@@ -744,6 +749,7 @@ static void getInputs(GameContext *gameCtx) {
       gameCtx->display->mouseEv.isRightClick = e.button.button == 3;
     }
     break;
+#endif
   case GameState_Invalid:
   case GameState_Prologue:
     assert(0);
@@ -760,12 +766,14 @@ static void GameRunOnce(GameContext *gameCtx) {
   DBGServerUpdate(gameCtx);
 
   if (gameCtx->state == GameState_Prologue) {
-    int selectedChar = PrologueShow(gameCtx);
+    int selectedChar = 0;
+#if 0
+    PrologueShow(gameCtx)
     if (gameCtx->_shouldRun == 0) {
       return;
     }
-    printf("Selected char=%i\n", selectedChar);
     DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
+#endif
     GameContextNewGame(gameCtx, selectedChar);
   }
 
@@ -783,4 +791,18 @@ static int GameRun(GameContext *gameCtx) {
   }
   SDL_Quit();
   return 0;
+}
+
+void GameRunTimAnimation(GameContext *gameCtx, uint16_t scriptId) {
+  GameTimInterpreterRunTim(&gameCtx->timInterpreter, scriptId);
+
+  while (gameCtx->_shouldRun &&
+         GameTimInterpreterRender(&gameCtx->timInterpreter) != 0) {
+    DisplayRender(gameCtx->display);
+    SDL_Event event = {0};
+    if (DisplayWaitMouseEvent(gameCtx->display, &event, 40000) == 0) {
+      gameCtx->_shouldRun = 0;
+      break;
+    }
+  }
 }
