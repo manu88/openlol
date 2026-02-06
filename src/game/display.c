@@ -458,7 +458,7 @@ void DisplayExpandDialogBox(Display *display, int tickLength) {
   int ret = 0;
   do {
     ret = renderExpandDialogBox(display);
-    if (DisplayActiveDelay(display, tickLength) == 0) {
+    if (DisplayActiveDelay(display, tickLength / 10) == 0) {
       return;
     }
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
@@ -503,7 +503,7 @@ void DisplayShrinkDialogBox(Display *display, int tickLength) {
   int ret = 0;
   do {
     ret = renderShrinkDialogBox(display);
-    if (DisplayActiveDelay(display, tickLength) == 0) {
+    if (DisplayActiveDelay(display, tickLength / 10) == 0) {
       return;
     }
     SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
