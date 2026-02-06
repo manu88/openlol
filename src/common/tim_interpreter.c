@@ -84,7 +84,7 @@ void TIMInterpreterInit(TIMInterpreter *interp) {
 
 void TIMInterpreterStart(TIMInterpreter *interp, const TIMHandle *tim) {
   interp->loopStartPos = -1;
-  interp->_running = 1;
+  interp->restartLoop = 0;
   interp->_tim = tim;
   interp->pos = TIM_START_OFFSET;
 }
@@ -132,7 +132,7 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     interp->callbacks.TIMInterpreterCallbacks_ClearTextField(interp);
     return;
   case TIM_OPCODE_LOAD_SOUND_FILE:
-    interp->callbacks.TIMInterpreterCallbacks_LoadSoundFile(interp, params[0]);
+    interp->callbacks.TIMInterpreterCallbacks_LoadMusicFile(interp, params[0]);
     return;
   case TIM_OPCODE_PLAY_MUSIC_TRACK:
     interp->callbacks.TIMInterpreterCallbacks_PlayMusicTrack(interp, params[0]);
@@ -234,17 +234,16 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   case TIM_COMMAND_ID_CONTINUE_LOOP:
     if (interp->dontLoop == 0) {
       assert(interp->loopStartPos != -1);
-      interp->inLoop = 1;
       interp->restartLoop = 1;
-
+#if 0
       if (interp->buttonState[0]) {
         printf("\t\t\tButton ok clicked\n");
         interp->buttonState[0] = 0;
-        interp->inLoop = 0;
         interp->restartLoop = 0;
       }
+#endif
     }
-    interp->_running =
+    interp->restartLoop =
         interp->callbacks.TIMInterpreterCallbacks_ContinueLoop(interp);
     return instr->len;
   case TIM_COMMAND_SET_LOOP_IP:
@@ -262,8 +261,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 }
 
 int TIMInterpreterIsRunning(const TIMInterpreter *interp) {
-  return interp->_tim && interp->pos < interp->_tim->avtlSize &&
-         interp->_running;
+  return interp->_tim && interp->pos < interp->_tim->avtlSize;
 }
 
 void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex) {
