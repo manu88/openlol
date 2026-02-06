@@ -59,7 +59,7 @@ typedef struct {
 int DisplayInit(Display *display);
 void DisplayRelease(Display *display);
 
-void DisplayRender(Display *display);
+void DisplayUpdate(Display *display);
 
 void DisplayRenderCPS(Display *display, const CPSImage *image, int w, int h);
 void DisplayRenderCPSPart(Display *display, const CPSImage *image, int destX,

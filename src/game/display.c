@@ -190,7 +190,7 @@ static void dimRect(SDL_Texture *texture, int startX, int startY, int w,
   SDL_UnlockTexture(texture);
 }
 
-void DisplayRender(Display *display) {
+void DisplayUpdate(Display *display) {
   SDL_Rect dest = {0, 0, PIX_BUF_WIDTH * SCREEN_FACTOR,
                    PIX_BUF_HEIGHT * SCREEN_FACTOR};
   assert(SDL_RenderCopy(display->renderer, display->pixBuf, NULL, &dest) == 0);
@@ -379,7 +379,7 @@ void DisplayDoScreenFade(Display *display, int numFrames, int tickLength) {
       return;
     }
     dimRect(display->pixBuf, 0, 0, PIX_BUF_WIDTH, PIX_BUF_HEIGHT);
-    DisplayRender(display);
+    DisplayUpdate(display);
   }
 }
 void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
@@ -389,7 +389,7 @@ void DisplayDoSceneFade(Display *display, int numFrames, int tickLength) {
     }
     dimRect(display->pixBuf, MAZE_COORDS_X, MAZE_COORDS_Y, MAZE_COORDS_W,
             MAZE_COORDS_H);
-    DisplayRender(display);
+    DisplayUpdate(display);
   }
 }
 
@@ -517,7 +517,7 @@ void DisplayShrinkDialogBox(Display *display, int tickLength) {
 }
 
 int DisplayWaitForClickOrKey(Display *display, int tickLength) {
-  DisplayRender(display);
+  DisplayUpdate(display);
   while (1) {
     SDL_Event event = {0};
     SDL_WaitEventTimeout(&event, tickLength);

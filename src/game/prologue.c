@@ -412,7 +412,7 @@ static void CharTextBoxLoop(GameContext *gameCtx, Prologue *prologue) {
                        prologue->charBackground.palette);
       SHPFrameRelease(&charFrame);
     }
-    DisplayRender(gameCtx->display);
+    DisplayUpdate(gameCtx->display);
   }
 }
 
@@ -512,7 +512,7 @@ static void KingOutroLoop(GameContext *gameCtx, Prologue *prologue) {
       animIndex = 0;
     }
 
-    DisplayRender(gameCtx->display);
+    DisplayUpdate(gameCtx->display);
     if (DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength) == 0) {
       gameCtx->_shouldRun = 0;
       return;
@@ -579,7 +579,7 @@ static void KingIntroLoop(GameContext *gameCtx, Prologue *prologue) {
 
     updateCharacterBlinks(gameCtx, prologue);
 
-    DisplayRender(gameCtx->display);
+    DisplayUpdate(gameCtx->display);
   }
   prologue->state = PrologueState_CharSelection;
 }
@@ -619,7 +619,7 @@ static void kingIsImpatient(GameContext *gameCtx, Prologue *prologue) {
       animIndex = 0;
     }
 
-    DisplayRender(gameCtx->display);
+    DisplayUpdate(gameCtx->display);
     if (DisplayActiveDelay(gameCtx->display, gameCtx->conf.tickLength) == 0) {
       gameCtx->_shouldRun = 0;
       return;
@@ -662,7 +662,7 @@ static void CharSelectionLoop(GameContext *gameCtx, Prologue *prologue) {
       }
     }
     updateCharacterBlinks(gameCtx, prologue);
-    DisplayRender(gameCtx->display);
+    DisplayUpdate(gameCtx->display);
     if (SDL_GetTicks() - start > 15000) {
       prologue->state = PrologueState_KingImpatient;
       return;

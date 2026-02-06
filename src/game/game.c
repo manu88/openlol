@@ -773,7 +773,7 @@ static void GameRunOnce(GameContext *gameCtx) {
 
   GameRender(gameCtx);
 
-  DisplayRender(gameCtx->display);
+  DisplayUpdate(gameCtx->display);
 }
 
 static int GameRun(GameContext *gameCtx) {
