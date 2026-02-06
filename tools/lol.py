@@ -101,6 +101,41 @@ class VOCFileInfo:
             self.blocks.append(block)
 
 
+class TIMFileInfo:
+    class TIMInstr:
+        def __init__(self, line: str):
+            self.name = ""
+            self.params = {}
+            self._parse(line)
+
+        def _parse(self, line: str):
+            line = line.lstrip()
+            pos = line.find(" ")
+            if pos == -1:
+                self.name = line
+                return
+            self.name = line[0:pos]
+            if self.name == "UNIMPLEMENTED":
+                return
+
+            params = line[pos+1:]
+            params = params.split(" ")
+
+            for p in params:
+                k, v = p.split("=")
+                self.params[k] = v
+
+        def __str__(self):
+            return f"{self.name}({self.params})"
+
+    def __init__(self, desc: List[str]):
+        self.instructions: List[TIMFileInfo.TIMInstr] = []
+        for line in desc:
+            inst = TIMFileInfo.TIMInstr(line)
+            if inst:
+                self.instructions.append(inst)
+
+
 class WSAFileInfo:
     class WSAFrameInfo:
         def __init__(self):
@@ -266,6 +301,14 @@ class LOL:
             return None
         proc_output = resp.stdout.decode()
         return SHPFileInfo(proc_output.splitlines(), compressed=True)
+
+    def get_tim_info(self, file: str, pak: str) -> Optional[TIMFileInfo]:
+        argv = [self.tool_path, "-p", pak, "tim", "show", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return TIMFileInfo(proc_output.splitlines())
 
     def get_wsa_info(self, file: str, pak: str) -> Optional[WSAFileInfo]:
         argv = [self.tool_path, "-p", pak, "wsa", "info", file]

@@ -251,6 +251,34 @@ class VOCRender(BaseRender):
 class TIMRender(BaseRender):
     def __init__(self, parent):
         super().__init__(parent)
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns="params")
+        self.table.heading("params", text="params")
+        self.table.pack(fill=tk.BOTH, expand=True)
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        tim_info = lol.get_tim_info(file_name, pak_name)
+        if tim_info is None:
+            return
+        self.clear_table()
+        in_loop = 0
+        for inst in tim_info.instructions:
+            name = inst.name
+            if in_loop:
+                name = "\t" + name
+            self.table.insert(
+                "", "end", text=name, values=(inst.params,))
+            if inst.name == "SetLoopPoint":
+                in_loop = 1
+            elif inst.name == "ContinueLoopPoint":
+                in_loop = 0
 
 
 class LANGRender(BaseRender):
@@ -262,7 +290,6 @@ class LANGRender(BaseRender):
                         fieldbackground="black", foreground="white")
         self.table = ttk.Treeview(self, columns="text")
         self.table.heading("text", text="text")
-
         self.table.pack(fill=tk.X, expand=True)
 
     def clear_table(self):
