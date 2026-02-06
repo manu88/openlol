@@ -87,9 +87,9 @@ static void callbackCopyPage(TIMInterpreter *interp, uint16_t srcX,
          srcX, srcY, destX, destY, w, h, srcPage, destPage);
 }
 
-static void callbackLoadSoundFile(TIMInterpreter *interp, uint16_t soundId) {
+static void callbackLoadMusicFile(TIMInterpreter *interp, uint16_t soundId) {
   indent();
-  printf("LoadSoundFile soundId=%i\n", soundId);
+  printf("LoadMusicFile soundId=%i\n", soundId);
 }
 
 static void callbackSetPartyPos(TIMInterpreter *interp, uint16_t how,
@@ -145,7 +145,7 @@ static int callbackContinueLoop(TIMInterpreter *interp) {
   inLoop--;
   indent();
   printf("ContinueLoopPoint\n");
-  return 0;
+  return 1;
 }
 
 void DumpTim(const TIMHandle *handle) {
@@ -169,7 +169,7 @@ void DumpTim(const TIMHandle *handle) {
       .TIMInterpreterCallbacks_PlaySoundFX = callbackPlaySoundFX,
       .TIMInterpreterCallbacks_StopAllFunctions = callbackStopAllFunctions,
       .TIMInterpreterCallbacks_ClearTextField = callbackClearTextField,
-      .TIMInterpreterCallbacks_LoadSoundFile = callbackLoadSoundFile,
+      .TIMInterpreterCallbacks_LoadMusicFile = callbackLoadMusicFile,
       .TIMInterpreterCallbacks_PlayMusicTrack = callbackPlayMusicTrack,
       .TIMInterpreterCallbacks_Update = callbackUpdate,
       .TIMInterpreterCallbacks_SetPartyPos = callbackSetPartyPos,

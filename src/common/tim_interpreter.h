@@ -42,8 +42,8 @@ typedef struct {
                                               uint16_t soundId);
   void (*TIMInterpreterCallbacks_StopAllFunctions)(TIMInterpreter *interp);
   void (*TIMInterpreterCallbacks_ClearTextField)(TIMInterpreter *interp);
-  void (*TIMInterpreterCallbacks_LoadSoundFile)(TIMInterpreter *interp,
-                                                uint16_t soundId);
+  void (*TIMInterpreterCallbacks_LoadMusicFile)(TIMInterpreter *interp,
+                                                uint16_t fileId);
   void (*TIMInterpreterCallbacks_PlayMusicTrack)(TIMInterpreter *interp,
                                                  uint16_t musicId);
   void (*TIMInterpreterCallbacks_Update)(TIMInterpreter *interp);
@@ -67,11 +67,9 @@ typedef struct _TIMInterpreter {
   size_t pos;
 
   uint8_t dontLoop; // just list instructions
-  int _running;
 
   int loopStartPos;
   int restartLoop;
-  int inLoop;
 
   int buttonState[3];
 

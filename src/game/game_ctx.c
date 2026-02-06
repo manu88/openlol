@@ -14,7 +14,6 @@
 #include "game_envir.h"
 #include "game_render.h"
 #include "game_strings.h"
-#include "game_tim_animator.h"
 #include "menu.h"
 #include "pak_file.h"
 #include "prologue.h"
@@ -136,10 +135,6 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
   assert(GameEnvironmentLoadPak(&gameCtx->musPak, "MUSIC.PAK"));
   AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
-
-  AnimatorInit(&gameCtx->animator, gameCtx->display->pixBuf);
-  GameTimInterpreterInit(&gameCtx->timInterpreter, &gameCtx->animator);
-  gameCtx->timInterpreter.timInterpreter.callbackCtx = gameCtx;
 
   gameCtx->itemsInGame = malloc(MAX_IN_GAME_ITEMS * sizeof(GameObject));
   assert(gameCtx->itemsInGame);
@@ -341,6 +336,7 @@ int GameContextRunScript(GameContext *gameCtx, int function) {
       return 0;
     }
   }
+  GamePreUpdate(gameCtx);
   return 1;
 }
 
