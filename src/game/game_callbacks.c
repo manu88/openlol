@@ -513,13 +513,13 @@ static void disableControls(EMCInterpreter *interp, uint16_t mode) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackDisableControls %x", mode);
   assert(mode == 0);
-  gameCtx->display->controlDisabled = 1;
+  gameCtx->controlDisabled = 1;
 }
 
 static void enableControls(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackEnableControls");
-  gameCtx->display->controlDisabled = 0;
+  gameCtx->controlDisabled = 0;
 }
 
 static void setGlobalScriptVar(EMCInterpreter *interp, uint16_t index,

@@ -360,7 +360,7 @@ int processCharInventoryItemsMouse(GameContext *gameCtx) {
       width = 12;
       height = 11;
     }
-    if (zoneClicked(&gameCtx->display->mouseEv.pos, layout->slot[i].coords.x,
+    if (zoneClicked(&gameCtx->mouseEv.pos, layout->slot[i].coords.x,
                     layout->slot[i].coords.y, width, height)) {
       selectFromCharItems(gameCtx, character, &layout->slot[i], i);
       return 1;

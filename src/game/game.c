@@ -199,40 +199,37 @@ static void clickOnFrontWall(GameContext *gameCtx) {
 }
 
 static int charZoneClicked(const GameContext *gameCtx) {
-  if (gameCtx->display->mouseEv.pos.y < CHAR_ZONE_Y ||
-      gameCtx->display->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_ZONE_H) {
+  if (gameCtx->mouseEv.pos.y < CHAR_ZONE_Y ||
+      gameCtx->mouseEv.pos.y > CHAR_ZONE_Y + CHAR_ZONE_H) {
     return -1;
   }
 
   uint8_t numChars = GameContextGetNumChars(gameCtx);
   switch (numChars) {
   case 1:
-    if (gameCtx->display->mouseEv.pos.x > CHAR_ZONE_0_1_X &&
-        gameCtx->display->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_ZONE_W) {
+    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_1_X &&
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_1_X + CHAR_ZONE_W) {
       return 0;
     }
     break;
   case 2: {
-    if (gameCtx->display->mouseEv.pos.x > CHAR_ZONE_0_2_X &&
-        gameCtx->display->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_ZONE_W) {
+    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_2_X &&
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_2_X + CHAR_ZONE_W) {
       return 0;
-    } else if (gameCtx->display->mouseEv.pos.x > CHAR_ZONE_1_2_X &&
-               gameCtx->display->mouseEv.pos.x <
-                   CHAR_ZONE_1_2_X + CHAR_ZONE_W) {
+    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_2_X &&
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_2_X + CHAR_ZONE_W) {
       return 1;
     }
   } break;
   case 3: {
-    if (gameCtx->display->mouseEv.pos.x > CHAR_ZONE_0_3_X &&
-        gameCtx->display->mouseEv.pos.x < CHAR_ZONE_0_3_X + CHAR_ZONE_W) {
+    if (gameCtx->mouseEv.pos.x > CHAR_ZONE_0_3_X &&
+        gameCtx->mouseEv.pos.x < CHAR_ZONE_0_3_X + CHAR_ZONE_W) {
       return 0;
-    } else if (gameCtx->display->mouseEv.pos.x > CHAR_ZONE_1_3_X &&
-               gameCtx->display->mouseEv.pos.x <
-                   CHAR_ZONE_1_3_X + CHAR_ZONE_W) {
+    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_1_3_X &&
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_1_3_X + CHAR_ZONE_W) {
       return 1;
-    } else if (gameCtx->display->mouseEv.pos.x > CHAR_ZONE_2_3_X &&
-               gameCtx->display->mouseEv.pos.x <
-                   CHAR_ZONE_2_3_X + CHAR_ZONE_W) {
+    } else if (gameCtx->mouseEv.pos.x > CHAR_ZONE_2_3_X &&
+               gameCtx->mouseEv.pos.x < CHAR_ZONE_2_3_X + CHAR_ZONE_W) {
       return 2;
     }
   } break;
@@ -257,29 +254,29 @@ static void selectFromInventoryStrip(GameContext *gameCtx, int index) {
 }
 
 static int mouseIsInInventoryStrip(GameContext *gameCtx) {
-  return gameCtx->display->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
-         gameCtx->display->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
-         gameCtx->display->mouseEv.pos.x <
+  return gameCtx->mouseEv.pos.x >= UI_INVENTORY_BUTTON_X &&
+         gameCtx->mouseEv.pos.y >= UI_INVENTORY_BUTTON_Y &&
+         gameCtx->mouseEv.pos.x <
              (UI_INVENTORY_BUTTON_X + (UI_MENU_INV_BUTTON_W * 11)) &&
-         gameCtx->display->mouseEv.pos.y <
+         gameCtx->mouseEv.pos.y <
              (UI_INVENTORY_BUTTON_Y + (UI_MENU_INV_BUTTON_W * 1));
 }
 
 static int processInventoryStripMouse(GameContext *gameCtx) {
-  int x = gameCtx->display->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
+  int x = gameCtx->mouseEv.pos.x - UI_INVENTORY_BUTTON_X;
   int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
   // 0 is left arrow, 10 is right arrow
   if (buttonX == 0) {
-    int inventoryIndex = gameCtx->inventoryIndex -
-                         (gameCtx->display->mouseEv.isRightClick ? 9 : 1);
+    int inventoryIndex =
+        gameCtx->inventoryIndex - (gameCtx->mouseEv.isRightClick ? 9 : 1);
     if (inventoryIndex < 0) {
       inventoryIndex = INVENTORY_SIZE - 1;
     }
     gameCtx->inventoryIndex = inventoryIndex;
     return 1;
   } else if (buttonX == 10) {
-    int inventoryIndex = gameCtx->inventoryIndex +
-                         (gameCtx->display->mouseEv.isRightClick ? 9 : 1);
+    int inventoryIndex =
+        gameCtx->inventoryIndex + (gameCtx->mouseEv.isRightClick ? 9 : 1);
     if (inventoryIndex >= INVENTORY_SIZE) {
       inventoryIndex = 0;
     }
@@ -329,33 +326,30 @@ static int processAnimationMouse(GameContext *gameCtx) {
 }
 
 static int processMapViewMouse(GameContext *gameCtx) {
-  if (zoneClicked(&gameCtx->display->mouseEv.pos, MAP_SCREEN_EXIT_BUTTON_X,
+  if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_EXIT_BUTTON_X,
                   MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_EXIT_BUTTON_W,
                   MAP_SCREEN_EXIT_BUTTON_H)) {
     GameContextSetState(gameCtx, GameState_PlayGame);
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos,
-                         MAP_SCREEN_PREV_BUTTON_X, MAP_SCREEN_BUTTONS_Y,
-                         MAP_SCREEN_PREV_NEXT_BUTTON_W,
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_PREV_BUTTON_X,
+                         MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_PREV_NEXT_BUTTON_W,
                          MAP_SCREEN_PREV_NEXT_BUTTON_H)) {
     printf("PREV\n");
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos,
-                         MAP_SCREEN_NEXT_BUTTON_X, MAP_SCREEN_BUTTONS_Y,
-                         MAP_SCREEN_PREV_NEXT_BUTTON_W,
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_NEXT_BUTTON_X,
+                         MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_PREV_NEXT_BUTTON_W,
                          MAP_SCREEN_PREV_NEXT_BUTTON_H)) {
     printf("NEXT\n");
   } else {
-    printf("mouse %i %i\n", gameCtx->display->mouseEv.pos.x,
-           gameCtx->display->mouseEv.pos.y);
+    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
   }
   return 1;
 }
 
 static int processCharInventoryMouse(GameContext *gameCtx) {
-  if (gameCtx->display->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
-      gameCtx->display->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
-      gameCtx->display->mouseEv.pos.x <
+  if (gameCtx->mouseEv.pos.x >= INVENTORY_SCREEN_EXIT_BUTTON_X &&
+      gameCtx->mouseEv.pos.y >= INVENTORY_SCREEN_EXIT_BUTTON_Y &&
+      gameCtx->mouseEv.pos.x <
           INVENTORY_SCREEN_EXIT_BUTTON_X + INVENTORY_SCREEN_EXIT_BUTTON_W &&
-      gameCtx->display->mouseEv.pos.y <
+      gameCtx->mouseEv.pos.y <
           INVENTORY_SCREEN_EXIT_BUTTON_Y + INVENTORY_SCREEN_EXIT_BUTTON_H) {
     printf("exit inventory\n");
     GameContextSetState(gameCtx, GameState_PlayGame);
@@ -463,24 +457,24 @@ static int processCharZoneMouse(GameContext *gameCtx, int charIndex,
   gameCtx->selectedChar = charIndex;
   if (gameCtx->selectedCharIsCastingSpell &&
       prevSelectedChar == gameCtx->selectedChar) {
-    int spellLevel = (gameCtx->display->mouseEv.pos.y - CHAR_ZONE_Y) / 8;
+    int spellLevel = (gameCtx->mouseEv.pos.y - CHAR_ZONE_Y) / 8;
     printf("actually perform magic %i: char %i\n", spellLevel,
            gameCtx->selectedChar);
     gameCtx->selectedCharIsCastingSpell = 0;
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos, coordX, CHAR_ZONE_Y,
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX, CHAR_ZONE_Y,
                          CHAR_FACE_W, CHAR_FACE_H)) {
-    if (gameCtx->display->mouseEv.isRightClick) {
+    if (gameCtx->mouseEv.isRightClick) {
       charUseItem(gameCtx);
     } else {
       GameContextSetState(gameCtx, GameState_ShowInventory);
     }
 
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos, coordX + 44,
-                         CHAR_ZONE_Y, 22, 18)) {
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y, 22,
+                         18)) {
     charAttack(gameCtx);
     gameCtx->selectedCharIsCastingSpell = 0;
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos, coordX + 44,
-                         CHAR_ZONE_Y + 16, 22, 18)) {
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, coordX + 44, CHAR_ZONE_Y + 16,
+                         22, 18)) {
     if (gameCtx->selectedCharIsCastingSpell &&
         prevSelectedChar == gameCtx->selectedChar) {
 
@@ -509,18 +503,17 @@ static int processCharZonesMouse(GameContext *gameCtx) {
     int coordX = charZoneXcoord[numChars - 1][charIndex];
     return processCharZoneMouse(gameCtx, charIndex, coordX);
   } else {
-    printf("mouse %i %i\n", gameCtx->display->mouseEv.pos.x,
-           gameCtx->display->mouseEv.pos.y);
+    printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
   }
   return 0;
 }
 
 static int processPlayGameMouse(GameContext *gameCtx) {
-  if (zoneClicked(&gameCtx->display->mouseEv.pos, UI_TURN_LEFT_BUTTON_X,
+  if (zoneClicked(&gameCtx->mouseEv.pos, UI_TURN_LEFT_BUTTON_X,
                   UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,
                   UI_DIR_BUTTON_W * 2)) {
-    int x = gameCtx->display->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
-    int y = gameCtx->display->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
+    int x = gameCtx->mouseEv.pos.x - UI_TURN_LEFT_BUTTON_X;
+    int y = gameCtx->mouseEv.pos.y - UI_TURN_LEFT_BUTTON_Y;
     int buttonX = (int)(x / UI_DIR_BUTTON_W);
     int buttonY = (int)(y / UI_DIR_BUTTON_W);
     if (buttonX <= 2 && buttonY <= 1) {
@@ -543,10 +536,10 @@ static int processPlayGameMouse(GameContext *gameCtx) {
       }
       return 1;
     }
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos, UI_MENU_BUTTON_X,
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MENU_BUTTON_X,
                          UI_MENU_BUTTON_Y, UI_MENU_INV_BUTTON_W * 2,
                          UI_MENU_INV_BUTTON_H)) {
-    int x = gameCtx->display->mouseEv.pos.x - UI_MENU_BUTTON_X;
+    int x = gameCtx->mouseEv.pos.x - UI_MENU_BUTTON_X;
     int buttonX = (int)(x / UI_MENU_INV_BUTTON_W);
     if (buttonX == 0) {
       GameContextSetState(gameCtx, GameState_GameMenu);
@@ -556,14 +549,14 @@ static int processPlayGameMouse(GameContext *gameCtx) {
     }
   } else if (mouseIsInInventoryStrip(gameCtx)) {
     return processInventoryStripMouse(gameCtx);
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos, MAZE_COORDS_X,
-                         MAZE_COORDS_Y, MAZE_COORDS_W, MAZE_COORDS_H)) {
-    int x = gameCtx->display->mouseEv.pos.x - MAZE_COORDS_X;
-    int y = gameCtx->display->mouseEv.pos.y - MAZE_COORDS_Y;
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, MAZE_COORDS_X, MAZE_COORDS_Y,
+                         MAZE_COORDS_W, MAZE_COORDS_H)) {
+    int x = gameCtx->mouseEv.pos.x - MAZE_COORDS_X;
+    int y = gameCtx->mouseEv.pos.y - MAZE_COORDS_Y;
     printf("maze click %i %i\n", x, y);
     clickOnFrontWall(gameCtx);
     return 1;
-  } else if (zoneClicked(&gameCtx->display->mouseEv.pos, UI_MAP_BUTTON_X,
+  } else if (zoneClicked(&gameCtx->mouseEv.pos, UI_MAP_BUTTON_X,
                          UI_MAP_BUTTON_Y, UI_MAP_BUTTON_W, UI_MAP_BUTTON_H)) {
     GameContextButtonClicked(gameCtx, ButtonType_Automap);
     return 1;
@@ -588,8 +581,7 @@ static int processMouse(GameContext *gameCtx) {
     return processAnimationMouse(gameCtx);
   case GameState_MainMenu:
   case GameState_GameMenu: {
-    int ret = MenuMouse(gameCtx->currentMenu, gameCtx,
-                        &gameCtx->display->mouseEv.pos);
+    int ret = MenuMouse(gameCtx->currentMenu, gameCtx, &gameCtx->mouseEv.pos);
     if (gameCtx->currentMenu->returnToGame) {
       GameContextSetState(gameCtx, GameState_PlayGame);
     }
@@ -606,12 +598,11 @@ static int processMouse(GameContext *gameCtx) {
 
 static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   if (e->type == SDL_MOUSEBUTTONDOWN) {
-    assert(gameCtx->display->mouseEv.pending ==
-           0); // prev one needs to be handled
-    gameCtx->display->mouseEv.pending = 1;
-    gameCtx->display->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
-    gameCtx->display->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
-    gameCtx->display->mouseEv.isRightClick = e->button.button == 3;
+    assert(gameCtx->mouseEv.pending == 0); // prev one needs to be handled
+    gameCtx->mouseEv.pending = 1;
+    gameCtx->mouseEv.pos.x = e->motion.x / SCREEN_FACTOR;
+    gameCtx->mouseEv.pos.y = e->motion.y / SCREEN_FACTOR;
+    gameCtx->mouseEv.isRightClick = e->button.button == 3;
   } else if (e->type != SDL_KEYDOWN) {
     return;
   }
@@ -659,7 +650,7 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
       GameContextButtonClicked(gameCtx, ButtonType_TurnRight);
       break;
     }
-  } else if (!gameCtx->display->controlDisabled && e->type == SDL_KEYDOWN) {
+  } else if (!gameCtx->controlDisabled && e->type == SDL_KEYDOWN) {
     switch (e->key.keysym.sym) {
     case SDLK_z:
       // go front
@@ -750,9 +741,9 @@ static void getInputs(GameContext *gameCtx) {
     break;
   }
 
-  if (gameCtx->display->mouseEv.pending) {
+  if (gameCtx->mouseEv.pending) {
     processMouse(gameCtx);
-    gameCtx->display->mouseEv.pending = 0;
+    gameCtx->mouseEv.pending = 0;
   }
 }
 
