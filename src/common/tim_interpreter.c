@@ -11,6 +11,7 @@ typedef enum {
   TIM_COMMAND_ID_WSA_INIT = 0X02,
   TIM_COMMAND_ID_WSA_RELEASE = 0X03,
   TIM_COMMAND_ID_WSA_DISPLAY_FRAME = 0X06,
+  TIM_COMMAND_UNUSED_7 = 0X07,
   TIM_COMMAND_ID_CONTINUE_LOOP = 0X15,
   TIM_COMMAND_ID_RESET_ALL_RUNTIMES = 0X17,
   TIM_COMMAND_ID_CMD_RETURN_1 = 0X18,
@@ -53,11 +54,14 @@ static const char *timCommandsName(uint8_t code) {
 typedef enum {
   TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
   TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
+  TIM_OPCODE_NOOP_2 = 0X02,
   TIM_OPCODE_GIVE_ITEM = 0X03,
   TIM_OPCODE_SET_PARTY_POS = 0X04,
   TIM_OPCODE_FADE_CLEAR_WINDOW = 0X05,
   TIM_OPCODE_COPY_REGION = 0X06,
   TIM_OPCODE_CHAR_CHAT = 0X07,
+  TIM_OPCODE_DRAW_SCENE = 0X08,
+  TIM_OPCODE_UPDATE = 0X09,
   TIM_OPCODE_CLEAR_TEXT_FIELD = 0X0A,
   TIM_OPCODE_LOAD_SOUND_FILE = 0X0B,
   TIM_OPCODE_PLAY_MUSIC_TRACK = 0X0C,
@@ -94,57 +98,65 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     assert(interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog);
     interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog(interp,
                                                               params[0]);
-    break;
+    return;
   case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
     assert(interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog);
     interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog(
         interp, params[0]);
-    break;
+    return;
+  case TIM_OPCODE_NOOP_2:
+    return;
   case TIM_OPCODE_GIVE_ITEM:
     assert(interp->callbacks.TIMInterpreterCallbacks_GiveItem);
     interp->callbacks.TIMInterpreterCallbacks_GiveItem(interp, params[0],
                                                        params[1], params[2]);
-    break;
+    return;
   case TIM_OPCODE_SET_PARTY_POS:
-    printf("\t TIM_OPCODE_SET_PARTY_POS %i params\n", numParams);
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_SetPartyPos(interp, params[0],
+                                                          params[1]);
+    return;
   case TIM_OPCODE_FADE_CLEAR_WINDOW:
     assert(interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow);
     interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow(interp,
                                                               params[0]);
-    break;
+    return;
   case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
     assert(interp->callbacks.TIMInterpreterCallbacks_PlayDialogue);
     interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(
         interp, params[0], numParams - 1, numParams > 1 ? params + 1 : NULL);
-    break;
+    return;
   }
   case TIM_OPCODE_CLEAR_TEXT_FIELD:
-    printf("\t TIM_OPCODE_CLEAR_TEXT_FIELD %i params\n", numParams);
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_ClearTextField(interp);
+    return;
   case TIM_OPCODE_LOAD_SOUND_FILE:
-    printf("\t TIM_OPCODE_LOAD_SOUND_FILE %i params\n", numParams);
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_LoadSoundFile(interp, params[0]);
+    return;
   case TIM_OPCODE_PLAY_MUSIC_TRACK:
-    printf("\t TIM_OPCODE_PLAY_MUSIC_TRACK %i params\n", numParams);
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_PlayMusicTrack(interp, params[0]);
+    return;
   case TIM_OPCODE_PLAY_SOUND_FX:
     interp->callbacks.TIMInterpreterCallbacks_PlaySoundFX(interp, params[0]);
-    break;
+    return;
   case TIM_OPCODE_COPY_REGION:
     interp->callbacks.TIMInterpreterCallbacks_CopyPage(
         interp, params[0], params[1], params[2], params[3], params[4],
         params[5], params[6], params[7]);
-    break;
+    return;
   case TIM_OPCODE_CHAR_CHAT:
     assert(interp->callbacks.TIMInterpreterCallbacks_CharChat);
     interp->callbacks.TIMInterpreterCallbacks_CharChat(interp, params[0],
                                                        params[1], params[2]);
+    return;
+  case TIM_OPCODE_DRAW_SCENE:
+
     break;
-  default:
-    printf("Unimplemented TIM Opcode %X\n", timOpCode);
-    assert(0);
+  case TIM_OPCODE_UPDATE:
+    interp->callbacks.TIMInterpreterCallbacks_Update(interp);
+    return;
   }
+  printf("un‹handled op code 0X%X\n", timOpCode);
+  assert(0);
 }
 
 static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
@@ -165,11 +177,11 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   printf("\n");
   */
   interp->currentInstructionDuration = instr->duration;
+  // printf("EXEC 0X%X\n", instr->instrCode);
   switch ((TIM_COMMAND_ID)instr->instrCode) {
-
   case TIM_COMMAND_ID_STOP_ALL_FUNCS:
     interp->callbacks.TIMInterpreterCallbacks_StopAllFunctions(interp);
-    break;
+    return instr->len;
   case TIM_COMMAND_ID_WSA_INIT: {
     uint16_t index = instrParams[0];
     uint16_t strParam = instrParams[1];
@@ -178,44 +190,40 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     uint16_t offscreen = instrParams[4];
     uint16_t wsaFlags = instrParams[5];
     const char *wsaFile = TIMHandleGetText(interp->_tim, strParam);
-    if (interp->callbacks.TIMInterpreterCallbacks_WSAInit) {
-      interp->callbacks.TIMInterpreterCallbacks_WSAInit(
-          interp, index, wsaFile, x, y, offscreen, wsaFlags);
-    }
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_WSAInit(interp, index, wsaFile, x,
+                                                      y, offscreen, wsaFlags);
+    return instr->len;
   }
   case TIM_COMMAND_ID_WSA_RELEASE:
     interp->callbacks.TIMInterpreterCallbacks_WSARelease(interp,
                                                          instrParams[0]);
-    break;
+    return instr->len;
   case TIM_COMMAND_ID_WSA_DISPLAY_FRAME: {
     int animIndex = instrParams[0];
     int frame = instrParams[1];
-    if (interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame) {
-      interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame(
-          interp, animIndex, frame);
-    }
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_WSADisplayFrame(interp, animIndex,
+                                                              frame);
+    return instr->len;
   }
   case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
     printf("UNIMPLEMENTED TIM_COMMAND_ID_RESET_ALL_RUNTIMES %i\n", numParams);
-    break;
+    return instr->len;
   case TIM_COMMAND_ID_CMD_RETURN_1:
     // printf("UNIMPLEMENTED TIM_COMMAND_ID_CMD_RETURN_1 %i\n", numParams);
     // FIXME: not sure, seems useless. Ignoring for now
-    break;
+    return instr->len;
   case TIM_COMMAND_ID_EXEC_OPCODE:
     processOpCode(interp, instrParams, numParams);
-    break;
+    return instr->len;
   case TIM_COMMAND_ID_PROCESS_DIALOGUE:
-    printf("TIM_COMMAND_ID_PROCESS_DIALOGUE %i\n", numParams);
-    break;
+    printf("UNIMPLEMENTED TIM_COMMAND_ID_PROCESS_DIALOGUE\n");
+    return instr->len;
   case TIM_COMMAND_ID_DIALOG_BOX: {
     uint16_t functionId = instrParams[0];
     interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons(
         interp, functionId, instrParams + 1);
 
-    break;
+    return instr->len;
   }
   case TIM_COMMAND_ID_CONTINUE_LOOP:
     if (interp->dontLoop == 0) {
@@ -233,7 +241,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     if (interp->debugCallbacks.TIMInterpreterDebugCallbacks_ContinueLoop) {
       interp->debugCallbacks.TIMInterpreterDebugCallbacks_ContinueLoop(interp);
     }
-    break;
+    return instr->len;
   case TIM_COMMAND_SET_LOOP_IP:
     if (interp->dontLoop == 0) {
       interp->loopStartPos = pos;
@@ -241,11 +249,12 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     if (interp->debugCallbacks.TIMInterpreterDebugCallbacks_SetLoop) {
       interp->debugCallbacks.TIMInterpreterDebugCallbacks_SetLoop(interp);
     }
-    break;
-  default:
-    printf("unimplemented TIM OPCODE %X\n", instr->instrCode);
-    assert(0);
+    return instr->len;
+  case TIM_COMMAND_UNUSED_7:
+    return instr->len;
   }
+  printf("unimplemented TIM OPCODE %X\n", instr->instrCode);
+  assert(0);
   return instr->len;
 }
 

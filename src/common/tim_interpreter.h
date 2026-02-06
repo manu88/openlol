@@ -41,6 +41,16 @@ typedef struct {
   void (*TIMInterpreterCallbacks_PlaySoundFX)(TIMInterpreter *interp,
                                               uint16_t soundId);
   void (*TIMInterpreterCallbacks_StopAllFunctions)(TIMInterpreter *interp);
+  void (*TIMInterpreterCallbacks_ClearTextField)(TIMInterpreter *interp);
+  void (*TIMInterpreterCallbacks_LoadSoundFile)(TIMInterpreter *interp,
+                                                uint16_t soundId);
+  void (*TIMInterpreterCallbacks_PlayMusicTrack)(TIMInterpreter *interp,
+                                                 uint16_t musicId);
+  void (*TIMInterpreterCallbacks_Update)(TIMInterpreter *interp);
+  // how = 0 -> value is direction
+  // how = 1 -> value is blockId
+  void (*TIMInterpreterCallbacks_SetPartyPos)(TIMInterpreter *interp,
+                                              uint16_t how, uint16_t value);
 } TIMInterpreterCallbacks;
 
 typedef struct {
