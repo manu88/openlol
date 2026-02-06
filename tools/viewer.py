@@ -173,7 +173,8 @@ class WSARender(BaseRender):
         sel_item = self.table.item(frame_iid)
         frame_id = int(sel_item["text"])
         out_file = lol.get_temp_path_for("display.png")
-        custom_pal = None if self.wsa_info.has_palette else self.current_pal_combo_var.get()
+        palette = self.current_pal_combo_var.get()
+        custom_pal = None if palette == "builtin" else palette
         if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file, custom_pal):
             return
         img_data = PIL.Image.open(out_file)
@@ -200,12 +201,14 @@ class WSARender(BaseRender):
             self.table.insert(
                 "", "end", text=f"{frame_id}", values=(frame_info.offset, frame_info.size))
 
-        if not info.has_palette:
-            print("No palette, looking for a cps file in the pak file")
-            cps_files = lol.list(pak_name, "*.CPS")
-            self.pal_combo["values"] = cps_files
-            if len(cps_files) > 0:
-                self.current_pal_combo_var.set(cps_files[0])
+        palettes = []
+        if info.has_palette:
+            palettes.append("builtin")
+        palettes += lol.list(pak_name, "*.CPS")
+        self.pal_combo["values"] = palettes
+
+        if len(palettes) > 0:
+            self.current_pal_combo_var.set(palettes[0])
 
         self.palette_var.set("Yes" if info.has_palette else "No")
 
