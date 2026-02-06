@@ -145,7 +145,7 @@ static int callbackContinueLoop(TIMInterpreter *interp) {
   inLoop--;
   indent();
   printf("ContinueLoopPoint\n");
-  return 0;
+  return 1;
 }
 
 void DumpTim(const TIMHandle *handle) {
