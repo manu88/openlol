@@ -760,11 +760,14 @@ static void GameRunOnce(GameContext *gameCtx) {
   DBGServerUpdate(gameCtx);
 
   if (gameCtx->state == GameState_Prologue) {
-    int selectedChar = PrologueShow(gameCtx);
+    int selectedChar = 0;
+#if 0
+    PrologueShow(gameCtx);
     if (gameCtx->_shouldRun == 0) {
       return;
     }
     DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
+#endif
     GameContextNewGame(gameCtx, selectedChar);
   }
 
