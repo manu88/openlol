@@ -67,11 +67,10 @@ typedef struct _TIMInterpreter {
   size_t pos;
 
   uint8_t dontLoop; // just list instructions
-  int _running;
 
   int loopStartPos;
   int restartLoop;
-  int inLoop;
+
 
   int buttonState[3];
 

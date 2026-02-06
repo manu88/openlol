@@ -289,9 +289,10 @@ static int processInventoryStripMouse(GameContext *gameCtx) {
   return 0;
 }
 
+#if 0
 static int processAnimationMouse(GameContext *gameCtx) {
-  if (gameCtx->display->mouseEv.pos.y >= DIALOG_BUTTON_Y_2 &&
-      gameCtx->display->mouseEv.pos.y < DIALOG_BUTTON_Y_2 + DIALOG_BUTTON_H) {
+  if (gameCtx->display->mouseEv.pos.y >= DIALOG_BUTTON_Y &&
+      gameCtx->display->mouseEv.pos.y < DIALOG_BUTTON_Y + DIALOG_BUTTON_H) {
     if (gameCtx->display->mouseEv.pos.x >= DIALOG_BUTTON1_X &&
         gameCtx->display->mouseEv.pos.x < DIALOG_BUTTON1_X + DIALOG_BUTTON_W) {
       printf("button 0\n");
@@ -324,7 +325,7 @@ static int processAnimationMouse(GameContext *gameCtx) {
   // printf("mouse %i %i\n", gameCtx->mouseEv.pos.x, gameCtx->mouseEv.pos.y);
   return 0;
 }
-
+#endif
 static int processMapViewMouse(GameContext *gameCtx) {
   if (zoneClicked(&gameCtx->mouseEv.pos, MAP_SCREEN_EXIT_BUTTON_X,
                   MAP_SCREEN_BUTTONS_Y, MAP_SCREEN_EXIT_BUTTON_W,
@@ -569,16 +570,11 @@ static int processPlayGameMouse(GameContext *gameCtx) {
 static int processMouse(GameContext *gameCtx) {
   switch (gameCtx->state) {
   case GameState_PlayGame:
-    if (gameCtx->dialogState == DialogState_InProgress) {
-      processAnimationMouse(gameCtx);
-    }
     return processPlayGameMouse(gameCtx);
   case GameState_ShowMap:
     return processMapViewMouse(gameCtx);
   case GameState_ShowInventory:
     return processCharInventoryMouse(gameCtx);
-  case GameState_TimAnimation:
-    return processAnimationMouse(gameCtx);
   case GameState_MainMenu:
   case GameState_GameMenu: {
     int ret = MenuMouse(gameCtx->currentMenu, gameCtx, &gameCtx->mouseEv.pos);
@@ -694,18 +690,16 @@ static void processGameInputs(GameContext *gameCtx, const SDL_Event *e) {
   }
 }
 
-static void GamePreUpdate(GameContext *gameCtx) {
+void GamePreUpdate(GameContext *gameCtx) {
   while (gameCtx->state == GameState_PlayGame &&
          EMCInterpreterIsValid(&gameCtx->interp, &gameCtx->interpState)) {
     EMCInterpreterRun(&gameCtx->interp, &gameCtx->interpState);
-    if (gameCtx->dialogState == DialogState_InProgress) {
-      return;
-    }
   }
   if (gameCtx->nextFunc) {
-    printf("Exec next func %X\n", gameCtx->nextFunc);
-    GameContextRunScript(gameCtx, gameCtx->nextFunc);
+    uint16_t next = gameCtx->nextFunc;
     gameCtx->nextFunc = 0;
+    printf("Exec next func %X\n", next);
+    GameContextRunScript(gameCtx, next);
   }
 }
 
@@ -723,17 +717,6 @@ static void getInputs(GameContext *gameCtx) {
   case GameState_MainMenu:
   case GameState_GameMenu:
     processGameInputs(gameCtx, &e);
-    break;
-  case GameState_TimAnimation:
-    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
-    } else if (e.type == SDL_MOUSEBUTTONDOWN) {
-      assert(gameCtx->display->mouseEv.pending ==
-             0); // prev one needs to be handled
-      gameCtx->display->mouseEv.pending = 1;
-      gameCtx->display->mouseEv.pos.x = e.motion.x / SCREEN_FACTOR;
-      gameCtx->display->mouseEv.pos.y = e.motion.y / SCREEN_FACTOR;
-      gameCtx->display->mouseEv.isRightClick = e.button.button == 3;
-    }
     break;
   case GameState_Invalid:
   case GameState_Prologue:
