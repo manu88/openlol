@@ -1,6 +1,5 @@
 #pragma once
 
-#include "animator.h"
 #include "audio.h"
 #include "config.h"
 #include "display.h"
@@ -8,7 +7,6 @@
 #include "formats/format_inf.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
-#include "game_tim_animator.h"
 #include "geometry.h"
 #include "level.h"
 #include "menu.h"
@@ -43,16 +41,9 @@ typedef enum {
   GameState_Prologue,
   GameState_PlayGame,
   GameState_GameMenu,
-  GameState_TimAnimation,
   GameState_ShowInventory,
   GameState_ShowMap,
 } GameState;
-
-typedef enum {
-  DialogState_None,
-  DialogState_InProgress,
-  DialogState_Done,
-} DialogState;
 
 #define INVENTORY_TYPES_NUM 7
 static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
@@ -91,16 +82,11 @@ typedef struct _GameContext {
 
   GameEngine *engine;
 
-  GameTimInterpreter timInterpreter;
-  Animator animator;
-
   ItemProperty *itemProperties;
   GameObject *itemsInGame;
   uint16_t itemsCount;
 
   int _shouldRun;
-
-  DialogState dialogState;
 
   char *savDir;
 
