@@ -43,9 +43,16 @@ typedef struct {
   void (*TIMInterpreterCallbacks_StopAllFunctions)(TIMInterpreter *interp);
 } TIMInterpreterCallbacks;
 
+typedef struct {
+  void (*TIMInterpreterDebugCallbacks_SetLoop)(TIMInterpreter *interp);
+  void (*TIMInterpreterDebugCallbacks_ContinueLoop)(TIMInterpreter *interp);
+} TIMInterpreterDebugCallbacks;
+
 typedef struct _TIMInterpreter {
   TIMInterpreterCallbacks callbacks;
   void *callbackCtx;
+
+  TIMInterpreterDebugCallbacks debugCallbacks; // *optional* callbacks
 
   const TIMHandle *_tim;
   size_t pos;

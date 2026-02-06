@@ -230,12 +230,17 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
         interp->restartLoop = 0;
       }
     }
+    if (interp->debugCallbacks.TIMInterpreterDebugCallbacks_ContinueLoop) {
+      interp->debugCallbacks.TIMInterpreterDebugCallbacks_ContinueLoop(interp);
+    }
     break;
   case TIM_COMMAND_SET_LOOP_IP:
     if (interp->dontLoop == 0) {
       interp->loopStartPos = pos;
     }
-
+    if (interp->debugCallbacks.TIMInterpreterDebugCallbacks_SetLoop) {
+      interp->debugCallbacks.TIMInterpreterDebugCallbacks_SetLoop(interp);
+    }
     break;
   default:
     printf("unimplemented TIM OPCODE %X\n", instr->instrCode);
