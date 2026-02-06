@@ -764,7 +764,6 @@ static void GameRunOnce(GameContext *gameCtx) {
     if (gameCtx->_shouldRun == 0) {
       return;
     }
-    printf("Selected char=%i\n", selectedChar);
     DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
     GameContextNewGame(gameCtx, selectedChar);
   }
