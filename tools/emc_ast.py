@@ -128,6 +128,11 @@ class Assignment(Instruction):
         return f"Assignment {self.value}"
 
 
+class OriginalInstruction(Instruction):
+    def __init__(self, mnemonic, params):
+        super().__init__()
+
+
 class Return(Instruction):
     def __str__(self):
         return "Return"
@@ -237,6 +242,10 @@ class Parser:
             if arg == 1:
                 return Return()
             return None
+        if mnemonic == "POP":
+            return OriginalInstruction(mnemonic, params)
+        if mnemonic == "POPPARAM":
+            return OriginalInstruction(mnemonic, params)
         if mnemonic == "PUSHLOCVAR":
             arg = int(params[0], 16)
             return Assignment(ValueLocalVAR(arg))
@@ -293,12 +302,14 @@ class Parser:
         return self.get_closest_instruction(addr)
 
     def _check_addrs(self):
-        for lbl_addr in self.labels.values():
+        to_remove = []
+        for k, lbl_addr in self.labels.items():
             inst = self.get_jump_target(lbl_addr)
             if inst is None:
                 print(f"didn't found instruction for addr {hex(lbl_addr)}")
-                assert False
-
+                to_remove.append(k)
+        for k in to_remove:
+            del (self.labels[k])
         for goto_target in self.goto_targets:
             inst = self.get_jump_target(goto_target)
             if inst:
@@ -374,6 +385,7 @@ class CodeGen:
     def _rewrite_var_name(self, index: int, name: str):
         line_idx = self.index-index-1
         old_line = self.lines[line_idx]
+        print(old_line)
         assign = old_line.split(" := ")[1]
         self.update_line(line_idx, f"{name} := {assign}")
 
@@ -446,6 +458,7 @@ class CodeGen:
         if isinstance(inst, PopLocalVariable):
             return str(inst)
         print(f"CodeGen: unhandled inst {inst} type{type(inst)}")
+        assert False
         return None
 
     def process(self) -> List[str]:
