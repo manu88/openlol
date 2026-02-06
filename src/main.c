@@ -11,6 +11,7 @@
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
+#include "formats/format_tim.h"
 #include "formats/format_vcn.h"
 #include "formats/format_vmp.h"
 #include "formats/format_voc.h"
@@ -22,6 +23,7 @@
 #include "renderer.h"
 #include "script.h"
 #include "script_disassembler.h"
+#include "tim_dumper.h"
 #include <assert.h>
 #include <sndfile.h>
 #include <stddef.h>
@@ -453,6 +455,42 @@ static int cmdVOC(int argc, char *argv[]) {
   }
   usageVOC();
   return 0;
+}
+static void usageTim(void) { printf("tim subcommands: show filepath\n"); }
+
+static int cmdTimShow(const char *file) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(file, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", file);
+    return 1;
+  }
+
+  TIMHandle handle = {0};
+  if (!TIMHandleFromBuffer(&handle, buffer, dataSize)) {
+    printf("Error while parsing data for '%s'\n", file);
+  } else {
+    DumpTim(&handle);
+  }
+
+  if (freeBuffer) {
+    free(buffer);
+  }
+
+  return 0;
+}
+
+static int cmdTim(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageTim();
+    return 1;
+  }
+  if (strcmp(argv[0], "show") == 0) {
+    return cmdTimShow(argv[1]);
+  }
+  usageTim();
+  return 1;
 }
 
 static void usageSHP(void) {
@@ -1296,6 +1334,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdDat(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "shp") == 0) {
     return cmdShp(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "tim") == 0) {
+    return cmdTim(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "lang") == 0) {
     return cmdLang(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "xxx") == 0) {
