@@ -26,4 +26,4 @@ void TIMHandleInit(TIMHandle *handle);
 int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
                         size_t bufferSize);
 
-const char *TIMHandleGetText(TIMHandle *handle, int index);
+const char *TIMHandleGetText(const TIMHandle *handle, int index);

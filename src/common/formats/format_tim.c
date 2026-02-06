@@ -64,7 +64,7 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
   return 1;
 }
 
-const char *TIMHandleGetText(TIMHandle *handle, int index) {
+const char *TIMHandleGetText(const TIMHandle *handle, int index) {
   assert(index <= handle->numTextStrings);
   if (handle->textSize == 0) {
     return NULL;
