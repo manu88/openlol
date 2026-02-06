@@ -51,18 +51,17 @@ typedef struct {
   // how = 1 -> value is blockId
   void (*TIMInterpreterCallbacks_SetPartyPos)(TIMInterpreter *interp,
                                               uint16_t how, uint16_t value);
+  void (*TIMInterpreterCallbacks_DrawScene)(TIMInterpreter *interp,
+                                            uint16_t pageNum);
+  void (*TIMInterpreterCallbacks_StartBackgroundAnimation)(
+      TIMInterpreter *interp, uint16_t animIndex, uint16_t part);
+  void (*TIMInterpreterCallbacks_ContinueLoop)(TIMInterpreter *interp);
+  void (*TIMInterpreterCallbacks_SetLoop)(TIMInterpreter *interp);
 } TIMInterpreterCallbacks;
-
-typedef struct {
-  void (*TIMInterpreterDebugCallbacks_SetLoop)(TIMInterpreter *interp);
-  void (*TIMInterpreterDebugCallbacks_ContinueLoop)(TIMInterpreter *interp);
-} TIMInterpreterDebugCallbacks;
 
 typedef struct _TIMInterpreter {
   TIMInterpreterCallbacks callbacks;
   void *callbackCtx;
-
-  TIMInterpreterDebugCallbacks debugCallbacks; // *optional* callbacks
 
   const TIMHandle *_tim;
   size_t pos;
