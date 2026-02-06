@@ -274,14 +274,14 @@ class TIMRender(BaseRender):
         in_loop = 0
         for inst in tim_info.instructions:
             name = inst.name
+            if inst.name == "ContinueLoopPoint":
+                in_loop = 0
             if in_loop:
                 name = "\t" + name
             self.table.insert(
                 "", "end", text=name, values=(inst.params,))
             if inst.name == "SetLoopPoint":
                 in_loop = 1
-            elif inst.name == "ContinueLoopPoint":
-                in_loop = 0
 
 
 class LANGRender(BaseRender):

@@ -116,14 +116,20 @@ class TIMFileInfo:
                 return
             self.name = line[0:pos]
             if self.name == "UNIMPLEMENTED":
+                self.params = [line[pos+1:]]
                 return
 
             params = line[pos+1:]
             params = params.split(" ")
 
             for p in params:
-                k, v = p.split("=")
-                self.params[k] = v
+                try:
+                    k, v = p.split("=")
+                    self.params[k] = v
+                except ValueError as e:
+                    print(f"line: '{line}'")
+                    print(f"param: '{p}'")
+                    print(e)
 
         def __str__(self):
             return f"{self.name}({self.params})"
