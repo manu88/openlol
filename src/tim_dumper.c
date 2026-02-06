@@ -76,6 +76,7 @@ static uint16_t callbackGiveItem(TIMInterpreter *interp, uint16_t param0,
          param2);
   return 0;
 }
+
 static void callbackCopyPage(TIMInterpreter *interp, uint16_t srcX,
                              uint16_t srcY, uint16_t destX, uint16_t destY,
                              uint16_t w, uint16_t h, uint16_t srcPage,
@@ -117,6 +118,18 @@ static void callbackStopAllFunctions(TIMInterpreter *interp) {
   printf("StopAllFunctions\n");
 }
 
+static void callbackDrawScene(TIMInterpreter *interp, uint16_t pageNum) {
+  indent();
+  printf("DrawScene pageNum=%i\n", pageNum);
+}
+
+static void callbackStartBackgroundAnimation(TIMInterpreter *interp,
+                                             uint16_t animIndex,
+                                             uint16_t part) {
+  indent();
+  printf("StartBackgroundAnimation animIndex=%i part=%i\n", animIndex, part);
+}
+
 static void callbackClearTextField(TIMInterpreter *interp) {
   indent();
   printf("ClearTextField\n");
@@ -128,10 +141,11 @@ static void callbackSetLoop(TIMInterpreter *interp) {
   inLoop++;
 }
 
-static void callbackContinueLoop(TIMInterpreter *interp) {
+static int callbackContinueLoop(TIMInterpreter *interp) {
   inLoop--;
   indent();
   printf("ContinueLoopPoint\n");
+  return 0;
 }
 
 void DumpTim(const TIMHandle *handle) {
@@ -159,11 +173,11 @@ void DumpTim(const TIMHandle *handle) {
       .TIMInterpreterCallbacks_PlayMusicTrack = callbackPlayMusicTrack,
       .TIMInterpreterCallbacks_Update = callbackUpdate,
       .TIMInterpreterCallbacks_SetPartyPos = callbackSetPartyPos,
-  };
-
-  interp.debugCallbacks = (TIMInterpreterDebugCallbacks){
-      .TIMInterpreterDebugCallbacks_SetLoop = callbackSetLoop,
-      .TIMInterpreterDebugCallbacks_ContinueLoop = callbackContinueLoop,
+      .TIMInterpreterCallbacks_DrawScene = callbackDrawScene,
+      .TIMInterpreterCallbacks_StartBackgroundAnimation =
+          callbackStartBackgroundAnimation,
+      .TIMInterpreterCallbacks_SetLoop = callbackSetLoop,
+      .TIMInterpreterCallbacks_ContinueLoop = callbackContinueLoop,
   };
 
   interp.dontLoop = 1;

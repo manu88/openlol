@@ -84,6 +84,7 @@ void TIMInterpreterInit(TIMInterpreter *interp) {
 
 void TIMInterpreterStart(TIMInterpreter *interp, const TIMHandle *tim) {
   interp->loopStartPos = -1;
+  interp->_running = 1;
   interp->_tim = tim;
   interp->pos = TIM_START_OFFSET;
 }
@@ -243,13 +244,13 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
         interp->restartLoop = 0;
       }
     }
-    interp->callbacks.TIMInterpreterCallbacks_ContinueLoop(interp);
+    interp->_running =
+        interp->callbacks.TIMInterpreterCallbacks_ContinueLoop(interp);
     return instr->len;
   case TIM_COMMAND_SET_LOOP_IP:
     if (interp->dontLoop == 0) {
       interp->loopStartPos = pos;
     }
-
     interp->callbacks.TIMInterpreterCallbacks_SetLoop(interp);
     return instr->len;
   case TIM_COMMAND_UNUSED_7:
@@ -261,7 +262,8 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
 }
 
 int TIMInterpreterIsRunning(const TIMInterpreter *interp) {
-  return interp->_tim && interp->pos < interp->_tim->avtlSize;
+  return interp->_tim && interp->pos < interp->_tim->avtlSize &&
+         interp->_running;
 }
 
 void TIMInterpreterButtonClicked(TIMInterpreter *interp, int buttonIndex) {
