@@ -398,9 +398,9 @@ void GameContextSetState(GameContext *gameCtx, GameState newState) {
       gameCtx->state == GameState_ShowMap ||
       gameCtx->state == GameState_GameMenu) {
     gameCtx->selectedCharIsCastingSpell = 0;
-    gameCtx->display->controlDisabled = 1;
+    gameCtx->controlDisabled = 1;
   } else {
-    gameCtx->display->controlDisabled = 0;
+    gameCtx->controlDisabled = 0;
   }
   if (gameCtx->prevState == GameState_GameMenu &&
       gameCtx->state == GameState_PlayGame) {
@@ -470,11 +470,11 @@ uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
   DisplayExpandDialogBox(gameCtx->display, gameCtx->conf.tickLength);
-  gameCtx->display->controlDisabled = 1;
+  gameCtx->controlDisabled = 1;
 }
 
 void GameContextCleanupSceneDialog(GameContext *gameCtx) {
-  gameCtx->display->controlDisabled = 0;
+  gameCtx->controlDisabled = 0;
   DisplayClearDialogButtons(gameCtx->display);
   DisplayResetDialog(gameCtx->display);
   if (gameCtx->display->showBigDialog) {

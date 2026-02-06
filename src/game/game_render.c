@@ -61,7 +61,7 @@ static void renderPlayField(GameContext *gameCtx) {
   DisplayRenderCPSPart(gameCtx->display, &gameCtx->display->playField,
                        UI_MAP_BUTTON_X, UI_MAP_BUTTON_Y, 114, 65,
                        UI_MAP_BUTTON_W, UI_MAP_BUTTON_H, 320);
-  if (gameCtx->display->controlDisabled) {
+  if (gameCtx->controlDisabled) {
     DisplayDrawDisabledOverlay(gameCtx->display, UI_TURN_LEFT_BUTTON_X,
                                UI_TURN_LEFT_BUTTON_Y, UI_DIR_BUTTON_W * 3,
                                UI_DIR_BUTTON_H * 2);
@@ -123,7 +123,7 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
                        gameCtx->display->defaultPalette);
       SHPFrameRelease(&frame);
 
-      if (gameCtx->display->controlDisabled) {
+      if (gameCtx->controlDisabled) {
         DisplayDrawDisabledOverlay(gameCtx->display, x + 44, CHAR_ZONE_Y, 22,
                                    18);
       }
@@ -135,7 +135,7 @@ static void renderCharZone(GameContext *gameCtx, uint8_t charId, int x) {
       DisplayRenderSHP(gameCtx->display, &frame, x + 44, CHAR_ZONE_Y + 16,
                        gameCtx->display->defaultPalette);
       SHPFrameRelease(&frame);
-      if (gameCtx->display->controlDisabled) {
+      if (gameCtx->controlDisabled) {
         DisplayDrawDisabledOverlay(gameCtx->display, x + 44, CHAR_ZONE_Y + 16,
                                    22, 18);
       }

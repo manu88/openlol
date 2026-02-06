@@ -20,9 +20,6 @@ typedef struct {
 } MouseEvent;
 
 typedef struct {
-  MouseEvent mouseEv;
-  int controlDisabled;
-
   SDL_Texture *pixBuf;
   SDL_Renderer *renderer;
   SDL_Window *window;

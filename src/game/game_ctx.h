@@ -60,6 +60,10 @@ static const uint8_t inventoryTypeForId[] = {0, 1, 2, 6, 3, 1, 1, 3, 5, 4};
 typedef struct _GameContext {
   Display *display;
   AudioSystem audio;
+
+  MouseEvent mouseEv;
+  int controlDisabled;
+
   GameState state;
   GameState prevState;
 
