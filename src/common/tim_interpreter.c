@@ -168,7 +168,7 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
   switch ((TIM_COMMAND_ID)instr->instrCode) {
 
   case TIM_COMMAND_ID_STOP_ALL_FUNCS:
-
+    interp->callbacks.TIMInterpreterCallbacks_StopAllFunctions(interp);
     break;
   case TIM_COMMAND_ID_WSA_INIT: {
     uint16_t index = instrParams[0];
@@ -198,8 +198,11 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     break;
   }
   case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
+    printf("UNIMPLEMENTED TIM_COMMAND_ID_RESET_ALL_RUNTIMES %i\n", numParams);
     break;
   case TIM_COMMAND_ID_CMD_RETURN_1:
+    // printf("UNIMPLEMENTED TIM_COMMAND_ID_CMD_RETURN_1 %i\n", numParams);
+    // FIXME: not sure, seems useless. Ignoring for now
     break;
   case TIM_COMMAND_ID_EXEC_OPCODE:
     processOpCode(interp, instrParams, numParams);
@@ -209,11 +212,9 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     break;
   case TIM_COMMAND_ID_DIALOG_BOX: {
     uint16_t functionId = instrParams[0];
-    printf("TIM_COMMAND_ID_DIALOG_BOX %X\n", instrParams[0]);
-    if (interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons) {
-      interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons(
-          interp, functionId, instrParams + 1);
-    }
+    interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons(
+        interp, functionId, instrParams + 1);
+
     break;
   }
   case TIM_COMMAND_ID_CONTINUE_LOOP:

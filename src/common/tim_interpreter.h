@@ -40,6 +40,7 @@ typedef struct {
                                            uint16_t srcPage, uint16_t dstPage);
   void (*TIMInterpreterCallbacks_PlaySoundFX)(TIMInterpreter *interp,
                                               uint16_t soundId);
+  void (*TIMInterpreterCallbacks_StopAllFunctions)(TIMInterpreter *interp);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {
