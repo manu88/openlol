@@ -55,7 +55,7 @@ typedef struct {
                                             uint16_t pageNum);
   void (*TIMInterpreterCallbacks_StartBackgroundAnimation)(
       TIMInterpreter *interp, uint16_t animIndex, uint16_t part);
-  void (*TIMInterpreterCallbacks_ContinueLoop)(TIMInterpreter *interp);
+  int (*TIMInterpreterCallbacks_ContinueLoop)(TIMInterpreter *interp);
   void (*TIMInterpreterCallbacks_SetLoop)(TIMInterpreter *interp);
 } TIMInterpreterCallbacks;
 
@@ -67,6 +67,7 @@ typedef struct _TIMInterpreter {
   size_t pos;
 
   uint8_t dontLoop; // just list instructions
+  int _running;
 
   int loopStartPos;
   int restartLoop;
