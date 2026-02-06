@@ -67,6 +67,7 @@ typedef enum {
   TIM_OPCODE_PLAY_MUSIC_TRACK = 0X0C,
   TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT = 0X0D,
   TIM_OPCODE_PLAY_SOUND_FX = 0X0E,
+  TIM_OPCODE_START_BACKGROUND_ANIM = 0X0F,
 } TIM_OPCODE;
 
 typedef struct {
@@ -149,13 +150,17 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
                                                        params[1], params[2]);
     return;
   case TIM_OPCODE_DRAW_SCENE:
-
-    break;
+    interp->callbacks.TIMInterpreterCallbacks_DrawScene(interp, params[0]);
+    return;
   case TIM_OPCODE_UPDATE:
     interp->callbacks.TIMInterpreterCallbacks_Update(interp);
     return;
+  case TIM_OPCODE_START_BACKGROUND_ANIM:
+    interp->callbacks.TIMInterpreterCallbacks_StartBackgroundAnimation(
+        interp, params[0], params[1]);
+    return;
   }
-  printf("un‹handled op code 0X%X\n", timOpCode);
+  printf("unhandled op code 0X%X %i params\n", timOpCode, numParams);
   assert(0);
 }
 
@@ -238,17 +243,14 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
         interp->restartLoop = 0;
       }
     }
-    if (interp->debugCallbacks.TIMInterpreterDebugCallbacks_ContinueLoop) {
-      interp->debugCallbacks.TIMInterpreterDebugCallbacks_ContinueLoop(interp);
-    }
+    interp->callbacks.TIMInterpreterCallbacks_ContinueLoop(interp);
     return instr->len;
   case TIM_COMMAND_SET_LOOP_IP:
     if (interp->dontLoop == 0) {
       interp->loopStartPos = pos;
     }
-    if (interp->debugCallbacks.TIMInterpreterDebugCallbacks_SetLoop) {
-      interp->debugCallbacks.TIMInterpreterDebugCallbacks_SetLoop(interp);
-    }
+
+    interp->callbacks.TIMInterpreterCallbacks_SetLoop(interp);
     return instr->len;
   case TIM_COMMAND_UNUSED_7:
     return instr->len;
