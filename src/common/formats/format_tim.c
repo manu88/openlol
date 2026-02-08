@@ -13,7 +13,7 @@ int TIMHandleFromBuffer(TIMHandle *handle, const uint8_t *buffer,
                         size_t bufferSize) {
   size_t readSize = 0;
   uint8_t *buff = (uint8_t *)buffer;
-  uint8_t chunkName[sizeof("TEXT") + 1];
+  uint8_t chunkName[5];
   while (readSize < bufferSize) {
     if (bufferSize - readSize < 4) {
       break;
