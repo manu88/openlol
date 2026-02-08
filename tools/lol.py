@@ -66,6 +66,29 @@ class ScriptFileInfo:
             self.strings.append(val.removesuffix("'"))
 
 
+class XMIInfo:
+    class XMISequence:
+        def __init__(self, desc: str):
+            self.num_events = 0
+            self.num_patches = 0
+            # sequence=0 events=28 patches=0
+            toks = desc.split(" ")
+            for t in toks:
+                k, v = t.split("=")
+                if k == "events":
+                    self.num_events = int(v)
+                elif k == "patches":
+                    self.num_patches = int(v)
+
+        def __str__(self):
+            return f"events={self.num_events} patches={self.num_patches}"
+
+    def __init__(self, strings: List[str]):
+        self.sequences: List[XMIInfo.XMISequence] = []
+        for l in strings:
+            self.sequences.append(XMIInfo.XMISequence(l))
+
+
 class VOCFileInfo:
     class VOCBlock:
         def __init__(self):
@@ -372,6 +395,14 @@ class LOL:
         argv = [self.tool_path, "-p", pak, "script", "disasm", file, out_file]
         resp = _do_exec(argv)
         return resp.returncode == 0
+
+    def get_xmi_info(self, file: str, pak: str) -> Optional[XMIInfo]:
+        argv = [self.tool_path, "-p", pak, "xmi", "info", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return XMIInfo(proc_output.splitlines())
 
 
 lol = LOL()

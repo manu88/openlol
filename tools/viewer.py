@@ -41,6 +41,7 @@ type_info = {
     "WSA": "animation",
     "XXX": "automap data",
     "LANG": "game text",
+    "XMI": "MIDI music"
 }
 
 
@@ -211,6 +212,35 @@ class WSARender(BaseRender):
             self.current_pal_combo_var.set(palettes[0])
 
         self.palette_var.set("Yes" if info.has_palette else "No")
+
+
+class XMIRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns=("events", "patches"))
+        self.table.heading("events", text="events")
+        self.table.heading("patches", text="patches")
+        self.table.pack(fill=tk.X, expand=True)
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        info = lol.get_xmi_info(file_name, pak_name)
+        if info is None:
+            return
+        for seq in info.sequences:
+            print(seq)
+
+        self.clear_table()
+        for sId, seq in enumerate(info.sequences):
+            self.table.insert(
+                "", "end", text=f"{sId}", values=(seq.num_events, seq.num_patches))
 
 
 class VOCRender(BaseRender):
@@ -481,6 +511,7 @@ class UI:
         self._register_renderer("VCN", VCNRender)
         self._register_renderer("INI", ScriptRender)
         self._register_renderer("INF", ScriptRender)
+        self._register_renderer("XMI", XMIRender)
 
     def _register_renderer(self, name: str, cls):
         self.renders[name] = cls(self.details_frame)
