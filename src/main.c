@@ -17,6 +17,7 @@
 #include "formats/format_voc.h"
 #include "formats/format_wll.h"
 #include "formats/format_wsa.h"
+#include "formats/format_xmi.h"
 #include "formats/format_xxx.h"
 #include "game.h"
 #include "pak_file.h"
@@ -271,6 +272,49 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
+static void usageXMI(void) { printf("xmi subcommands: info filepath\n"); }
+
+static int cmdXMIInfo(const char *filepath) {
+
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+  XMIHandle handle = {0};
+  if (XMIHandleFromBuffer(&handle, buffer, dataSize) == 0) {
+    printf("Error while parsing data for '%s'\n", filepath);
+    if (freeBuffer) {
+      free(buffer);
+    }
+    return 1;
+  }
+  for (int i = 0; i < handle.seqCount; i++) {
+    const XMISequence *seq = handle.sequences + i;
+    printf("sequence=%i events=%zu patches=%zu\n", i, seq->events.dataSize,
+           seq->numPatches);
+  }
+
+  XMIHandleRelease(&handle);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  return 0;
+}
+
+static int cmdXMI(int argc, char *argv[]) {
+  if (argc < 2) {
+    usageXMI();
+    return 1;
+  }
+  if (strcmp(argv[0], "info") == 0) {
+    return cmdXMIInfo(argv[1]);
+  }
+  return 1;
+}
+
 static void usageCONF(void) {
   printf("conf subcommands: info|init filepath\n");
 }
@@ -285,6 +329,7 @@ static int cmdCONFInit(const char *filepath) {
   int ret = GameConfigWriteFile(&conf, filepath);
   return !ret;
 }
+
 static int cmdCONFInfo(const char *filepath) {
   ConfigHandle handle = {0};
   if (!ConfigHandleFromFile(&handle, filepath)) {
@@ -1352,6 +1397,8 @@ static int doCMD(int argc, char *argv[]) {
     return cmdVOC(argc - 2, argv + 2);
   } else if (strcmp(argv[1], "conf") == 0) {
     return cmdCONF(argc - 2, argv + 2);
+  } else if (strcmp(argv[1], "xmi") == 0) {
+    return cmdXMI(argc - 2, argv + 2);
   }
   printf("Unknown command '%s'\n", argv[1]);
   usage(argv[0]);
