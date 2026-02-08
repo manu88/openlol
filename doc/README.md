@@ -24,6 +24,9 @@ https://web.archive.org/web/20180313235625/https://eob.wikispaces.com/lol.files 
 - '.TLK' : PAK file in disguise. Contains in game voices in the VOC format
 - '.VOC' : audio files
 - '.TLC' : some kind of transparency table ? see [here](https://github.com/scummvm/scummvm/blob/master/engines/kyra/engine/scene_lol.cpp#L460)
+- '.ADL' : Adlib compatible music. See [here](https://moddingwiki.shikadi.net/wiki/ADL_Format)
+- '.XMI' : eXtended MIDI file format. See [here](https://moddingwiki.shikadi.net/wiki/XMI_Format)
+- '.C55' : Probably SC-55 compatible music.
 
 ## format 80
 Looks like this 'format 80' refers to 2 different compression format:
