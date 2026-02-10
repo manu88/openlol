@@ -2,9 +2,13 @@
 
 New -- in progress -- implementation of the awesome game 'Lands of Lore: Throne of Chaos', along with tools.
 
+
 ## build
 
 ```bash
+#don't forget to:
+git submodule init
+git submodule update
 make
 ```
 

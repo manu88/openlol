@@ -20,6 +20,7 @@
 #include "formats/format_xmi.h"
 #include "formats/format_xxx.h"
 #include "game.h"
+#include "music_player.h"
 #include "pak_file.h"
 #include "renderer.h"
 #include "script.h"
@@ -274,7 +275,7 @@ static int cmdScript(int argc, char *argv[]) {
 }
 
 static void usageXMI(void) {
-  printf("xmi subcommands: info|track filepath [trackId]\n");
+  printf("xmi subcommands: info|track|play filepath [trackId]\n");
 }
 
 static void doShowTrack(const XMIHandle *handle, int trackId) {
@@ -292,6 +293,38 @@ static void doShowTrack(const XMIHandle *handle, int trackId) {
   XMISequencer seq;
   XMISequencerInit(&seq);
   XMISequencerPlay(&seq, handle->sequences + trackId);
+}
+
+static int cmdXMIPlay(const char *filepath, int trackId) {
+  if (trackId < 0) {
+    printf("invalid trackId %i\n", trackId);
+  }
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+  XMIHandle handle = {0};
+  if (XMIHandleFromBuffer(&handle, buffer, dataSize) == 0) {
+    printf("Error while parsing data for '%s'\n", filepath);
+    if (freeBuffer) {
+      free(buffer);
+    }
+    return 1;
+  }
+  if (trackId >= handle.seqCount) {
+    printf("invalid trackId %i\n", trackId);
+  } else {
+    PlayerTest();
+  }
+
+  XMIHandleRelease(&handle);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  return 0;
 }
 
 static int cmdXMITrack(const char *filepath, int trackId) {
@@ -364,6 +397,8 @@ static int cmdXMI(int argc, char *argv[]) {
     return cmdXMIInfo(argv[1]);
   } else if (strcmp(argv[0], "track") == 0 && argc > 2) {
     return cmdXMITrack(argv[1], atoi(argv[2]));
+  } else if (strcmp(argv[0], "play") == 0 && argc > 2) {
+    return cmdXMIPlay(argv[1], atoi(argv[2]));
   }
   usageXMI();
   return 1;

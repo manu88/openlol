@@ -1,0 +1,3 @@
+[submodule "src/ymfm"]
+	path = src/ymfm
+	url = https://github.com/aaronsgiles/ymfm
