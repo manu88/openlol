@@ -2,7 +2,7 @@ CCFLAGS= -g `pkg-config --cflags sdl2` `pkg-config --cflags SDL2_image` `pkg-con
 CCFLAGS+=-Wno-unknown-pragmas
 
 
-CPPFLAGS=--std=c++14 -Isrc/ymfm/src/
+CPPFLAGS=--std=c++14 -Isrc/ymfm/src/ -g `pkg-config --cflags sdl2`
 
 LDFLAGS=  `pkg-config --libs SDL2_image` `pkg-config --libs SDL2_ttf` `pkg-config --libs sndfile`
 
@@ -10,7 +10,7 @@ SOURCES=$(wildcard src/*.c) $(wildcard src/common/*.c) $(wildcard src/common/for
 
 OBJECTS=$(filter %.o,$(SOURCES:.c=.o))
 
-YMFM_SOURCES=$(wildcard src/ymfm/src/*.cpp) $(wildcard src/common/*.cpp)
+YMFM_SOURCES=$(wildcard src/ymfm/src/*.cpp) $(wildcard src/common/*.cpp) $(wildcard src/common/mplayer/*.cpp)
 
 YMFM_OBJECTS=$(filter %.o,$(YMFM_SOURCES:.cpp=.o))
 

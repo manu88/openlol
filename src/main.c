@@ -314,17 +314,18 @@ static int cmdXMIPlay(const char *filepath, int trackId) {
     }
     return 1;
   }
+  int ret = 1;
   if (trackId >= handle.seqCount) {
     printf("invalid trackId %i\n", trackId);
   } else {
-    PlayerTest();
+    ret = MusicMainLoop(&handle, trackId);
   }
 
   XMIHandleRelease(&handle);
   if (freeBuffer) {
     free(buffer);
   }
-  return 0;
+  return ret;
 }
 
 static int cmdXMITrack(const char *filepath, int trackId) {

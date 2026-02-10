@@ -42,6 +42,9 @@ typedef struct {
 } XMISequence;
 
 typedef struct {
+  uint8_t* data;
+  size_t dataSize;
+  
   uint16_t seqCount;
   XMISequence *sequences;
 } XMIHandle;
