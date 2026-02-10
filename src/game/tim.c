@@ -250,14 +250,16 @@ static void callbackClearTextField(TIMInterpreter *interp) {
   assert(0);
 }
 
-static void callbackLoadSoundFile(TIMInterpreter *interp, uint16_t soundId) {
-  printf("LoadSoundFile soundId=%i\n", soundId);
-  assert(0);
+static void callbackLoadMusicFile(TIMInterpreter *interp, uint16_t fileId) {
+  int realFileId = (fileId - 250) * 3;
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextLoadMusicFile(gameCtx, realFileId);
 }
 
-static void callbackPlayMusicTrack(TIMInterpreter *interp, uint16_t musicId) {
-  printf("PlayMusicTrack soundId=%i\n", musicId);
-  assert(0);
+static void callbackPlayMusicTrack(TIMInterpreter *interp, uint16_t track) {
+  int t = (track - 250) * 3;
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextPlayMusicTrack(gameCtx, t);
 }
 
 static void callbackUpdate(TIMInterpreter *interp) { printf("Update\n"); }
@@ -302,7 +304,7 @@ void TIMInit(void) {
       .TIMInterpreterCallbacks_CopyPage = callbackCopyPage,
       .TIMInterpreterCallbacks_StopAllFunctions = callbackStopAllFunctions,
       .TIMInterpreterCallbacks_ClearTextField = callbackClearTextField,
-      .TIMInterpreterCallbacks_LoadSoundFile = callbackLoadSoundFile,
+      .TIMInterpreterCallbacks_LoadMusicFile = callbackLoadMusicFile,
       .TIMInterpreterCallbacks_PlayMusicTrack = callbackPlayMusicTrack,
       .TIMInterpreterCallbacks_Update = callbackUpdate,
       .TIMInterpreterCallbacks_SetPartyPos = callbackSetPartyPos,
