@@ -173,6 +173,8 @@ void GameContextLoadTLKFile(GameContext *gameCtx, int levelIndex);
 void GameContextPlayDialogSpeech(GameContext *gameCtx, int16_t charId,
                                  uint16_t soundID);
 void GameContextPlaySoundFX(GameContext *gameCtx, uint16_t soundId);
+void GameContextLoadMusicFile(GameContext *gameCtx, int fileNum);
+uint16_t GameContextPlayMusicTrack(GameContext *gameCtx, int trackId);
 
 typedef enum {
   ButtonType_Up,

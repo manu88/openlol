@@ -712,14 +712,15 @@ static uint16_t playSoundEffect(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t playMusicTrack(EMCInterpreter *interp, EMCState *state) {
-  printf("[UNIMPLEMENTED] playMusicTrack\n");
-  // ASSERT_UNIMPLEMENTED;
-  return 1;
+  uint16_t track = EMCStateStackVal(state, 0);
+  int t = (track - 250) * 3;
+  return interp->callbacks.EMCInterpreterCallbacks_PlayMusicTrack(interp, t);
 }
 
-static uint16_t loadMusicTrack(EMCInterpreter *interp, EMCState *state) {
-  uint16_t file = EMCStateStackVal(state, 0);
-  printf("[UNIMPLEMENTED] loadMusicTrack 0X%X\n", file);
+static uint16_t loadMusicFile(EMCInterpreter *interp, EMCState *state) {
+  uint16_t fileId = EMCStateStackVal(state, 0);
+  int realFileId = (fileId - 250) * 3;
+  interp->callbacks.EMCInterpreterCallbacks_LoadMusicFile(interp, realFileId);
   return 1;
 }
 
@@ -1054,7 +1055,7 @@ static ScriptFunDesc functions[] = {
     {NULL},
     {NULL},
     {drawExitButton, "drawExitButton"},
-    {loadMusicTrack, "loadMusicTrack"},
+    {loadMusicFile, "loadMusicFile"},
     {playMusicTrack, "playMusicTrack"},
     {NULL},
     {countBlockItems, "countBlockItems"},

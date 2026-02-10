@@ -694,6 +694,16 @@ static void playSoundFX(EMCInterpreter *interp, uint16_t soundId) {
   GameContextPlaySoundFX(gameCtx, soundId);
 }
 
+static void loadMusicFile(EMCInterpreter *interp, int fileNum) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContextLoadMusicFile(gameCtx, fileNum);
+}
+
+static uint16_t playMusicTrack(EMCInterpreter *interp, int trackId) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  return GameContextPlayMusicTrack(gameCtx, trackId);
+}
+
 static void characterSurpriseSFX(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   for (int i = 0; i < 4; i++) {
@@ -921,6 +931,8 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       creditsTransaction,
       moveMonster,
       playSoundFX,
+      loadMusicFile,
+      playMusicTrack,
       characterSurpriseSFX,
       moveParty,
       fadeScene,
