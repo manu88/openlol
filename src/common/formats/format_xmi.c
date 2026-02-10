@@ -165,5 +165,7 @@ int XMIHandleFromBuffer(XMIHandle *handle, uint8_t *buffer, size_t bufferSize) {
   if (!isValidXMI(buffer, bufferSize)) {
     return 0;
   }
+  handle->data = buffer;
+  handle->dataSize = bufferSize;
   return readFile(handle, buffer, bufferSize);
 }

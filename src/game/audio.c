@@ -246,3 +246,17 @@ void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
 
   SDL_UnlockAudioDevice(audioSystem->deviceID);
 }
+
+void AudioSystemStopMusic(AudioSystem *system) {}
+
+void AudioSystemLoadMusicFile(AudioSystem *system, const PAKFile *pak,
+                              const char *file) {
+  printf("AudioSystemLoadMusicFile load file '%s'\n", file);
+  int index = PakFileGetEntryIndex(pak, file);
+  if (index == -1) {
+    printf("ERROR: no such file '%s' in music pak\n", file);
+    return;
+  }
+}
+
+void AudioSystemPlayMusicTrack(AudioSystem *system) {}
