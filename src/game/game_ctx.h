@@ -110,6 +110,7 @@ typedef struct _GameContext {
 
   PAKFile sfxPak;
   PAKFile defaultTlkFile; // 00.TLK
+  PAKFile musPak;
   GameConfig conf;
 
   const SpellProperties *spellProperties; // count is SPELL_PROPERTIES_COUNT

@@ -134,6 +134,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
 
   assert(GameEnvironmentLoadPak(&gameCtx->defaultTlkFile, "00.TLK"));
   assert(GameEnvironmentLoadPak(&gameCtx->sfxPak, "VOC.PAK"));
+  assert(GameEnvironmentLoadPak(&gameCtx->musPak, "MUSIC.PAK"));
   AudioSystemInit(&gameCtx->audio, &gameCtx->conf);
 
   AnimatorInit(&gameCtx->animator, gameCtx->display->pixBuf);
