@@ -25,6 +25,7 @@
 #include "script.h"
 #include "script_disassembler.h"
 #include "tim_dumper.h"
+#include "xmi_sequencer.h"
 #include <assert.h>
 #include <sndfile.h>
 #include <stddef.h>
@@ -272,10 +273,60 @@ static int cmdScript(int argc, char *argv[]) {
   return 1;
 }
 
-static void usageXMI(void) { printf("xmi subcommands: info filepath\n"); }
+static void usageXMI(void) {
+  printf("xmi subcommands: info|track filepath [trackId]\n");
+}
+
+static void doShowTrack(const XMIHandle *handle, int trackId) {
+#if 0  
+  const XMISequence *sequence = handle->sequences + trackId;
+  for (int i = 0; i < sequence->events.dataSize; i++) {
+    if (i % 8 == 0) {
+      printf("\n");
+    }
+    printf("0X%X ", sequence->events.data[i]);
+  }
+  printf("\n");
+  return;
+#endif
+  XMISequencer seq;
+  XMISequencerInit(&seq);
+  XMISequencerPlay(&seq, handle->sequences + trackId);
+}
+
+static int cmdXMITrack(const char *filepath, int trackId) {
+  if (trackId < 0) {
+    printf("invalid trackId %i\n", trackId);
+  }
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", filepath);
+    return 1;
+  }
+  XMIHandle handle = {0};
+  if (XMIHandleFromBuffer(&handle, buffer, dataSize) == 0) {
+    printf("Error while parsing data for '%s'\n", filepath);
+    if (freeBuffer) {
+      free(buffer);
+    }
+    return 1;
+  }
+  if (trackId >= handle.seqCount) {
+    printf("invalid trackId %i\n", trackId);
+  } else {
+    doShowTrack(&handle, trackId);
+  }
+
+  XMIHandleRelease(&handle);
+  if (freeBuffer) {
+    free(buffer);
+  }
+  return 0;
+}
 
 static int cmdXMIInfo(const char *filepath) {
-
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(filepath, &dataSize, &freeBuffer);
@@ -311,7 +362,10 @@ static int cmdXMI(int argc, char *argv[]) {
   }
   if (strcmp(argv[0], "info") == 0) {
     return cmdXMIInfo(argv[1]);
+  } else if (strcmp(argv[0], "track") == 0 && argc > 2) {
+    return cmdXMITrack(argv[1], atoi(argv[2]));
   }
+  usageXMI();
   return 1;
 }
 
