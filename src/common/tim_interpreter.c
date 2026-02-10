@@ -132,7 +132,7 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
     interp->callbacks.TIMInterpreterCallbacks_ClearTextField(interp);
     return;
   case TIM_OPCODE_LOAD_SOUND_FILE:
-    interp->callbacks.TIMInterpreterCallbacks_LoadSoundFile(interp, params[0]);
+    interp->callbacks.TIMInterpreterCallbacks_LoadMusicFile(interp, params[0]);
     return;
   case TIM_OPCODE_PLAY_MUSIC_TRACK:
     interp->callbacks.TIMInterpreterCallbacks_PlayMusicTrack(interp, params[0]);
