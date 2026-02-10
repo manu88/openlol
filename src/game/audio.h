@@ -57,3 +57,7 @@ void AudioSystemPlayVoiceSequence(AudioSystem *audioSystem, const PAKFile *pak,
 int AudioSystemGetCurrentVoiceIndex(const AudioSystem *audioSystem);
 void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
                             const char *filename);
+
+void AudioSystemStopMusic(AudioSystem *system);
+void AudioSystemLoadMusicFile(AudioSystem *system, const PAKFile *pak, const char* file);
+void AudioSystemPlayMusicTrack(AudioSystem *system);

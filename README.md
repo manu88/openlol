@@ -44,3 +44,7 @@ Looks like some palette are embedded in the bin and not shipped in the pak files
 
 Use `q`, `w`, `e`, `a`, `s`, `d` to move around, `tab` to toggle the automap - or just use the UI.
  
+ ## Shout-out to
+ - https://github.com/devinacker/ymfmidi/
+ - https://github.com/aaronsgiles/ymfm
+ - https://github.com/sneakernets/DMXOPL
