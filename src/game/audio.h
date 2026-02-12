@@ -1,6 +1,7 @@
 #pragma once
 #include "config.h"
 #include "formats/format_voc.h"
+#include "music_player.h"
 #include "pak_file.h"
 #include <SDL2/SDL.h>
 #include <stddef.h>
@@ -26,6 +27,8 @@ void AudioQueueReset(AudioQueue *queue, size_t sequenceSize);
 typedef struct {
   SDL_AudioDeviceID deviceID;
   SDL_AudioSpec audioSpec;
+
+  MusicPlayer *musicPlayer;
 
   // don't access these directly, as they are shared with the audio callback!
   // use getter/setters below.
@@ -59,5 +62,6 @@ void AudioSystemPlaySoundFX(AudioSystem *audioSystem, const PAKFile *pak,
                             const char *filename);
 
 void AudioSystemStopMusic(AudioSystem *system);
-void AudioSystemLoadMusicFile(AudioSystem *system, const PAKFile *pak, const char* file);
-void AudioSystemPlayMusicTrack(AudioSystem *system);
+void AudioSystemLoadMusicFile(AudioSystem *system, const PAKFile *pak,
+                              const char *file);
+void AudioSystemPlayMusicTrack(AudioSystem *system, int trackId);

@@ -799,12 +799,12 @@ void GameContextLoadMusicFile(GameContext *gameCtx, int fileNum) {
   char musFile[12] = "";
   snprintf(musFile, 12, "LORE%02i%c.XMI", musicMap[fileNum],
            toupper(musicMap[fileNum + 1]));
-  printf("GameContextLoadMusicFile '%s'\n", musFile);
+  AudioSystemLoadMusicFile(&gameCtx->audio, &gameCtx->musPak, musFile);
 }
 
 uint16_t GameContextPlayMusicTrack(GameContext *gameCtx, int trackId) {
   int realTrackId = musicMap[trackId + 2];
-  printf("GameContextPlayMusicTrack: realtrack id %i\n", realTrackId);
+  AudioSystemPlayMusicTrack(&gameCtx->audio, realTrackId);
   return 1;
 }
 
