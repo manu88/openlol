@@ -322,19 +322,15 @@ static void parseMetaEvent(XMISequencer *seq, uint8_t eventType, uint8_t size,
   assert(0);
 }
 
-static size_t onMetaEvent(XMISequencer *seq, uint8_t *data, size_t remaining) {
+static void onMetaEvent(XMISequencer *seq) {
   // List of meta events
   // https://www.mixagesoftware.com/en/midikit/help/HTML/meta_events.html
-  uint8_t eventType = *data;
-  data++;
-
-  uint8_t eventSize = *data;
-  data++;
-  uint8_t *eventData = data;
+  uint8_t eventType = *seq->head++;
+  uint8_t eventSize = *seq->head++;
+  uint8_t *eventData = seq->head;
 
   parseMetaEvent(seq, eventType, eventSize, eventData);
-
-  return eventSize + 2;
+  seq->head += eventSize + 2;
 }
 static void onPitchBend(XMISequencer *seq, uint8_t channel, uint8_t lsb,
                         uint8_t msb) {
@@ -359,39 +355,36 @@ static void onNoteOn(XMISequencer *seq, uint8_t channel, uint8_t note,
          dur);
 }
 
-uint32_t readXMIDelay(XMISequencer *seq, uint8_t *data, size_t remaining,
-                      uint32_t *vlqRet) {
-  uint32_t vlq = 0;
-  uint8_t b = 0;
-  int pos = 0;
-  do {
-    b = data[pos++];
-    remaining--;
-    vlq <<= 7;
-    vlq |= (b & 0x7f);
-  } while ((b & 0x80) && (remaining));
-  *vlqRet = vlq;
-  return pos;
+static int isDone(const XMISequencer *seq) {
+  return seq->head >=
+         seq->currentSeq->events.data + seq->currentSeq->events.dataSize;
 }
 
-static uint32_t readMidiDelay(XMISequencer *seq, uint8_t *data,
-                              size_t remaining, uint32_t *delayRet) {
+uint32_t readXMIDelay(XMISequencer *seq) {
+  uint32_t vlq = 0;
+  uint8_t b = 0;
+  do {
+    b = *seq->head++;
+    vlq <<= 7;
+    vlq |= (b & 0x7f);
+  } while ((b & 0x80) && !isDone(seq));
+  return vlq;
+}
+
+static uint32_t readMidiDelay(XMISequencer *seq) {
   uint32_t delay = 0;
   uint8_t b = 0;
-  int pos = 0;
-  if (pos >= remaining || (data[pos] & 0x80))
+
+  if (isDone(seq) || *seq->head & 0x80)
     return 0;
 
   do {
-    b = data[pos];
+    b = *seq->head++;
     if (!(b & 0x80)) {
       delay += b;
-      pos++;
-      remaining--;
     }
-  } while ((b == 0x7f) && (remaining));
-  *delayRet = delay;
-  return pos;
+  } while ((b == 0x7f) && !isDone(seq));
+  return delay;
 }
 
 typedef enum {
@@ -401,49 +394,50 @@ typedef enum {
   EventType_NOTE_ON = 0X90,
 } EventType;
 
-void XMISequencerPlay(XMISequencer *seq, const XMISequence *sequence) {
-  size_t remaining = sequence->events.dataSize;
-  uint8_t *data = sequence->events.data;
-  remaining--;
-  while (seq->done == 0 && remaining) {
-    uint8_t b = *data++;
-    remaining -= 1;
+void XMISequencerUpdate(XMISequencer *seq) { assert(seq->currentSeq); }
+
+static void resetSequencer(XMISequencer *seq) {
+  seq->head = seq->currentSeq->events.data;
+  seq->delay = 0;
+}
+void XMISequencerStart(XMISequencer *seq, const XMISequence *sequence) {
+  seq->currentSeq = sequence;
+  resetSequencer(seq);
+
+  while (seq->done == 0 && !isDone(seq)) {
+
+    size_t remain = seq->head - seq->currentSeq->events.data;
+    if (seq->currentSeq->events.dataSize - remain < 3) {
+      seq->done = 1;
+      return;
+    }
+
+    uint8_t b = *seq->head++;
 
     if (b & 0x80) { // MIDI CMD
       if (b == 0XFF) {
-        size_t r = onMetaEvent(seq, data, remaining);
-        data += r;
-        remaining -= r;
-
+        onMetaEvent(seq);
       } else {
         uint8_t cmd = b & 0XF0;
         uint8_t chan = b & 0X0F;
         switch ((EventType)cmd) {
 
         case EventType_CTL:
-          onController(seq, chan, data[0], data[1]);
-          data += 2;
-          remaining -= 2;
+          onController(seq, chan, seq->head[0], seq->head[1]);
+          seq->head += 2;
           break;
         case EventType_PITCH_BEND:
-          onPitchBend(seq, chan, data[0], data[1]);
-          data += 2;
-          remaining -= 2;
+          onPitchBend(seq, chan, seq->head[0], seq->head[1]);
+          seq->head += 2;
           break;
         case EventType_INSTR_CHANGE:
-          onInstrumentChange(seq, chan, data[0]);
-          data += 1;
-          remaining -= 1;
+          onInstrumentChange(seq, chan, seq->head[0]);
+          seq->head += 1;
           break;
         case EventType_NOTE_ON: {
-          uint8_t note = data[0];
-          uint8_t vel = data[1];
-          data += 2;
-          remaining -= 2;
-          uint32_t delay = 0;
-          int r = readXMIDelay(seq, data, remaining, &delay);
-          data += r;
-          remaining -= r;
+          uint8_t note = *seq->head++;
+          uint8_t vel = *seq->head++;
+          uint32_t delay = readXMIDelay(seq);
           onNoteOn(seq, chan, note, vel, delay);
           break;
         }
@@ -451,10 +445,7 @@ void XMISequencerPlay(XMISequencer *seq, const XMISequence *sequence) {
           assert(0);
         }
       }
-      uint32_t delay = 0;
-      int r = readMidiDelay(seq, data, remaining, &delay);
-      data += r;
-      remaining -= r;
+      uint32_t delay = readMidiDelay(seq);
       if (delay) {
         printf("Delay 0X%X\n", delay);
       }

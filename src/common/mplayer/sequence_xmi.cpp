@@ -1,6 +1,7 @@
 #include "sequence_xmi.hpp"
 #include "track_xmi.hpp"
 #include <cstring>
+#include <stdio.h>
 
 #define READ_U16BE(data, pos) ((data[pos] << 8) | data[pos + 1])
 #define READ_U24BE(data, pos)                                                  \
@@ -9,10 +10,8 @@
   ((data[pos] << 24) | (data[pos + 1] << 16) | (data[pos + 2] << 8) |          \
    data[pos + 3])
 
-// ----------------------------------------------------------------------------
 SequenceXMI::SequenceXMI() : Sequence() { m_ticksPerSec = 120; }
 
-// ----------------------------------------------------------------------------
 SequenceXMI::~SequenceXMI() {}
 
 void SequenceXMI::setDefaults() { setTimePerBeat(500000); }
@@ -24,6 +23,11 @@ void SequenceXMI::reset() {
     track->reset();
 }
 
+void SequenceXMI::print() {
+  printf("SequenceXMI::print()\n");
+  m_tracks[m_songNum]->print();
+}
+
 void SequenceXMI::read(const uint8_t *data, size_t size) {
   uint32_t chunkSize;
   while ((chunkSize = readRootChunk(data, size)) != 0) {
@@ -32,7 +36,6 @@ void SequenceXMI::read(const uint8_t *data, size_t size) {
   }
 }
 
-// ----------------------------------------------------------------------------
 uint32_t SequenceXMI::readRootChunk(const uint8_t *data, size_t size) {
   // need at least a root chunk and one subchunk (and its contents)
   if (size > 12 + 8) {
@@ -70,13 +73,11 @@ uint32_t SequenceXMI::readRootChunk(const uint8_t *data, size_t size) {
         offset += readRootChunk(data + offset, size - offset);
       }
     }
-
     return rootEnd;
   }
   return 0;
 }
 
-// ----------------------------------------------------------------------------
 bool SequenceXMI::isValid(const uint8_t *data, size_t size) {
   // need at least 2 root chunks and one EVNT chunk header
   if (size < 12)
@@ -90,9 +91,8 @@ bool SequenceXMI::isValid(const uint8_t *data, size_t size) {
   return true;
 }
 
-// ----------------------------------------------------------------------------
 void SequenceXMI::setTimePerBeat(uint32_t usec) {
-  double usecPerTick = (double)usec / ((usec * 3) / 25000);
+  double usecPerTick = (double)usec / ((usec * 3.f) / 25000);
   m_ticksPerSec = 1000000 / usecPerTick;
 }
 
@@ -114,8 +114,9 @@ uint32_t SequenceXMI::update(OPLPlayer &player) {
 
   m_atEnd = false;
 
-  for (auto track : m_tracks)
+  for (auto track : m_tracks) {
     track->advance(tickDelay);
+  }
 
   double samplesPerTick = player.sampleRate() / m_ticksPerSec;
   return round(tickDelay * samplesPerTick);
