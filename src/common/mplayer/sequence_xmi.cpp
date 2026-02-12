@@ -92,7 +92,7 @@ bool SequenceXMI::isValid(const uint8_t *data, size_t size) {
 
 // ----------------------------------------------------------------------------
 void SequenceXMI::setTimePerBeat(uint32_t usec) {
-  double usecPerTick = (double)usec / ((usec * 3) / 25000);
+  double usecPerTick = (double)usec / ((usec * 3.f) / 25000);
   m_ticksPerSec = 1000000 / usecPerTick;
 }
 
@@ -114,8 +114,9 @@ uint32_t SequenceXMI::update(OPLPlayer &player) {
 
   m_atEnd = false;
 
-  for (auto track : m_tracks)
+  for (auto track : m_tracks) {
     track->advance(tickDelay);
+  }
 
   double samplesPerTick = player.sampleRate() / m_ticksPerSec;
   return round(tickDelay * samplesPerTick);

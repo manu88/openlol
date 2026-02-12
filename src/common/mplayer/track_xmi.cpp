@@ -1,6 +1,8 @@
 #include "track_xmi.hpp"
 #include "player.hpp"
 #include "sequence_xmi.hpp"
+#include <cassert>
+#include <cstdint>
 #include <stdio.h>
 
 // ----------------------------------------------------------------------------
@@ -81,8 +83,17 @@ int32_t XMITrack::minDelay() {
   return delay;
 }
 
-uint32_t XMITrack::update(OPLPlayer &player) {
+typedef enum {
+  XMIEventType_POLY_KEY_PRES = 0XA,
+  XMIEventType_CTL = 0XB,
+  XMIEventType_PITCH_BEND = 0XE,
+  XMIEventType_INSTR_CHANGE = 0XC,
+  XMIEventType_CHAN_PRES = 0XD,
+  XMIEventType_NOTE_ON = 0X9,
+  XMIEventType_SYS_EX = 0XF,
+} XMIEventType;
 
+uint32_t XMITrack::update(OPLPlayer &player) {
   for (int i = 0; i < m_notes.size();) {
     if (m_notes[i].delay <= 0) {
       player.midiNoteOff(m_notes[i].channel, m_notes[i].note);
@@ -103,11 +114,12 @@ uint32_t XMITrack::update(OPLPlayer &player) {
       return UINT_MAX;
     }
 
-    if ((m_data[m_pos] & 0x80))
+    if ((m_data[m_pos] & 0x80)) {
       m_status = m_data[m_pos++];
+    }
 
-    switch (m_status >> 4) {
-    case 9: // note on
+    switch ((XMIEventType)m_status >> 4) {
+    case XMIEventType_NOTE_ON:
       data[0] = m_data[m_pos++];
       data[1] = m_data[m_pos++];
       player.midiEvent(m_status, data[0], data[1]);
@@ -118,28 +130,28 @@ uint32_t XMITrack::update(OPLPlayer &player) {
       m_notes.push_back(note);
 
       break;
-
-    case 8:  // note off
-    case 10: // polyphonic pressure
-    case 11: // controller change
-    case 14: // pitch bend
+    case XMIEventType_POLY_KEY_PRES:
+    case XMIEventType_CTL:
+    case XMIEventType_PITCH_BEND:
       data[0] = m_data[m_pos++];
       data[1] = m_data[m_pos++];
       player.midiEvent(m_status, data[0], data[1]);
       break;
 
-    case 12: // program change
-    case 13: // channel pressure (ignored)
+    case XMIEventType_INSTR_CHANGE:
+    case XMIEventType_CHAN_PRES: // (ignored)
       data[0] = m_data[m_pos++];
       player.midiEvent(m_status, data[0]);
       break;
 
-    case 15: // sysex / meta event
+    case XMIEventType_SYS_EX:
       if (!metaEvent(player)) {
         m_atEnd = true;
         return UINT_MAX;
       }
       break;
+    default:
+      assert(0);
     }
 
     m_delay += readDelay();
@@ -153,11 +165,11 @@ bool XMITrack::metaEvent(OPLPlayer &player) {
 
   if (m_status != 0xFF) {
     len = readVLQ();
-    if (m_pos + len < m_size) {
-      if (m_status == 0xf0)
-        player.midiSysEx(m_data + m_pos, len);
-    } else {
+    if (m_pos + len >= m_size) {
       return false;
+    }
+    if (m_status == 0xf0) {
+      player.midiSysEx(m_data + m_pos, len);
     }
   } else {
     uint8_t data = m_data[m_pos++];
@@ -170,6 +182,8 @@ bool XMITrack::metaEvent(OPLPlayer &player) {
     // tempo change
     if (data == 0x51) {
       m_sequence->setTimePerBeat(READ_U24BE(m_data, m_pos));
+    } else {
+      printf("Other Meta data %X\n", data);
     }
   }
 
