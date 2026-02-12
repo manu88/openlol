@@ -12,8 +12,9 @@ typedef struct _MusicPlayer MusicPlayer;
 MusicPlayer *MusicPlayerCreate(void);
 void MusicPlayerRelease(MusicPlayer *player);
 
-int MusicPlayerLoadSequence(MusicPlayer *player, const XMIHandle *handle,
-                            int trackId);
+int MusicPlayerLoadSequence(MusicPlayer *player, const XMIHandle *handle);
+void MusicPlayerSetTrackId(MusicPlayer *player, int trackId);
+
 void MusicPlayerGenerate(MusicPlayer *_player, int16_t *stream,
                          unsigned numSamples);
 

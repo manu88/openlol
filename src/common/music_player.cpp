@@ -18,7 +18,7 @@ MusicPlayer *MusicPlayerCreate(void) {
 
   const char *patchPath = "GENMIDI.wopl";
   if (!player->loadPatches(patchPath)) {
-    printf("UNable to load patches\n");
+    printf("Unable to load patches\n");
     delete player;
     return NULL;
   }
@@ -34,20 +34,23 @@ void MusicPlayerRelease(MusicPlayer *_player) {
   delete player;
 }
 
-int MusicPlayerLoadSequence(MusicPlayer *_player, const XMIHandle *handle,
-                            int trackId) {
-  OPLPlayer *player = reinterpret_cast<OPLPlayer *>(_player);
-  if (!player->loadSequence(handle->data, handle->dataSize)) {
+int MusicPlayerLoadSequence(MusicPlayer *player, const XMIHandle *handle) {
+  auto *_player = reinterpret_cast<OPLPlayer *>(player);
+  if (!_player->loadSequence(handle->data, handle->dataSize)) {
     return 0;
   }
-  player->setSongNum(trackId);
   return 1;
 }
 
-void MusicPlayerGenerate(MusicPlayer *_player, int16_t *stream,
+void MusicPlayerSetTrackId(MusicPlayer *player, int trackId) {
+  OPLPlayer *_player = reinterpret_cast<OPLPlayer *>(player);
+  _player->setSongNum(trackId);
+}
+
+void MusicPlayerGenerate(MusicPlayer *player, int16_t *stream,
                          unsigned numSamples) {
-  OPLPlayer *player = reinterpret_cast<OPLPlayer *>(_player);
-  player->generate(stream, numSamples);
+  auto *_player = reinterpret_cast<OPLPlayer *>(player);
+  _player->generate(stream, numSamples);
 }
 
 static void audioCallback(void *data, uint8_t *stream, int len) {
@@ -67,11 +70,12 @@ static void quit(int) {
 int MusicMainLoop(const XMIHandle *handle, int trackId) {
   MusicPlayer *player = MusicPlayerCreate();
 
-  if (!MusicPlayerLoadSequence(player, handle, trackId)) {
+  if (!MusicPlayerLoadSequence(player, handle)) {
     printf("Unable to load sequence\n");
     MusicPlayerRelease(player);
     return 1;
   }
+  MusicPlayerSetTrackId(player, trackId);
 
   SDL_SetMainReady();
   SDL_Init(SDL_INIT_AUDIO);

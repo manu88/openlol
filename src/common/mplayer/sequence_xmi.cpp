@@ -1,5 +1,5 @@
 #include "sequence_xmi.hpp"
-
+#include "track_xmi.hpp"
 #include <cstring>
 
 #define READ_U16BE(data, pos) ((data[pos] << 8) | data[pos + 1])
@@ -9,52 +9,21 @@
   ((data[pos] << 24) | (data[pos + 1] << 16) | (data[pos + 2] << 8) |          \
    data[pos + 3])
 
-class XMITrack : public MIDTrack {
-public:
-  XMITrack(const uint8_t *data, size_t size, SequenceXMI *sequence);
-
-protected:
-  uint32_t readDelay();
-};
-
 // ----------------------------------------------------------------------------
-XMITrack::XMITrack(const uint8_t *data, size_t size, SequenceXMI *sequence)
-    : MIDTrack(data, size, sequence) {
-  m_initDelay = false;
-  m_useRunningStatus = false;
-  m_useNoteDuration = true;
-}
-
-// ----------------------------------------------------------------------------
-uint32_t XMITrack::readDelay() {
-  uint32_t delay = 0;
-  uint8_t data = 0;
-
-  if (m_pos >= m_size || (m_data[m_pos] & 0x80))
-    return 0;
-
-  do {
-    data = m_data[m_pos];
-    if (!(data & 0x80)) {
-      delay += data;
-      m_pos++;
-    }
-  } while ((data == 0x7f) && (m_pos < m_size));
-
-  return delay;
-}
-
-// ----------------------------------------------------------------------------
-SequenceXMI::SequenceXMI() : SequenceMID() {
-  m_type = 2;
-  m_ticksPerBeat = 0; // unused
-  m_ticksPerSec = 120;
-}
+SequenceXMI::SequenceXMI() : Sequence() { m_ticksPerSec = 120; }
 
 // ----------------------------------------------------------------------------
 SequenceXMI::~SequenceXMI() {}
 
-// ----------------------------------------------------------------------------
+void SequenceXMI::setDefaults() { setTimePerBeat(500000); }
+void SequenceXMI::reset() {
+  Sequence::reset();
+  setDefaults();
+
+  for (auto &track : m_tracks)
+    track->reset();
+}
+
 void SequenceXMI::read(const uint8_t *data, size_t size) {
   uint32_t chunkSize;
   while ((chunkSize = readRootChunk(data, size)) != 0) {
@@ -92,8 +61,9 @@ uint32_t SequenceXMI::readRootChunk(const uint8_t *data, size_t size) {
           offset = rootEnd;
         }
 
-        if (!memcmp(bytes, "EVNT", 4))
+        if (!memcmp(bytes, "EVNT", 4)) {
           m_tracks.push_back(new XMITrack(bytes + 8, chunkLen, this));
+        }
       }
     } else if (!memcmp(data, "CAT ", 4)) {
       while (offset < rootEnd) {
@@ -103,7 +73,6 @@ uint32_t SequenceXMI::readRootChunk(const uint8_t *data, size_t size) {
 
     return rootEnd;
   }
-
   return 0;
 }
 
@@ -125,4 +94,29 @@ bool SequenceXMI::isValid(const uint8_t *data, size_t size) {
 void SequenceXMI::setTimePerBeat(uint32_t usec) {
   double usecPerTick = (double)usec / ((usec * 3) / 25000);
   m_ticksPerSec = 1000000 / usecPerTick;
+}
+
+uint32_t SequenceXMI::update(OPLPlayer &player) {
+  uint32_t tickDelay = UINT_MAX;
+
+  bool tracksAtEnd = true;
+
+  if (m_songNum < m_tracks.size()) {
+    tickDelay = m_tracks[m_songNum]->update(player);
+    tracksAtEnd = m_tracks[m_songNum]->atEnd();
+  }
+
+  if (tracksAtEnd) {
+    reset();
+    m_atEnd = true;
+    return 0;
+  }
+
+  m_atEnd = false;
+
+  for (auto track : m_tracks)
+    track->advance(tickDelay);
+
+  double samplesPerTick = player.sampleRate() / m_ticksPerSec;
+  return round(tickDelay * samplesPerTick);
 }

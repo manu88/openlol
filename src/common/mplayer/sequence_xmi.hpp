@@ -1,9 +1,11 @@
 #ifndef __SEQUENCE_XMI_H
 #define __SEQUENCE_XMI_H
 
-#include "sequence_mid.hpp"
+#include "sequence.hpp"
 
-class SequenceXMI : public SequenceMID {
+class XMITrack;
+
+class SequenceXMI : public Sequence {
 public:
   SequenceXMI();
   ~SequenceXMI();
@@ -12,9 +14,19 @@ public:
 
   static bool isValid(const uint8_t *data, size_t size);
 
+  uint32_t update(OPLPlayer &player) override;
+
+  unsigned numSongs() const override { return m_tracks.size(); }
+  void reset() override;
+
 private:
-  void read(const uint8_t *data, size_t size);
+  void setDefaults();
+  void read(const uint8_t *data, size_t size) override;
   uint32_t readRootChunk(const uint8_t *data, size_t size);
+
+  std::vector<XMITrack *> m_tracks;
+
+  double m_ticksPerSec;
 };
 
 #endif // __SEQUENCE_XMI_H
