@@ -3,6 +3,8 @@
 #include "SDL_stdinc.h"
 #include "config.h"
 #include "formats/format_voc.h"
+#include "formats/format_xmi.h"
+#include "music_player.h"
 #include "pak_file.h"
 #include <assert.h>
 #include <stddef.h>
@@ -99,6 +101,9 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
 
   memset(stream, 0, len);
 
+  MusicPlayerGenerate(audioSystem->musicPlayer, (int16_t *)stream,
+                      len / (2 * sizeof(int16_t)));
+
   _audioCallbackQueue(&audioSystem->soundQueue, samples, numSamplesOut,
                       getAudioGain(audioSystem->_soundVol));
   _audioCallbackQueue(&audioSystem->voiceQueue, samples, numSamplesOut,
@@ -108,6 +113,11 @@ static void _audioCallback(void *userdata, Uint8 *stream, int len) {
 int AudioSystemInit(AudioSystem *audioSystem, const GameConfig *conf) {
   memset(audioSystem, 0, sizeof(AudioSystem));
 
+  audioSystem->musicPlayer = MusicPlayerCreate();
+  if (audioSystem->musicPlayer == NULL) {
+    printf("Unable to create music player\n");
+    return 0;
+  }
   // audio thread not yet setup here, can access shared variables directly.
   audioSystem->_musicVol = clampVol(conf->musicVol);
   audioSystem->_soundVol = clampVol(conf->soundVol);
@@ -140,6 +150,7 @@ int AudioSystemInit(AudioSystem *audioSystem, const GameConfig *conf) {
 }
 
 void AudioSystemRelease(AudioSystem *audioSystem) {
+  MusicPlayerRelease(audioSystem->musicPlayer);
   SDL_CloseAudioDevice(audioSystem->deviceID);
 }
 
@@ -257,6 +268,15 @@ void AudioSystemLoadMusicFile(AudioSystem *system, const PAKFile *pak,
     printf("ERROR: no such file '%s' in music pak\n", file);
     return;
   }
+  uint8_t *data = PakFileGetEntryData(pak, index);
+  size_t dataSize = PakFileGetEntrySize(pak, index);
+  XMIHandle handle = {.data = data, .dataSize = dataSize};
+  if (!MusicPlayerLoadSequence(system->musicPlayer, &handle)) {
+    printf("Error while loading sequence\n");
+  }
 }
 
-void AudioSystemPlayMusicTrack(AudioSystem *system) {}
+void AudioSystemPlayMusicTrack(AudioSystem *system, int trackId) {
+  printf("AudioSystemPlayMusicTrack %i\n", trackId);
+  MusicPlayerSetTrackId(system->musicPlayer, trackId);
+}
