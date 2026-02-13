@@ -86,10 +86,6 @@ public:
   // load instrument patches from a block of memory
   bool loadPatches(const uint8_t *data, size_t size);
 
-  // render the audio output during playback.
-  // note: regardless of sound settings, output stream is always stereo (two
-  // floats or int16s per sample)
-  void generate(float *data, unsigned numSamples);
   void generate(int16_t *data, unsigned numSamples);
 
   // reset OPL and midi file
@@ -120,6 +116,8 @@ public:
   ChipType chipType() const { return m_chipType; }
   bool stereo() const { return m_stereo; }
   const std::string &patchName(uint8_t num) { return m_patches[num].name; }
+
+  void printSequence();
 
 private:
   static const unsigned masterClock = 14318181;

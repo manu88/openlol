@@ -1,6 +1,7 @@
 #include "sequence_xmi.hpp"
 #include "track_xmi.hpp"
 #include <cstring>
+#include <stdio.h>
 
 #define READ_U16BE(data, pos) ((data[pos] << 8) | data[pos + 1])
 #define READ_U24BE(data, pos)                                                  \
@@ -22,6 +23,11 @@ void SequenceXMI::reset() {
 
   for (auto &track : m_tracks)
     track->reset();
+}
+
+void SequenceXMI::print() {
+  printf("SequenceXMI::print()\n");
+  m_tracks[m_songNum]->print();
 }
 
 void SequenceXMI::read(const uint8_t *data, size_t size) {

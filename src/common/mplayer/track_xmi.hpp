@@ -18,11 +18,14 @@ public:
   uint32_t update(OPLPlayer &player);
 
   bool atEnd() const { return m_atEnd; }
+  void print();
 
 protected:
-  uint32_t readVLQ();
-  uint32_t readDelay();
+  uint32_t readXMIDelay();
+  uint32_t readMidiDelay();
   int32_t minDelay();
+
+  bool printMetaEvent();
   virtual bool metaEvent(OPLPlayer &player);
 
   SequenceXMI *m_sequence;

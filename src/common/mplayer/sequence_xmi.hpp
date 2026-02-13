@@ -19,6 +19,8 @@ public:
   unsigned numSongs() const override { return m_tracks.size(); }
   void reset() override;
 
+  void print() override;
+
 private:
   void setDefaults();
   void read(const uint8_t *data, size_t size) override;
