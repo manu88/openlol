@@ -1,6 +1,7 @@
 #include "music_player.h"
 #include "SDL_audio.h"
 #include "mplayer/player.hpp"
+#include <cstdint>
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -10,7 +11,7 @@ extern "C" {
 #include <SDL2/SDL.h>
 
 typedef struct _MusicPlayer {
-  OPLPlayer *player;
+  uint8_t _;
 } MusicPlayer;
 
 MusicPlayer *MusicPlayerCreate(void) {
@@ -76,6 +77,9 @@ int MusicMainLoop(const XMIHandle *handle, int trackId) {
     return 1;
   }
   MusicPlayerSetTrackId(player, trackId);
+
+  reinterpret_cast<OPLPlayer *>(player)->printSequence();
+  reinterpret_cast<OPLPlayer *>(player)->reset();
 
   SDL_SetMainReady();
   SDL_Init(SDL_INIT_AUDIO);

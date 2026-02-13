@@ -124,40 +124,6 @@ bool OPLPlayer::loadPatches(const uint8_t *data, size_t size) {
 }
 
 // ----------------------------------------------------------------------------
-void OPLPlayer::generate(float *data, unsigned numSamples) {
-  unsigned samp = 0;
-
-  while (samp < numSamples * 2) {
-    updateMIDI();
-
-    float samples[2];
-    samples[0] = m_output.data[0] / 32767.0;
-    samples[1] = m_output.data[1] / 32767.0;
-
-    while (m_samplePos >= 1.0 && samp < numSamples * 2) {
-      data[samp] = samples[0];
-      data[samp + 1] = samples[1];
-
-      if (m_hpFilterCoef < 1.0) {
-        for (int i = 0; i < 2; i++) {
-          const float lastIn = m_hpLastInF[i];
-          m_hpLastInF[i] = data[samp + i];
-
-          m_hpLastOutF[i] =
-              m_hpFilterCoef * (m_hpLastOutF[i] + data[samp + i] - lastIn);
-          data[samp + i] = m_hpLastOutF[i];
-        }
-      }
-
-      samp += 2;
-      m_samplePos -= 1.0;
-      if (m_samplesLeft)
-        m_samplesLeft--;
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
 void OPLPlayer::generate(int16_t *data, unsigned numSamples) {
   unsigned samp = 0;
 
@@ -187,7 +153,12 @@ void OPLPlayer::generate(int16_t *data, unsigned numSamples) {
   }
 }
 
-// ----------------------------------------------------------------------------
+void OPLPlayer::printSequence() {
+  printf("printSequence\n");
+  assert(m_sequence);
+  m_sequence->print();
+}
+
 void OPLPlayer::updateMIDI() {
   while (!m_samplesLeft && m_sequence && !atEnd()) {
     // time to update midi playback
