@@ -242,10 +242,10 @@ static void levelGraphics(EMCInterpreter *interp, const char *file,
   Log(LOG_PREFIX, "callbackLoadLevelGraphics %s %s", file, paletteFile);
   char pakFile[12] = "";
   snprintf(pakFile, 12, "%s.PAK", file);
-  char fileName[12] = "";
+  char fileName[13] = "";
   {
     GameFile f = {0};
-    snprintf(fileName, 12, "%s.VCN", file);
+    snprintf(fileName, 13, "%s.VCN", file);
     if (GameEnvironmentGetFileFromPak(&f, fileName, pakFile) == 0) {
       assert(GameEnvironmentGetFile(&f, fileName));
     }
@@ -257,7 +257,7 @@ static void levelGraphics(EMCInterpreter *interp, const char *file,
   }
   {
     GameFile f = {0};
-    snprintf(fileName, 12, "%s.VMP", file);
+    snprintf(fileName, 13, "%s.VMP", file);
     if (GameEnvironmentGetFileFromPak(&f, fileName, pakFile) == 0) {
       assert(GameEnvironmentGetFile(&f, fileName));
     }
