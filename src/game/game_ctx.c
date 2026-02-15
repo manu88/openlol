@@ -215,8 +215,8 @@ int GameContextStartup(GameContext *ctx) {
 
 void GameContextLoadLevelShapes(GameContext *gameCtx, const char *shpFile,
                                 const char *datFile) {
-  char pakFile[12] = "";
-  strncpy(pakFile, shpFile, 12);
+  char pakFile[13] = "";
+  strncpy(pakFile, shpFile, 13);
 
   pakFile[strlen(pakFile) - 1] = 'K';
   pakFile[strlen(pakFile) - 2] = 'A';
