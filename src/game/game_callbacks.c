@@ -129,11 +129,16 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   case EMCGlobalVarID_UpdateFlags:
   case EMCGlobalVarID_OilLampStatus:
   case EMCGlobalVarID_SceneDefaultUpdate:
+    printf("[Warning] unimplemented EMCGlobalVarID_SceneDefaultUpdate\n");
+    break;
   case EMCGlobalVarID_CompassBroken:
+    printf("[Warning] unimplemented EMCGlobalVarID_CompassBroken a=%X b=%X\n",
+           a, b);
+    break;
   case EMCGlobalVarID_DrainMagic:
   case EMCGlobalVarID_SpeechVolume:
   case EMCGlobalVarID_AbortTIMFlag:
-    break;
+    printf("UNIMPLEMENTED setGlobalVar 0X%X\n", id);
     assert(0);
   }
   return 1;
