@@ -130,19 +130,22 @@ static void renderDecoration(SDL_Texture *pixBuf, LevelContext *level,
   if (deco->shapeIndex[wall->decoIndex] != DECORATION_EMPTY_INDEX) {
     SHPFrame frame = {0};
     size_t index = deco->shapeIndex[wall->decoIndex];
-    SHPHandleGetFrame(&level->shpHandle, &frame, index);
-    SHPFrameGetImageData(&frame);
-    drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
-                     deco->shapeY[wall->decoIndex] + wall->y,
-                     level->vcnHandle.palette, wall->xFlip, 1);
-    int isFrontWall = (wall->cellId == CELL_N || wall->cellId == CELL_J ||
-                       wall->cellId == CELL_D);
-    if (isFrontWall && deco->flags & DatDecorationFlags_Mirror) {
+    if (SHPHandleGetFrame(&level->shpHandle, &frame, index)) {
+
+      SHPFrameGetImageData(&frame);
       drawSHPMazeFrame(pixBuf, &frame, deco->shapeX[wall->decoIndex] + wall->x,
                        deco->shapeY[wall->decoIndex] + wall->y,
-                       level->vcnHandle.palette, 1, 1);
+                       level->vcnHandle.palette, wall->xFlip, 1);
+      int isFrontWall = (wall->cellId == CELL_N || wall->cellId == CELL_J ||
+                         wall->cellId == CELL_D);
+      if (isFrontWall && deco->flags & DatDecorationFlags_Mirror) {
+        drawSHPMazeFrame(pixBuf, &frame,
+                         deco->shapeX[wall->decoIndex] + wall->x,
+                         deco->shapeY[wall->decoIndex] + wall->y,
+                         level->vcnHandle.palette, 1, 1);
+      }
+      SHPFrameRelease(&frame);
     }
-    SHPFrameRelease(&frame);
   }
   if (deco->next) {
     renderDecoration(pixBuf, level, wall, deco->next);
@@ -219,19 +222,21 @@ static void renderEnemy(GameContext *gameCtx, const Monster *monster,
 
   int16_t frameIdx =
       monsterDirFlags[(gameCtx->orientation << 2) + monster->facing];
-  SHPHandleGetFrame(shp, &f, frameIdx);
-  SHPFrameGetImageData(&f);
-  if (cell->frontDist > 1) {
-    SHPFrameScale(&f, f.header.width / ratioX, f.header.height / ratioY);
-  }
-  float att = 1.0f;
-  if (cell->frontDist > 1) {
-    att = 1.5f * abs(cell->frontDist);
-  }
+  if (SHPHandleGetFrame(shp, &f, frameIdx)) {
 
-  drawSHPMazeFrame(gameCtx->display->pixBuf, &f, x, y,
-                   gameCtx->level->vcnHandle.palette, 0, att);
-  SHPFrameRelease(&f);
+    SHPFrameGetImageData(&f);
+    if (cell->frontDist > 1) {
+      SHPFrameScale(&f, f.header.width / ratioX, f.header.height / ratioY);
+    }
+    float att = 1.0f;
+    if (cell->frontDist > 1) {
+      att = 1.5f * abs(cell->frontDist);
+    }
+
+    drawSHPMazeFrame(gameCtx->display->pixBuf, &f, x, y,
+                     gameCtx->level->vcnHandle.palette, 0, att);
+    SHPFrameRelease(&f);
+  }
 }
 
 static void renderEnemies(GameContext *gameCtx, int blockId, int cellId) {
