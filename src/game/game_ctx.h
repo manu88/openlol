@@ -196,3 +196,5 @@ int GameContextCheckMagic(GameContext *gameCtx, uint16_t charId,
                           uint16_t spellNum, uint16_t spellLevel);
 
 uint8_t *GameContextGetDefaultPalette(const GameContext *gameCtx);
+
+void GameContextShowDialogButtons(GameContext *gameCtx,const uint16_t buttonStrIds[3]);

@@ -604,18 +604,8 @@ static void setupDialogueButtons(EMCInterpreter *interp, uint16_t numStrs,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetupDialogueButtons %x %x %x %x", numStrs,
       strIds[0], strIds[1], strIds[2]);
-  gameCtx->dialogState = DialogState_InProgress;
-  GameContextInitSceneDialog(gameCtx);
-  printf("callbackSetupDialogueButtons %i %X %X %X\n", numStrs, strIds[0],
-         strIds[1], strIds[2]);
-  for (int i = 0; i < numStrs; i++) {
-    assert(strIds[i] != 0XFFFF);
-    gameCtx->display->buttonText[i] = malloc(16);
-    assert(gameCtx->display->buttonText[i]);
-    memset(gameCtx->display->buttonText[i], 0, 16);
-    GameContextGetString(gameCtx, strIds[i], gameCtx->display->buttonText[i],
-                         16);
-  }
+
+  GameContextShowDialogButtons(gameCtx, strIds);
 }
 
 static void setupBackgroundAnimationPart(

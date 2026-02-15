@@ -20,6 +20,7 @@
 #include "prologue.h"
 #include "script.h"
 #include "spells.h"
+#include "ui.h"
 #include <assert.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -467,6 +468,28 @@ uint16_t GameContextGetLevelName(const GameContext *gameCtx, char *outBuffer,
 uint16_t GameContextGetItemSHPFrameIndex(GameContext *gameCtx,
                                          uint16_t itemId) {
   return gameCtx->itemProperties[itemId].shapeId;
+}
+
+void GameContextShowDialogButtons(GameContext *gameCtx,
+                                  const uint16_t buttonStrIds[3]) {
+  int buttonX = DIALOG_BUTTON1_X;
+  for (int i = 0; i < 3; i++) {
+    if (buttonStrIds[i] == 0XFFFF) {
+      continue;
+    }
+    GameContextGetString(gameCtx, buttonStrIds[i],
+                         gameCtx->display->dialogTextBuffer,
+                         DIALOG_BUFFER_SIZE);
+
+    if (i == 1) {
+      buttonX = DIALOG_BUTTON2_X;
+    } else if (i == 2) {
+      buttonX = DIALOG_BUTTON3_X;
+    }
+    UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
+                     buttonX, DIALOG_BUTTON_Y, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
+                     gameCtx->display->dialogTextBuffer);
+  }
 }
 
 void GameContextInitSceneDialog(GameContext *gameCtx) {
