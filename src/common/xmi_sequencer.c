@@ -273,8 +273,6 @@ void XMISequencerInit(XMISequencer *seq) {
   seq->ticksPerSec = 120.f;
 }
 
-void XMISequencerReset(XMISequencer *seq) { seq->head = 0; }
-
 typedef enum {
   MetaEventType_MIDI_PORT = 0X21,
   MetaEventType_END_OF_TRACK = 0X2F,
@@ -324,17 +322,15 @@ static void parseMetaEvent(XMISequencer *seq, uint8_t eventType, uint8_t size,
   assert(0);
 }
 
-static size_t onMetaEvent(XMISequencer *seq) {
+static void onMetaEvent(XMISequencer *seq) {
   // List of meta events
   // https://www.mixagesoftware.com/en/midikit/help/HTML/meta_events.html
   uint8_t eventType = *seq->head++;
-
   uint8_t eventSize = *seq->head++;
-
   uint8_t *eventData = seq->head;
 
   parseMetaEvent(seq, eventType, eventSize, eventData);
-  return eventSize + 2;
+  seq->head += eventSize + 2;
 }
 static void onPitchBend(XMISequencer *seq, uint8_t channel, uint8_t lsb,
                         uint8_t msb) {
@@ -398,19 +394,29 @@ typedef enum {
   EventType_NOTE_ON = 0X90,
 } EventType;
 
-void XMISequencerPlay(XMISequencer *seq, const XMISequence *sequence) {
+void XMISequencerUpdate(XMISequencer *seq) { assert(seq->currentSeq); }
 
-  seq->head = sequence->events.data;
+static void resetSequencer(XMISequencer *seq) {
+  seq->head = seq->currentSeq->events.data;
+  seq->delay = 0;
+}
+void XMISequencerStart(XMISequencer *seq, const XMISequence *sequence) {
   seq->currentSeq = sequence;
+  resetSequencer(seq);
 
   while (seq->done == 0 && !isDone(seq)) {
+
+    size_t remain = seq->head - seq->currentSeq->events.data;
+    if (seq->currentSeq->events.dataSize - remain < 3) {
+      seq->done = 1;
+      return;
+    }
+
     uint8_t b = *seq->head++;
 
     if (b & 0x80) { // MIDI CMD
       if (b == 0XFF) {
-        size_t r = onMetaEvent(seq);
-        seq->head += r;
-
+        onMetaEvent(seq);
       } else {
         uint8_t cmd = b & 0XF0;
         uint8_t chan = b & 0X0F;

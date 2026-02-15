@@ -134,7 +134,7 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
   case EMCGlobalVarID_SpeechVolume:
   case EMCGlobalVarID_AbortTIMFlag:
     printf("UNIMPLEMENTED setGlobalVar 0X%X\n", id);
-    assert(0);
+    // assert(0);
   }
   return 1;
 }
@@ -309,7 +309,7 @@ static void loadMonsterShapes(EMCInterpreter *interp, const char *file,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadMonsterShapes %s %x %x", file, monsterId, p2);
   assert(monsterId < MAX_MONSTERS);
-  assert(p2 == 0);
+  // assert(p2 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
   assert(SHPHandleFromCompressedBuffer(

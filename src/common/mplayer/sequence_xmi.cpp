@@ -10,10 +10,8 @@
   ((data[pos] << 24) | (data[pos + 1] << 16) | (data[pos + 2] << 8) |          \
    data[pos + 3])
 
-// ----------------------------------------------------------------------------
 SequenceXMI::SequenceXMI() : Sequence() { m_ticksPerSec = 120; }
 
-// ----------------------------------------------------------------------------
 SequenceXMI::~SequenceXMI() {}
 
 void SequenceXMI::setDefaults() { setTimePerBeat(500000); }
@@ -38,7 +36,6 @@ void SequenceXMI::read(const uint8_t *data, size_t size) {
   }
 }
 
-// ----------------------------------------------------------------------------
 uint32_t SequenceXMI::readRootChunk(const uint8_t *data, size_t size) {
   // need at least a root chunk and one subchunk (and its contents)
   if (size > 12 + 8) {
@@ -76,13 +73,11 @@ uint32_t SequenceXMI::readRootChunk(const uint8_t *data, size_t size) {
         offset += readRootChunk(data + offset, size - offset);
       }
     }
-
     return rootEnd;
   }
   return 0;
 }
 
-// ----------------------------------------------------------------------------
 bool SequenceXMI::isValid(const uint8_t *data, size_t size) {
   // need at least 2 root chunks and one EVNT chunk header
   if (size < 12)
@@ -96,7 +91,6 @@ bool SequenceXMI::isValid(const uint8_t *data, size_t size) {
   return true;
 }
 
-// ----------------------------------------------------------------------------
 void SequenceXMI::setTimePerBeat(uint32_t usec) {
   double usecPerTick = (double)usec / ((usec * 3.f) / 25000);
   m_ticksPerSec = 1000000 / usecPerTick;

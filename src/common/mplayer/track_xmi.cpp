@@ -247,6 +247,7 @@ uint32_t XMITrack::update(OPLPlayer &player) {
       }
 
       m_delay += readMidiDelay();
+      printf("XMITrack::update delay=%i\n", m_delay);
     }
   }
 
