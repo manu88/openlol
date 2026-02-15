@@ -7,9 +7,7 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_strings.h"
-#include "geometry.h"
 #include "tim_interpreter.h"
-#include "ui.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -18,18 +16,29 @@
 
 #define TIM_NUM_ANIMATIONS 4
 #define WSA_NUM_ANIMATIONS 6
-
-#define TEXT_BUFFER_SIZE 128
-static char textBuffer[128] = "";
+#define NUM_ANIMATIONS_PARTS 4
 
 typedef struct {
   TIMHandle tim;
 } TIMScript;
 
 typedef struct {
+  uint16_t firstFrame;
+  uint16_t lastFrame;
+  uint16_t cycles;
+  uint16_t nextPart;
+  uint16_t partDelay;
+  uint16_t field;
+  uint16_t sfxIndex;
+  uint16_t sfxFrame;
+} AnimationPart;
+
+typedef struct {
   WSAHandle wsa;
   int x;
   int y;
+  uint8_t loaded;
+  AnimationPart parts[NUM_ANIMATIONS_PARTS];
 } Animation;
 
 typedef struct {
@@ -82,6 +91,7 @@ void TimLoadWSA(GameContext *gameCtx, uint16_t wsaIndex, const char *wsaFile,
       wsaIndex, wsaFile, x, y, offscreen, flags);
 
   Animation *anim = &timCtx.anims[wsaIndex];
+  anim->loaded = 1;
   anim->x = x;
   anim->y = y;
   GameFile f = {0};
@@ -139,6 +149,37 @@ void TIMRun(GameContext *gameCtx, uint16_t scriptId, uint16_t loop) {
 
 void TIMRelease(uint16_t scriptId) {}
 
+void TimSetupPart(GameContext *gameCtx, uint16_t animIndex, uint16_t partIndex,
+                  uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles,
+                  uint16_t nextPart, uint16_t partDelay, uint16_t field,
+                  uint16_t sfxIndex, uint16_t sfxFrame) {
+  printf("TimSetupPart animIndex=%i\n", animIndex);
+  Animation *anim = &timCtx.anims[animIndex];
+  assert(anim->loaded);
+  assert(partIndex < NUM_ANIMATIONS_PARTS);
+  AnimationPart *part = anim->parts + partIndex;
+  part->firstFrame = firstFrame;
+  part->lastFrame = lastFrame;
+  part->cycles = cycles;
+  part->nextPart = nextPart;
+  part->partDelay = partDelay;
+  part->field = field;
+  part->sfxIndex = sfxIndex;
+  part->sfxFrame = sfxFrame;
+}
+
+void TimStartPart(GameContext *gameCtx, uint16_t animIndex,
+                  uint16_t partIndex) {
+
+  Animation *anim = &timCtx.anims[animIndex];
+  assert(anim->loaded);
+  assert(partIndex < NUM_ANIMATIONS_PARTS);
+  AnimationPart *part = anim->parts + partIndex;
+
+  printf("TimStartBackgroundAnimationPart animIndex=%i partIndex=%i\n",
+         animIndex, partIndex);
+}
+
 #pragma mark CALLBACKS
 
 static void callbackWSAInit(TIMInterpreter *interp, uint16_t wsaIndex,
@@ -148,7 +189,12 @@ static void callbackWSAInit(TIMInterpreter *interp, uint16_t wsaIndex,
   TimLoadWSA(gameCtx, wsaIndex, wsaFile, x, y, offscreen, flags);
 }
 
-static void callbackWSARelease(TIMInterpreter *interp, int wsaIndex) {}
+static void callbackWSARelease(TIMInterpreter *interp, int wsaIndex) {
+  Animation *anim = &timCtx.anims[wsaIndex];
+  assert(anim->loaded);
+  printf("callbackWSARelease %i\n", wsaIndex);
+  anim->loaded = 0;
+}
 
 static void callbackWSADisplayFrame(TIMInterpreter *interp, int wsaIndex,
                                     int frame) {
@@ -162,23 +208,7 @@ static void callbackShowDialogButtons(TIMInterpreter *interp,
                                       uint16_t functionId,
                                       const uint16_t buttonStrIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  int buttonX = DIALOG_BUTTON1_X;
-  for (int i = 0; i < 3; i++) {
-    if (buttonStrIds[i] == 0XFFFF) {
-      continue;
-    }
-    GameContextGetString(gameCtx, buttonStrIds[i], textBuffer,
-                         TEXT_BUFFER_SIZE);
-    printf("Button %i='%s'\n", i, textBuffer);
-    if (i == 1) {
-      buttonX = DIALOG_BUTTON2_X;
-    } else if (i == 2) {
-      buttonX = DIALOG_BUTTON3_X;
-    }
-    UIDrawTextButton(&gameCtx->display->defaultFont, gameCtx->display->pixBuf,
-                     buttonX, DIALOG_BUTTON_Y, DIALOG_BUTTON_W, DIALOG_BUTTON_H,
-                     textBuffer);
-  }
+  GameContextShowDialogButtons(gameCtx, buttonStrIds);
 }
 
 static void callbackPlaySoundFX(TIMInterpreter *interp, uint16_t soundId) {

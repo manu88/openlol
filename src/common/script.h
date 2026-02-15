@@ -296,6 +296,9 @@ typedef struct _EMCInterpreterCallbacks {
       uint16_t nextPart, uint16_t partDelay, uint16_t field, uint16_t sfxIndex,
       uint16_t sfxFrame);
 
+  void (*EMCInterpreterCallbacks_StartBackgroundAnimationPart)(
+      EMCInterpreter *interp, uint16_t animIndex, uint16_t partIndex);
+
   void (*EMCInterpreterCallbacks_DeleteHandItem)(EMCInterpreter *interp);
   uint16_t (*EMCInterpreterCallbacks_CreateHandItem)(EMCInterpreter *interp,
                                                      uint16_t itemType,

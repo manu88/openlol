@@ -1,6 +1,7 @@
 #include "game_callbacks.h"
 #include "SDL_events.h"
 #include "SDL_mouse.h"
+#include "SDL_timer.h"
 #include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_shp.h"
@@ -130,6 +131,9 @@ static uint16_t setGlobalVar(EMCInterpreter *interp, EMCGlobalVarID id,
     printf("[Warning] unimplemented EMCGlobalVarID_SceneDefaultUpdate\n");
     break;
   case EMCGlobalVarID_CompassBroken:
+    printf("[Warning] unimplemented EMCGlobalVarID_CompassBroken a=%X b=%X\n",
+           a, b);
+    break;
   case EMCGlobalVarID_DrainMagic:
   case EMCGlobalVarID_SpeechVolume:
   case EMCGlobalVarID_AbortTIMFlag:
@@ -309,7 +313,7 @@ static void loadMonsterShapes(EMCInterpreter *interp, const char *file,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadMonsterShapes %s %x %x", file, monsterId, p2);
   assert(monsterId < MAX_MONSTERS);
-  assert(p2 == 0);
+  // assert(p2 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
   assert(SHPHandleFromCompressedBuffer(
@@ -593,21 +597,8 @@ static void setupDialogueButtons(EMCInterpreter *interp, uint16_t numStrs,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackSetupDialogueButtons %x %x %x %x", numStrs,
       strIds[0], strIds[1], strIds[2]);
-  assert(0);
-#if 0
-  gameCtx->dialogState = DialogState_InProgress;
-  GameContextInitSceneDialog(gameCtx);
-  printf("callbackSetupDialogueButtons %i %X %X %X\n", numStrs, strIds[0],
-         strIds[1], strIds[2]);
-  for (int i = 0; i < numStrs; i++) {
-    assert(strIds[i] != 0XFFFF);
-    gameCtx->display->buttonText[i] = malloc(16);
-    assert(gameCtx->display->buttonText[i]);
-    memset(gameCtx->display->buttonText[i], 0, 16);
-    GameContextGetString(gameCtx, strIds[i], gameCtx->display->buttonText[i],
-                         16);
-  }
-#endif
+
+  GameContextShowDialogButtons(gameCtx, strIds);
 }
 
 static void setupBackgroundAnimationPart(
@@ -623,7 +614,15 @@ static void setupBackgroundAnimationPart(
       animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
       field, sfxIndex, sfxFrame);
 
-  assert(0);
+  TimSetupPart(gameCtx, animIndex, part, firstFrame, lastFrame, cycles,
+               nextPart, partDelay, field, sfxIndex, sfxFrame);
+}
+
+static void startBackgroundAnimationPart(EMCInterpreter *interp,
+                                         uint16_t animIndex,
+                                         uint16_t partIndex) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  TimStartPart(gameCtx, animIndex, partIndex);
 }
 
 static void deleteHandItem(EMCInterpreter *interp) {
@@ -681,8 +680,8 @@ static uint16_t createLevelItem(EMCInterpreter *interp, uint16_t itemType,
 static uint16_t processDialog(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackProcessDialog\n");
-  assert(0);
-  return 1;
+  SDL_Delay(1000);
+  return 0;
   // return gameCtx->dialogState == DialogState_Done;
 }
 
@@ -831,7 +830,7 @@ static void playAnimationPart(EMCInterpreter *interp, uint16_t animIndex,
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
 
-  assert(0);
+  // assert(0);
 }
 
 static uint16_t getCredits(EMCInterpreter *interp) {
@@ -917,6 +916,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       setupDialogueButtons,
       processDialog,
       setupBackgroundAnimationPart,
+      startBackgroundAnimationPart,
       deleteHandItem,
       createHandItem,
       createLevelItem,
