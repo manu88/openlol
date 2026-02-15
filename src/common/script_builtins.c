@@ -553,8 +553,7 @@ static uint16_t assignSpecialGuiShape(EMCInterpreter *interp, EMCState *state) {
 }
 
 static uint16_t fadeToBlack(EMCInterpreter *interp, EMCState *state) {
-  printf("fadeToBlack\n");
-  ASSERT_UNIMPLEMENTED;
+  interp->callbacks.EMCInterpreterCallbacks_FadeToBlack(interp);
   return 0;
 }
 

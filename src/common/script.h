@@ -337,6 +337,7 @@ typedef struct _EMCInterpreterCallbacks {
                                             uint16_t how);
   void (*EMCInterpreterCallbacks_FadeScene)(EMCInterpreter *interp,
                                             uint16_t mode);
+  void (*EMCInterpreterCallbacks_FadeToBlack)(EMCInterpreter *interp);
 
   void (*EMCInterpreterCallbacks_PrepareSpecialScene)(
       EMCInterpreter *interp, uint16_t fieldType, uint16_t hasDialogue,

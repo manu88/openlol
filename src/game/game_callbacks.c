@@ -594,6 +594,11 @@ static void fadeScene(EMCInterpreter *interp, uint16_t mode) {
   DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
 }
 
+static void fadeToBlack(EMCInterpreter *interp) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
+}
+
 static void setupDialogueButtons(EMCInterpreter *interp, uint16_t numStrs,
                                  uint16_t strIds[3]) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
@@ -936,6 +941,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       characterSurpriseSFX,
       moveParty,
       fadeScene,
+      fadeToBlack,
       prepareSpecialScene,
       restoreAfterSpecialScene,
       initMonster,
