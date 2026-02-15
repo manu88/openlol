@@ -759,9 +759,9 @@ static uint16_t restoreAfterSceneWindowDialogue(EMCInterpreter *interp,
 static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
                                          EMCState *state) {
   uint16_t animIndex = EMCStateStackVal(state, 0);
-  uint16_t part = EMCStateStackVal(state, 1);
-  printf("startBackgroundAnimation animIndex=%x part=%x\n", animIndex, part);
-  ASSERT_UNIMPLEMENTED;
+  uint16_t partIndex = EMCStateStackVal(state, 1);
+  interp->callbacks.EMCInterpreterCallbacks_StartBackgroundAnimationPart(
+      interp, animIndex, partIndex);
   return 0;
 }
 

@@ -1,20 +1,19 @@
 #include "game_callbacks.h"
 #include "SDL_events.h"
 #include "SDL_mouse.h"
+#include "SDL_timer.h"
+#include "display.h"
 #include "formats/format_cps.h"
 #include "formats/format_shp.h"
-#include "formats/format_tim.h"
-#include "game.h"
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_render.h"
 #include "game_strings.h"
-#include "game_tim_animator.h"
 #include "geometry.h"
 #include "logger.h"
 #include "monster.h"
-#include "render.h"
 #include "script.h"
+#include "tim.h"
 #include "ui.h"
 #include <assert.h>
 #include <stdint.h>
@@ -257,8 +256,6 @@ static void levelGraphics(EMCInterpreter *interp, const char *file,
     // assert(GameEnvironmentGetFileWithExt(&f, file, "VCN"));
     assert(VCNHandleFromLCWBuffer(&gameCtx->level->vcnHandle, f.buffer,
                                   f.bufferSize));
-
-    gameCtx->animator.defaultPalette = gameCtx->level->vcnHandle.palette;
   }
   {
     GameFile f = {0};
@@ -316,7 +313,7 @@ static void loadMonsterShapes(EMCInterpreter *interp, const char *file,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadMonsterShapes %s %x %x", file, monsterId, p2);
   assert(monsterId < MAX_MONSTERS);
-  assert(p2 == 0);
+  // assert(p2 == 0);
   GameFile f;
   assert(GameEnvironmentGetFile(&f, file));
   assert(SHPHandleFromCompressedBuffer(
@@ -409,27 +406,22 @@ static void loadMonster(EMCInterpreter *interp, uint16_t monsterId,
 
 static void loadTimScript(EMCInterpreter *interp, uint16_t scriptId,
                           const char *file) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadTimScript %x %s", scriptId, file);
-  GameTimInterpreterLoadTim(&gameCtx->timInterpreter, scriptId, file);
+  TIMLoad(scriptId, file);
 }
 
 static void runTimScript(EMCInterpreter *interp, uint16_t scriptId,
                          uint16_t loop) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRunTimScript %x %i", scriptId, loop);
-  if (!gameCtx->timInterpreter.tim[scriptId].avtl) {
-    printf("NO TIM loaded\n");
-    return;
-  }
-  GameContextSetState(gameCtx, GameState_TimAnimation);
-  GameTimInterpreterRunTim(&gameCtx->timInterpreter, scriptId);
+  TIMRun(gameCtx, scriptId, loop);
 }
 
 static void releaseTimScript(EMCInterpreter *interp, uint16_t scriptId) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackReleaseTimScript %i", scriptId);
-  GameTimInterpreterReleaseTim(&gameCtx->timInterpreter, scriptId);
+  TIMRelease(scriptId);
 }
 
 static uint16_t getItemIndexInHand(EMCInterpreter *interp) {
@@ -545,12 +537,7 @@ static void WSAInit(EMCInterpreter *interp, uint16_t index, const char *wsaFile,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackWSAInit %x %s %i %i %i %i", index, wsaFile, x, y,
       offscreen, flags);
-  GameFile f = {0};
-  printf("----> GameTimAnimator load wsa file '%s' index %i offscreen=%i\n",
-         wsaFile, index, offscreen);
-  assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
-  AnimatorInitWSA(&gameCtx->animator, f.buffer, f.bufferSize, x, y, offscreen,
-                  flags);
+  TimLoadWSA(gameCtx, index, wsaFile, x, y, offscreen, flags);
 }
 
 static void restoreAfterSceneDialog(EMCInterpreter *interp, int mode) {
@@ -563,6 +550,7 @@ static void restoreAfterSceneWindowDialog(EMCInterpreter *interp, int redraw) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRestoreAfterSceneWindowDialog %x", redraw);
   GameContextCleanupSceneDialog(gameCtx);
+  DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
 }
 
 static uint16_t checkForCertainPartyMember(EMCInterpreter *interp,
@@ -626,9 +614,15 @@ static void setupBackgroundAnimationPart(
       animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
       field, sfxIndex, sfxFrame);
 
-  AnimatorSetupPart(gameCtx->timInterpreter.animator, animIndex, part,
-                    firstFrame, lastFrame, cycles, nextPart, partDelay, field,
-                    sfxIndex, sfxFrame);
+  TimSetupPart(gameCtx, animIndex, part, firstFrame, lastFrame, cycles,
+               nextPart, partDelay, field, sfxIndex, sfxFrame);
+}
+
+static void startBackgroundAnimationPart(EMCInterpreter *interp,
+                                         uint16_t animIndex,
+                                         uint16_t partIndex) {
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  TimStartPart(gameCtx, animIndex, partIndex);
 }
 
 static void deleteHandItem(EMCInterpreter *interp) {
@@ -686,7 +680,9 @@ static uint16_t createLevelItem(EMCInterpreter *interp, uint16_t itemType,
 static uint16_t processDialog(EMCInterpreter *interp) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackProcessDialog\n");
-  return gameCtx->dialogState == DialogState_Done;
+  SDL_Delay(1000);
+  return 0;
+  // return gameCtx->dialogState == DialogState_Done;
 }
 
 static void playSoundFX(EMCInterpreter *interp, uint16_t soundId) {
@@ -833,9 +829,8 @@ static void playAnimationPart(EMCInterpreter *interp, uint16_t animIndex,
       "callbackPlayAnimationPart animIndex=%x firstFrame=%x lastFrame=%x "
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
-  GameContextSetState(gameCtx, GameState_TimAnimation);
-  AnimatorPlayPart(gameCtx->timInterpreter.animator, animIndex, firstFrame,
-                   lastFrame, delay);
+
+  // assert(0);
 }
 
 static uint16_t getCredits(EMCInterpreter *interp) {
@@ -921,6 +916,7 @@ void GameContextInstallCallbacks(EMCInterpreter *interp) {
       setupDialogueButtons,
       processDialog,
       setupBackgroundAnimationPart,
+      startBackgroundAnimationPart,
       deleteHandItem,
       createHandItem,
       createLevelItem,
