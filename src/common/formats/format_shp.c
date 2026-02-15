@@ -47,6 +47,7 @@ uint32_t SHPHandleGetFrame(const SHPHandle *handle, SHPFrame *frame,
   if (index >= handle->framesCount) {
     printf("SHPHandleGetFrame index %zu exceeds num frames %i\n", index,
            handle->framesCount);
+    return 0;
   }
   assert(index < handle->framesCount);
   uint32_t offset = handle->frameOffsets[index];
