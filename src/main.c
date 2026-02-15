@@ -292,7 +292,7 @@ static void doShowTrack(const XMIHandle *handle, int trackId) {
 #endif
   XMISequencer seq;
   XMISequencerInit(&seq);
-  XMISequencerPlay(&seq, handle->sequences + trackId);
+  XMISequencerStart(&seq, handle->sequences + trackId);
 }
 
 static int cmdXMIPlay(const char *filepath, int trackId) {
