@@ -23,6 +23,7 @@ public:
   // returns the number of output audio samples until the next event(s)
   virtual uint32_t update(OPLPlayer &player) = 0;
 
+  virtual void print() = 0;
   virtual void setSongNum(unsigned num) {
     if (num < numSongs())
       m_songNum = num;
