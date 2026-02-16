@@ -30,6 +30,14 @@ MusicPlayer *MusicPlayerCreate(void) {
   return reinterpret_cast<MusicPlayer *>(player);
 }
 
+void MusicPlayerSetGain(MusicPlayer *player, double gain) {
+  reinterpret_cast<OPLPlayer *>(player)->setGain(gain);
+}
+
+double MusicPlayerGetGain(const MusicPlayer *player) {
+  return reinterpret_cast<const OPLPlayer *>(player)->getGain();
+}
+
 void MusicPlayerRelease(MusicPlayer *_player) {
   OPLPlayer *player = reinterpret_cast<OPLPlayer *>(_player);
   delete player;

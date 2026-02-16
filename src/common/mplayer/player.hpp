@@ -62,6 +62,7 @@ public:
   void setLoop(bool loop) { m_looping = loop; }
   void setSampleRate(uint32_t rate);
   void setGain(double gain);
+  double getGain() const { return m_sampleGain; }
   void setFilter(double cutoff);
 
   // enable/disable OPL3 stereo support. can be called during active playback

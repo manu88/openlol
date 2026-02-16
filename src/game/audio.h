@@ -33,8 +33,8 @@ typedef struct {
   // don't access these directly, as they are shared with the audio callback!
   // use getter/setters below.
   uint8_t _soundVol; // 0-10
-  uint8_t _musicVol; // 0-10
   uint8_t _voiceVol; // 0-10
+  // note: music vol is accessed through musicPlayer.
 
   AudioQueue voiceQueue;
   AudioQueue soundQueue;

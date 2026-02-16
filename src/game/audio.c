@@ -7,6 +7,7 @@
 #include "music_player.h"
 #include "pak_file.h"
 #include <assert.h>
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -20,6 +21,8 @@ static inline uint8_t clampVol(int8_t vol) {
   }
   return vol;
 }
+
+static inline double volToGain(int8_t vol) { return vol / 10.f; }
 
 void AudioQueueInit(AudioQueue *queue) {
   memset(queue, 0, sizeof(AudioQueue));
@@ -119,7 +122,8 @@ int AudioSystemInit(AudioSystem *audioSystem, const GameConfig *conf) {
     return 0;
   }
   // audio thread not yet setup here, can access shared variables directly.
-  audioSystem->_musicVol = clampVol(conf->musicVol);
+  MusicPlayerSetGain(audioSystem->musicPlayer,
+                     volToGain(clampVol(conf->musicVol)));
   audioSystem->_soundVol = clampVol(conf->soundVol);
   audioSystem->_voiceVol = clampVol(conf->voiceVol);
 
@@ -169,15 +173,16 @@ uint8_t AudioSystemGetSoundVolume(const AudioSystem *audioSystem) {
 
 void AudioSystemSetMusicVolume(AudioSystem *audioSystem, int8_t vol) {
   SDL_LockAudioDevice(audioSystem->deviceID);
-  audioSystem->_musicVol = clampVol(vol);
+  double gain = volToGain(clampVol(vol));
+  MusicPlayerSetGain(audioSystem->musicPlayer, gain);
   SDL_UnlockAudioDevice(audioSystem->deviceID);
 }
 
 uint8_t AudioSystemGetMusicVolume(const AudioSystem *audioSystem) {
   SDL_LockAudioDevice(audioSystem->deviceID);
-  uint8_t val = audioSystem->_musicVol;
+  double gain = MusicPlayerGetGain(audioSystem->musicPlayer);
   SDL_UnlockAudioDevice(audioSystem->deviceID);
-  return val;
+  return roundf(gain * 10.f);
 }
 
 void AudioSystemSetVoiceVolume(AudioSystem *audioSystem, int8_t vol) {
