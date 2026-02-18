@@ -501,7 +501,35 @@ static int cmdVOC(int argc, char *argv[]) {
   usageVOC();
   return 0;
 }
-static void usageTim(void) { printf("tim subcommands: show filepath\n"); }
+static void usageTim(void) {
+  printf("tim subcommands: [show|strings] filepath\n");
+}
+
+static int cmdTimStrings(const char *file) {
+  size_t dataSize = 0;
+  int freeBuffer = 0;
+  uint8_t *buffer = getFileContent(file, &dataSize, &freeBuffer);
+  if (!buffer) {
+    printf("Error while getting data for '%s'\n", file);
+    return 1;
+  }
+
+  TIMHandle handle = {0};
+  if (!TIMHandleFromBuffer(&handle, buffer, dataSize)) {
+    printf("Error while parsing data for '%s'\n", file);
+  } else {
+    for (int i = 0; i < handle.numTextStrings; i++) {
+      const char *txt = TIMHandleGetText(&handle, i);
+      printf("%i: '%s'\n", i, txt);
+    }
+  }
+
+  if (freeBuffer) {
+    free(buffer);
+  }
+
+  return 0;
+}
 
 static int cmdTimShow(const char *file) {
   size_t dataSize = 0;
@@ -533,6 +561,8 @@ static int cmdTim(int argc, char *argv[]) {
   }
   if (strcmp(argv[0], "show") == 0) {
     return cmdTimShow(argv[1]);
+  } else if (strcmp(argv[0], "strings") == 0) {
+    return cmdTimStrings(argv[1]);
   }
   usageTim();
   return 1;
