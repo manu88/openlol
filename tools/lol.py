@@ -231,8 +231,11 @@ class WSAFileInfo:
 
 
 def _do_exec(argv: List, output=True):
-    return subprocess.run(
+    resp = subprocess.run(
         argv, stdout=subprocess.PIPE if output else None, check=False)
+    if resp.returncode != 0:
+        print(f"Failed command is {" ".join(argv)}")
+    return resp
 
 
 class LOL:
