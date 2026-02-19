@@ -1,5 +1,5 @@
 #pragma once
-#include "game_ctx.h"
+#include "formats/format_wsa.h"
 #include "tim_interpreter.h"
 #include <stdint.h>
 
@@ -29,6 +29,8 @@ typedef struct {
   AnimationPart *currentPart;
 } Animation;
 
+typedef struct _GameContext GameContext;
+
 typedef struct {
   TIMHandle scripts[TIM_NUM_ANIMATIONS];
   TIMInterpreter interp;
@@ -36,17 +38,20 @@ typedef struct {
 
   uint8_t *frameBuffer;
   size_t frameBufferSize;
+  GameContext *gameCtx;
 } TIMContext;
 
-void TIMLoad(uint16_t scriptId, const char *file);
-void TIMRun(GameContext *gameCtx, uint16_t scriptId, uint16_t loop);
-void TIMRelease(uint16_t scriptId);
+void TIMInit(TIMContext *timCtx, GameContext *gameCtx);
 
-void TimLoadWSA(GameContext *gameCtx, uint16_t index, const char *wsaFile,
-                int x, int y, int offscreen, int flags);
+void TIMLoad(TIMContext *timCtx, uint16_t scriptId, const char *file);
+void TIMRun(TIMContext *timCtx, uint16_t scriptId, uint16_t loop);
+void TIMReleaseScript(TIMContext *timCtx, uint16_t scriptId);
 
-void TimSetupPart(GameContext *gameCtx, uint16_t animIndex, uint16_t partIndex,
+void TimLoadWSA(TIMContext *timCtx, uint16_t index, const char *wsaFile, int x,
+                int y, int offscreen, int flags);
+
+void TimSetupPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex,
                   uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles,
                   uint16_t nextPart, uint16_t partDelay, uint16_t field,
                   uint16_t sfxIndex, uint16_t sfxFrame);
-void TimStartPart(GameContext *gameCtx, uint16_t animIndex, uint16_t partIndex);
+void TimStartPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex);

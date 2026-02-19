@@ -406,22 +406,22 @@ static void loadMonster(EMCInterpreter *interp, uint16_t monsterId,
 
 static void loadTimScript(EMCInterpreter *interp, uint16_t scriptId,
                           const char *file) {
-  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackLoadTimScript %x %s", scriptId, file);
-  TIMLoad(scriptId, file);
+  TIMLoad(&gameCtx->timCtx, scriptId, file);
 }
 
 static void runTimScript(EMCInterpreter *interp, uint16_t scriptId,
                          uint16_t loop) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackRunTimScript %x %i", scriptId, loop);
-  TIMRun(gameCtx, scriptId, loop);
+  TIMRun(&gameCtx->timCtx, scriptId, loop);
 }
 
 static void releaseTimScript(EMCInterpreter *interp, uint16_t scriptId) {
-  // GameContext *gameCtx = (GameContext *)interp->callbackCtx;
+  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackReleaseTimScript %i", scriptId);
-  TIMRelease(scriptId);
+  TIMReleaseScript(&gameCtx->timCtx, scriptId);
 }
 
 static uint16_t getItemIndexInHand(EMCInterpreter *interp) {
@@ -537,7 +537,7 @@ static void WSAInit(EMCInterpreter *interp, uint16_t index, const char *wsaFile,
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
   Log(LOG_PREFIX, "callbackWSAInit %x %s %i %i %i %i", index, wsaFile, x, y,
       offscreen, flags);
-  TimLoadWSA(gameCtx, index, wsaFile, x, y, offscreen, flags);
+  TimLoadWSA(&gameCtx->timCtx, index, wsaFile, x, y, offscreen, flags);
 }
 
 static void restoreAfterSceneDialog(EMCInterpreter *interp, int mode) {
@@ -614,7 +614,7 @@ static void setupBackgroundAnimationPart(
       animIndex, part, firstFrame, lastFrame, cycles, nextPart, partDelay,
       field, sfxIndex, sfxFrame);
 
-  TimSetupPart(gameCtx, animIndex, part, firstFrame, lastFrame, cycles,
+  TimSetupPart(&gameCtx->timCtx, animIndex, part, firstFrame, lastFrame, cycles,
                nextPart, partDelay, field, sfxIndex, sfxFrame);
 }
 
@@ -622,7 +622,7 @@ static void startBackgroundAnimationPart(EMCInterpreter *interp,
                                          uint16_t animIndex,
                                          uint16_t partIndex) {
   GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  TimStartPart(gameCtx, animIndex, partIndex);
+  TimStartPart(&gameCtx->timCtx, animIndex, partIndex);
 }
 
 static void deleteHandItem(EMCInterpreter *interp) {

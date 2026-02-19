@@ -14,6 +14,8 @@
 #include "pak_file.h"
 #include "script.h"
 #include "spells.h"
+#include "game_ctx.h"
+#include "tim.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -100,6 +102,7 @@ typedef struct _GameContext {
   GameConfig conf;
 
   const SpellProperties *spellProperties; // count is SPELL_PROPERTIES_COUNT
+  TIMContext timCtx;
 } GameContext;
 
 void GameContextRelease(GameContext *gameCtx);

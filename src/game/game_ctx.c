@@ -19,6 +19,7 @@
 #include "prologue.h"
 #include "script.h"
 #include "spells.h"
+#include "tim.h"
 #include "ui.h"
 #include <assert.h>
 #include <dirent.h>
@@ -117,7 +118,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
     printf("Create default config\n");
     GameConfigCreateDefault(&gameCtx->conf);
   }
-
+  TIMInit(&gameCtx->timCtx, gameCtx);
   gameCtx->language = lang;
   GameContextSetState(gameCtx, GameState_MainMenu);
 

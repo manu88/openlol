@@ -7,52 +7,39 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_strings.h"
-
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-static TIMContext timCtx = {0};
-static int isInit = 0;
-
-void TIMInit(void);
-
-void TIMLoad(uint16_t scriptId, const char *file) {
-  if (!isInit) {
-    TIMInit();
-    isInit = 1;
-  }
-
-  printf("TIMLoad 0X%x %s\n", scriptId, file);
-  TIMHandle *tim = timCtx.scripts + scriptId;
+void TIMLoad(TIMContext *timCtx, uint16_t scriptId, const char *file) {
+  TIMHandle *tim = timCtx->scripts + scriptId;
   assert(tim);
   GameFile f = {0};
   assert(GameEnvironmentGetFileWithExt(&f, file, "TIM"));
   assert(TIMHandleFromBuffer(tim, f.buffer, f.bufferSize));
 }
 
-static void doRenderWSAFrame(GameContext *gameCtx, const Animation *anim,
+static void doRenderWSAFrame(TIMContext *timCtx, const Animation *anim,
                              int frame) {
   // FIXME: This is Highly inefficient, but working for now :)
-  memset(timCtx.frameBuffer, 0, timCtx.frameBufferSize);
+  memset(timCtx->frameBuffer, 0, timCtx->frameBufferSize);
   for (int i = 0; i <= frame; i++) {
-    WSAHandleGetFrame(&anim->wsa, i, timCtx.frameBuffer, 1);
+    WSAHandleGetFrame(&anim->wsa, i, timCtx->frameBuffer, 1);
   }
 
-  DisplayRenderWSA(gameCtx->display, timCtx.frameBuffer, &anim->wsa, anim->x,
-                   anim->y);
+  DisplayRenderWSA(timCtx->gameCtx->display, timCtx->frameBuffer, &anim->wsa,
+                   anim->x, anim->y);
 }
 
-void TimLoadWSA(GameContext *gameCtx, uint16_t wsaIndex, const char *wsaFile,
+void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
                 int x, int y, int offscreen, int flags) {
 
   printf(
       "TimLoadWSA wsaIndex=0X%X file='%s' x=%i y=%i offscreen=%i flags=0X%X\n",
       wsaIndex, wsaFile, x, y, offscreen, flags);
-
-  Animation *anim = &timCtx.anims[wsaIndex];
+  Animation *anim = &timCtx->anims[wsaIndex];
   anim->loaded = 1;
   anim->x = x;
   anim->y = y;
@@ -61,15 +48,15 @@ void TimLoadWSA(GameContext *gameCtx, uint16_t wsaIndex, const char *wsaFile,
   assert(WSAHandleFromBuffer(&anim->wsa, f.buffer, f.bufferSize));
 
   if (anim->wsa.header.palette == NULL) {
-    anim->wsa.header.palette = GameContextGetDefaultPalette(gameCtx);
+    anim->wsa.header.palette = GameContextGetDefaultPalette(timCtx->gameCtx);
   }
   size_t fbSize = anim->wsa.header.width * anim->wsa.header.height;
-  if (fbSize != timCtx.frameBufferSize && timCtx.frameBuffer != NULL) {
-    free(timCtx.frameBuffer);
+  if (fbSize != timCtx->frameBufferSize && timCtx->frameBuffer != NULL) {
+    free(timCtx->frameBuffer);
   }
-  timCtx.frameBufferSize = fbSize;
-  timCtx.frameBuffer = malloc(timCtx.frameBufferSize);
-  memset(timCtx.frameBuffer, 0, timCtx.frameBufferSize);
+  timCtx->frameBufferSize = fbSize;
+  timCtx->frameBuffer = malloc(timCtx->frameBufferSize);
+  memset(timCtx->frameBuffer, 0, timCtx->frameBufferSize);
 
   if (flags & 2) {
     printf("[WARNING] TimLoadWSA unhandled flag 2\n");
@@ -80,43 +67,44 @@ void TimLoadWSA(GameContext *gameCtx, uint16_t wsaIndex, const char *wsaFile,
     if (GameEnvironmentGetFileWithExt(&f, wsaFile, "CPS")) {
       assert(0); // FIXME: to implement :)
     }
-    doRenderWSAFrame(gameCtx, anim, 0);
+    doRenderWSAFrame(timCtx, anim, 0);
   }
 }
 
-void TIMRun(GameContext *gameCtx, uint16_t scriptId, uint16_t loop) {
-  TIMHandle *tim = timCtx.scripts + scriptId;
+void TIMRun(TIMContext *timCtx, uint16_t scriptId, uint16_t loop) {
+  TIMHandle *tim = timCtx->scripts + scriptId;
   assert(tim);
   assert(tim->avtl);
-  TIMInterpreterStart(&timCtx.interp, tim);
-  timCtx.interp.callbackCtx = gameCtx;
+  TIMInterpreterStart(&timCtx->interp, tim);
 
-  while (gameCtx->_shouldRun) {
-    if (TIMInterpreterIsRunning(&timCtx.interp) == 0) {
+  while (timCtx->gameCtx->_shouldRun) {
+    if (TIMInterpreterIsRunning(&timCtx->interp) == 0) {
       printf("TIM isRunning = 0\n");
       break;
     }
-    TIMInterpreterUpdate(&timCtx.interp);
+    TIMInterpreterUpdate(&timCtx->interp);
     SDL_Event e = {0};
-    int mouse = DisplayWaitMouseEvent(gameCtx->display, &e, 150);
+    int mouse = DisplayWaitMouseEvent(timCtx->gameCtx->display, &e, 150);
     if (mouse == 0) {
-      gameCtx->_shouldRun = 0;
+      timCtx->gameCtx->_shouldRun = 0;
       break;
     } else if (mouse == 1) {
       break;
     }
-    DisplayUpdate(gameCtx->display);
+    DisplayUpdate(timCtx->gameCtx->display);
   }
 }
 
-void TIMRelease(uint16_t scriptId) {}
+void TIMReleaseScript(TIMContext *timCtx, uint16_t scriptId) {}
 
-void TimSetupPart(GameContext *gameCtx, uint16_t animIndex, uint16_t partIndex,
+void TimSetupPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex,
                   uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles,
                   uint16_t nextPart, uint16_t partDelay, uint16_t field,
                   uint16_t sfxIndex, uint16_t sfxFrame) {
-  printf("TimSetupPart animIndex=%i\n", animIndex);
-  Animation *anim = &timCtx.anims[animIndex];
+  printf("TimSetupPart animIndex=%i partIndex=%i firstFrame=%i lastFrame=%i "
+         "nextPart=%i \n",
+         animIndex, partIndex, firstFrame, lastFrame, nextPart);
+  Animation *anim = &timCtx->anims[animIndex];
   assert(anim->loaded);
   assert(partIndex < NUM_ANIMATIONS_PARTS);
   AnimationPart *part = anim->parts + partIndex;
@@ -130,16 +118,18 @@ void TimSetupPart(GameContext *gameCtx, uint16_t animIndex, uint16_t partIndex,
   part->sfxFrame = sfxFrame;
 }
 
-void TimStartPart(GameContext *gameCtx, uint16_t animIndex,
-                  uint16_t partIndex) {
+void TimStartPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex) {
 
-  Animation *anim = &timCtx.anims[animIndex];
+  Animation *anim = &timCtx->anims[animIndex];
   assert(anim->loaded);
   assert(partIndex < NUM_ANIMATIONS_PARTS);
   AnimationPart *part = anim->parts + partIndex;
 
   printf("TimStartBackgroundAnimationPart animIndex=%i partIndex=%i\n",
          animIndex, partIndex);
+
+  printf("TimStartPart render frame %i\n", part->currentFrame);
+  doRenderWSAFrame(timCtx, anim, part->currentFrame);
 }
 
 #pragma mark CALLBACKS
@@ -147,12 +137,13 @@ void TimStartPart(GameContext *gameCtx, uint16_t animIndex,
 static void callbackWSAInit(TIMInterpreter *interp, uint16_t wsaIndex,
                             const char *wsaFile, int x, int y, int offscreen,
                             int flags) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  TimLoadWSA(gameCtx, wsaIndex, wsaFile, x, y, offscreen, flags);
+  TIMContext *timCtx = interp->callbackCtx;
+  TimLoadWSA(timCtx, wsaIndex, wsaFile, x, y, offscreen, flags);
 }
 
 static void callbackWSARelease(TIMInterpreter *interp, int wsaIndex) {
-  Animation *anim = &timCtx.anims[wsaIndex];
+  TIMContext *timCtx = interp->callbackCtx;
+  Animation *anim = &timCtx->anims[wsaIndex];
   assert(anim->loaded);
   printf("callbackWSARelease %i\n", wsaIndex);
   anim->loaded = 0;
@@ -160,47 +151,48 @@ static void callbackWSARelease(TIMInterpreter *interp, int wsaIndex) {
 
 static void callbackWSADisplayFrame(TIMInterpreter *interp, int wsaIndex,
                                     int frame) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  assert(timCtx.frameBuffer);
-  Animation *anim = &timCtx.anims[wsaIndex];
-  doRenderWSAFrame(gameCtx, anim, frame);
+  TIMContext *timCtx = interp->callbackCtx;
+  assert(timCtx->frameBuffer);
+  Animation *anim = &timCtx->anims[wsaIndex];
+  doRenderWSAFrame(timCtx, anim, frame);
 }
 
 static void callbackShowDialogButtons(TIMInterpreter *interp,
                                       uint16_t functionId,
                                       const uint16_t buttonStrIds[3]) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextShowDialogButtons(gameCtx, buttonStrIds);
+  TIMContext *timCtx = interp->callbackCtx;
+  GameContextShowDialogButtons(timCtx->gameCtx, buttonStrIds);
 }
 
 static void callbackPlaySoundFX(TIMInterpreter *interp, uint16_t soundId) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextPlaySoundFX(gameCtx, soundId);
+  TIMContext *timCtx = interp->callbackCtx;
+  GameContextPlaySoundFX(timCtx->gameCtx, soundId);
 }
 
 static void callbackPlayDialogue(TIMInterpreter *interp, uint16_t stringId,
                                  int argc, const uint16_t *argv) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextGetString(gameCtx, stringId, gameCtx->display->dialogTextBuffer,
+  TIMContext *timCtx = interp->callbackCtx;
+  GameContextGetString(timCtx->gameCtx, stringId,
+                       timCtx->gameCtx->display->dialogTextBuffer,
                        DIALOG_BUFFER_SIZE);
-  GameContextSetDialogF(gameCtx, stringId);
-  GameContextPlayDialogSpeech(gameCtx, 0, stringId);
+  GameContextSetDialogF(timCtx->gameCtx, stringId);
+  GameContextPlayDialogSpeech(timCtx->gameCtx, 0, stringId);
 }
 
 static void callbackInitSceneDialog(TIMInterpreter *interp, int controlMode) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextInitSceneDialog(gameCtx);
+  TIMContext *timCtx = interp->callbackCtx;
+  GameContextInitSceneDialog(timCtx->gameCtx);
 }
 
 static void callbackFadeClearWindow(TIMInterpreter *interp, uint16_t param) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  DisplayDoSceneFade(gameCtx->display, 10, gameCtx->conf.tickLength);
+  TIMContext *timCtx = interp->callbackCtx;
+  DisplayDoSceneFade(timCtx->gameCtx->display, 10,
+                     timCtx->gameCtx->conf.tickLength);
 }
 
 static int callbackContinueLoop(TIMInterpreter *interp) {
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-
-  return AudioSystemGetCurrentVoiceIndex(&gameCtx->audio) != -1;
+  TIMContext *timCtx = interp->callbackCtx;
+  return AudioSystemGetCurrentVoiceIndex(&timCtx->gameCtx->audio) != -1;
 }
 
 static void callbackSetLoop(TIMInterpreter *interp) {}
@@ -244,14 +236,14 @@ static void callbackClearTextField(TIMInterpreter *interp) {
 
 static void callbackLoadMusicFile(TIMInterpreter *interp, uint16_t fileId) {
   int realFileId = (fileId - 250) * 3;
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextLoadMusicFile(gameCtx, realFileId);
+  TIMContext *timCtx = interp->callbackCtx;
+  GameContextLoadMusicFile(timCtx->gameCtx, realFileId);
 }
 
 static void callbackPlayMusicTrack(TIMInterpreter *interp, uint16_t track) {
   int t = (track - 250) * 3;
-  GameContext *gameCtx = (GameContext *)interp->callbackCtx;
-  GameContextPlayMusicTrack(gameCtx, t);
+  TIMContext *timCtx = interp->callbackCtx;
+  GameContextPlayMusicTrack(timCtx->gameCtx, t);
 }
 
 static void callbackUpdate(TIMInterpreter *interp) { printf("Update\n"); }
@@ -288,11 +280,12 @@ static void callbackPlayVocFile(TIMInterpreter *interp, uint16_t index,
   printf("PlayVocFile index=0X%X volume=0X%X\n", index, volume);
 }
 
-void TIMInit(void) {
-  memset(&timCtx, 0, sizeof(TIMContext));
-  TIMInterpreterInit(&timCtx.interp);
-  timCtx.interp.callbackCtx = &timCtx;
-  timCtx.interp.callbacks = (TIMInterpreterCallbacks){
+void TIMInit(TIMContext *timCtx, GameContext *gameCtx) {
+  memset(timCtx, 0, sizeof(TIMContext));
+  timCtx->gameCtx = gameCtx;
+  TIMInterpreterInit(&timCtx->interp);
+  timCtx->interp.callbackCtx = timCtx;
+  timCtx->interp.callbacks = (TIMInterpreterCallbacks){
       .TIMInterpreterCallbacks_WSAInit = callbackWSAInit,
       .TIMInterpreterCallbacks_WSADisplayFrame = callbackWSADisplayFrame,
       .TIMInterpreterCallbacks_FadeClearWindow = callbackFadeClearWindow,
