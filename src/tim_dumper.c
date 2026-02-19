@@ -93,9 +93,9 @@ static void callbackLoadVocFile(TIMInterpreter *interp, uint16_t stringId,
   printf("LoadVocFile stringId=0X%X index=0X%X\n", stringId, index);
 }
 
-static void callbackLoadSoundFile(TIMInterpreter *interp, uint16_t stringId) {
+static void callbackLoadSoundFile(TIMInterpreter *interp, const char *file) {
   indent();
-  printf("LoadSoundFile stringId=0X%X\n", stringId);
+  printf("LoadSoundFile file='%s'\n", file);
 }
 
 static void callbackPlayVocFile(TIMInterpreter *interp, uint16_t index,

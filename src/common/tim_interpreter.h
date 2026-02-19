@@ -61,7 +61,7 @@ typedef struct {
                                               uint16_t stringId,
                                               uint16_t index);
   void (*TIMInterpreterCallbacks_LoadSoundFile)(TIMInterpreter *interp,
-                                                uint16_t stringId);
+                                                const char* file);
   void (*TIMInterpreterCallbacks_PlayVocFile)(TIMInterpreter *interp,
                                               uint16_t index, uint16_t volume);
 } TIMInterpreterCallbacks;

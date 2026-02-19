@@ -247,10 +247,11 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     interp->callbacks.TIMInterpreterCallbacks_PlayMusicTrack(interp,
                                                              instrParams[0]);
     return instr->len;
-  case TIM_COMMAND_LOAD_SOUND_FILE:
-    interp->callbacks.TIMInterpreterCallbacks_LoadSoundFile(interp,
-                                                            instrParams[0]);
+  case TIM_COMMAND_LOAD_SOUND_FILE: {
+    const char *file = TIMHandleGetText(interp->_tim, instrParams[0]);
+    interp->callbacks.TIMInterpreterCallbacks_LoadSoundFile(interp, file);
     return instr->len;
+  }
   case TIM_COMMAND_PLAY_VOC:
     interp->callbacks.TIMInterpreterCallbacks_PlayVocFile(
         interp, instrParams[0], instrParams[1]);
