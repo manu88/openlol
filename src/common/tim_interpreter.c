@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TIM_START_OFFSET 1
+// #define TIM_START_OFFSET 0 // outro : 3
+//  unknown first bytes: LOLFINALE: 03 00 81 08  a8 08  <- this one is a valid
+//  instruction, with an invalid command code (a8)
+// DAWN1.TIM: 01 00 <- this one is too short, discarding the len
 
 typedef enum {
   TIM_COMMAND_ID_STOP_ALL_FUNCS = 0X01,
@@ -20,37 +23,7 @@ typedef enum {
   TIM_COMMAND_ID_DIALOG_BOX = 0X1D,
   TIM_COMMAND_SET_LOOP_IP = 0X14,
 } TIM_COMMAND_ID;
-#if 0
-static const char *timCommandsName(uint8_t code) {
-  switch ((TIM_COMMAND_ID)code) {
-  case TIM_COMMAND_ID_STOP_ALL_FUNCS:
-    return "TIM_COMMAND_ID_STOP_ALL_FUNCS";
-  case TIM_COMMAND_ID_WSA_INIT:
-    return "TIM_COMMAND_ID_WSA_INIT";
-  case TIM_COMMAND_ID_WSA_RELEASE:
-    return "TIM_COMMAND_ID_WSA_RELEASE";
-  case TIM_COMMAND_ID_WSA_DISPLAY_FRAME:
-    return "TIM_COMMAND_ID_WSA_DISPLAY_FRAME";
-  case TIM_COMMAND_ID_CONTINUE_LOOP:
-    return "TIM_COMMAND_ID_CONTINUE_LOOP";
-  case TIM_COMMAND_ID_RESET_ALL_RUNTIMES:
-    return "TIM_COMMAND_ID_RESET_ALL_RUNTIMES";
-  case TIM_COMMAND_ID_CMD_RETURN_1:
-    return "TIM_COMMAND_ID_CMD_RETURN_1";
-  case TIM_COMMAND_ID_EXEC_OPCODE:
-    return "TIM_COMMAND_ID_EXEC_OPCODE";
-  case TIM_COMMAND_ID_PROCESS_DIALOGUE:
-    return "TIM_COMMAND_ID_PROCESS_DIALOGUE";
-  case TIM_COMMAND_ID_DIALOG_BOX:
-    return "TIM_COMMAND_ID_DIALOG_BOX";
-  case TIM_COMMAND_SET_LOOP_IP:
-    return "TIM_COMMAND_SET_LOOP_IP";
-    break;
-  }
-  assert(0);
-  return NULL;
-}
-#endif
+
 typedef enum {
   TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
   TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
@@ -86,7 +59,7 @@ void TIMInterpreterStart(TIMInterpreter *interp, const TIMHandle *tim) {
   interp->loopStartPos = -1;
   interp->restartLoop = 0;
   interp->_tim = tim;
-  interp->pos = TIM_START_OFFSET;
+  interp->pos = 0;
 }
 
 static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
@@ -168,20 +141,26 @@ static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
 static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
                               size_t pos) {
   const TImInstruction *instr = (const TImInstruction *)buffer;
+  assert(instr->len);
+  if (instr->len < 3) {
+    return instr->len;
+  }
+  if (instr->instrCode > 0X1E) { // max cmd
+    return instr->len;
+  }
+
   const uint16_t *instrParams = buffer + 3;
   int numParams =
       instr->len - 3; // 3 is size of minimum instruction size w/o params
-
-  /*
-  printf("0X%zX Instruction dur=0X%X len=%i code=%02X %s  %i params: ", pos,
-         instr->duration, instr->len, instr->instrCode,
-         timCommandsName(instr->instrCode), numParams);
+#if 0
+  printf("0X%zX: Instruction  len=0X%X dur=0X%X code=%02X  numparams=%i :", pos,
+         instr->len, instr->duration, instr->instrCode, numParams);
 
   for (int i = 0; i < numParams; i++) {
     printf(" 0X%X ", instrParams[i]);
   }
   printf("\n");
-  */
+#endif
   interp->currentInstructionDuration = instr->duration;
   // printf("EXEC 0X%X\n", instr->instrCode);
   switch ((TIM_COMMAND_ID)instr->instrCode) {
