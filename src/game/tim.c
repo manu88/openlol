@@ -7,50 +7,12 @@
 #include "game_ctx.h"
 #include "game_envir.h"
 #include "game_strings.h"
-#include "tim_interpreter.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-#define TIM_NUM_ANIMATIONS 4
-#define WSA_NUM_ANIMATIONS 6
-#define NUM_ANIMATIONS_PARTS 4
-
-typedef struct {
-  TIMHandle tim;
-} TIMScript;
-
-typedef struct {
-  uint16_t firstFrame;
-  uint16_t lastFrame;
-  uint16_t cycles;
-  uint16_t nextPart;
-  uint16_t partDelay;
-  uint16_t field;
-  uint16_t sfxIndex;
-  uint16_t sfxFrame;
-} AnimationPart;
-
-typedef struct {
-  WSAHandle wsa;
-  int x;
-  int y;
-  uint8_t loaded;
-  AnimationPart parts[NUM_ANIMATIONS_PARTS];
-} Animation;
-
-typedef struct {
-  TIMScript scripts[TIM_NUM_ANIMATIONS];
-
-  TIMInterpreter interp;
-
-  Animation anims[WSA_NUM_ANIMATIONS];
-
-  uint8_t *frameBuffer;
-  size_t frameBufferSize;
-} TIMContext;
 
 static TIMContext timCtx = {0};
 static int isInit = 0;
@@ -64,11 +26,11 @@ void TIMLoad(uint16_t scriptId, const char *file) {
   }
 
   printf("TIMLoad 0X%x %s\n", scriptId, file);
-  TIMScript *script = timCtx.scripts + scriptId;
-  assert(script);
+  TIMHandle *tim = timCtx.scripts + scriptId;
+  assert(tim);
   GameFile f = {0};
   assert(GameEnvironmentGetFileWithExt(&f, file, "TIM"));
-  assert(TIMHandleFromBuffer(&script->tim, f.buffer, f.bufferSize));
+  assert(TIMHandleFromBuffer(tim, f.buffer, f.bufferSize));
 }
 
 static void doRenderWSAFrame(GameContext *gameCtx, const Animation *anim,
@@ -123,10 +85,10 @@ void TimLoadWSA(GameContext *gameCtx, uint16_t wsaIndex, const char *wsaFile,
 }
 
 void TIMRun(GameContext *gameCtx, uint16_t scriptId, uint16_t loop) {
-  TIMScript *script = timCtx.scripts + scriptId;
-  assert(script);
-  assert(script->tim.avtl);
-  TIMInterpreterStart(&timCtx.interp, &script->tim);
+  TIMHandle *tim = timCtx.scripts + scriptId;
+  assert(tim);
+  assert(tim->avtl);
+  TIMInterpreterStart(&timCtx.interp, tim);
   timCtx.interp.callbackCtx = gameCtx;
 
   while (gameCtx->_shouldRun) {
