@@ -45,6 +45,7 @@ typedef enum {
   GameState_GameMenu,
   GameState_ShowInventory,
   GameState_ShowMap,
+  GameState_Epilogue,
 } GameState;
 
 #define INVENTORY_TYPES_NUM 7

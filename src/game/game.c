@@ -4,6 +4,7 @@
 #include "SDL_keycode.h"
 #include "dbg_server.h"
 #include "display.h"
+#include "epilogue.h"
 #include "formats/format_lang.h"
 #include "formats/format_sav.h"
 #include "formats/format_shp.h"
@@ -582,7 +583,9 @@ static int processMouse(GameContext *gameCtx) {
     return ret;
   }
   case GameState_Prologue:
+  case GameState_Epilogue:
     printf("Ignoring mouse for now\n");
+    break;
   case GameState_Invalid:
     assert(0);
     break;
@@ -718,6 +721,7 @@ static void getInputs(GameContext *gameCtx) {
     break;
   case GameState_Invalid:
   case GameState_Prologue:
+  case GameState_Epilogue:
     assert(0);
     break;
   }
@@ -738,6 +742,12 @@ static void GameRunOnce(GameContext *gameCtx) {
     }
     DisplayDoScreenFade(gameCtx->display, 10, gameCtx->conf.tickLength);
     GameContextNewGame(gameCtx, selectedChar);
+  } else if (gameCtx->state == GameState_Epilogue) {
+    EpilogueShow(gameCtx);
+    if (gameCtx->_shouldRun == 0) {
+      return;
+    }
+    GameContextSetState(gameCtx, GameState_MainMenu);
   }
 
   getInputs(gameCtx);
