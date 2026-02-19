@@ -10,11 +10,12 @@ import PIL.ImageTk
 from lol import lol, SHPFileInfo, WSAFileInfo
 from script_tools import analyze_script, CodeViewer
 from emc_ast import gen_pseudo_code
+from typing import List
 
 pak_files: Dict[str, str] = {}
 
 parser = argparse.ArgumentParser(prog="lol asset explorer")
-parser.add_argument("pak_file", default="data/", nargs="?")
+parser.add_argument("pak_file", default=["data/"], nargs="*")
 
 
 def get_type(file: str) -> str:
@@ -561,22 +562,28 @@ class UI:
             self.current_renderer.update_for_item(file_name, pak_name)
 
 
-if __name__ == "__main__":
-    args = parser.parse_args()
-    if not os.path.exists(args.pak_file):
-        print(f"'{args.pak_file}' does not exist")
-        sys.exit(1)
-    if os.path.isdir(args.pak_file):
-        lol.scan_dir(args.pak_file)
-    elif os.path.isfile(args.pak_file):
-        lol.pak_files.append(args.pak_file)
-    else:
-        print(f"unsupported path '{args.pak_file}'")
-        sys.exit(1)
+def load_pak_files(files: List[str]):
+    assert (isinstance(files, list))
+    for file in files:
+        if not os.path.exists(file):
+            print(f"'{file}' does not exist")
+            continue
+        if os.path.isdir(file):
+            lol.scan_dir(file)
+        elif os.path.isfile(file):
+            lol.pak_files.append(file)
+        else:
+            print(f"unsupported path '{file}'")
+            continue
     for pak_file in lol.pak_files:
         pak_files[pak_file] = []
         for file in lol.list(pak_file):
             pak_files[pak_file].append(file)
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    load_pak_files(args.pak_file)
     ui = UI()
     ui.run()
     print(f"ui returned, {len(lol.temp_files)} temp files to clean")
