@@ -762,7 +762,7 @@ static uint16_t startBackgroundAnimation(EMCInterpreter *interp,
   uint16_t partIndex = EMCStateStackVal(state, 1);
   interp->callbacks.EMCInterpreterCallbacks_StartBackgroundAnimationPart(
       interp, animIndex, partIndex);
-  return 0;
+  return 1;
 }
 
 static uint16_t setupDialogueButtons(EMCInterpreter *interp, EMCState *state) {
