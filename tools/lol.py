@@ -159,10 +159,16 @@ class TIMFileInfo:
 
     def __init__(self, desc: List[str]):
         self.instructions: List[TIMFileInfo.TIMInstr] = []
+        self.strings: List[str] = []
         for line in desc:
             inst = TIMFileInfo.TIMInstr(line)
             if inst:
                 self.instructions.append(inst)
+
+    def parse_strings(self, lines: List[str]):
+        for line in lines:
+            s = line.split("'")[1]
+            self.strings.append(s)
 
 
 class WSAFileInfo:
@@ -337,7 +343,18 @@ class LOL:
         if resp.returncode != 0:
             return None
         proc_output = resp.stdout.decode()
-        return TIMFileInfo(proc_output.splitlines())
+        file_info = TIMFileInfo(proc_output.splitlines())
+        self._get_tim_strings(file, pak, file_info)
+        return file_info
+
+    def _get_tim_strings(self, file: str, pak: str, file_info: TIMFileInfo) -> bool:
+        argv = [self.tool_path, "-p", pak, "tim", "strings", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return False
+        proc_output = resp.stdout.decode()
+        file_info.parse_strings(proc_output.splitlines())
+        return True
 
     def get_wsa_info(self, file: str, pak: str) -> Optional[WSAFileInfo]:
         argv = [self.tool_path, "-p", pak, "wsa", "info", file]
