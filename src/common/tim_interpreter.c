@@ -15,6 +15,11 @@ typedef enum {
   TIM_COMMAND_ID_WSA_RELEASE = 0X03,
   TIM_COMMAND_ID_WSA_DISPLAY_FRAME = 0X06,
   TIM_COMMAND_UNUSED_7 = 0X07,
+  TIM_COMMAND_LOAD_VOC = 0X08,
+  TIM_COMMAND_UNIMPLEMENTED_9 = 0X09,
+  TIM_COMMAND_PLAY_VOC = 0X0A,
+  TIM_COMMAND_LOAD_SOUND_FILE = 0X0C,
+  TIM_COMMAND_PLAY_MUSIC_TRACK = 0X0E,
   TIM_COMMAND_ID_CONTINUE_LOOP = 0X15,
   TIM_COMMAND_ID_RESET_ALL_RUNTIMES = 0X17,
   TIM_COMMAND_ID_CMD_RETURN_1 = 0X18,
@@ -22,6 +27,8 @@ typedef enum {
   TIM_COMMAND_ID_PROCESS_DIALOGUE = 0X1C,
   TIM_COMMAND_ID_DIALOG_BOX = 0X1D,
   TIM_COMMAND_SET_LOOP_IP = 0X14,
+  TIM_COMMAND_INIT_FUNC_NOW = 0X1A,
+  TIM_COMMAND_STOP_FUNC_NOW = 0X1B,
 } TIM_COMMAND_ID;
 
 typedef enum {
@@ -207,9 +214,12 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     uint16_t functionId = instrParams[0];
     interp->callbacks.TIMInterpreterCallbacks_ShowDialogButtons(
         interp, functionId, instrParams + 1);
-
     return instr->len;
   }
+  case TIM_COMMAND_LOAD_VOC:
+    interp->callbacks.TIMInterpreterCallbacks_LoadVocFile(
+        interp, instrParams[0], instrParams[2]);
+    return instr->len;
   case TIM_COMMAND_ID_CONTINUE_LOOP:
     if (interp->dontLoop == 0) {
       assert(interp->loopStartPos != -1);
@@ -233,8 +243,29 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     return instr->len;
   case TIM_COMMAND_UNUSED_7:
     return instr->len;
+  case TIM_COMMAND_PLAY_MUSIC_TRACK:
+    interp->callbacks.TIMInterpreterCallbacks_PlayMusicTrack(interp,
+                                                             instrParams[0]);
+    return instr->len;
+  case TIM_COMMAND_LOAD_SOUND_FILE:
+    interp->callbacks.TIMInterpreterCallbacks_LoadSoundFile(interp,
+                                                            instrParams[0]);
+    return instr->len;
+  case TIM_COMMAND_PLAY_VOC:
+    interp->callbacks.TIMInterpreterCallbacks_PlayVocFile(
+        interp, instrParams[0], instrParams[1]);
+    return instr->len;
+  case TIM_COMMAND_UNIMPLEMENTED_9:
+    // printf("TIM_COMMAND_UNIMPLEMENTED_9 Params %i\n", numParams);
+    return instr->len;
+  case TIM_COMMAND_INIT_FUNC_NOW:
+    printf("TIM_COMMAND_INIT_FUNC_NOW numParams=%i\n", numParams);
+    return instr->len;
+  case TIM_COMMAND_STOP_FUNC_NOW:
+    printf("TIM_COMMAND_STOP_FUNC_NOW numParams=%i\n", numParams);
+    return instr->len;
   }
-  printf("unimplemented TIM OPCODE %X\n", instr->instrCode);
+  printf("unimplemented TIM COMMAND %X\n", instr->instrCode);
   assert(0);
   return instr->len;
 }

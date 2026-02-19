@@ -57,6 +57,13 @@ typedef struct {
       TIMInterpreter *interp, uint16_t animIndex, uint16_t part);
   int (*TIMInterpreterCallbacks_ContinueLoop)(TIMInterpreter *interp);
   void (*TIMInterpreterCallbacks_SetLoop)(TIMInterpreter *interp);
+  void (*TIMInterpreterCallbacks_LoadVocFile)(TIMInterpreter *interp,
+                                              uint16_t stringId,
+                                              uint16_t index);
+  void (*TIMInterpreterCallbacks_LoadSoundFile)(TIMInterpreter *interp,
+                                                uint16_t stringId);
+  void (*TIMInterpreterCallbacks_PlayVocFile)(TIMInterpreter *interp,
+                                              uint16_t index, uint16_t volume);
 } TIMInterpreterCallbacks;
 
 typedef struct _TIMInterpreter {

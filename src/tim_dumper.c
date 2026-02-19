@@ -87,6 +87,23 @@ static void callbackCopyPage(TIMInterpreter *interp, uint16_t srcX,
          srcX, srcY, destX, destY, w, h, srcPage, destPage);
 }
 
+static void callbackLoadVocFile(TIMInterpreter *interp, uint16_t stringId,
+                                uint16_t index) {
+  indent();
+  printf("LoadVocFile stringId=0X%X index=0X%X\n", stringId, index);
+}
+
+static void callbackLoadSoundFile(TIMInterpreter *interp, uint16_t stringId) {
+  indent();
+  printf("LoadSoundFile stringId=0X%X\n", stringId);
+}
+
+static void callbackPlayVocFile(TIMInterpreter *interp, uint16_t index,
+                                uint16_t volume) {
+  indent();
+  printf("PlayVocFile index=0X%X volume=0X%X\n", index, volume);
+}
+
 static void callbackLoadMusicFile(TIMInterpreter *interp, uint16_t soundId) {
   indent();
   printf("LoadMusicFile soundId=%i\n", soundId);
@@ -178,6 +195,9 @@ void DumpTim(const TIMHandle *handle) {
           callbackStartBackgroundAnimation,
       .TIMInterpreterCallbacks_SetLoop = callbackSetLoop,
       .TIMInterpreterCallbacks_ContinueLoop = callbackContinueLoop,
+      .TIMInterpreterCallbacks_LoadVocFile = callbackLoadVocFile,
+      .TIMInterpreterCallbacks_LoadSoundFile = callbackLoadSoundFile,
+      .TIMInterpreterCallbacks_PlayVocFile = callbackPlayVocFile,
   };
 
   interp.dontLoop = 1;

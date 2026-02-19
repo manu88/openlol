@@ -312,6 +312,20 @@ static void callbackStartBackgroundAnimation(TIMInterpreter *interp,
   assert(0);
 }
 
+static void callbackLoadVocFile(TIMInterpreter *interp, uint16_t stringId,
+                                uint16_t index) {
+  printf("LoadVocFile stringId=0X%X index=0X%X\n", stringId, index);
+}
+
+static void callbackLoadSoundFile(TIMInterpreter *interp, uint16_t stringId) {
+  printf("LoadSoundFile stringId=0X%X\n", stringId);
+}
+
+static void callbackPlayVocFile(TIMInterpreter *interp, uint16_t index,
+                                uint16_t volume) {
+  printf("PlayVocFile index=0X%X volume=0X%X\n", index, volume);
+}
+
 void TIMInit(void) {
   memset(&timCtx, 0, sizeof(TIMContext));
   TIMInterpreterInit(&timCtx.interp);
@@ -341,5 +355,8 @@ void TIMInit(void) {
       .TIMInterpreterCallbacks_DrawScene = callbackDrawScene,
       .TIMInterpreterCallbacks_StartBackgroundAnimation =
           callbackStartBackgroundAnimation,
+      .TIMInterpreterCallbacks_LoadVocFile = callbackLoadVocFile,
+      .TIMInterpreterCallbacks_LoadSoundFile = callbackLoadSoundFile,
+      .TIMInterpreterCallbacks_PlayVocFile = callbackPlayVocFile,
   };
 }
