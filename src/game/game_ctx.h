@@ -14,7 +14,6 @@
 #include "pak_file.h"
 #include "script.h"
 #include "spells.h"
-#include "game_ctx.h"
 #include "tim.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -40,6 +39,7 @@ typedef struct {
 typedef enum {
   GameState_Invalid,
   GameState_MainMenu,
+  GameState_Introduction,
   GameState_Prologue,
   GameState_PlayGame,
   GameState_GameMenu,
@@ -187,4 +187,5 @@ int GameContextCheckMagic(GameContext *gameCtx, uint16_t charId,
 
 uint8_t *GameContextGetDefaultPalette(const GameContext *gameCtx);
 
-void GameContextShowDialogButtons(GameContext *gameCtx,const uint16_t buttonStrIds[3]);
+void GameContextShowDialogButtons(GameContext *gameCtx,
+                                  const uint16_t buttonStrIds[3]);

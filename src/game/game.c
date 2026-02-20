@@ -16,6 +16,7 @@
 #include "game_render.h"
 #include "game_strings.h"
 #include "geometry.h"
+#include "intro.h"
 #include "level.h"
 #include "logger.h"
 #include "menu.h"
@@ -584,6 +585,7 @@ static int processMouse(GameContext *gameCtx) {
   }
   case GameState_Prologue:
   case GameState_Epilogue:
+  case GameState_Introduction:
     printf("Ignoring mouse for now\n");
     break;
   case GameState_Invalid:
@@ -722,6 +724,7 @@ static void getInputs(GameContext *gameCtx) {
   case GameState_Invalid:
   case GameState_Prologue:
   case GameState_Epilogue:
+  case GameState_Introduction:
     assert(0);
     break;
   }
@@ -744,6 +747,12 @@ static void GameRunOnce(GameContext *gameCtx) {
     GameContextNewGame(gameCtx, selectedChar);
   } else if (gameCtx->state == GameState_Epilogue) {
     EpilogueShow(gameCtx);
+    if (gameCtx->_shouldRun == 0) {
+      return;
+    }
+    GameContextSetState(gameCtx, GameState_MainMenu);
+  } else if (gameCtx->state == GameState_Introduction) {
+    IntroductionShow(gameCtx);
     if (gameCtx->_shouldRun == 0) {
       return;
     }
