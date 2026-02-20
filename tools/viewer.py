@@ -42,6 +42,7 @@ type_info = {
     "WSA": "animation",
     "XXX": "automap data",
     "LANG": "game text",
+    "DIP": "game text",
     "XMI": "MIDI music"
 }
 
@@ -508,6 +509,7 @@ class UI:
         self._register_renderer("SHP", SHPRender)
         self._register_renderer("TIM", TIMRender)
         self._register_renderer("LANG", LANGRender)
+        self._register_renderer("DIP", LANGRender)
         self._register_renderer("VOC", VOCRender)
         self._register_renderer("VCN", VCNRender)
         self._register_renderer("INI", ScriptRender)
