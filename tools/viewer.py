@@ -74,10 +74,19 @@ class InfoFrame(tk.Frame):
         tk.Label(master=self, textvariable=self.type_desc_var).grid(
             column=1, row=1)
 
+        extract_button = tk.Button(master=self, text="extract")
+        extract_button.config(command=self.extract)
+        extract_button.grid(column=4, row=1)
+
     def update_for_item(self, file_name: str, pak_name: str):
         self.file_name_var.set(file_name)
         self.pak_name_var.set(pak_name)
         self.type_desc_var.set(get_type_info(get_type(file_name)))
+
+    def extract(self, _=None):
+        print(
+            f"extract file {self.file_name_var.get()} from pak {self.pak_name_var.get()}")
+        lol.extract(file=self.file_name_var.get(), pak=self.pak_name_var.get())
 
 
 class BaseRender(tk.Frame):
