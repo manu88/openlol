@@ -20,7 +20,8 @@ typedef struct {
   uint16_t height;
 
   uint16_t delta;
-  uint16_t hasPalette;
+  uint16_t hasPalette; // This field can contain other flags, but it looks like
+                       // they are undocumented.
 
   uint32_t *frameOffsets; // size is numFrames + 2
 

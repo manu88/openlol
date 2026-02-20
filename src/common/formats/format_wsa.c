@@ -8,16 +8,18 @@
 
 void WSAHandleInit(WSAHandle *handle) { memset(handle, 0, sizeof(WSAHandle)); }
 
-
 int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
                         size_t bufferSize) {
 
   handle->header = *(WSAHeader *)buffer;
-  assert(handle->header.hasPalette == 0 || handle->header.hasPalette == 1);
+  // sometimes - in DEATH.WSA for example, an other undocumented flag is set,
+  // making this value = 3. simply ignore that.
+  if (handle->header.hasPalette) {
+    handle->header.hasPalette = 1;
+  }
   handle->originalBuffer = (uint8_t *)buffer;
   handle->bufferSize = bufferSize;
   handle->header.frameOffsets = (uint32_t *)(handle->originalBuffer + 14);
-
   if (handle->header.hasPalette) {
     handle->header.palette =
         handle->originalBuffer + 14 + (handle->header.numFrames + 2) * 4;
