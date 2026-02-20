@@ -15,8 +15,11 @@ class LangFileInfo:
     def _parse(self):
         # i=42 offset=1164 size=8 text=A lock.
         for line in self.desc:
-            text = line.split("text=")[1]
-            self.lines.append(text)
+            if line.find("text=") != -1:
+                text = line.split("text=")[1]
+                self.lines.append(text)
+            else:
+                self.lines[-1] += " " + line
 
 
 class SHPFileInfo:
