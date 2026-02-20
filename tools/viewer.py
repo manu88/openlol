@@ -586,6 +586,9 @@ def load_pak_files(files: List[str]):
         else:
             print(f"unsupported path '{file}'")
             continue
+    if len(lol.pak_files) == 0:
+        print("nothing to show")
+        sys.exit(0)
     for pak_file in lol.pak_files:
         pak_files[pak_file] = []
         for file in lol.list(pak_file):
