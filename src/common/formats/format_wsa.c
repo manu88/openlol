@@ -3,6 +3,7 @@
 #include "format_lcw.h"
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -32,11 +33,17 @@ int WSAHandleFromBuffer(WSAHandle *handle, const uint8_t *buffer,
 uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
   assert(index <= handle->header.numFrames + 2);
   uint32_t frameOffset = handle->header.frameOffsets[index];
+  if (frameOffset == 0) {
+    return 0;
+  }
   return frameOffset + (handle->header.hasPalette * 768);
 }
 
 size_t WSAHandleGetFrameSize(const WSAHandle *handle, uint32_t index) {
   uint32_t offset = WSAHandleGetFrameOffset(handle, index);
+  if (offset == 0) {
+    return 0;
+  }
   size_t frameSize = WSAHandleGetFrameOffset(handle, index + 1) - offset;
   return frameSize;
 }
@@ -44,9 +51,13 @@ size_t WSAHandleGetFrameSize(const WSAHandle *handle, uint32_t index) {
 int WSAHandleGetFrame(const WSAHandle *handle, uint32_t index,
                       uint8_t *frameBuffer, uint8_t xor) {
   assert(frameBuffer);
+  size_t frameSize = WSAHandleGetFrameSize(handle, index);
+  if (frameSize == 0) {
+    return 0;
+  }
   uint32_t offset = WSAHandleGetFrameOffset(handle, index);
   const uint8_t *frameData = handle->originalBuffer + offset;
-  size_t frameSize = WSAHandleGetFrameOffset(handle, index + 1) - offset;
+
   size_t destSize = handle->header.delta;
   uint8_t *lcwDecompressedData = malloc(destSize);
   if (!lcwDecompressedData) {
