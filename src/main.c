@@ -1267,7 +1267,8 @@ static int cmdWSAInfo(const char *filepath) {
 
   for (int i = 0; i < handle.header.numFrames + 2; i++) {
     uint32_t frameOffset = WSAHandleGetFrameOffset(&handle, i);
-    printf("i=%i offset=0X%X size=0X%zX\n", i, frameOffset, handle.bufferSize);
+    printf("i=%i offset=0X%X size=%zu\n", i, frameOffset,
+           WSAHandleGetFrameSize(&handle, i));
     if (frameOffset == handle.bufferSize) {
       printf("IS ZERO\n");
     }

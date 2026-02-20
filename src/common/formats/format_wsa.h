@@ -45,3 +45,4 @@ frameBuffer size must be handle->header.width * handle->header.height;
 */
 int WSAHandleGetFrame(const WSAHandle *handle, uint32_t index,
                       uint8_t *frameBuffer, uint8_t xor);
+size_t WSAHandleGetFrameSize(const WSAHandle *handle, uint32_t index);

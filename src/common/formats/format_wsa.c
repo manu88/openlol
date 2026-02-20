@@ -33,6 +33,12 @@ uint32_t WSAHandleGetFrameOffset(const WSAHandle *handle, uint32_t index) {
   return frameOffset + (handle->header.hasPalette * 768);
 }
 
+size_t WSAHandleGetFrameSize(const WSAHandle *handle, uint32_t index) {
+  uint32_t offset = WSAHandleGetFrameOffset(handle, index);
+  size_t frameSize = WSAHandleGetFrameOffset(handle, index + 1) - offset;
+  return frameSize;
+}
+
 int WSAHandleGetFrame(const WSAHandle *handle, uint32_t index,
                       uint8_t *frameBuffer, uint8_t xor) {
   assert(frameBuffer);
