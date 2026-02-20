@@ -57,7 +57,7 @@ typedef struct {
   int selectedChar;
   CPSImage charBackground; // INTRO9.PAK/CHAR.CPS
   CPSImage details;        // INTRO9.PAK/BACKGRND.CPS
-  LangHandle lang;
+  LangHandle lang;         // LOLINTRO.DIP
 
   WSAHandle chargen;
   SHPHandle faces[4];
