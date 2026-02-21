@@ -178,7 +178,13 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     uint16_t index = instrParams[0];
     uint16_t strParam = instrParams[1];
     uint16_t x = (int16_t)instrParams[2];
+    if (x == 0XFFFF) {
+      x = 0;
+    }
     uint16_t y = (int16_t)instrParams[3];
+    if (y == 0XFFFF) {
+      y = 0;
+    }
     uint16_t offscreen = instrParams[4];
     uint16_t wsaFlags = instrParams[5];
     const char *wsaFile = TIMHandleGetText(interp->_tim, strParam);
