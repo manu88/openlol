@@ -68,6 +68,8 @@ typedef struct {
 
   int isFirst;
   uint8_t *frameData;
+
+  int gameEnvirScopeMark;
 } Prologue;
 
 static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
@@ -82,6 +84,8 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
       printf("unable to get FONT9PN.FNT data\n");
     }
   }
+  prologue->gameEnvirScopeMark = GameEnvironmentAddScopeMark();
+  assert(prologue->gameEnvirScopeMark);
   assert(GameEnvironmentPreloadLocalizedPak("INTRO9.PAK"));
   assert(GameEnvironmentPreloadLocalizedPak("STARTUP.PAK"));
   assert(GameEnvironmentPreloadLocalizedPak("INTROVOC.PAK"));
@@ -156,6 +160,7 @@ static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
   CPSImageRelease(&prologue->details);
   PAKFileRelease(&prologue->voicePak);
   free(prologue->frameData);
+  GameEnvironmentUnloadTopMark(prologue->gameEnvirScopeMark);
 }
 
 static void PrologueMainLoop(GameContext *gameCtx, Prologue *prologue);
