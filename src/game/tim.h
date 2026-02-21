@@ -32,8 +32,9 @@ typedef struct {
 typedef struct _GameContext GameContext;
 
 typedef struct {
+  TIMInterpreter interp; // keep it first!
   TIMHandle scripts[TIM_NUM_ANIMATIONS];
-  TIMInterpreter interp;
+
   Animation anims[WSA_NUM_ANIMATIONS];
 
   uint8_t *frameBuffer;

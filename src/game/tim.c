@@ -2,6 +2,7 @@
 #include "SDL_events.h"
 #include "audio.h"
 #include "display.h"
+#include "formats/format_cps.h"
 #include "formats/format_tim.h"
 #include "formats/format_wsa.h"
 #include "game_ctx.h"
@@ -40,14 +41,18 @@ void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
       "TimLoadWSA wsaIndex=0X%X file='%s' x=%i y=%i offscreen=%i flags=0X%X\n",
       wsaIndex, wsaFile, x, y, offscreen, flags);
   Animation *anim = &timCtx->anims[wsaIndex];
+  GameFile f = {0};
+  int hasWsa = 0;
+  if (GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA")) {
+    assert(WSAHandleFromBuffer(&anim->wsa, f.buffer, f.bufferSize));
+    hasWsa = 1;
+  }
+
   anim->loaded = 1;
   anim->x = x;
   anim->y = y;
-  GameFile f = {0};
-  assert(GameEnvironmentGetFileWithExt(&f, wsaFile, "WSA"));
-  assert(WSAHandleFromBuffer(&anim->wsa, f.buffer, f.bufferSize));
 
-  if (anim->wsa.header.palette == NULL) {
+  if (hasWsa && anim->wsa.header.palette == NULL) {
     anim->wsa.header.palette = GameContextGetDefaultPalette(timCtx->gameCtx);
   }
   size_t fbSize = anim->wsa.header.width * anim->wsa.header.height;
@@ -65,9 +70,14 @@ void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
     // do we have a CPS file to show ?
     GameFile f = {0};
     if (GameEnvironmentGetFileWithExt(&f, wsaFile, "CPS")) {
-      assert(0); // FIXME: to implement :)
+      CPSImage img = {0};
+      CPSImageFromBuffer(&img, f.buffer, f.bufferSize);
+      DisplayRenderCPS(timCtx->gameCtx->display, &img, PIX_BUF_WIDTH,
+                       PIX_BUF_HEIGHT);
     }
-    doRenderWSAFrame(timCtx, anim, 0);
+    if (hasWsa) {
+      doRenderWSAFrame(timCtx, anim, 0);
+    }
   }
 }
 
