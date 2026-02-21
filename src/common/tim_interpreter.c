@@ -216,10 +216,13 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
         interp, functionId, instrParams + 1);
     return instr->len;
   }
-  case TIM_COMMAND_LOAD_VOC:
-    interp->callbacks.TIMInterpreterCallbacks_LoadVocFile(
-        interp, instrParams[0], instrParams[2]);
+  case TIM_COMMAND_LOAD_VOC: {
+    const char *file = TIMHandleGetText(interp->_tim, instrParams[0]);
+    interp->callbacks.TIMInterpreterCallbacks_LoadVocFile(interp, file,
+                                                          instrParams[1]);
     return instr->len;
+  }
+
   case TIM_COMMAND_ID_CONTINUE_LOOP:
     if (interp->dontLoop == 0) {
       assert(interp->loopStartPos != -1);

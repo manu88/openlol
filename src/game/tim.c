@@ -276,9 +276,9 @@ static void callbackStartBackgroundAnimation(TIMInterpreter *interp,
   assert(0);
 }
 
-static void callbackLoadVocFile(TIMInterpreter *interp, uint16_t stringId,
+static void callbackLoadVocFile(TIMInterpreter *interp, const char *file,
                                 uint16_t index) {
-  printf("LoadVocFile stringId=0X%X index=0X%X\n", stringId, index);
+  printf("LoadVocFile file='%s' index=0X%X\n", file, index);
 }
 
 static void callbackLoadSoundFile(TIMInterpreter *interp, const char *file) {

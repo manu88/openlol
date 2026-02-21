@@ -87,10 +87,10 @@ static void callbackCopyPage(TIMInterpreter *interp, uint16_t srcX,
          srcX, srcY, destX, destY, w, h, srcPage, destPage);
 }
 
-static void callbackLoadVocFile(TIMInterpreter *interp, uint16_t stringId,
+static void callbackLoadVocFile(TIMInterpreter *interp, const char *file,
                                 uint16_t index) {
   indent();
-  printf("LoadVocFile stringId=0X%X index=0X%X\n", stringId, index);
+  printf("LoadVocFile file='%s' index=0X%X\n", file, index);
 }
 
 static void callbackLoadSoundFile(TIMInterpreter *interp, const char *file) {

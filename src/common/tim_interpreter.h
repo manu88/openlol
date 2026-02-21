@@ -58,10 +58,9 @@ typedef struct {
   int (*TIMInterpreterCallbacks_ContinueLoop)(TIMInterpreter *interp);
   void (*TIMInterpreterCallbacks_SetLoop)(TIMInterpreter *interp);
   void (*TIMInterpreterCallbacks_LoadVocFile)(TIMInterpreter *interp,
-                                              uint16_t stringId,
-                                              uint16_t index);
+                                              const char *file, uint16_t index);
   void (*TIMInterpreterCallbacks_LoadSoundFile)(TIMInterpreter *interp,
-                                                const char* file);
+                                                const char *file);
   void (*TIMInterpreterCallbacks_PlayVocFile)(TIMInterpreter *interp,
                                               uint16_t index, uint16_t volume);
 } TIMInterpreterCallbacks;
