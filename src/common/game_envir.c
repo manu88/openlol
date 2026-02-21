@@ -35,6 +35,7 @@ static const char *pakFiles[] = {
 typedef struct {
   PAKFile file;
   char *name;
+  int scopeMark;
 } PakFileCache;
 
 typedef struct {
@@ -49,6 +50,9 @@ typedef struct {
   PakFileCache *cache;
   int cacheIndex;
   int cacheSize;
+
+  int scopeMarkIndex;
+  int currentScopeMark;
 } GameEnvironment;
 
 static GameEnvironment _envir;
@@ -56,7 +60,10 @@ static GameEnvironment _envir;
 #define CACHE_SIZE_INCREMENT 10
 static int GetCacheIndex(const char *name) {
   for (int i = 0; i < _envir.cacheIndex; i++) {
-    if (strcmp(name, _envir.cache[i].name) == 0) {
+    if (_envir.cache[i].scopeMark) {
+      continue;
+    }
+    if (_envir.cache[i].name && strcmp(name, _envir.cache[i].name) == 0) {
       return i;
     }
   }
@@ -65,20 +72,63 @@ static int GetCacheIndex(const char *name) {
 
 static int AddInCache(PAKFile *f, const char *pakFileName) {
   if (_envir.cacheIndex >= _envir.cacheSize) {
+    int prevSize = _envir.cacheSize;
     _envir.cacheSize += CACHE_SIZE_INCREMENT;
     _envir.cache =
         realloc(_envir.cache, _envir.cacheSize * sizeof(PakFileCache));
     assert(_envir.cache);
+    memset(_envir.cache + (prevSize * sizeof(PakFileCache)), 0,
+           (_envir.cacheSize - prevSize) * sizeof(PakFileCache));
   }
   _envir.cache[_envir.cacheIndex].file = *f;
   _envir.cache[_envir.cacheIndex].name = strdup(pakFileName);
+  _envir.cache[_envir.cacheIndex].scopeMark = 0;
   return _envir.cacheIndex++;
 }
 
+static int AddScopeMark(void) {
+  if (_envir.cacheIndex >= _envir.cacheSize) {
+    int prevSize = _envir.cacheSize;
+    _envir.cacheSize += CACHE_SIZE_INCREMENT;
+    _envir.cache =
+        realloc(_envir.cache, _envir.cacheSize * sizeof(PakFileCache));
+    assert(_envir.cache);
+    memset(_envir.cache + (prevSize * sizeof(PakFileCache)), 0,
+           (_envir.cacheSize - prevSize) * sizeof(PakFileCache));
+  }
+  _envir.cache[_envir.cacheIndex].name = NULL;
+  _envir.cache[_envir.cacheIndex].scopeMark = ++_envir.scopeMarkIndex;
+  return _envir.cacheIndex++;
+}
+
+static void RemoveUntilMark(int scopeMark) {
+  int numToRemove = 0;
+  for (int i = _envir.cacheIndex - 1; i >= 0; i--) {
+    if (_envir.cache[i].scopeMark == scopeMark) {
+      _envir.cache[i].scopeMark = 0;
+      numToRemove++;
+      break;
+    }
+    numToRemove++;
+    if (_envir.cache[i].name) {
+      free(_envir.cache[i].name);
+      _envir.cache[i].name = NULL;
+      PAKFileRelease(&_envir.cache[i].file);
+    }
+  }
+  _envir.cacheIndex -= numToRemove;
+}
 #if 0
 static void printCache(void) {
-  for (int i = 0; i < _envir.cacheIndex; i++) {
-    printf("Cache %i: '%s'\n", i, _envir.cache[i].name);
+  for (int i = 0; i < _envir.cacheSize; i++) {
+    if (i == _envir.cacheIndex) {
+      printf("TOP\n");
+    }
+    if (_envir.cache[i].scopeMark) {
+      printf("Scope mark %i: %i\n", i, _envir.cache[i].scopeMark);
+    } else {
+      printf("Cache %i: '%s'\n", i, _envir.cache[i].name);
+    }
   }
 }
 #endif
@@ -124,6 +174,7 @@ int GameEnvironmentInit(const char *dataDir, Language lang) {
   GameEnvironmentLoadPak(&_envir.pakStartup, startupPakName);
 
   _envir.cache = malloc(sizeof(PakFileCache) * CACHE_SIZE_INCREMENT);
+  memset(_envir.cache, 0, sizeof(PakFileCache) * CACHE_SIZE_INCREMENT);
   _envir.cacheSize = CACHE_SIZE_INCREMENT;
   return 1;
 }
@@ -156,6 +207,12 @@ void GameEnvironmentRelease(void) {
   PAKFileRelease(&_envir.pakStartup);
 
   for (int i = 0; i < _envir.cacheIndex; i++) {
+    if (_envir.cache[i].scopeMark) {
+      continue;
+    }
+    if (_envir.cache[i].name == NULL) {
+      continue;
+    }
     PAKFileRelease(&_envir.cache[i].file);
     free(_envir.cache[i].name);
   }
@@ -238,6 +295,17 @@ int GameEnvironmentLoadLocalizedPak(PAKFile *file, const char *name) {
   return ret;
 }
 
+int GameEnvironmentAddScopeMark(void) {
+  int cacheIndex = AddScopeMark();
+  return _envir.currentScopeMark = _envir.cache[cacheIndex].scopeMark;
+}
+
+int GameEnvironmentUnloadTopMark(int scopeMark) {
+  assert(scopeMark == _envir.currentScopeMark);
+  RemoveUntilMark(scopeMark);
+  return 1;
+}
+
 int GameEnvironmentPreloadLocalizedPak(const char *pakfile) {
   const char *ext = LanguageGetExtension(_envir.lang);
   assert(ext);
@@ -249,10 +317,9 @@ int GameEnvironmentPreloadLocalizedPak(const char *pakfile) {
 
   int ret = doLoadPak(pakPath);
   free(pakPath);
+
   return ret;
 }
-
-int GameEnvironmentUnloadLocalizedPak(const char *pakfile) { return 0; }
 
 int GameEnvironmentGetLocalizedFile(GameFile *file, const char *name) {
   const char *ext = LanguageGetExtension(_envir.lang);
@@ -262,8 +329,6 @@ int GameEnvironmentGetLocalizedFile(GameFile *file, const char *name) {
   if (!pakPath) {
     return 0;
   }
-  printf("GameEnvironmentGetLocalizedFile ext='%s' path='%s' '%s'\n", ext,
-         pakPath, name);
   int ret = GameEnvironmentGetFileFromPak(file, name, pakPath);
   free(pakPath);
   return ret;
@@ -327,7 +392,7 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
     if (_envir.currentLevelPak == &_envir.cache[i].file) {
       continue;
     }
-    if (getFile(&_envir.cache[i].file, file, name)) {
+    if (_envir.cache[i].name && getFile(&_envir.cache[i].file, file, name)) {
       return 1;
     }
   }

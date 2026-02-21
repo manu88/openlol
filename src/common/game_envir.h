@@ -36,8 +36,9 @@ int GameEnvironmentLoadLevel(uint8_t index);
 
 int GameEnvironmentLoadPak(PAKFile *f, const char *pakfile);
 
+int GameEnvironmentAddScopeMark(void);
 int GameEnvironmentPreloadLocalizedPak(const char *pakfile);
-int GameEnvironmentUnloadLocalizedPak(const char *pakfile);
+int GameEnvironmentUnloadTopMark(int scopeMark);
 
 int GameEnvironmentGetFile(GameFile *file, const char *name);
 
