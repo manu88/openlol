@@ -63,9 +63,6 @@ typedef struct {
   SHPHandle faces[4];
   int faceFrame[4];
   uint32_t nextFaceFrameTime[4];
-
-  PAKFile intro09Pak;
-  PAKFile startupPak;
   PAKFile voicePak;
   FNTHandle font9p;
 
@@ -85,60 +82,69 @@ static void PrologueInit(GameContext *gameCtx, Prologue *prologue) {
       printf("unable to get FONT9PN.FNT data\n");
     }
   }
+  assert(GameEnvironmentPreloadLocalizedPak("INTRO9.PAK"));
+  assert(GameEnvironmentPreloadLocalizedPak("STARTUP.PAK"));
+  assert(GameEnvironmentPreloadLocalizedPak("INTROVOC.PAK"));
 
   PAKFileInit(&prologue->voicePak);
   assert(GameEnvironmentLoadLocalizedPak(&prologue->voicePak, "INTROVOC.PAK"));
 
-  PAKFileInit(&prologue->intro09Pak);
-  assert(GameEnvironmentLoadLocalizedPak(&prologue->intro09Pak, "INTRO9.PAK"));
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "CHAR.CPS"));
+    assert(
+        CPSImageFromBuffer(&prologue->charBackground, f.buffer, f.bufferSize));
+  }
 
-  int index = PakFileGetEntryIndex(&prologue->intro09Pak, "CHAR.CPS");
-  uint8_t *data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  size_t dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  CPSImageFromBuffer(&prologue->charBackground, data, dataSize);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "BACKGRND.CPS"));
+    assert(CPSImageFromBuffer(&prologue->details, f.buffer, f.bufferSize));
+  }
 
-  index = PakFileGetEntryIndex(&prologue->intro09Pak, "BACKGRND.CPS");
-  data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  assert(CPSImageFromBuffer(&prologue->details, data, dataSize));
-
-  WSAHandleInit(&prologue->chargen);
-  index = PakFileGetEntryIndex(&prologue->intro09Pak, "CHARGEN.WSA");
-  data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  assert(WSAHandleFromBuffer(&prologue->chargen, data, dataSize));
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "CHARGEN.WSA"));
+    assert(WSAHandleFromBuffer(&prologue->chargen, f.buffer, f.bufferSize));
+  }
 
   size_t frameDataSize =
       prologue->chargen.header.width * prologue->chargen.header.height;
   prologue->frameData = malloc(frameDataSize);
 
-  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE09.SHP");
-  data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  SHPHandleFromCompressedBuffer(&prologue->faces[0], data, dataSize);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "FACE09.SHP"));
+    assert(SHPHandleFromCompressedBuffer(&prologue->faces[0], f.buffer,
+                                         f.bufferSize));
+  }
 
-  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE01.SHP");
-  data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  SHPHandleFromCompressedBuffer(&prologue->faces[1], data, dataSize);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "FACE01.SHP"));
+    assert(SHPHandleFromCompressedBuffer(&prologue->faces[1], f.buffer,
+                                         f.bufferSize));
+  }
 
-  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE08.SHP");
-  data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  SHPHandleFromCompressedBuffer(&prologue->faces[2], data, dataSize);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "FACE08.SHP"));
+    assert(SHPHandleFromCompressedBuffer(&prologue->faces[2], f.buffer,
+                                         f.bufferSize));
+  }
 
-  index = PakFileGetEntryIndex(&prologue->intro09Pak, "FACE05.SHP");
-  data = PakFileGetEntryData(&prologue->intro09Pak, index);
-  dataSize = PakFileGetEntrySize(&prologue->intro09Pak, index);
-  SHPHandleFromCompressedBuffer(&prologue->faces[3], data, dataSize);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "FACE05.SHP"));
+    assert(SHPHandleFromCompressedBuffer(&prologue->faces[3], f.buffer,
+                                         f.bufferSize));
+  }
 
-  PAKFileInit(&prologue->startupPak);
-  assert(GameEnvironmentLoadLocalizedPak(&prologue->startupPak, "STARTUP.PAK"));
-
-  index = PakFileGetEntryIndex(&prologue->startupPak, "LOLINTRO.DIP");
-  uint8_t *langData = PakFileGetEntryData(&prologue->startupPak, index);
-  size_t langSize = PakFileGetEntrySize(&prologue->startupPak, index);
-  LangHandleFromBuffer(&prologue->lang, langData, langSize);
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "LOLINTRO.DIP"));
+    assert(LangHandleFromBuffer(&prologue->lang, f.buffer, f.bufferSize));
+  }
 }
 
 static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
@@ -148,8 +154,6 @@ static void PrologueRelease(GameContext *gameCtx, Prologue *prologue) {
 
   CPSImageRelease(&prologue->charBackground);
   CPSImageRelease(&prologue->details);
-  PAKFileRelease(&prologue->intro09Pak);
-  PAKFileRelease(&prologue->startupPak);
   PAKFileRelease(&prologue->voicePak);
   free(prologue->frameData);
 }
