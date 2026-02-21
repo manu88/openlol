@@ -64,7 +64,7 @@ const char *PakFileEntryGetExtension(const PAKEntry *entry) {
 
 int PakFileGetEntryIndex(const PAKFile *file, const char *name) {
   for (int i = 0; i <= file->count; i++) {
-    if (strcmp(name, file->entries[i].filename) == 0) {
+    if (strcasecmp(name, file->entries[i].filename) == 0) {
       return i;
     }
   }
