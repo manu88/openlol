@@ -36,10 +36,15 @@ int GameEnvironmentLoadLevel(uint8_t index);
 
 int GameEnvironmentLoadPak(PAKFile *f, const char *pakfile);
 
-int GameEnvironmentGetFile(GameFile *file, const char *name);
-int GameEnvironmentFindPak(const char *filename);
+int GameEnvironmentPreloadLocalizedPak(const char *pakfile);
+int GameEnvironmentUnloadLocalizedPak(const char *pakfile);
 
-int GameEnvironmentLoadLocalizedPak(PAKFile*file, const char *name);
+int GameEnvironmentGetFile(GameFile *file, const char *name);
+
+// remove this one
+int GameEnvironmentLoadLocalizedPak(PAKFile *file, const char *name);
+
+int GameEnvironmentGetLocalizedFile(GameFile *file, const char *name);
 int GameEnvironmentGetGeneralFile(GameFile *file, const char *name);
 int GameEnvironmentGetStartupFile(GameFile *file, const char *name);
 int GameEnvironmentGetStartupFileWithExt(GameFile *file, const char *name,

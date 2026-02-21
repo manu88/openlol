@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int doLoadPak(const char *pakFileName);
+
 static const char *pakFiles[] = {
     "CATWALK.PAK", "CAVE1.PAK", "CIMMERIA.PAK", "DRIVERS.PAK", "FOREST1.PAK",
     "GENERAL.PAK", "KEEP.PAK",  "L01.PAK",      "L02.PAK",     "L03.PAK",
@@ -73,6 +75,14 @@ static int AddInCache(PAKFile *f, const char *pakFileName) {
   return _envir.cacheIndex++;
 }
 
+#if 0
+static void printCache(void) {
+  for (int i = 0; i < _envir.cacheIndex; i++) {
+    printf("Cache %i: '%s'\n", i, _envir.cache[i].name);
+  }
+}
+#endif
+
 static const char generalPakName[] = "GENERAL.PAK";
 static const char startupPakName[] = "STARTUP.PAK";
 
@@ -88,7 +98,7 @@ static char *resolveLocalizedPakName(const char *name, const char *ext) {
   size_t s = strlen(_envir.dataDir) + strlen(ext) + 1 + 2 + strlen(name);
   char *path = malloc(s);
   assert(path);
-  snprintf(path, s, "%s/%s/%s", _envir.dataDir, ext, name);
+  snprintf(path, s, "%s/%s", ext, name);
   return path;
 }
 
@@ -207,6 +217,7 @@ int GameEnvironmentGetStartupFile(GameFile *file, const char *name) {
   return getFile(&_envir.pakStartup, file, name);
 }
 
+// remove this one
 int GameEnvironmentLoadLocalizedPak(PAKFile *file, const char *name) {
   const char *ext = LanguageGetExtension(_envir.lang);
   assert(ext);
@@ -216,7 +227,44 @@ int GameEnvironmentLoadLocalizedPak(PAKFile *file, const char *name) {
     return 0;
   }
 
-  int ret = PAKFileRead(file, pakPath);
+  char *fullP = resolvePakName(pakPath);
+  free(pakPath);
+  if (!fullP) {
+    return 0;
+  }
+
+  int ret = PAKFileRead(file, fullP);
+  free(fullP);
+  return ret;
+}
+
+int GameEnvironmentPreloadLocalizedPak(const char *pakfile) {
+  const char *ext = LanguageGetExtension(_envir.lang);
+  assert(ext);
+
+  char *pakPath = resolveLocalizedPakName(pakfile, ext);
+  if (!pakPath) {
+    return 0;
+  }
+
+  int ret = doLoadPak(pakPath);
+  free(pakPath);
+  return ret;
+}
+
+int GameEnvironmentUnloadLocalizedPak(const char *pakfile) { return 0; }
+
+int GameEnvironmentGetLocalizedFile(GameFile *file, const char *name) {
+  const char *ext = LanguageGetExtension(_envir.lang);
+  assert(ext);
+
+  char *pakPath = resolveLocalizedPakName(name, ext);
+  if (!pakPath) {
+    return 0;
+  }
+  printf("GameEnvironmentGetLocalizedFile ext='%s' path='%s' '%s'\n", ext,
+         pakPath, name);
+  int ret = GameEnvironmentGetFileFromPak(file, name, pakPath);
   free(pakPath);
   return ret;
 }
@@ -236,7 +284,6 @@ static int doLoadPak(const char *pakFileName) {
   assert(fullPath);
   assert(snprintf(fullPath, fullPathSize, "%s/%s", _envir.dataDir,
                   pakFileName) < fullPathSize);
-
   PAKFile f = {0};
   PAKFileInit(&f);
   if (PAKFileRead(&f, fullPath) == 0) {
@@ -246,6 +293,26 @@ static int doLoadPak(const char *pakFileName) {
   free(fullPath);
   AddInCache(&f, pakFileName);
   return 1;
+}
+
+static int GameEnvironmentFindPak(const char *filename) {
+  int i = 0;
+  const char *pakFile = pakFiles[0];
+  while (pakFile != NULL) {
+    PAKFile f;
+    PAKFileInit(&f);
+    char *fullP = resolvePakName(pakFile);
+    PAKFileRead(&f, fullP);
+    free(fullP);
+    int index = PakFileGetEntryIndex(&f, filename);
+    PAKFileRelease(&f);
+    if (index != -1) {
+      return i;
+    }
+    i++;
+    pakFile = pakFiles[i];
+  }
+  return -1;
 }
 
 int GameEnvironmentGetFile(GameFile *file, const char *name) {
@@ -276,26 +343,6 @@ int GameEnvironmentGetFile(GameFile *file, const char *name) {
     return GameEnvironmentGetFile(file, name);
   }
   return 0;
-}
-
-int GameEnvironmentFindPak(const char *filename) {
-  int i = 0;
-  const char *pakFile = pakFiles[0];
-  while (pakFile != NULL) {
-    PAKFile f;
-    PAKFileInit(&f);
-    char *fullP = resolvePakName(pakFile);
-    PAKFileRead(&f, fullP);
-    free(fullP);
-    int index = PakFileGetEntryIndex(&f, filename);
-    PAKFileRelease(&f);
-    if (index != -1) {
-      return i;
-    }
-    i++;
-    pakFile = pakFiles[i];
-  }
-  return -1;
 }
 
 int GameEnvironmentGetFileWithExt(GameFile *file, const char *name,
