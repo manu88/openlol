@@ -70,15 +70,19 @@ static int GetCacheIndex(const char *name) {
   return -1;
 }
 
+static void growCache(void) {
+  int prevSize = _envir.cacheSize;
+  _envir.cacheSize += CACHE_SIZE_INCREMENT;
+  size_t newMemSize = _envir.cacheSize * sizeof(PakFileCache);
+  size_t prevMemSize = prevSize * sizeof(PakFileCache);
+  _envir.cache = realloc(_envir.cache, newMemSize);
+  assert(_envir.cache);
+  memset(((uint8_t *)_envir.cache) + prevMemSize, 0, newMemSize - prevMemSize);
+}
+
 static int AddInCache(PAKFile *f, const char *pakFileName) {
   if (_envir.cacheIndex >= _envir.cacheSize) {
-    int prevSize = _envir.cacheSize;
-    _envir.cacheSize += CACHE_SIZE_INCREMENT;
-    _envir.cache =
-        realloc(_envir.cache, _envir.cacheSize * sizeof(PakFileCache));
-    assert(_envir.cache);
-    memset(_envir.cache + (prevSize * sizeof(PakFileCache)), 0,
-           (_envir.cacheSize - prevSize) * sizeof(PakFileCache));
+    growCache();
   }
   _envir.cache[_envir.cacheIndex].file = *f;
   _envir.cache[_envir.cacheIndex].name = strdup(pakFileName);
@@ -88,13 +92,7 @@ static int AddInCache(PAKFile *f, const char *pakFileName) {
 
 static int AddScopeMark(void) {
   if (_envir.cacheIndex >= _envir.cacheSize) {
-    int prevSize = _envir.cacheSize;
-    _envir.cacheSize += CACHE_SIZE_INCREMENT;
-    _envir.cache =
-        realloc(_envir.cache, _envir.cacheSize * sizeof(PakFileCache));
-    assert(_envir.cache);
-    memset(_envir.cache + (prevSize * sizeof(PakFileCache)), 0,
-           (_envir.cacheSize - prevSize) * sizeof(PakFileCache));
+    growCache();
   }
   _envir.cache[_envir.cacheIndex].name = NULL;
   _envir.cache[_envir.cacheIndex].scopeMark = ++_envir.scopeMarkIndex;
@@ -118,8 +116,10 @@ static void RemoveUntilMark(int scopeMark) {
   }
   _envir.cacheIndex -= numToRemove;
 }
+
 #if 0
 static void printCache(void) {
+  printf("--- cache content ---\n");
   for (int i = 0; i < _envir.cacheSize; i++) {
     if (i == _envir.cacheIndex) {
       printf("TOP\n");
@@ -130,6 +130,7 @@ static void printCache(void) {
       printf("Cache %i: '%s'\n", i, _envir.cache[i].name);
     }
   }
+  printf("---------------------\n");
 }
 #endif
 
@@ -317,7 +318,6 @@ int GameEnvironmentPreloadLocalizedPak(const char *pakfile) {
 
   int ret = doLoadPak(pakPath);
   free(pakPath);
-
   return ret;
 }
 
