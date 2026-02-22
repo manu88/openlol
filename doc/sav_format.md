@@ -1,7 +1,9 @@
 # Lol SAV format
 
 ## Layout
+
 Here's the rough SAV layout, see the [source code](../src/common/formats/format_sav.c) for more details.
+
 ```
 0X000 Header:
     sav name
@@ -30,4 +32,5 @@ Here's the rough SAV layout, see the [source code](../src/common/formats/format_
 ```
 
 ## Notes
+
 There are 30 per-level temp data slots, yet the game only has 29 levels. Looks like the game doesn't mind if the SAV file only contains 29 per-level temp data slots.
