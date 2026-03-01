@@ -24,6 +24,7 @@ typedef struct {
   WSAHandle wsa;
   int x;
   int y;
+
   uint8_t loaded;
   AnimationPart parts[NUM_ANIMATIONS_PARTS];
   AnimationPart *currentPart;
@@ -42,7 +43,7 @@ typedef struct {
   GameContext *gameCtx;
 } TIMContext;
 
-void TIMInit(TIMContext *timCtx, GameContext *gameCtx);
+void TIMInit(TIMContext *timCtx, GameContext *gameCtx, TIMInterpreterMode mode);
 
 void TIMLoad(TIMContext *timCtx, uint16_t scriptId, const char *file);
 void TIMRun(TIMContext *timCtx, uint16_t scriptId, uint16_t loop);
@@ -50,6 +51,7 @@ void TIMReleaseScript(TIMContext *timCtx, uint16_t scriptId);
 
 void TimLoadWSA(TIMContext *timCtx, uint16_t index, const char *wsaFile, int x,
                 int y, int offscreen, int flags);
+void TimReleaseWSA(TIMContext *timCtx, uint16_t index);
 
 void TimSetupPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex,
                   uint16_t firstFrame, uint16_t lastFrame, uint16_t cycles,

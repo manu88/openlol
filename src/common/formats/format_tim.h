@@ -4,14 +4,6 @@
 #include <sys/types.h>
 
 typedef struct {
-  uint16_t *ip;
-  uint32_t lastTime;
-  uint32_t nextTime;
-  uint16_t *loopIp;
-  uint16_t *avtl;
-} TimFunction;
-
-typedef struct {
   uint8_t *text;
   size_t textSize;
 

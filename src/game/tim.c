@@ -29,9 +29,11 @@ static void doRenderWSAFrame(TIMContext *timCtx, const Animation *anim,
   for (int i = 0; i <= frame; i++) {
     WSAHandleGetFrame(&anim->wsa, i, timCtx->frameBuffer, 1);
   }
-
-  DisplayRenderWSA(timCtx->gameCtx->display, timCtx->frameBuffer, &anim->wsa,
-                   anim->x, anim->y);
+  int x = anim->x + anim->wsa.header.xPos;
+  int y = anim->y + anim->wsa.header.yPos;
+  printf("doRenderWSAFrame at x=%i y=%i\n", x, y);
+  DisplayRenderWSA(timCtx->gameCtx->display, timCtx->frameBuffer, &anim->wsa, x,
+                   y);
 }
 
 void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
@@ -40,6 +42,8 @@ void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
   printf(
       "TimLoadWSA wsaIndex=0X%X file='%s' x=%i y=%i offscreen=%i flags=0X%X\n",
       wsaIndex, wsaFile, x, y, offscreen, flags);
+  assert(x != 0XFFFF); // needs to be handled before
+  assert(y != 0XFFFF); // needs to be handled before
   Animation *anim = &timCtx->anims[wsaIndex];
   GameFile f = {0};
   int hasWsa = 0;
@@ -63,8 +67,9 @@ void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
   timCtx->frameBuffer = malloc(timCtx->frameBufferSize);
   memset(timCtx->frameBuffer, 0, timCtx->frameBufferSize);
 
-  if (flags & 2) {
-    printf("[WARNING] TimLoadWSA unhandled flag 2\n");
+  if (flags & 2) { // do a fade before!
+    DisplayDoScreenFade(timCtx->gameCtx->display, 15,
+                        timCtx->gameCtx->conf.tickLength);
   }
   if (flags & 4) {
     // do we have a CPS file to show ?
@@ -92,17 +97,29 @@ void TIMRun(TIMContext *timCtx, uint16_t scriptId, uint16_t loop) {
       printf("TIM isRunning = 0\n");
       break;
     }
-    TIMInterpreterUpdate(&timCtx->interp);
-    SDL_Event e = {0};
-    int mouse = DisplayWaitMouseEvent(timCtx->gameCtx->display, &e, 150);
-    if (mouse == 0) {
-      timCtx->gameCtx->_shouldRun = 0;
-      break;
-    } else if (mouse == 1) {
-      break;
+    int duration = TIMInterpreterUpdate(&timCtx->interp);
+    if (duration != 0) {
+      SDL_Event e = {0};
+      int mouse =
+          DisplayWaitMouseEvent(timCtx->gameCtx->display, &e, duration * 25);
+      if (mouse == 0) {
+        timCtx->gameCtx->_shouldRun = 0;
+        break;
+      } else if (mouse == 1) {
+        break;
+      }
+
+      DisplayUpdate(timCtx->gameCtx->display);
     }
-    DisplayUpdate(timCtx->gameCtx->display);
   }
+}
+
+void TimReleaseWSA(TIMContext *timCtx, uint16_t index) {
+  Animation *anim = &timCtx->anims[index];
+  assert(anim->loaded);
+  printf("TimReleaseWSA %i\n", index);
+  anim->loaded = 0;
+  anim->currentPart = NULL;
 }
 
 void TIMReleaseScript(TIMContext *timCtx, uint16_t scriptId) {}
@@ -118,6 +135,7 @@ void TimSetupPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex,
   assert(anim->loaded);
   assert(partIndex < NUM_ANIMATIONS_PARTS);
   AnimationPart *part = anim->parts + partIndex;
+  anim->currentPart = part;
   part->firstFrame = firstFrame;
   part->lastFrame = lastFrame;
   part->cycles = cycles;
@@ -135,6 +153,7 @@ void TimStartPart(TIMContext *timCtx, uint16_t animIndex, uint16_t partIndex) {
   assert(partIndex < NUM_ANIMATIONS_PARTS);
   AnimationPart *part = anim->parts + partIndex;
 
+  part->currentFrame = part->firstFrame;
   printf("TimStartBackgroundAnimationPart animIndex=%i partIndex=%i\n",
          animIndex, partIndex);
 
@@ -152,11 +171,7 @@ static void callbackWSAInit(TIMInterpreter *interp, uint16_t wsaIndex,
 }
 
 static void callbackWSARelease(TIMInterpreter *interp, int wsaIndex) {
-  TIMContext *timCtx = interp->callbackCtx;
-  Animation *anim = &timCtx->anims[wsaIndex];
-  assert(anim->loaded);
-  printf("callbackWSARelease %i\n", wsaIndex);
-  anim->loaded = 0;
+  TimReleaseWSA(interp->callbackCtx, wsaIndex);
 }
 
 static void callbackWSADisplayFrame(TIMInterpreter *interp, int wsaIndex,
@@ -290,10 +305,12 @@ static void callbackPlayVocFile(TIMInterpreter *interp, uint16_t index,
   printf("PlayVocFile index=0X%X volume=0X%X\n", index, volume);
 }
 
-void TIMInit(TIMContext *timCtx, GameContext *gameCtx) {
+void TIMInit(TIMContext *timCtx, GameContext *gameCtx,
+             TIMInterpreterMode mode) {
   memset(timCtx, 0, sizeof(TIMContext));
   timCtx->gameCtx = gameCtx;
   TIMInterpreterInit(&timCtx->interp);
+  timCtx->interp.mode = mode;
   timCtx->interp.callbackCtx = timCtx;
   timCtx->interp.callbacks = (TIMInterpreterCallbacks){
       .TIMInterpreterCallbacks_WSAInit = callbackWSAInit,

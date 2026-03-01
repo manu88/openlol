@@ -32,23 +32,34 @@ typedef enum {
 } TIM_COMMAND_ID;
 
 typedef enum {
-  TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
-  TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
-  TIM_OPCODE_NOOP_2 = 0X02,
-  TIM_OPCODE_GIVE_ITEM = 0X03,
-  TIM_OPCODE_SET_PARTY_POS = 0X04,
-  TIM_OPCODE_FADE_CLEAR_WINDOW = 0X05,
-  TIM_OPCODE_COPY_REGION = 0X06,
-  TIM_OPCODE_CHAR_CHAT = 0X07,
-  TIM_OPCODE_DRAW_SCENE = 0X08,
-  TIM_OPCODE_UPDATE = 0X09,
-  TIM_OPCODE_CLEAR_TEXT_FIELD = 0X0A,
-  TIM_OPCODE_LOAD_SOUND_FILE = 0X0B,
-  TIM_OPCODE_PLAY_MUSIC_TRACK = 0X0C,
-  TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT = 0X0D,
-  TIM_OPCODE_PLAY_SOUND_FX = 0X0E,
-  TIM_OPCODE_START_BACKGROUND_ANIM = 0X0F,
-} TIM_OPCODE;
+  TIM_IN_GAME_OPCODE_INIT_SCENE_WIN_DIALOGUE = 0X00,
+  TIM_IN_GAME_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE = 0X01,
+  TIM_IN_GAME_OPCODE_UNUSED_2 = 0X02,
+  TIM_IN_GAME_OPCODE_GIVE_ITEM = 0X03,
+  TIM_IN_GAME_OPCODE_SET_PARTY_POS = 0X04,
+  TIM_IN_GAME_OPCODE_FADE_CLEAR_WINDOW = 0X05,
+  TIM_IN_GAME_OPCODE_COPY_REGION = 0X06,
+  TIM_IN_GAME_OPCODE_CHAR_CHAT = 0X07,
+  TIM_IN_GAME_OPCODE_DRAW_SCENE = 0X08,
+  TIM_IN_GAME_OPCODE_UPDATE = 0X09,
+  TIM_IN_GAME_OPCODE_CLEAR_TEXT_FIELD = 0X0A,
+  TIM_IN_GAME_OPCODE_LOAD_SOUND_FILE = 0X0B,
+  TIM_IN_GAME_OPCODE_PLAY_MUSIC_TRACK = 0X0C,
+  TIM_IN_GAME_OPCODE_PLAY_DIALOGUE_TALK_TEXT = 0X0D,
+  TIM_IN_GAME_OPCODE_PLAY_SOUND_FX = 0X0E,
+  TIM_IN_GAME_OPCODE_START_BACKGROUND_ANIM = 0X0F,
+} TIM_IN_GAME_OPCODE;
+
+typedef enum {
+  TIM_INTRO_OPCODE_SETUP_PALETTE_FADE = 0X00,
+  TIM_INTRO_UNUSED_1 = 0X01,
+  TIM_INTRO_OPCODE_LOAD_PALETTE = 0X02,
+  TIM_INTRO_OPCODE_SETUP_PALETTE_FADE_EX = 0X03,
+  TIM_INTRO_OPCODE_PROCESS_WSA_FRAME = 0X04,
+  TIM_INTRO_OPCODE_DISPLAY_TEXT = 0X05,
+  TIM_INTRO_UNUSED_6 = 0X06,
+  TIM_INTRO_UNUSED_7 = 0X07,
+} TIM_INTRO_OPCODE;
 
 typedef struct {
   uint16_t len;
@@ -69,74 +80,108 @@ void TIMInterpreterStart(TIMInterpreter *interp, const TIMHandle *tim) {
   interp->pos = 0;
 }
 
-static void processOpCode(TIMInterpreter *interp, const uint16_t *params,
-                          int numParams) {
-  assert(numParams);
-  numParams--;
-  TIM_OPCODE timOpCode = params[0];
-  params++;
+static void processIntroOpCode(TIMInterpreter *interp, uint16_t opCode,
+                               const uint16_t *params, int numParams) {
+  TIM_INTRO_OPCODE timOpCode = opCode;
   switch (timOpCode) {
-  case TIM_OPCODE_INIT_SCENE_WIN_DIALOGUE:
+  case TIM_INTRO_OPCODE_SETUP_PALETTE_FADE:
+    interp->introCallbacks.TIMInterpreterIntroCallbacks_SetupPaletteFade(
+        interp, params[0]);
+    return;
+  case TIM_INTRO_OPCODE_LOAD_PALETTE: {
+    const char *file = TIMHandleGetText(interp->_tim, params[0]);
+    interp->introCallbacks.TIMInterpreterIntroCallbacks_LoadPalette(interp,
+                                                                    file);
+    return;
+  }
+
+  case TIM_INTRO_OPCODE_SETUP_PALETTE_FADE_EX:
+    interp->introCallbacks.TIMInterpreterIntroCallbacks_SetupPaletteFadeEx(
+        interp, params[0]);
+    return;
+  case TIM_INTRO_OPCODE_PROCESS_WSA_FRAME:
+    interp->introCallbacks.TIMInterpreterIntroCallbacks_ProcessWSAFrame(
+        interp, params[0], params[1], params[2], params[3], params[4]);
+    return;
+
+  case TIM_INTRO_OPCODE_DISPLAY_TEXT:
+    interp->introCallbacks.TIMInterpreterIntroCallbacks_DisplayText(
+        interp, params[0], params[1]);
+    return;
+  case TIM_INTRO_UNUSED_1:
+  case TIM_INTRO_UNUSED_6:
+  case TIM_INTRO_UNUSED_7:
+    assert(0);
+  }
+  assert(0);
+}
+
+static void processInGameOpCode(TIMInterpreter *interp, uint16_t opCode,
+                                const uint16_t *params, int numParams) {
+  TIM_IN_GAME_OPCODE timOpCode = opCode;
+
+  switch (timOpCode) {
+  case TIM_IN_GAME_OPCODE_INIT_SCENE_WIN_DIALOGUE:
     assert(interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog);
     interp->callbacks.TIMInterpreterCallbacks_InitSceneDialog(interp,
                                                               params[0]);
     return;
-  case TIM_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
+  case TIM_IN_GAME_OPCODE_RESTORE_AFTER_SCENE_WIN_DIALOGUE:
     assert(interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog);
     interp->callbacks.TIMInterpreterCallbacks_RestoreAfterSceneDialog(
         interp, params[0]);
     return;
-  case TIM_OPCODE_NOOP_2:
-    return;
-  case TIM_OPCODE_GIVE_ITEM:
+  case TIM_IN_GAME_OPCODE_UNUSED_2:
+    assert(0);
+  case TIM_IN_GAME_OPCODE_GIVE_ITEM:
     assert(interp->callbacks.TIMInterpreterCallbacks_GiveItem);
     interp->callbacks.TIMInterpreterCallbacks_GiveItem(interp, params[0],
                                                        params[1], params[2]);
     return;
-  case TIM_OPCODE_SET_PARTY_POS:
+  case TIM_IN_GAME_OPCODE_SET_PARTY_POS:
     interp->callbacks.TIMInterpreterCallbacks_SetPartyPos(interp, params[0],
                                                           params[1]);
     return;
-  case TIM_OPCODE_FADE_CLEAR_WINDOW:
+  case TIM_IN_GAME_OPCODE_FADE_CLEAR_WINDOW:
     assert(interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow);
     interp->callbacks.TIMInterpreterCallbacks_FadeClearWindow(interp,
                                                               params[0]);
     return;
-  case TIM_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
+  case TIM_IN_GAME_OPCODE_PLAY_DIALOGUE_TALK_TEXT: {
     assert(interp->callbacks.TIMInterpreterCallbacks_PlayDialogue);
     interp->callbacks.TIMInterpreterCallbacks_PlayDialogue(
         interp, params[0], numParams - 1, numParams > 1 ? params + 1 : NULL);
     return;
   }
-  case TIM_OPCODE_CLEAR_TEXT_FIELD:
+  case TIM_IN_GAME_OPCODE_CLEAR_TEXT_FIELD:
     interp->callbacks.TIMInterpreterCallbacks_ClearTextField(interp);
     return;
-  case TIM_OPCODE_LOAD_SOUND_FILE:
+  case TIM_IN_GAME_OPCODE_LOAD_SOUND_FILE:
     interp->callbacks.TIMInterpreterCallbacks_LoadMusicFile(interp, params[0]);
     return;
-  case TIM_OPCODE_PLAY_MUSIC_TRACK:
+  case TIM_IN_GAME_OPCODE_PLAY_MUSIC_TRACK:
     interp->callbacks.TIMInterpreterCallbacks_PlayMusicTrack(interp, params[0]);
     return;
-  case TIM_OPCODE_PLAY_SOUND_FX:
+  case TIM_IN_GAME_OPCODE_PLAY_SOUND_FX:
     interp->callbacks.TIMInterpreterCallbacks_PlaySoundFX(interp, params[0]);
     return;
-  case TIM_OPCODE_COPY_REGION:
+  case TIM_IN_GAME_OPCODE_COPY_REGION:
     interp->callbacks.TIMInterpreterCallbacks_CopyPage(
         interp, params[0], params[1], params[2], params[3], params[4],
         params[5], params[6], params[7]);
     return;
-  case TIM_OPCODE_CHAR_CHAT:
+  case TIM_IN_GAME_OPCODE_CHAR_CHAT:
     assert(interp->callbacks.TIMInterpreterCallbacks_CharChat);
     interp->callbacks.TIMInterpreterCallbacks_CharChat(interp, params[0],
                                                        params[1], params[2]);
     return;
-  case TIM_OPCODE_DRAW_SCENE:
+  case TIM_IN_GAME_OPCODE_DRAW_SCENE:
     interp->callbacks.TIMInterpreterCallbacks_DrawScene(interp, params[0]);
     return;
-  case TIM_OPCODE_UPDATE:
+  case TIM_IN_GAME_OPCODE_UPDATE:
     interp->callbacks.TIMInterpreterCallbacks_Update(interp);
     return;
-  case TIM_OPCODE_START_BACKGROUND_ANIM:
+  case TIM_IN_GAME_OPCODE_START_BACKGROUND_ANIM:
     interp->callbacks.TIMInterpreterCallbacks_StartBackgroundAnimation(
         interp, params[0], params[1]);
     return;
@@ -211,7 +256,22 @@ static int processInstruction(TIMInterpreter *interp, uint16_t *buffer,
     // FIXME: not sure, seems useless. Ignoring for now
     return instr->len;
   case TIM_COMMAND_ID_EXEC_OPCODE:
-    processOpCode(interp, instrParams, numParams);
+
+    assert(numParams);
+    numParams--;
+    uint16_t timOpCode = instrParams[0];
+    instrParams++;
+    switch (interp->mode) {
+    case TIMInterpreterMode_Game:
+      processInGameOpCode(interp, timOpCode, instrParams, numParams);
+      break;
+    case TIMInterpreterMode_Intro:
+      processIntroOpCode(interp, timOpCode, instrParams, numParams);
+      break;
+    case TIMInterpreterMode_Outro:
+      assert(0);
+      break;
+    }
     return instr->len;
   case TIM_COMMAND_ID_PROCESS_DIALOGUE:
     printf("UNIMPLEMENTED TIM_COMMAND_ID_PROCESS_DIALOGUE\n");

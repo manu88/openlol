@@ -161,6 +161,7 @@ class TIMFileInfo:
             return f"{self.name}({self.params})"
 
     def __init__(self, desc: List[str]):
+        self.mode: int = 0
         self.instructions: List[TIMFileInfo.TIMInstr] = []
         self.strings: List[str] = []
         for line in desc:
@@ -347,14 +348,25 @@ class LOL:
         return SHPFileInfo(proc_output.splitlines(), compressed=True)
 
     def get_tim_info(self, file: str, pak: str) -> Optional[TIMFileInfo]:
-        argv = [self.tool_path, "-p", pak, "tim", "show", file]
+        for mode in range(0, 2):
+            file_info = self._get_tim_info(file, pak, mode)
+            if file_info:
+                file_info.mode = mode
+                break
+
+        if file_info is None:
+            print("unable to decode tim file, none of the modes tried worked")
+            return None
+        self._get_tim_strings(file, pak, file_info)
+        return file_info
+
+    def _get_tim_info(self, file: str, pak: str, mode: int) -> Optional[TIMFileInfo]:
+        argv = [self.tool_path, "-p", pak, "tim", "show", file, str(mode)]
         resp = _do_exec(argv)
         if resp.returncode != 0:
             return None
         proc_output = resp.stdout.decode()
-        file_info = TIMFileInfo(proc_output.splitlines())
-        self._get_tim_strings(file, pak, file_info)
-        return file_info
+        return TIMFileInfo(proc_output.splitlines())
 
     def _get_tim_strings(self, file: str, pak: str, file_info: TIMFileInfo) -> bool:
         argv = [self.tool_path, "-p", pak, "tim", "strings", file]

@@ -1,5 +1,6 @@
 #include "tim_dumper.h"
 #include "tim_interpreter.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -165,10 +166,47 @@ static int callbackContinueLoop(TIMInterpreter *interp) {
   return 1;
 }
 
-void DumpTim(const TIMHandle *handle) {
+#pragma mark INTRO
+
+static void callbackLoadPalette(TIMInterpreter *interp, const char *file) {
+  assert(interp->mode == TIMInterpreterMode_Intro);
+  indent();
+  printf("LoadPalette file=%s\n", file);
+}
+
+static void callbackSetupPaletteFade(TIMInterpreter *interp, uint16_t param) {
+  assert(interp->mode == TIMInterpreterMode_Intro);
+  indent();
+  printf("SetupPaletteFade param=0X%X\n", param);
+}
+
+static void callbackSetupPaletteFadeEx(TIMInterpreter *interp, uint16_t param) {
+  assert(interp->mode == TIMInterpreterMode_Intro);
+  indent();
+  printf("SetupPaletteFadeEx param=0X%X\n", param);
+}
+
+static void callbackProcessWSAFrame(TIMInterpreter *interp, uint16_t index,
+                                    uint16_t frame, uint16_t x, uint16_t y,
+                                    uint16_t factor) {
+  assert(interp->mode == TIMInterpreterMode_Intro);
+  indent();
+  printf("ProcessWSAFrame index=0X%X frame=0X%X x=0X%X y=0X%X factor=0X%X\n",
+         index, frame, x, y, factor);
+}
+
+static void callbackDisplayText(TIMInterpreter *interp, uint16_t textId,
+                                uint16_t flags) {
+  assert(interp->mode == TIMInterpreterMode_Intro);
+  indent();
+  printf("DisplayText textId=0X%X flags=0X%X\n", textId, flags);
+}
+
+void DumpTim(const TIMHandle *handle, int mode) {
   TIMInterpreter interp;
   TIMInterpreterInit(&interp);
   TIMInterpreterStart(&interp, handle);
+  interp.mode = (TIMInterpreterMode)mode;
 
   interp.callbacks = (TIMInterpreterCallbacks){
       .TIMInterpreterCallbacks_WSAInit = callbackWSAInit,
@@ -199,6 +237,18 @@ void DumpTim(const TIMHandle *handle) {
       .TIMInterpreterCallbacks_LoadSoundFile = callbackLoadSoundFile,
       .TIMInterpreterCallbacks_PlayVocFile = callbackPlayVocFile,
   };
+
+  if (mode == TIMInterpreterMode_Intro) {
+    interp.introCallbacks = (TIMInterpreterIntroCallbacks){
+        .TIMInterpreterIntroCallbacks_SetupPaletteFade =
+            callbackSetupPaletteFade,
+        .TIMInterpreterIntroCallbacks_LoadPalette = callbackLoadPalette,
+        .TIMInterpreterIntroCallbacks_SetupPaletteFadeEx =
+            callbackSetupPaletteFadeEx,
+        .TIMInterpreterIntroCallbacks_ProcessWSAFrame = callbackProcessWSAFrame,
+        .TIMInterpreterIntroCallbacks_DisplayText = callbackDisplayText,
+    };
+  }
 
   interp.dontLoop = 1;
   while (TIMInterpreterIsRunning(&interp)) {

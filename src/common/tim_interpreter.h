@@ -65,8 +65,34 @@ typedef struct {
                                               uint16_t index, uint16_t volume);
 } TIMInterpreterCallbacks;
 
+typedef struct {
+  void (*TIMInterpreterIntroCallbacks_SetupPaletteFade)(TIMInterpreter *interp,
+                                                        uint16_t param);
+  void (*TIMInterpreterIntroCallbacks_LoadPalette)(TIMInterpreter *interp,
+                                                   const char *file);
+  void (*TIMInterpreterIntroCallbacks_SetupPaletteFadeEx)(
+      TIMInterpreter *interp, uint16_t param);
+  void (*TIMInterpreterIntroCallbacks_ProcessWSAFrame)(TIMInterpreter *interp,
+                                                       uint16_t index,
+                                                       uint16_t frame,
+                                                       uint16_t x, uint16_t y,
+                                                       uint16_t factor);
+  void (*TIMInterpreterIntroCallbacks_DisplayText)(TIMInterpreter *interp,
+                                                   uint16_t textId,
+                                                   uint16_t flags);
+} TIMInterpreterIntroCallbacks;
+
+typedef enum {
+  TIMInterpreterMode_Game = 0,
+  TIMInterpreterMode_Intro = 1,
+  TIMInterpreterMode_Outro = 2,
+} TIMInterpreterMode;
+
 typedef struct _TIMInterpreter {
+
+  TIMInterpreterMode mode; // defaults to TIMInterpreterMode_Game
   TIMInterpreterCallbacks callbacks;
+  TIMInterpreterIntroCallbacks introCallbacks;
   void *callbackCtx;
 
   const TIMHandle *_tim;

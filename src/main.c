@@ -592,7 +592,7 @@ static int cmdVOC(int argc, char *argv[]) {
   return 0;
 }
 static void usageTim(void) {
-  printf("tim subcommands: [show|strings] filepath\n");
+  printf("tim subcommands: [show|strings] filepath [tim mode]\n");
 }
 
 static int cmdTimStrings(const char *file) {
@@ -621,7 +621,7 @@ static int cmdTimStrings(const char *file) {
   return 0;
 }
 
-static int cmdTimShow(const char *file) {
+static int cmdTimShow(const char *file, int mode) {
   size_t dataSize = 0;
   int freeBuffer = 0;
   uint8_t *buffer = getFileContent(file, &dataSize, &freeBuffer);
@@ -634,7 +634,7 @@ static int cmdTimShow(const char *file) {
   if (!TIMHandleFromBuffer(&handle, buffer, dataSize)) {
     printf("Error while parsing data for '%s'\n", file);
   } else {
-    DumpTim(&handle);
+    DumpTim(&handle, mode);
   }
 
   if (freeBuffer) {
@@ -650,7 +650,7 @@ static int cmdTim(int argc, char *argv[]) {
     return 1;
   }
   if (strcmp(argv[0], "show") == 0) {
-    return cmdTimShow(argv[1]);
+    return cmdTimShow(argv[1], argc > 2 ? atoi(argv[2]) : 0);
   } else if (strcmp(argv[0], "strings") == 0) {
     return cmdTimStrings(argv[1]);
   }

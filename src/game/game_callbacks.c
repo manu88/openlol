@@ -829,7 +829,9 @@ static void playAnimationPart(EMCInterpreter *interp, uint16_t animIndex,
       "callbackPlayAnimationPart animIndex=%x firstFrame=%x lastFrame=%x "
       "delay=%x\n",
       animIndex, firstFrame, lastFrame, delay);
-
+  printf("callbackPlayAnimationPart animIndex=%x firstFrame=%x lastFrame=%x "
+         "delay=%x\n",
+         animIndex, firstFrame, lastFrame, delay);
   // assert(0);
 }
 
