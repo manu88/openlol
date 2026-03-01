@@ -237,7 +237,10 @@ def _do_exec(argv: List, output=True):
     resp = subprocess.run(
         argv, stdout=subprocess.PIPE if output else None, check=False)
     if resp.returncode != 0:
-        print(f"Failed command is {" ".join(argv)}")
+        print(f"Failed command is {" ".join(argv)} ({len(argv)} args)")
+        proc_output = resp.stdout.decode()
+        print("process output:")
+        print(proc_output)
     return resp
 
 

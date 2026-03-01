@@ -186,7 +186,7 @@ class WSARender(BaseRender):
         frame_id = int(sel_item["text"])
         out_file = lol.get_temp_path_for("display.png")
         palette = self.current_pal_combo_var.get()
-        custom_pal = None if palette == "builtin" else palette
+        custom_pal = None if palette in ["builtin", ""] else palette
         if not lol.extract_wsa_frame(self.wsa_info, frame_id, out_file, custom_pal):
             return
         img_data = PIL.Image.open(out_file)
