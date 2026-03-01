@@ -461,28 +461,35 @@ class CodeGen:
         assert False
         return None
 
+    def _process_inst(self, instruction: Instruction):
+        if instruction.is_jump_dest:
+            self.indent = 0
+            self.lines.append("")
+            self.index += 1
+            self.lines.append(
+                f"JUMP_TARGET_{instruction.addr}:")
+            self.index += 1
+        self.indent = 2
+        line = self._gen_inst(instruction)
+        if line:
+            self.emit_line(line)
+        lbl_num = self.parser.addr_is_label(instruction.addr)
+        if lbl_num != -1:
+            self.lines.append("")
+            self.index += 1
+            self.indent = 0
+            self.lines.append(
+                f"LABEL_{lbl_num}:")
+            self.index += 1
+        self.index += 1
+
     def process(self) -> List[str]:
         for instruction in self.parser.instructions:
-            if instruction.is_jump_dest:
-                self.indent = 0
-                self.lines.append("")
-                self.index += 1
-                self.lines.append(
-                    f"JUMP_TARGET_{instruction.addr}:")
-                self.index += 1
-            self.indent = 2
-            line = self._gen_inst(instruction)
-            if line:
-                self.emit_line(line)
-            lbl_num = self.parser.addr_is_label(instruction.addr)
-            if lbl_num != -1:
-                self.lines.append("")
-                self.index += 1
-                self.indent = 0
-                self.lines.append(
-                    f"LABEL_{lbl_num}:")
-                self.index += 1
-            self.index += 1
+            try:
+                self._process_inst(instruction)
+            except Exception as e:
+                print(e)
+                print(f"exception at {self.index}")
 
         return self.lines
 
