@@ -76,12 +76,15 @@ class InfoFrame(tk.Frame):
 
         extract_button = tk.Button(master=self, text="extract")
         extract_button.config(command=self.extract)
-        extract_button.grid(column=4, row=1)
+        extract_button.grid(column=6, row=0)
 
-    def update_for_item(self, file_name: str, pak_name: str):
+    def update_for_item(self, file_name: str, pak_name: str, additional_txt: str):
         self.file_name_var.set(file_name)
         self.pak_name_var.set(pak_name)
-        self.type_desc_var.set(get_type_info(get_type(file_name)))
+        type_txt = get_type_info(get_type(file_name))
+        if len(additional_txt) > 0:
+            type_txt += " (" + additional_txt + ") "
+        self.type_desc_var.set(type_txt)
 
     def extract(self, _=None):
         print(
@@ -323,6 +326,12 @@ class TIMRender(BaseRender):
                 "", "end", text=name, values=(inst.params,))
             if inst.name == "SetLoopPoint":
                 in_loop = 1
+        if tim_info.mode == 0:
+            return "in game script"
+        if tim_info.mode == 1:
+            return "intro script"
+        if tim_info.mode == 2:
+            return "outro script"
 
 
 class LANGRender(BaseRender):
@@ -564,13 +573,17 @@ class UI:
                 sel_item['text'], self.file_tree.item(parent_iid)['text'])
 
     def selected_item_changed(self, file_name: str, pak_name: str):
-        self.info_frame.update_for_item(file_name, pak_name)
         file_type = get_type(file_name)
         if pak_name.split(".")[-1] == "TLK":
             file_type = "VOC"
         self.change_tool_view(file_type)
+        additional_txt = ""
         if self.current_renderer:
-            self.current_renderer.update_for_item(file_name, pak_name)
+            more_txt = self.current_renderer.update_for_item(
+                file_name, pak_name)
+            if more_txt is not None:
+                additional_txt = more_txt
+        self.info_frame.update_for_item(file_name, pak_name, additional_txt)
 
 
 def load_pak_files(files: List[str]):

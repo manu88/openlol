@@ -206,7 +206,6 @@ void GameRender(GameContext *gameCtx) {
     renderCharInventory(gameCtx);
   } else {
     GameRenderMaze(gameCtx);
-
     if (gameCtx->display->showBitmap) {
       printf("show bitmap\n");
       DisplayRenderCPSAt(gameCtx->display, &gameCtx->display->loadedbitMap, 112,

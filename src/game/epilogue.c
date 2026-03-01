@@ -5,6 +5,7 @@
 #include "game_envir.h"
 #include "pak_file.h"
 #include "tim.h"
+#include "tim_interpreter.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -19,7 +20,7 @@ typedef struct {
 
 static void EpilogueInit(GameContext *gameCtx, Epilogue *epilogue) {
   printf("EpilogueInit\n");
-  TIMInit(&epilogue->timCtx, gameCtx);
+  TIMInit(&epilogue->timCtx, gameCtx, TIMInterpreterMode_Outro);
   PAKFileInit(&epilogue->finale2);
   assert(GameEnvironmentLoadLocalizedPak(&epilogue->finale2, "FINALE2.PAK"));
 
