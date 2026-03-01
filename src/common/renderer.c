@@ -29,8 +29,8 @@ static void renderPalette(SDL_Renderer *renderer, const uint8_t *paletteBuffer,
 }
 
 static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
-                           size_t dataSize, const uint8_t *paletteBuffer, int w,
-                           int h) {
+                           size_t dataSize, const uint8_t *paletteBuffer,
+                           int offsetX, int offsetY, int w, int h) {
   for (int x = 0; x < w; x++) {
     for (int y = 0; y < h; y++) {
       int offset = (w * y) + x;
@@ -54,7 +54,8 @@ static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
       // FIXME: remove this if
       if (1) { // r && g && b) {
         SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-        SDL_Rect rect = {.x = x * 2, .y = y * 2, .w = 2, .h = 2};
+        SDL_Rect rect = {
+            .x = offsetX + (x * 2), .y = offsetY + (y * 2), .w = 2, .h = 2};
         SDL_RenderFillRect(renderer, &rect);
       }
     }
@@ -62,7 +63,7 @@ static void renderCPSImage(SDL_Renderer *renderer, const uint8_t *imgData,
 }
 
 void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
-                   const char *savePngPath, int w, int h) {
+                   const char *savePngPath, int x, int y, int w, int h) {
   SDL_Init(SDL_INIT_VIDEO);
   SDL_Surface *surface = SDL_CreateRGBSurface(0, 800, 400, 32, 0, 0, 0, 0);
   SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surface);
@@ -70,7 +71,7 @@ void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
   SDL_SetRenderDrawColor(renderer, 255, 255, 0, 0);
   SDL_RenderClear(renderer);
 
-  renderCPSImage(renderer, frame, size, palette, w, h);
+  renderCPSImage(renderer, frame, size, palette, x, y, w, h);
   if (palette) {
     renderPalette(renderer, palette, 640, 0);
   }
@@ -88,8 +89,8 @@ void CPSImageToPng(const CPSImage *image, const char *savePngPath) {
   SDL_SetRenderDrawColor(renderer, 255, 0, 255, 0);
   SDL_RenderClear(renderer);
 
-  renderCPSImage(renderer, image->data, image->imageSize, image->palette, 320,
-                 200);
+  renderCPSImage(renderer, image->data, image->imageSize, image->palette, 0, 0,
+                 320, 200);
   if (image->palette) {
     renderPalette(renderer, image->palette, 640, 0);
   }

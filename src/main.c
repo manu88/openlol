@@ -1263,7 +1263,8 @@ static void doRenderWSAFrame(const WSAHandle *handle, int frameNum,
   }
 
   WSAFrameToPng(frameData, frameDataSize, palette, outFilePath,
-                handle->header.width, handle->header.height);
+                handle->header.xPos, handle->header.yPos, handle->header.width,
+                handle->header.height);
 
   free(frameData);
 }

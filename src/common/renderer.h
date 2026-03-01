@@ -54,7 +54,7 @@ typedef enum {
 } WallRenderIndex;
 
 void WSAFrameToPng(const uint8_t *frame, size_t size, const uint8_t *palette,
-                   const char *savePngPath, int w, int h);
+                   const char *savePngPath,int x,int y, int w, int h);
 void CPSImageToPng(const CPSImage *image, const char *savePngPath);
 
 void VCNImageToPng(const VCNHandle *image, const char *savePngPath);
