@@ -4,10 +4,14 @@
 #include "game_envir.h"
 #include "tim.h"
 #include "tim_interpreter.h"
+#include "ui.h"
 #include <_string.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+
+#define TEXT_BUFFER_SIZE 128
+static char textBuffer[TEXT_BUFFER_SIZE];
 
 typedef struct {
   uint16_t index;
@@ -19,6 +23,7 @@ typedef struct {
   TIMContext timCtx;
   PAKFile voicePak;
   LangHandle lang; // LOLINTRO.DIP
+  FNTHandle font9p;
 
   TIMInterpreterCallbacks baseTimCallbacks;
 
@@ -48,11 +53,6 @@ static const char *VoiceEntryGet(IntroContext *introCtx, uint16_t index) {
   return NULL;
 }
 
-static uint16_t unusedGiveItem(TIMInterpreter *interp, uint16_t param0,
-                               uint16_t param1, uint16_t param2) {
-  return 0;
-}
-
 static void loadVocFile(TIMInterpreter *interp, const char *file,
                         uint16_t index) {
   IntroContext *intro = (IntroContext *)interp;
@@ -70,8 +70,32 @@ static void playVoc(TIMInterpreter *interp, uint16_t index, uint16_t volume) {
                                &seqId, 1);
 }
 
-static void loadPalette(TIMInterpreter *interp, const char *file) {
-  printf("loadPalette '%s'\n", file);
+static void callbackSetupPaletteFade(TIMInterpreter *interp, uint16_t param) {
+  printf("callbackSetupPaletteFade\n");
+}
+
+static void callbackLoadPalette(TIMInterpreter *interp, const char *file) {
+  printf("callbackLoadPalette %s\n", file);
+}
+
+static void callbackSetupPaletteFadeEx(TIMInterpreter *interp, uint16_t param) {
+  printf("callbackSetupPaletteFadeEx\n");
+}
+
+static void callbackProcessWSAFrame(TIMInterpreter *interp, uint16_t index,
+                                    uint16_t frame, uint16_t x, uint16_t y,
+                                    uint16_t factor) {
+  printf("callbackProcessWSAFrame\n");
+}
+static void callbackDisplayText(TIMInterpreter *interp, uint16_t textId,
+                                uint16_t flags) {
+  IntroContext *intro = (IntroContext *)interp;
+  LangHandleGetString(&intro->lang, textId, textBuffer, TEXT_BUFFER_SIZE);
+
+  printf("callbackDisplayText index=0X%X flags=0X%X '%s'\n", textId, flags,
+         textBuffer);
+  UIRenderText(&intro->font9p, intro->timCtx.gameCtx->display->pixBuf, 8, 48,
+               100, textBuffer);
 }
 
 static void IntroInit(GameContext *gameCtx, IntroContext *introCtx) {
@@ -90,18 +114,33 @@ static void IntroInit(GameContext *gameCtx, IntroContext *introCtx) {
   assert(GameEnvironmentPreloadLocalizedPak("INTRO8.PAK"));
   assert(GameEnvironmentPreloadLocalizedPak("STARTUP.PAK"));
 
+  {
+    GameFile f = {0};
+    assert(GameEnvironmentGetFile(&f, "FONT9PN.FNT"));
+
+    if (FNTHandleFromBuffer(&introCtx->font9p, f.buffer, f.bufferSize) == 0) {
+      printf("unable to get FONT9PN.FNT data\n");
+    }
+  }
+
   PAKFileInit(&introCtx->voicePak);
   assert(GameEnvironmentLoadLocalizedPak(&introCtx->voicePak, "INTROVOC.PAK"));
 
   TIMInit(&introCtx->timCtx, gameCtx, TIMInterpreterMode_Intro);
 
-  // override a few TIM callbacks we don't need
-  introCtx->timCtx.interp.callbacks.TIMInterpreterCallbacks_GiveItem =
-      unusedGiveItem;
   introCtx->timCtx.interp.callbacks.TIMInterpreterCallbacks_LoadVocFile =
       loadVocFile;
   introCtx->timCtx.interp.callbacks.TIMInterpreterCallbacks_PlayVocFile =
       playVoc;
+
+  introCtx->timCtx.interp.introCallbacks = (TIMInterpreterIntroCallbacks){
+      .TIMInterpreterIntroCallbacks_SetupPaletteFade = callbackSetupPaletteFade,
+      .TIMInterpreterIntroCallbacks_LoadPalette = callbackLoadPalette,
+      .TIMInterpreterIntroCallbacks_SetupPaletteFadeEx =
+          callbackSetupPaletteFadeEx,
+      .TIMInterpreterIntroCallbacks_ProcessWSAFrame = callbackProcessWSAFrame,
+      .TIMInterpreterIntroCallbacks_DisplayText = callbackDisplayText,
+  };
   // introCtx->timCtx.interp.callbacks.TIMInterpreterCallbacks_LoadPalette =
   // loadPalette;
 

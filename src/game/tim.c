@@ -7,6 +7,7 @@
 #include "formats/format_wsa.h"
 #include "game_ctx.h"
 #include "game_envir.h"
+#include "game_render.h"
 #include "game_strings.h"
 #include <assert.h>
 #include <stddef.h>
@@ -24,16 +25,39 @@ void TIMLoad(TIMContext *timCtx, uint16_t scriptId, const char *file) {
 
 static void doRenderWSAFrame(TIMContext *timCtx, const Animation *anim,
                              int frame) {
+  return;
   // FIXME: This is Highly inefficient, but working for now :)
-  memset(timCtx->frameBuffer, 0, timCtx->frameBufferSize);
-  for (int i = 0; i <= frame; i++) {
+  // memset(timCtx->frameBuffer, 0, timCtx->frameBufferSize);
+  for (int i = frame; i <= frame; i++) {
     WSAHandleGetFrame(&anim->wsa, i, timCtx->frameBuffer, 1);
   }
   int x = anim->x + anim->wsa.header.xPos;
   int y = anim->y + anim->wsa.header.yPos;
-  printf("doRenderWSAFrame at x=%i y=%i\n", x, y);
+  // printf("doRenderWSAFrame at x=%i y=%i\n", x, y);
   DisplayRenderWSA(timCtx->gameCtx->display, timCtx->frameBuffer, &anim->wsa, x,
                    y);
+}
+
+static void copyPart(const uint8_t *source, int sourceW, int sourceH,
+                     uint8_t *dest, int destX, int destY, int destW,
+                     int destH) {
+  assert(destX + sourceW <= destW);
+  assert(destY + sourceH <= destH);
+  printf("copyPart sourceW=%i sourceH=%i destX=%i destY=%i destW=%i "
+         "destH=%i \n",
+         sourceW, sourceH, destX, destY, destW, destH);
+  for (int sourceX = 0; sourceX < sourceW; sourceX++) {
+    for (int sourceY = 0; sourceY < sourceH; sourceY++) {
+
+      int dX = destX + sourceX;
+      int dY = destY + sourceY;
+
+      size_t pos = ((dX * destW) + dY) * 3;
+      dest[pos] = 0XFF;     // source[(sourceX + sourceY) * 3];
+      dest[pos + 1] = 0XFF; // source[1 + (sourceX + sourceY) * 3];
+      dest[pos + 2] = 0XFF; // source[2 + (sourceX + sourceY) * 3];
+    }
+  }
 }
 
 void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
@@ -59,10 +83,12 @@ void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
   if (hasWsa && anim->wsa.header.palette == NULL) {
     anim->wsa.header.palette = GameContextGetDefaultPalette(timCtx->gameCtx);
   }
-  size_t fbSize = anim->wsa.header.width * anim->wsa.header.height;
+  size_t fbSize = anim->wsa.header.width * anim->wsa.header.height * 3;
   if (fbSize != timCtx->frameBufferSize && timCtx->frameBuffer != NULL) {
     free(timCtx->frameBuffer);
   }
+  printf("TimLoadWSA:w=%i h=%i fsbsize=%i\n", anim->wsa.header.width,
+         anim->wsa.header.height, fbSize);
   timCtx->frameBufferSize = fbSize;
   timCtx->frameBuffer = malloc(timCtx->frameBufferSize);
   memset(timCtx->frameBuffer, 0, timCtx->frameBufferSize);
@@ -75,10 +101,20 @@ void TimLoadWSA(TIMContext *timCtx, uint16_t wsaIndex, const char *wsaFile,
     // do we have a CPS file to show ?
     GameFile f = {0};
     if (GameEnvironmentGetFileWithExt(&f, wsaFile, "CPS")) {
+      printf("TimLoadWSA: CPS file to show for '%s'\n", wsaFile);
       CPSImage img = {0};
       CPSImageFromBuffer(&img, f.buffer, f.bufferSize);
       DisplayRenderCPS(timCtx->gameCtx->display, &img, PIX_BUF_WIDTH,
                        PIX_BUF_HEIGHT);
+      if (hasWsa) {
+        copyPart(img.data, anim->wsa.header.width, anim->wsa.header.height,
+                 timCtx->frameBuffer, anim->wsa.header.xPos,
+                 anim->wsa.header.yPos, 320, 240);
+        DisplayRenderWSA(timCtx->gameCtx->display, timCtx->frameBuffer,
+                         &anim->wsa, anim->wsa.header.xPos,
+                         anim->wsa.header.yPos);
+      }
+      CPSImageRelease(&img);
     }
     if (hasWsa) {
       doRenderWSAFrame(timCtx, anim, 0);

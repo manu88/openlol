@@ -121,7 +121,7 @@ int GameContextInit(GameContext *gameCtx, Language lang) {
   }
   TIMInit(&gameCtx->timCtx, gameCtx, TIMInterpreterMode_Game);
   gameCtx->language = lang;
-  GameContextSetState(gameCtx, GameState_MainMenu);
+  GameContextSetState(gameCtx, GameState_Introduction);
 
   {
     GameFile f = {0};

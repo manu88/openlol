@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		591408472EB3AE280012E17E /* animator.c in Sources */ = {isa = PBXBuildFile; fileRef = 591408462EB3AE280012E17E /* animator.c */; };
 		5914084C2EB3AE430012E17E /* menu.c in Sources */ = {isa = PBXBuildFile; fileRef = 591408492EB3AE430012E17E /* menu.c */; };
 		5914084D2EB3AE430012E17E /* ui.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084B2EB3AE430012E17E /* ui.c */; };
 		591408502EB3AE580012E17E /* format_xxx.c in Sources */ = {isa = PBXBuildFile; fileRef = 5914084F2EB3AE580012E17E /* format_xxx.c */; };
@@ -34,7 +33,6 @@
 		596F80222EA3F03500CC2266 /* game.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F80132EA3F03500CC2266 /* game.c */; };
 		596F80232EA3F03500CC2266 /* geometry.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F801D2EA3F03500CC2266 /* geometry.c */; };
 		596F80242EA3F03500CC2266 /* game_render.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F80192EA3F03500CC2266 /* game_render.c */; };
-		596F80252EA3F03500CC2266 /* game_tim_animator.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F801B2EA3F03500CC2266 /* game_tim_animator.c */; };
 		596F80262EA3F03500CC2266 /* game_callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F80152EA3F03500CC2266 /* game_callbacks.c */; };
 		596F80272EA3F03500CC2266 /* dbg_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F80102EA3F03500CC2266 /* dbg_server.c */; };
 		596F802D2EA3F10B00CC2266 /* debugger.c in Sources */ = {isa = PBXBuildFile; fileRef = 596F802A2EA3F10B00CC2266 /* debugger.c */; };
@@ -74,8 +72,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		591408452EB3AE280012E17E /* animator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = animator.h; path = src/game/animator.h; sourceTree = SOURCE_ROOT; };
-		591408462EB3AE280012E17E /* animator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = animator.c; path = src/game/animator.c; sourceTree = SOURCE_ROOT; };
 		591408482EB3AE430012E17E /* menu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = menu.h; path = src/game/menu.h; sourceTree = SOURCE_ROOT; };
 		591408492EB3AE430012E17E /* menu.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = menu.c; path = src/game/menu.c; sourceTree = SOURCE_ROOT; };
 		5914084A2EB3AE430012E17E /* ui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ui.h; path = src/game/ui.h; sourceTree = SOURCE_ROOT; };
@@ -120,7 +116,6 @@
 		596F7FFD2EA3EFDE00CC2266 /* format_wsa.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = format_wsa.c; sourceTree = "<group>"; };
 		596F800F2EA3F03500CC2266 /* dbg_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbg_server.h; sourceTree = "<group>"; };
 		596F80102EA3F03500CC2266 /* dbg_server.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dbg_server.c; sourceTree = "<group>"; };
-		596F80112EA3F03500CC2266 /* defs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defs.h; sourceTree = "<group>"; };
 		596F80122EA3F03500CC2266 /* game.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game.h; sourceTree = "<group>"; };
 		596F80132EA3F03500CC2266 /* game.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = game.c; sourceTree = "<group>"; };
 		596F80142EA3F03500CC2266 /* game_callbacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game_callbacks.h; sourceTree = "<group>"; };
@@ -129,8 +124,6 @@
 		596F80172EA3F03500CC2266 /* game_ctx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = game_ctx.c; sourceTree = "<group>"; };
 		596F80182EA3F03500CC2266 /* game_render.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game_render.h; sourceTree = "<group>"; };
 		596F80192EA3F03500CC2266 /* game_render.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = game_render.c; sourceTree = "<group>"; };
-		596F801A2EA3F03500CC2266 /* game_tim_animator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = game_tim_animator.h; sourceTree = "<group>"; };
-		596F801B2EA3F03500CC2266 /* game_tim_animator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = game_tim_animator.c; sourceTree = "<group>"; };
 		596F801C2EA3F03500CC2266 /* geometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = geometry.h; sourceTree = "<group>"; };
 		596F801D2EA3F03500CC2266 /* geometry.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = geometry.c; sourceTree = "<group>"; };
 		596F801E2EA3F03500CC2266 /* render.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = render.h; sourceTree = "<group>"; };
@@ -274,8 +267,6 @@
 				59A9821C2E8306F800A6A596 /* script.c */,
 				59A9821D2E8306F800A6A596 /* script_builtins.h */,
 				59A9821E2E8306F800A6A596 /* script_builtins.c */,
-				591408452EB3AE280012E17E /* animator.h */,
-				591408462EB3AE280012E17E /* animator.c */,
 				59A9821F2E8306F800A6A596 /* script_disassembler.h */,
 				59A982202E8306F800A6A596 /* script_disassembler.c */,
 			);
@@ -297,7 +288,6 @@
 				596F80102EA3F03500CC2266 /* dbg_server.c */,
 				59308A522F0C065D006CB21F /* level.h */,
 				59308A532F0C065D006CB21F /* level.c */,
-				596F80112EA3F03500CC2266 /* defs.h */,
 				596F80122EA3F03500CC2266 /* game.h */,
 				596F80132EA3F03500CC2266 /* game.c */,
 				596F80142EA3F03500CC2266 /* game_callbacks.h */,
@@ -308,8 +298,6 @@
 				596F80172EA3F03500CC2266 /* game_ctx.c */,
 				596F80182EA3F03500CC2266 /* game_render.h */,
 				596F80192EA3F03500CC2266 /* game_render.c */,
-				596F801A2EA3F03500CC2266 /* game_tim_animator.h */,
-				596F801B2EA3F03500CC2266 /* game_tim_animator.c */,
 				596F801C2EA3F03500CC2266 /* geometry.h */,
 				596F801D2EA3F03500CC2266 /* geometry.c */,
 				596F801E2EA3F03500CC2266 /* render.h */,
@@ -459,11 +447,9 @@
 				596F80232EA3F03500CC2266 /* geometry.c in Sources */,
 				596F80242EA3F03500CC2266 /* game_render.c in Sources */,
 				59F737962F07EA69007E2EF7 /* game_char_inventory.c in Sources */,
-				596F80252EA3F03500CC2266 /* game_tim_animator.c in Sources */,
 				59F737992F07EA87007E2EF7 /* game_rules.c in Sources */,
 				596F80262EA3F03500CC2266 /* game_callbacks.c in Sources */,
 				596F80272EA3F03500CC2266 /* dbg_server.c in Sources */,
-				591408472EB3AE280012E17E /* animator.c in Sources */,
 				594887D32E8681C000684ABD /* tim_interpreter.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -595,9 +581,9 @@
 		59E91FA12E6A267E00D1D45C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = S3D34765YM;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include/,
@@ -613,15 +599,16 @@
 					/opt/homebrew/Cellar/libsndfile/1.2.2_1/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
 		59E91FA22E6A267E00D1D45C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = S3D34765YM;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include/,
@@ -637,6 +624,7 @@
 					/opt/homebrew/Cellar/libsndfile/1.2.2_1/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};
