@@ -328,7 +328,7 @@ class LOL:
         resp = _do_exec(argv)
         if resp.returncode != 0:
             return None
-        proc_output = resp.stdout.decode()
+        proc_output = resp.stdout.decode(errors="ignore")
         return LangFileInfo(proc_output.splitlines())
 
     def _get_shp_info_uncompressed(self, file: str, pak: str) -> Optional[SHPFileInfo]:

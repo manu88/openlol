@@ -513,13 +513,13 @@ class UI:
 
         self.file_tree = ttk.Treeview(self.left_frame, columns="type")
 
-        self.file_tree = ttk.Treeview(self.left_frame, columns="type")
         self.file_tree.heading("type", text="type")
         self.file_tree.column("type")
         self._construct_file_tree()
         self.renders: Dict[str, BaseRender] = {}
         self.current_renderer: Optional[BaseRender] = None
         self._setup_renders()
+        self.root.focus_force()
 
     def _setup_renders(self):
         self._register_renderer("CPS", CPSRender)
