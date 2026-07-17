@@ -34,6 +34,7 @@ clean:
 	rm -f $(EXECUTABLE)
 	rm -f src/*.d
 	rm -f src/common/*.d
+	rm -f src/dbg/*.d
 	rm -f src/common/mplayer/*.d
 	rm -f src/common/formats/*.d
 	rm -f src/game/*.d
