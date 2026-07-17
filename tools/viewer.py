@@ -458,7 +458,7 @@ class ScriptRender(BaseRender):
             self.find_idx = 0
         self.analysis_code.see(self.find_lines[self.find_idx])
         self.found_lbl_var.set(
-            f"{self.find_idx} of {len(self.find_lines)} result{"s" if len(self.find_lines) != 1 else ""}")
+            f"{self.find_idx} of {len(self.find_lines)} result{'s' if len(self.find_lines) != 1 else ''}")
 
     def find(self, _=None):
         if to_search := self.find_field.get():
@@ -485,10 +485,24 @@ class ScriptRender(BaseRender):
         self.original_asm.delete("1.0", tk.END)
         script_info = lol.get_script_info(file_name, pak_name, out_file)
 
+        level_lang_handle = None
+        lang_files = lol.list(pak_name, "*.ENG")
+        if lang_files and len(lang_files) > 0:
+            level_lang_handle = lol.extract_lang_file(lang_files[0], pak_name)
+            print(f"using lang file '{lang_files[0]}'")
+
+        global_lang_path = pak_name.split(
+            "/")[-2] + "/STARTUP.PAK" if "/" in pak_name else "STARTUP.PAK"
+        print(f"Looking for LANDS.ENG in '{global_lang_path}'")
+        global_lang_handle = lol.extract_lang_file(
+            "LANDS.ENG", global_lang_path)
+        if global_lang_handle is None:
+            print("Unable to get global_lang_handle")
         with open(out_file, "r", encoding="utf8") as f:
             lines = f.readlines()
             self.original_asm.set_lines(lines)
-            analysis = gen_pseudo_code(lines)  # , script_info)
+            analysis = gen_pseudo_code(
+                lines, level_lang_info=level_lang_handle, global_lang_info=global_lang_handle, script_info=script_info)
             if analysis:
                 self.analysis_code.set_lines([l + "\n" for l in analysis])
 

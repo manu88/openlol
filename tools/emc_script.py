@@ -19,6 +19,11 @@ class PStrId(Param):
     pass
 
 
+class PEMCStr(Param):
+    # PEMCStr is a stringId from the emc string part
+    pass
+
+
 class Func:
     def __init__(self, params: List[Param]):
         self.params = params
@@ -28,29 +33,32 @@ class Func:
 
 
 builtins = {
-    "loadBlockProperties": Func([PStr("file")]),
-    "loadLangFile": Func([PStr("file")]),
+    "loadBlockProperties": Func([PEMCStr("file")]),
+    "loadLangFile": Func([PEMCStr("file")]),
     "loadLevelShapes": Func([PStr("shp"), PStr("datFile")]),
-    "loadBitmap": Func([PStr("file"), PNum("param")]),
-    "loadMonsterShapes": Func([PStr("file"), PNum("monsterId"), PNum("p2")]),
-    "loadTimScript": Func([PStr("scriptId"), PStr("stringId")]),
-    "initAnimStruct": Func([PStr("file"), PNum("index"), PNum("x"), PNum("y"), PNum("offscreenBuffer"), PNum("wsaFlags")]),
+    "loadBitmap": Func([PEMCStr("file"), PNum("param")]),
+    "loadMonsterShapes": Func([PEMCStr("file"), PNum("monsterId"), PNum("p2")]),
+    "loadTimScript": Func([PStr("scriptId"), PEMCStr("stringId")]),
+    "initAnimStruct": Func([PEMCStr("file"), PNum("index"), PNum("x"), PNum("y"), PNum("offscreenBuffer"), PNum("wsaFlags")]),
     "checkRectForMousePointer": Func([PNum("xMin"), PNum("yMin"), PNum("xMax"), PNum("yMax")]),
     "setGameFlag": Func([PNum("flag"), PNum("val")]),
     "setGlobalVar": Func([PNum("how"), PNum("a"), PNum("b")]),
     "setNextFunc": Func([PNum("addr")]),
     "testGameFlag": Func([PNum("flag")]),
-    "loadMusicTrack": Func([PNum("file")]),
+    "loadMusicTrack": Func([PEMCStr("file")]),
     "playDialogueTalkText": Func([PStrId("stringId")]),
     "stopTimScript": Func([PNum("scriptId")]),
     "runTimScript": Func([PNum("scriptId"), PNum("loop")]),
     "clearDialogueField": Func([]),
-    "playCharacterScriptChat": Func([PNum("charId"), PNum("mode"), PStr("stringId")]),
+    "playCharacterScriptChat": Func([PNum("charId"), PNum("mode"), PStrId("stringId")]),
     "rollDice": Func([PNum("times"), PNum("max")]),
     "setItemProperty": Func([PNum("index"), PNum("stringId"), PNum("shpId"), PNum("type"), PNum("scriptFun"), PNum("might"), PNum("skill"), PNum("protection"), PNum("flags"), PNum("unknown")]),
     "allocItemProperties": Func([PNum("size")]),
     "getCharacterStat": Func([PNum("p1"), PNum("p2"), PNum("p3")]),
     "makeItem": Func([PNum("p1"), PNum("p2"), PNum("p3")]),
+    "printMessage": Func([PNum("type"), PStrId("stringId"), PNum("soundId")]),
+    "setupDialogueButtons": Func([PNum("numButtons"), PStrId("str0"), PStrId("str1"), PStrId("str2")]),
+    "checkForCertainPartyMember": Func([PNum("charId")]),
 }
 
 

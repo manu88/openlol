@@ -1,6 +1,7 @@
 import sys
 from typing import List, Optional
-from emc_script import tok_maths, builtins
+from emc_script import tok_maths, builtins, Param, PStrId, PEMCStr
+from lol import LangFileInfo, ScriptFileInfo
 
 
 class ASTNode:
@@ -138,6 +139,15 @@ class Return(Instruction):
         return "Return"
 
 
+class SetReturn(Instruction):
+    def __init__(self, val):
+        super().__init__()
+        self.val = val
+
+    def __str__(self):
+        return f"SetReturn({self.val})"
+
+
 class PopLocalVariable(Instruction):
     def __init__(self, var_idx):
         super().__init__()
@@ -269,6 +279,8 @@ class Parser:
             return None
         if mnemonic == "POPLOCVAR":
             return PopLocalVariable(params[0])
+        if mnemonic == "SETRET":
+            return SetReturn(params[0])
         print(f"unhandled {mnemonic}")
         assert (False)
         return None
@@ -290,7 +302,6 @@ class Parser:
 
     def get_closest_instruction(self, addr: int) -> Instruction:
         for i in range(addr, len(self.instructions)):
-            print(f"get_closest_instruction {i}/{len(self.instructions)}")
             inst = self.get_instruction_at(i)
             if inst:
                 return inst
@@ -306,7 +317,7 @@ class Parser:
         for k, lbl_addr in self.labels.items():
             inst = self.get_jump_target(lbl_addr)
             if inst is None:
-                print(f"didn't found instruction for addr {hex(lbl_addr)}")
+                # print(f"didn't found instruction for addr {hex(lbl_addr)}")
                 to_remove.append(k)
         for k in to_remove:
             del (self.labels[k])
@@ -314,9 +325,9 @@ class Parser:
             inst = self.get_jump_target(goto_target)
             if inst:
                 inst.is_jump_dest = True
-            else:
-                print(
-                    f"warning: no instruction found for jump target address {hex(goto_target)}")
+            # else:
+            #    print(
+            #        f"warning: no instruction found for jump target address {hex(goto_target)}")
 
         for inst in self.instructions:
             if issubclass(type(inst), Goto):
@@ -332,8 +343,6 @@ class Parser:
                 print(f"error at line {i}")
                 raise e
             self.current_offset += 1
-        for inst in self.instructions:
-            print(f"{hex(inst.addr)}: {inst}")
         self._check_addrs()
 
 
@@ -370,8 +379,11 @@ not_tok_maths.update(not_tok_maths2)
 
 
 class CodeGen:
-    def __init__(self, parser: Parser):
+    def __init__(self, parser: Parser, level_lang_info: Optional[LangFileInfo] = None, global_lang_info: Optional[LangFileInfo] = None, script_info: Optional[ScriptFileInfo] = None):
         self.parser = parser
+        self.script_info = script_info
+        self.level_lang_info = level_lang_info
+        self.global_lang_info = global_lang_info
         self.index = 0
         self.lines: List[str] = []
         self.indent = 0
@@ -382,23 +394,58 @@ class CodeGen:
     def update_line(self, index: int, line: str):
         self.lines[index] = "".join(["\t" for _ in range(self.indent)]) + line
 
-    def _rewrite_var_name(self, index: int, name: str):
+    def _resolve_emc_str(self, arg: PStrId, value) -> str:
+        ret = f"{arg.name} := {value}"
+        try:
+            string_id = int(value, base=16)
+        except ValueError as e:
+            print(e)
+            return ret
+        if string_id < len(self.script_info.strings):
+            return ret + f" # '{self.script_info.strings[string_id]}'"
+        return ret
+
+    def _resolve_string_id(self, arg: PStrId, value) -> str:
+        ret = f"{arg.name} := {value}"
+        try:
+            string_id = int(value, base=16)
+        except ValueError as e:
+            print(e)
+            return ret
+
+        if string_id == 0XFFFF:
+            return ret
+
+        if string_id & 0X4000:
+            return ret + f" # '{self.global_lang_info.lines[string_id & 0x3FFF]}'"
+        elif string_id >= len(self.level_lang_info.lines):
+            print(
+                f"string_id={string_id} >= {len(self.level_lang_info.lines)}")
+            return ret
+        return ret + f" # '{self.level_lang_info.lines[string_id]}'"
+
+    def _rewrite_var_name(self, index: int, arg: Param):
         line_idx = self.index-index-1
         old_line = self.lines[line_idx]
-        print(old_line)
         assign = old_line.split(" := ")[1]
-        self.update_line(line_idx, f"{name} := {assign}")
+        new_line = f"{arg.name} := {assign}"
+        if isinstance(arg, PEMCStr):
+            new_line = self._resolve_emc_str(arg, assign)
+        if isinstance(arg, PStrId):
+            new_line = self._resolve_string_id(arg, assign)
+        self.update_line(line_idx, new_line)
 
     def _gen_func_call(self, call: FuncCall) -> Optional[str]:
         if call.name not in builtins:
             return f"{call.name}(TODO ARGS)"
         func_def = builtins[call.name]
+        assert (len(call.name) > 0)
         r = f"{call.name}("
         for i, arg in enumerate(func_def.params):
             if i > 0:
                 r += ", "
             r += arg.name
-            self._rewrite_var_name(i, arg.name)
+            self._rewrite_var_name(i, arg)
         r += ")"
         return r
 
@@ -435,7 +482,9 @@ class CodeGen:
             return f"{val.unary}" + self._gen_val(val.value)
         if isinstance(val, ValueLocalVAR):
             return f"LocalVar{hex(val.index)}"
-        print(f"CodeGen: unhandled val type {type(val)}")
+        if isinstance(val, ValueVAR):
+            return f"Var{hex(val.index)}"
+        print(f"CodeGen: unhandled val type {type(val)}: '{val}'")
         return None
 
     def _gen_inst(self, inst: Instruction) -> Optional[str]:
@@ -490,14 +539,16 @@ class CodeGen:
             except Exception as e:
                 print(e)
                 print(f"exception at {self.index}")
+                # raise e
 
         return self.lines
 
 
-def gen_pseudo_code(lines: List[str]) -> List[str]:
+def gen_pseudo_code(lines: List[str], level_lang_info: Optional[LangFileInfo] = None, global_lang_info: Optional[LangFileInfo] = None, script_info: Optional[ScriptFileInfo] = None) -> List[str]:
     parser = Parser()
     parser.process(lines)
-    gen = CodeGen(parser)
+    gen = CodeGen(parser, level_lang_info=level_lang_info, global_lang_info=global_lang_info,
+                  script_info=script_info)
     return gen.process()
 
 
