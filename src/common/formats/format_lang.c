@@ -85,7 +85,7 @@ void LangHandleShow(LangHandle *handle) {
 int LangHandleFromBuffer(LangHandle *handle, uint8_t *buffer,
                          size_t bufferSize) {
   // if the last char is 0x1A then the .eng file is a plain, normal .txt file.
-  //  Otherwise, it have encoded text and an header at top:
+  //  Otherwise, it have encoded text and a header at top:
   assert(buffer[bufferSize - 1] != 0X1A);
   handle->originalBuffer = buffer;
   const uint16_t *offsets = (uint16_t *)handle->originalBuffer;
