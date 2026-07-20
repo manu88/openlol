@@ -482,9 +482,9 @@ class ScriptRender(BaseRender):
 
     def update_for_item(self, file_name: str, pak_name: str):
         out_file = lol.get_temp_path_for("script.asm")
-        self.original_asm.delete("1.0", tk.END)
+        self.original_asm.remove_lines()
+        self.analysis_code.remove_lines()
         script_info = lol.get_script_info(file_name, pak_name, out_file)
-
         level_lang_handle = None
         lang_files = lol.list(pak_name, "*.ENG")
         if lang_files and len(lang_files) > 0:

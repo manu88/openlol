@@ -167,10 +167,16 @@ def analyze_script(lines: List[str], script_info: ScriptFileInfo) -> Optional[Li
 
 
 class CodeViewer(tk.Text):
+    def remove_lines(self):
+        self.config(state=tk.NORMAL)
+        self.delete("1.0", tk.END)
+        self.config(state=tk.DISABLED)
+
     def set_lines(self, lines: List[str]):
+        self.config(state=tk.NORMAL)
         acc = 1
         for l in lines:
-            self.insert(f"{acc}.0", f"{acc:02}: {l}")
+            self.insert(f"{acc}.0", f"{hex(acc):02}: {l}")
             acc += 1
         self.highlight_syntax()
         self.config(state=tk.DISABLED)
