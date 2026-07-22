@@ -1411,14 +1411,13 @@ static int cmdXXXShow(const char *filepath) {
     return 1;
   }
 
-  printf("xxx data size = %zi -> %zi\n", dataSize, dataSize / 12);
   XXXHandle handle = {0};
   XXXHandleFromBuffer(&handle, buffer, dataSize);
 
   for (int i = 0; i < handle.numEntries; i++) {
     const LegendEntry *entry = handle.entries + i;
-    printf("%i shapeId=0X%02X enabled=%X p=%02X strId=%i\n", i, entry->shapeId,
-           entry->enabled, entry->p, entry->stringId - 0X4000);
+    printf("%i shapeId=0X%02X enabled=%X p=%02X strId=0X%02X\n", i,
+           entry->shapeId, entry->enabled, entry->p, entry->stringId - 0X4000);
   }
   if (freeBuffer) {
     free(buffer);

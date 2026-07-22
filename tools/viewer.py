@@ -7,7 +7,7 @@ from tkinter import ttk
 from typing import Dict, Optional
 import PIL.Image
 import PIL.ImageTk
-from lol import lol, SHPFileInfo, WSAFileInfo
+from lol import lol, SHPFileInfo, WSAFileInfo, XXXFileInfo
 from script_tools import analyze_script, CodeViewer
 from emc_ast import gen_pseudo_code
 from typing import List
@@ -507,6 +507,33 @@ class ScriptRender(BaseRender):
                 self.analysis_code.set_lines([l + "\n" for l in analysis])
 
 
+class XXXRender(BaseRender):
+    def __init__(self, parent):
+        super().__init__(parent)
+        style = ttk.Style(parent)
+        style.theme_use("clam")
+        style.configure("Treeview", background="black",
+                        fieldbackground="black", foreground="white")
+        self.table = ttk.Treeview(self, columns=("stringId", "shapeId"))
+        self.table.heading("stringId", text="stringId")
+        self.table.heading("shapeId", text="shapeId")
+        self.table.pack(fill=tk.X, expand=True)
+
+    def clear_table(self):
+        for i in self.table.get_children():
+            self.table.delete(i)
+
+    def update_for_item(self, file_name: str, pak_name: str):
+        print(f"{file_name} in {pak_name}")
+        info = lol.get_xxx_info(file_name, pak_name)
+        if info is None:
+            return
+        self.clear_table()
+        for line_num, entry in enumerate(info.entries):
+            self.table.insert(
+                "", "end", text=f"{line_num}", values=(entry.strId, entry.shapeId))
+
+
 class UI:
     def __init__(self):
         self.root = tk.Tk()
@@ -547,6 +574,7 @@ class UI:
         self._register_renderer("INI", ScriptRender)
         self._register_renderer("INF", ScriptRender)
         self._register_renderer("XMI", XMIRender)
+        self._register_renderer("XXX", XXXRender)
 
     def _register_renderer(self, name: str, cls):
         self.renders[name] = cls(self.details_frame)

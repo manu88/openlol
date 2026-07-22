@@ -6,6 +6,31 @@ from os import listdir, remove
 from typing import List, Optional, Set
 
 
+class XXXFileInfo:
+    class XXXEntry:
+        def __init__(self) -> None:
+            self.shapeId = 0
+            self.strId = 0
+
+        def parse(self, line: str) -> bool:
+            # 0 shapeId=0X0A enabled=0 p=02 strId=469
+            toks = line.split(" ")
+            self.shapeId = int(toks[1].split("=")[1], base=16)
+            self.strId = int(toks[4].split("=")[1], base=16)
+            return True
+
+    def __init__(self, desc: List[str]):
+        self.desc = desc
+        self.entries: List[XXXFileInfo.XXXEntry] = []
+        self._parse()
+
+    def _parse(self):
+        for line in self.desc:
+            entry = self.XXXEntry()
+            if entry.parse(line):
+                self.entries.append(entry)
+
+
 class LangFileInfo:
     def __init__(self, desc: List[str]):
         self.desc = desc
@@ -397,6 +422,14 @@ class LOL:
         if resp.returncode != 0:
             return False
         return True
+
+    def get_xxx_info(self, file: str, pak: str) -> Optional[XXXFileInfo]:
+        argv = [self.tool_path, "-p", pak, "xxx", "show", file]
+        resp = _do_exec(argv)
+        if resp.returncode != 0:
+            return None
+        proc_output = resp.stdout.decode()
+        return XXXFileInfo(proc_output.splitlines())
 
     def extract_voc_file(self, file: str, pak: str, out_file: str) -> bool:
         argv = [self.tool_path, "-p", pak, "voc", "extract", file, out_file]
