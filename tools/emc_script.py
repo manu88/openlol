@@ -25,7 +25,7 @@ class PEMCStr(Param):
 
 
 class Func:
-    def __init__(self, params: List[Param]):
+    def __init__(self, params: List[Param] = []):
         self.params = params
 
     def has_params(self) -> bool:
@@ -52,13 +52,31 @@ builtins = {
     "clearDialogueField": Func([]),
     "playCharacterScriptChat": Func([PNum("charId"), PNum("mode"), PStrId("stringId")]),
     "rollDice": Func([PNum("times"), PNum("max")]),
-    "setItemProperty": Func([PNum("index"), PNum("stringId"), PNum("shpId"), PNum("type"), PNum("scriptFun"), PNum("might"), PNum("skill"), PNum("protection"), PNum("flags"), PNum("unknown")]),
+    "setItemProperty": Func([PNum("index"), PStrId("stringId"), PNum("shpId"), PNum("type"), PNum("scriptFun"), PNum("might"), PNum("skill"), PNum("protection"), PNum("flags"), PNum("unknown")]),
     "allocItemProperties": Func([PNum("size")]),
     "getCharacterStat": Func([PNum("p1"), PNum("p2"), PNum("p3")]),
     "makeItem": Func([PNum("p1"), PNum("p2"), PNum("p3")]),
     "printMessage": Func([PNum("type"), PStrId("stringId"), PNum("soundId")]),
     "setupDialogueButtons": Func([PNum("numButtons"), PStrId("str0"), PStrId("str1"), PStrId("str2")]),
     "checkForCertainPartyMember": Func([PNum("charId")]),
+    "drawScene": Func([PNum("pageNum")]),
+    "moveMonster": Func([PNum("monsterId"), PNum("destBlock"), PNum("xOff"), PNum("yOff"), PNum("destDir")]),
+    "initSceneWindowDialogue": Func([PNum("p0")]),
+    "copyRegion": Func([PNum("srcX"), PNum("srcY"), PNum("destX"), PNum("destY"), PNum("w"), PNum("h"), PNum("srcPage"), PNum("destPage")]),
+    "giveTakeMoney": Func([PNum("amount")]),
+    "delay": Func([PNum("ticks")]),
+    "getItemParam": Func([PNum("p0"), PNum("p1")]),
+    "getDirection": Func(),
+    "getItemInHand": Func(),
+    "deleteHandItem": Func(),
+    "processDialogue": Func(),
+    "getDirection": Func(),
+    "getGlobalScriptVar": Func([PNum("index")]),
+    "releaseTimScript": Func([PNum("scriptId")]),
+    "playSoundEffect": Func([PNum("soundId")]),
+    "getWallFlags": Func([PNum("blockId"), PNum("wall")]),
+    "triggerDoorSwitch": Func([PNum("blockId"), PNum("p1")]),
+    "loadMonsterProperties": Func([PNum("monsterIndex"), PNum("shapeIndex"), PNum("hitChance"), PNum("protection"), PNum("evadeChance"), PNum("speed"), PNum("p6"), PNum("p7"), PNum("p8")]),
 }
 
 

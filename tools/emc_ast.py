@@ -516,7 +516,7 @@ class CodeGen:
             self.lines.append("")
             self.index += 1
             self.lines.append(
-                f"JUMP_TARGET_{instruction.addr}:")
+                f"JUMP_TARGET_{hex(instruction.addr)}:")
             self.index += 1
         self.indent = 2
         line = self._gen_inst(instruction)
@@ -528,7 +528,7 @@ class CodeGen:
             self.index += 1
             self.indent = 0
             self.lines.append(
-                f"LABEL_{lbl_num}:")
+                f"LABEL_{hex(lbl_num)}:")
             self.index += 1
         self.index += 1
 
